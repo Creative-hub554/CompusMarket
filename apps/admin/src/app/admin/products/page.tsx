@@ -25,6 +25,7 @@ export default async function AdminProductsPage() {
         <table className="w-full text-sm">
           <thead className="bg-gray-50">
             <tr>
+              <th className="px-4 py-3 text-left font-medium w-16">Image</th>
               <th className="px-4 py-3 text-left font-medium">Name</th>
               <th className="px-4 py-3 text-left font-medium">Category</th>
               <th className="px-4 py-3 text-left font-medium">Price</th>
@@ -36,7 +37,18 @@ export default async function AdminProductsPage() {
           <tbody className="divide-y">
             {products.map((product) => (
               <tr key={product.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3">{product.name}</td>
+                <td className="px-4 py-3">
+                  {product.images?.[0] ? (
+                    <img
+                      src={product.images[0]}
+                      alt=""
+                      className="h-10 w-10 rounded object-contain bg-gray-100"
+                    />
+                  ) : (
+                    <div className="h-10 w-10 rounded bg-gray-100" />
+                  )}
+                </td>
+                <td className="px-4 py-3 font-medium">{product.name}</td>
                 <td className="px-4 py-3 text-gray-500">
                   {product.category.name}
                 </td>

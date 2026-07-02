@@ -57,4 +57,14 @@ export const api = {
     list: () => fetchApi<Category[]>("/categories"),
     seed: () => fetchApi<Category[]>("/categories/seed", { method: "POST" }),
   },
+  upload: async (file: File): Promise<{ url: string; filename: string }> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch(`${API_BASE}/upload`, {
+      method: "POST",
+      body: formData,
+    });
+    if (!res.ok) throw new Error("Upload failed");
+    return res.json();
+  },
 };

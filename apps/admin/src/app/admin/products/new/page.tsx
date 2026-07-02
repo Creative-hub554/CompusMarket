@@ -7,6 +7,8 @@ import { api, type Category } from "@/services/api";
 export default function NewProductPage() {
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [images, setImages] = useState<string[]>([]);
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -22,13 +24,33 @@ export default function NewProductPage() {
     api.categories.list().then(setCategories);
   }, []);
 
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const result = await api.upload(file);
+      setImages((prev) => [...prev, result.url]);
+    } catch {
+      alert("Upload failed");
+    }
+    setUploading(false);
+  }
+
+  function removeImage(url: string) {
+    setImages((prev) => prev.filter((i) => i !== url));
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     await api.products.create({
       ...form,
+      images,
       price: parseFloat(form.price),
       stock: parseInt(form.stock),
-      warrantyMonths: form.warrantyMonths ? parseInt(form.warrantyMonths) : undefined,
+      warrantyMonths: form.warrantyMonths
+        ? parseInt(form.warrantyMonths)
+        : undefined,
     });
     router.push("/admin/products");
   }
@@ -37,6 +59,34 @@ export default function NewProductPage() {
     <div className="max-w-lg">
       <h1 className="text-2xl font-bold mb-6">Add Product</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Images</label>
+          <div className="flex flex-wrap gap-2 mb-2">
+            {images.map((url) => (
+              <div key={url} className="relative h-20 w-20 rounded border">
+                <img
+                  src={url}
+                  alt=""
+                  className="h-full w-full object-contain"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeImage(url)}
+                  className="absolute -right-1 -top-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs"
+                >
+                  x
+                </button>
+              </div>
+            ))}
+          </div>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            disabled={uploading}
+            className="w-full text-sm"
+          />
+        </div>
         <div>
           <label className="block text-sm font-medium mb-1">Name</label>
           <input
@@ -139,9 +189,10 @@ export default function NewProductPage() {
         </div>
         <button
           type="submit"
-          className="rounded bg-blue-600 px-6 py-2 text-white font-medium hover:bg-blue-700"
+          disabled={uploading}
+          className="rounded bg-blue-600 px-6 py-2 text-white font-medium hover:bg-blue-700 disabled:opacity-50"
         >
-          Create Product
+          {uploading ? "Uploading..." : "Create Product"}
         </button>
       </form>
     </div>

@@ -9,6 +9,8 @@ export default function EditProductPage() {
   const params = useParams();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [images, setImages] = useState<string[]>([]);
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -26,6 +28,7 @@ export default function EditProductPage() {
       api.products.byId(params.id as string),
     ]).then(([cats, product]) => {
       setCategories(cats);
+      setImages(product.images || []);
       setForm({
         name: product.name,
         description: product.description,
@@ -40,13 +43,33 @@ export default function EditProductPage() {
     });
   }, [params.id]);
 
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const result = await api.upload(file);
+      setImages((prev) => [...prev, result.url]);
+    } catch {
+      alert("Upload failed");
+    }
+    setUploading(false);
+  }
+
+  function removeImage(url: string) {
+    setImages((prev) => prev.filter((i) => i !== url));
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     await api.products.update(params.id as string, {
       ...form,
+      images,
       price: parseFloat(form.price),
       stock: parseInt(form.stock),
-      warrantyMonths: form.warrantyMonths ? parseInt(form.warrantyMonths) : undefined,
+      warrantyMonths: form.warrantyMonths
+        ? parseInt(form.warrantyMonths)
+        : undefined,
     });
     router.push("/admin/products");
   }
@@ -57,6 +80,34 @@ export default function EditProductPage() {
     <div className="max-w-lg">
       <h1 className="text-2xl font-bold mb-6">Edit Product</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Images</label>
+          <div className="flex flex-wrap gap-2 mb-2">
+            {images.map((url) => (
+              <div key={url} className="relative h-20 w-20 rounded border">
+                <img
+                  src={url}
+                  alt=""
+                  className="h-full w-full object-contain"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeImage(url)}
+                  className="absolute -right-1 -top-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs"
+                >
+                  x
+                </button>
+              </div>
+            ))}
+          </div>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            disabled={uploading}
+            className="w-full text-sm"
+          />
+        </div>
         <div>
           <label className="block text-sm font-medium mb-1">Name</label>
           <input
@@ -131,29 +182,38 @@ export default function EditProductPage() {
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Warranty (months)</label>
+            <label className="block text-sm font-medium mb-1">
+              Warranty (months)
+            </label>
             <input
               type="number"
               value={form.warrantyMonths}
-              onChange={(e) => setForm({ ...form, warrantyMonths: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, warrantyMonths: e.target.value })
+              }
               className="w-full rounded border px-3 py-2 text-sm"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Serial Number</label>
+            <label className="block text-sm font-medium mb-1">
+              Serial Number
+            </label>
             <input
               type="text"
               value={form.serialNumber}
-              onChange={(e) => setForm({ ...form, serialNumber: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, serialNumber: e.target.value })
+              }
               className="w-full rounded border px-3 py-2 text-sm"
             />
           </div>
         </div>
         <button
           type="submit"
-          className="rounded bg-blue-600 px-6 py-2 text-white font-medium hover:bg-blue-700"
+          disabled={uploading}
+          className="rounded bg-blue-600 px-6 py-2 text-white font-medium hover:bg-blue-700 disabled:opacity-50"
         >
-          Update Product
+          {uploading ? "Uploading..." : "Update Product"}
         </button>
       </form>
     </div>
