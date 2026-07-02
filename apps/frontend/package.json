@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.2",
+    "@react-pdf/renderer": "^4.5.1",
     "@theo/database": "workspace:*",
     "bcryptjs": "^3.0.3",
     "next": "^15.0.0",

@@ -35,6 +35,30 @@ export type Category = {
   _count: { products: number };
 };
 
+export type Resume = {
+  id: string;
+  userId: string;
+  title: string;
+  template: string;
+  data: Record<string, unknown>;
+  photo?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Article = {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  excerpt?: string;
+  category: string;
+  tags: string[];
+  published: boolean;
+  author: { name: string | null };
+  createdAt: string;
+};
+
 export const api = {
   products: {
     list: () => fetchApi<Product[]>("/products"),
@@ -44,5 +68,42 @@ export const api = {
   },
   categories: {
     list: () => fetchApi<Category[]>("/categories"),
+  },
+  resumes: {
+    list: (token: string) =>
+      fetchApi<Resume[]>("/resumes", {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+    byId: (id: string, token: string) =>
+      fetchApi<Resume>(`/resumes/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+    create: (data: { title: string; data: Record<string, unknown> }, token: string) =>
+      fetchApi<Resume>("/resumes", {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+    update: (
+      id: string,
+      data: { title?: string; data?: Record<string, unknown> },
+      token: string
+    ) =>
+      fetchApi<Resume>(`/resumes/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+    delete: (id: string, token: string) =>
+      fetchApi<void>(`/resumes/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+  },
+  articles: {
+    list: () => fetchApi<Article[]>("/articles"),
+    bySlug: (slug: string) => fetchApi<Article>(`/articles/${slug}`),
+    byCategory: (category: string) =>
+      fetchApi<Article[]>(`/articles/category/${category}`),
   },
 };

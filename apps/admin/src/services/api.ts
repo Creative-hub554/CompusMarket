@@ -36,6 +36,19 @@ export type Category = {
   _count: { products: number };
 };
 
+export type Article = {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  excerpt?: string;
+  category: string;
+  tags: string[];
+  published: boolean;
+  author: { name: string | null };
+  createdAt: string;
+};
+
 export const api = {
   products: {
     list: () => fetchApi<Product[]>("/products"),
@@ -56,6 +69,21 @@ export const api = {
   categories: {
     list: () => fetchApi<Category[]>("/categories"),
     seed: () => fetchApi<Category[]>("/categories/seed", { method: "POST" }),
+  },
+  articles: {
+    list: () => fetchApi<Article[]>("/articles"),
+    all: () => fetchApi<Article[]>("/articles/all"),
+    bySlug: (slug: string) => fetchApi<Article>(`/articles/${slug}`),
+    create: (data: Record<string, unknown>) =>
+      fetchApi<Article>("/articles", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    update: (id: string, data: Record<string, unknown>) =>
+      fetchApi<Article>(`/articles/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
   },
   upload: async (file: File): Promise<{ url: string; filename: string }> => {
     const formData = new FormData();

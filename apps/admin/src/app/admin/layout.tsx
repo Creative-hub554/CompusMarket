@@ -30,6 +30,12 @@ export default function AdminLayout({
           >
             Categories
           </Link>
+          <Link
+            href="/admin/articles"
+            className="block rounded px-3 py-2 hover:bg-gray-200"
+          >
+            Articles
+          </Link>
         </nav>
       </aside>
       <main className="flex-1 p-6">{children}</main>
