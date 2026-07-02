@@ -1,8 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 
-const emptyResume = {
+const PDFDownloadLink = dynamic(
+  () => import("@react-pdf/renderer").then((mod) => mod.PDFDownloadLink),
+  { ssr: false }
+);
+
+const ResumePDF = dynamic(() => import("@/components/ResumePDF"), {
+  ssr: false,
+});
+
+type ResumeData = {
+  personalInfo: {
+    fullName: string;
+    email: string;
+    phone: string;
+    address: string;
+    title: string;
+    summary: string;
+  };
+  education: {
+    id: string;
+    institution: string;
+    degree: string;
+    field: string;
+    startDate: string;
+    endDate: string;
+  }[];
+  experience: {
+    id: string;
+    company: string;
+    position: string;
+    startDate: string;
+    endDate: string;
+    description: string;
+  }[];
+  skills: string[];
+  certifications: { id: string; name: string; issuer: string; date: string }[];
+  languages: { id: string; name: string; level: string }[];
+};
+
+const emptyResume: ResumeData = {
   personalInfo: {
     fullName: "",
     email: "",
@@ -11,36 +51,34 @@ const emptyResume = {
     title: "",
     summary: "",
   },
-  education: [] as {
-    id: string;
-    institution: string;
-    degree: string;
-    field: string;
-    startDate: string;
-    endDate: string;
-  }[],
-  experience: [] as {
-    id: string;
-    company: string;
-    position: string;
-    startDate: string;
-    endDate: string;
-    description: string;
-  }[],
-  skills: [] as string[],
-  certifications: [] as {
-    id: string;
-    name: string;
-    issuer: string;
-    date: string;
-  }[],
-  languages: [] as { id: string; name: string; level: string }[],
+  education: [],
+  experience: [],
+  skills: [],
+  certifications: [],
+  languages: [],
 };
 
+type SavedResume = { id: string; title: string; data: ResumeData; updatedAt: string };
+
 export default function ResumeBuilderPage() {
-  const [resume, setResume] = useState({ ...emptyResume });
+  const [resume, setResume] = useState<ResumeData>({ ...emptyResume });
   const [newSkill, setNewSkill] = useState("");
   const [activeSection, setActiveSection] = useState("personal");
+  const [savedResumes, setSavedResumes] = useState<SavedResume[]>([]);
+  const [currentResumeId, setCurrentResumeId] = useState<string | null>(null);
+  const [resumeTitle, setResumeTitle] = useState("My Resume");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/resumes")
+      .then((res) => res.json())
+      .then((data) => {
+        setSavedResumes(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
 
   function addEducation() {
     setResume((prev) => ({
@@ -92,6 +130,53 @@ export default function ResumeBuilderPage() {
     }
   }
 
+  async function saveResume() {
+    setSaving(true);
+    try {
+      if (currentResumeId) {
+        await fetch(`/api/resumes/${currentResumeId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: resumeTitle, data: resume }),
+        });
+      } else {
+        const res = await fetch("/api/resumes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: resumeTitle, data: resume }),
+        });
+        const created = await res.json();
+        setCurrentResumeId(created.id);
+      }
+      const res = await fetch("/api/resumes");
+      setSavedResumes(await res.json());
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function loadResume(r: SavedResume) {
+    setCurrentResumeId(r.id);
+    setResumeTitle(r.title);
+    setResume(r.data);
+  }
+
+  async function deleteResume(id: string) {
+    await fetch(`/api/resumes/${id}`, { method: "DELETE" });
+    if (currentResumeId === id) {
+      setCurrentResumeId(null);
+      setResumeTitle("My Resume");
+      setResume({ ...emptyResume });
+    }
+    setSavedResumes((prev) => prev.filter((r) => r.id !== id));
+  }
+
+  async function newResume() {
+    setCurrentResumeId(null);
+    setResumeTitle("My Resume");
+    setResume({ ...emptyResume });
+  }
+
   const navItems = [
     { id: "personal", label: "Personal Info" },
     { id: "education", label: "Education" },
@@ -103,7 +188,37 @@ export default function ResumeBuilderPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Resume Builder</h1>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold">Resume Builder</h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Build, save, and export professional resumes for free.
+          </p>
+        </div>
+        <div className="flex gap-2 items-center">
+          <input
+            value={resumeTitle}
+            onChange={(e) => setResumeTitle(e.target.value)}
+            className="rounded border px-3 py-1.5 text-sm w-48"
+          />
+          <button
+            onClick={saveResume}
+            disabled={saving}
+            className="rounded bg-green-600 px-4 py-1.5 text-sm text-white hover:bg-green-700 disabled:opacity-50"
+          >
+            {saving ? "Saving..." : "Save"}
+          </button>
+          <PDFDownloadLink
+            document={<ResumePDF data={resume} />}
+            fileName={`${resumeTitle.replace(/\s+/g, "_")}.pdf`}
+            className="rounded bg-blue-600 px-4 py-1.5 text-sm text-white hover:bg-blue-700 inline-block"
+          >
+            {({ loading: pdfLoading }: { loading: boolean }) =>
+              pdfLoading ? "Generating..." : "Export PDF"
+            }
+          </PDFDownloadLink>
+        </div>
+      </div>
 
       <div className="flex gap-8">
         <aside className="w-48 shrink-0">
@@ -121,6 +236,44 @@ export default function ResumeBuilderPage() {
                 {item.label}
               </button>
             ))}
+            <hr className="my-3" />
+            <div className="space-y-1">
+              <p className="text-xs font-semibold text-gray-400 px-3 uppercase">
+                Saved Resumes
+              </p>
+              {loading ? (
+                <p className="px-3 text-xs text-gray-400">Loading...</p>
+              ) : savedResumes.length === 0 ? (
+                <p className="px-3 text-xs text-gray-400">No saved resumes</p>
+              ) : (
+                savedResumes.map((r) => (
+                  <div key={r.id} className="flex items-center gap-1 px-2">
+                    <button
+                      onClick={() => loadResume(r)}
+                      className={`flex-1 rounded px-2 py-1 text-left text-xs transition ${
+                        currentResumeId === r.id
+                          ? "bg-blue-50 text-blue-700"
+                          : "text-gray-600 hover:bg-gray-100"
+                      }`}
+                    >
+                      {r.title}
+                    </button>
+                    <button
+                      onClick={() => deleteResume(r.id)}
+                      className="text-gray-400 hover:text-red-500 text-xs"
+                    >
+                      x
+                    </button>
+                  </div>
+                ))
+              )}
+              <button
+                onClick={newResume}
+                className="w-full rounded px-2 py-1 text-left text-xs text-blue-600 hover:bg-blue-50"
+              >
+                + New Resume
+              </button>
+            </div>
           </nav>
         </aside>
 
