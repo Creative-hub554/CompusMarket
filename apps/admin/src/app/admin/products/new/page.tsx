@@ -1,0 +1,149 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { api, type Category } from "@/services/api";
+
+export default function NewProductPage() {
+  const router = useRouter();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [form, setForm] = useState({
+    name: "",
+    description: "",
+    price: "",
+    condition: "A",
+    categoryId: "",
+    stock: "1",
+    warrantyMonths: "",
+    serialNumber: "",
+  });
+
+  useEffect(() => {
+    api.categories.list().then(setCategories);
+  }, []);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    await api.products.create({
+      ...form,
+      price: parseFloat(form.price),
+      stock: parseInt(form.stock),
+      warrantyMonths: form.warrantyMonths ? parseInt(form.warrantyMonths) : undefined,
+    });
+    router.push("/admin/products");
+  }
+
+  return (
+    <div className="max-w-lg">
+      <h1 className="text-2xl font-bold mb-6">Add Product</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Name</label>
+          <input
+            type="text"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            className="w-full rounded border px-3 py-2 text-sm"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Description</label>
+          <textarea
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            className="w-full rounded border px-3 py-2 text-sm"
+            rows={4}
+            required
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Price ($)</label>
+            <input
+              type="number"
+              step="0.01"
+              value={form.price}
+              onChange={(e) => setForm({ ...form, price: e.target.value })}
+              className="w-full rounded border px-3 py-2 text-sm"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Condition</label>
+            <select
+              value={form.condition}
+              onChange={(e) => setForm({ ...form, condition: e.target.value })}
+              className="w-full rounded border px-3 py-2 text-sm"
+            >
+              <option value="A">A - Like New</option>
+              <option value="B">B - Good</option>
+              <option value="C">C - Fair</option>
+            </select>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Category</label>
+            <select
+              value={form.categoryId}
+              onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
+              className="w-full rounded border px-3 py-2 text-sm"
+              required
+            >
+              <option value="">Select...</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Stock</label>
+            <input
+              type="number"
+              value={form.stock}
+              onChange={(e) => setForm({ ...form, stock: e.target.value })}
+              className="w-full rounded border px-3 py-2 text-sm"
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Warranty (months)
+            </label>
+            <input
+              type="number"
+              value={form.warrantyMonths}
+              onChange={(e) =>
+                setForm({ ...form, warrantyMonths: e.target.value })
+              }
+              className="w-full rounded border px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Serial Number
+            </label>
+            <input
+              type="text"
+              value={form.serialNumber}
+              onChange={(e) =>
+                setForm({ ...form, serialNumber: e.target.value })
+              }
+              className="w-full rounded border px-3 py-2 text-sm"
+            />
+          </div>
+        </div>
+        <button
+          type="submit"
+          className="rounded bg-blue-600 px-6 py-2 text-white font-medium hover:bg-blue-700"
+        >
+          Create Product
+        </button>
+      </form>
+    </div>
+  );
+}

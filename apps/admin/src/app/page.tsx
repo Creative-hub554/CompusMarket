@@ -1,8 +1,5 @@
+import { redirect } from "next/navigation";
+
 export default function AdminPage() {
-  return (
-    <main>
-      <h1>Admin Dashboard</h1>
-      <p>Theo Platform Administration</p>
-    </main>
-  );
+  redirect("/admin");
 }
