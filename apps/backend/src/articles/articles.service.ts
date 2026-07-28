@@ -1,8 +1,10 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { prisma, ArticleCategory } from "@theo/database";
+import { PrismaService } from "../prisma/prisma.service";
+import { ArticleCategory } from "@theo/database";
 
 @Injectable()
 export class ArticlesService {
+  constructor(private prisma: PrismaService) {}
   async create(data: {
     title: string;
     slug: string;
@@ -12,25 +14,25 @@ export class ArticlesService {
     tags?: string[];
     authorId: string;
   }) {
-    return prisma.article.create({ data });
+    return this.prisma.article.create({ data });
   }
 
   async findAllPublished() {
-    return prisma.article.findMany({
+    return this.prisma.article.findMany({
       where: { published: true },
       orderBy: { createdAt: "desc" },
     });
   }
 
   async findAll() {
-    return prisma.article.findMany({
+    return this.prisma.article.findMany({
       orderBy: { createdAt: "desc" },
       include: { author: { select: { name: true } } },
     });
   }
 
   async findBySlug(slug: string) {
-    const article = await prisma.article.findUnique({
+    const article = await this.prisma.article.findUnique({
       where: { slug },
       include: { author: { select: { name: true } } },
     });
@@ -39,7 +41,7 @@ export class ArticlesService {
   }
 
   async findByCategory(category: ArticleCategory) {
-    return prisma.article.findMany({
+    return this.prisma.article.findMany({
       where: { published: true, category },
       orderBy: { createdAt: "desc" },
     });
@@ -56,7 +58,8 @@ export class ArticlesService {
       published: boolean;
     }>
   ) {
-    await this.findBySlug(id);
-    return prisma.article.update({ where: { id }, data });
+    const existing = await this.prisma.article.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException("Article not found");
+    return this.prisma.article.update({ where: { id }, data });
   }
 }

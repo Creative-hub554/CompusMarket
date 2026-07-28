@@ -1,6 +1,6 @@
 $env:Path = "C:\Program Files\nodejs;C:\Users\theow\AppData\Roaming\npm;$env:Path"
 
-Write-Host "Installing dependencies..." -ForegroundColor Green
+Write-Host "Installing dependencies for Khmeronlineshopbytheo..." -ForegroundColor Green
 pnpm install
 
 Write-Host "Generating Prisma client..." -ForegroundColor Green

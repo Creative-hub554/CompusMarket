@@ -1,1 +1,262 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600&display=swap');
 @import "tailwindcss";
+
+@theme {
+  --color-khmer-blue: #1a237e;
+  --color-khmer-red: #d42027;
+  --color-khmer-gold: #d4a027;
+  --color-khmer-blue-light: #283593;
+  --color-khmer-red-light: #e53935;
+  --color-khmer-gold-light: #f0c040;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-khmer-blue) transparent;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Playfair Display', serif;
+}
+
+/* ---- Keyframes ---- */
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 32, 39, 0.4); }
+  50%      { box-shadow: 0 0 0 8px rgba(212, 32, 39, 0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes templeFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+/* ---- Utility classes ---- */
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out both;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out both;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.3s ease-out both;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.animate-temple-float {
+  animation: templeFloat 3s ease-in-out infinite;
+}
+
+/* Stagger children */
+.stagger-children > * {
+  animation: fadeInUp 0.5s ease-out both;
+}
+.stagger-children > *:nth-child(1)  { animation-delay: 0.05s; }
+.stagger-children > *:nth-child(2)  { animation-delay: 0.10s; }
+.stagger-children > *:nth-child(3)  { animation-delay: 0.15s; }
+.stagger-children > *:nth-child(4)  { animation-delay: 0.20s; }
+.stagger-children > *:nth-child(5)  { animation-delay: 0.25s; }
+.stagger-children > *:nth-child(6)  { animation-delay: 0.30s; }
+.stagger-children > *:nth-child(7)  { animation-delay: 0.35s; }
+.stagger-children > *:nth-child(8)  { animation-delay: 0.40s; }
+.stagger-children > *:nth-child(9)  { animation-delay: 0.45s; }
+.stagger-children > *:nth-child(10) { animation-delay: 0.50s; }
+.stagger-children > *:nth-child(n+11) { animation-delay: 0.55s; }
+
+/* ---- UI polish utilities ---- */
+
+.btn-primary {
+  @apply rounded-lg bg-khmer-blue px-4 py-2 text-sm text-white font-medium hover:bg-khmer-blue-light transition disabled:opacity-40;
+}
+
+.btn-success {
+  @apply rounded-lg bg-green-600 px-4 py-2 text-sm text-white font-medium hover:bg-green-700 transition;
+}
+
+.btn-ghost {
+  @apply rounded-lg border px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 transition;
+}
+
+.btn-danger {
+  @apply rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-khmer-red hover:bg-red-50 transition;
+}
+
+.input-field {
+  @apply rounded-lg border border-gray-300 px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-khmer-blue/30 focus:border-khmer-blue transition;
+}
+
+.card {
+  @apply rounded-xl border border-gray-200 bg-white;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -8px rgba(26, 35, 126, 0.15);
+}
+
+.tag {
+  @apply inline-flex items-center text-xs bg-gray-100 text-gray-600 rounded px-2 py-0.5 font-medium;
+}
+
+.badge {
+  @apply inline-flex items-center text-xs rounded px-2 py-0.5 font-medium;
+}
+
+.progress-bar {
+  @apply w-full bg-gray-200 rounded-full h-2 overflow-hidden;
+}
+
+.progress-fill {
+  @apply h-full rounded-full transition-all duration-500 ease-out;
+}
+
+.section-title {
+  @apply text-lg font-semibold text-gray-900;
+}
+
+.page-header {
+  @apply mb-8;
+}
+
+.page-title {
+  @apply text-3xl font-bold font-['Playfair_Display'] inline-block;
+  position: relative;
+}
+.page-title::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 48px;
+  height: 3px;
+  background: linear-gradient(90deg, #d4a027, #f0c040);
+  border-radius: 2px;
+}
+
+.page-subtitle {
+  @apply text-sm text-gray-500 mt-2;
+}
+
+/* Editor status indicator */
+.status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+.status-dot.saved { background: #16a34a; }
+.status-dot.saving { background: #f59e0b; animation: pulse 1s infinite; }
+.status-dot.unsaved { background: #dc2626; }
+
+/* 3D card flip */
+.flip-card {
+  perspective: 1000px;
+}
+.flip-card-inner {
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+.flip-card-inner.flipped {
+  transform: rotateY(180deg);
+}
+.flip-card-front, .flip-card-back {
+  backface-visibility: hidden;
+  position: absolute;
+  inset: 0;
+}
+.flip-card-back {
+  transform: rotateY(180deg);
+}
+
+/* Interactive overrides */
+a, button {
+  transition: all 0.2s ease;
+}
+
+img {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Card hover */
+.card-hover {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -8px rgba(26, 35, 126, 0.15);
+}
+
+/* Khmer flag gradient banner */
+.banner-flag {
+  background: linear-gradient(180deg, #1a237e 0%, #d42027 50%, #1a237e 100%);
+}
+
+/* Gold underline accent */
+.gold-underline {
+  position: relative;
+}
+.gold-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 48px;
+  height: 3px;
+  background: linear-gradient(90deg, #d4a027, #f0c040);
+  border-radius: 2px;
+}
+
+/* Nav link hover effect */
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #d4a027;
+  transition: width 0.3s ease;
+}
+.nav-link:hover::after {
+  width: 100%;
+}

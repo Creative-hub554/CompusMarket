@@ -31,7 +31,8 @@ export async function POST(req: Request) {
   if (!user)
     return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-  const body = await req.json();
+  let body;
+  try { body = await req.json(); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
   const resume = await prisma.resume.create({
     data: {
       userId: user.id,

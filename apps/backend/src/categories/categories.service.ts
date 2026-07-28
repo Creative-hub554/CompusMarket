@@ -1,28 +1,29 @@
 import { Injectable } from "@nestjs/common";
-import { prisma } from "@theo/database";
+import { PrismaService } from "../prisma/prisma.service";
 import type { Category } from "@theo/database";
 
 @Injectable()
 export class CategoriesService {
+  constructor(private prisma: PrismaService) {}
   async create(name: string, slug: string): Promise<Category> {
-    return prisma.category.create({ data: { name, slug } });
+    return this.prisma.category.create({ data: { name, slug } });
   }
 
   async findAll(): Promise<(Category & { _count: { products: number } })[]> {
-    return prisma.category.findMany({
+    return this.prisma.category.findMany({
       include: { _count: { select: { products: true } } },
     });
   }
 
   async findOne(id: string): Promise<Category | null> {
-    return prisma.category.findUnique({
+    return this.prisma.category.findUnique({
       where: { id },
       include: { products: true },
     });
   }
 
   async remove(id: string): Promise<Category> {
-    return prisma.category.delete({ where: { id } });
+    return this.prisma.category.delete({ where: { id } });
   }
 
   async seed(): Promise<(Category & { _count: { products: number } })[]> {
@@ -43,7 +44,7 @@ export class CategoriesService {
     ];
 
     for (const cat of categories) {
-      await prisma.category.upsert({
+      await this.prisma.category.upsert({
         where: { slug: cat.slug },
         update: {},
         create: cat,

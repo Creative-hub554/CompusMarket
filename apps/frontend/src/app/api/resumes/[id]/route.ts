@@ -43,7 +43,8 @@ export async function PATCH(
   if (!resume || resume.userId !== user.id)
     return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const body = await req.json();
+  let body;
+  try { body = await req.json(); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
   const updated = await prisma.resume.update({
     where: { id },
     data: {

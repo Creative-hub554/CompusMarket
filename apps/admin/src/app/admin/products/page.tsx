@@ -1,13 +1,13 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { api } from "@/services/api";
+import { api, Product } from "@/services/api";
 
 export default async function AdminProductsPage() {
   const session = await getServerSession();
   if (!session) redirect("/login");
 
-  const products = await api.products.list();
+  const products = await api.products.list().catch(() => [] as Product[]);
 
   return (
     <div>

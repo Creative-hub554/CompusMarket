@@ -1,12 +1,12 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { api } from "@/services/api";
+import { api, Category } from "@/services/api";
 
 export default async function AdminCategoriesPage() {
   const session = await getServerSession();
   if (!session) redirect("/login");
 
-  const categories = await api.categories.list();
+  const categories = await api.categories.list().catch(() => [] as Category[]);
 
   return (
     <div>

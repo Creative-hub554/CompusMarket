@@ -31,7 +31,8 @@ export default function NewProductPage() {
     try {
       const result = await api.upload(file);
       setImages((prev) => [...prev, result.url]);
-    } catch {
+    } catch (err) {
+      console.error("Upload failed:", err);
       alert("Upload failed");
     }
     setUploading(false);
@@ -99,13 +100,34 @@ export default function NewProductPage() {
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">Description</label>
-          <textarea
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            className="w-full rounded border px-3 py-2 text-sm"
-            rows={4}
-            required
-          />
+          <div className="relative">
+            <textarea
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              className="w-full rounded border px-3 py-2 text-sm"
+              rows={4}
+              required
+            />
+            <button
+              type="button"
+              onClick={async () => {
+                if (!form.name) return alert("Enter a product name first");
+                const res = await fetch("/api/ai", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    action: "describe-product",
+                    data: { name: form.name, category: categories.find(c => c.id === form.categoryId)?.name || "", condition: form.condition === "A" ? "Like New" : form.condition === "B" ? "Good" : "Fair" },
+                  }),
+                });
+                const json = await res.json();
+                if (json.result) setForm({ ...form, description: json.result });
+              }}
+              className="absolute right-2 bottom-2 text-xs text-blue-600 hover:text-blue-800 bg-white px-2 py-1 rounded border"
+            >
+              ✨ AI Generate
+            </button>
+          </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>

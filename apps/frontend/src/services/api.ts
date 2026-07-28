@@ -19,6 +19,7 @@ export type Product = {
   price: number;
   condition: string;
   status: string;
+  sellerId?: string;
   images: string[];
   qrCode?: string;
   serialNumber?: string;
@@ -55,7 +56,7 @@ export type Article = {
   category: string;
   tags: string[];
   published: boolean;
-  author: { name: string | null };
+  author?: { name: string | null };
   createdAt: string;
 };
 

@@ -11,6 +11,7 @@ import { CategoriesService } from "./categories.service";
 import { AuthGuard } from "@nestjs/passport";
 import { RolesGuard } from "../auth/roles.guard";
 import { Roles } from "../auth/roles.decorator";
+import { CreateCategoryDto } from "./dto/create-category.dto";
 
 @Controller("categories")
 export class CategoriesController {
@@ -19,8 +20,8 @@ export class CategoriesController {
   @Post()
   @UseGuards(AuthGuard("jwt"), RolesGuard)
   @Roles("ADMIN")
-  create(@Body() body: { name: string; slug: string }) {
-    return this.categoriesService.create(body.name, body.slug);
+  create(@Body() dto: CreateCategoryDto) {
+    return this.categoriesService.create(dto.name, dto.slug);
   }
 
   @Get()

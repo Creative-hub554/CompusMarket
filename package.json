@@ -1,5 +1,5 @@
 {
-  "name": "theo-platform",
+  "name": "khmeronlineshopbytheo",
   "private": true,
   "scripts": {
     "dev": "turbo dev",
@@ -8,8 +8,10 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^4.1.10",
     "prettier": "^3.2.0",
-    "turbo": "^2.0.0"
+    "turbo": "^2.0.0",
+    "vitest": "^4.1.10"
   },
   "engines": {
     "node": ">=18"

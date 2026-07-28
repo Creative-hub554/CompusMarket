@@ -50,7 +50,8 @@ export default function EditProductPage() {
     try {
       const result = await api.upload(file);
       setImages((prev) => [...prev, result.url]);
-    } catch {
+    } catch (err) {
+      console.error("Upload failed:", err);
       alert("Upload failed");
     }
     setUploading(false);

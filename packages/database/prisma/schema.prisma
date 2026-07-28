@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -12,6 +12,7 @@ enum Role {
   CONTENT_EDITOR
   INVENTORY_MANAGER
   ADMIN
+  SELLER
 }
 
 enum ProductCondition {
@@ -25,6 +26,65 @@ enum ProductStatus {
   SOLD
   RESERVED
   DISCONTINUED
+  DISABLED
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum OrderItemStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PACKING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum WarrantyStatus {
+  ACTIVE
+  EXPIRED
+  CLAIMED
+  VOID
+}
+
+enum WarrantyClaimStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum SellerAccountType {
+  PERSONAL
+  BUSINESS
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum SellerDocumentType {
+  ID
+  BUSINESS_LICENSE
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  SHORT_ANSWER
+}
+
+enum SupportTicketStatus {
+  OPEN
+  CLOSED
 }
 
 model User {
@@ -38,12 +98,29 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts Account[]
-  sessions Session[]
-  orders   Order[]
-  reviews  Review[]
-  resumes  Resume[]
-  articles Article[]
+  accounts         Account[]
+  sessions         Session[]
+  orders           Order[]
+  reviews          Review[]
+  resumes          Resume[]
+  articles         Article[]
+  cart             Cart?
+  warranties       Warranty[]
+  sellerProfile         SellerProfile?  @relation("SellerProfileOwner")
+  reviewedSellerProfiles SellerProfile[] @relation("SellerProfileReviewer")
+  conversationsAsBuyer   Conversation[]  @relation("BuyerConversations")
+  messages               Message[]
+  supportTickets         SupportTicket[] @relation("CustomerTickets")
+  supportMessages        SupportMessage[]
+
+  documentFolders DocumentFolder[]
+  documents       Document[]
+  diagrams        Diagram[]
+  flashcardDecks  FlashcardDeck[]
+  flashcardReviews FlashcardReview[]
+  quizzes         Quiz[]
+  quizAttempts    QuizAttempt[]
+  notes           Note[]
 }
 
 model Account {
@@ -70,7 +147,7 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Category {
@@ -82,60 +159,52 @@ model Category {
 }
 
 model Product {
-  id            String           @id @default(uuid())
-  name          String
-  description   String
-  price         Decimal
-  condition     ProductCondition
-  status        ProductStatus    @default(ACTIVE)
-  categoryId    String
-  images        String[]
-  qrCode        String?
-  serialNumber  String?
-  stock         Int              @default(1)
+  id             String   @id @default(uuid())
+  name           String
+  description    String
+  price          Decimal
+  condition      ProductCondition
+  status         ProductStatus @default(ACTIVE)
+  categoryId     String
+  sellerId       String?
+  images         Json     @default("[]")
+  qrCode         String?
+  serialNumber   String?
+  stock          Int      @default(1)
   warrantyMonths Int?
-  purchaseDate  DateTime?
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
+  purchaseDate   DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   category    Category     @relation(fields: [categoryId], references: [id])
+  seller      SellerProfile? @relation(fields: [sellerId], references: [id])
   reviews     Review[]
   orderItems  OrderItem[]
+  cartItems   CartItem[]
+  warranties  Warranty[]
+  conversations Conversation[]
+  supportTickets SupportTicket[]
+
+  @@index([categoryId])
+  @@index([sellerId])
 }
 
 model Review {
-  id        String   @id @default(uuid())
-  rating    Int
-  comment   String?
-  userId    String
-  productId String
-  createdAt DateTime @default(now())
+  id          String   @id @default(uuid())
+  rating      Int
+  comment     String?
+  images      Json     @default("[]")
+  userId      String
+  productId   String
+  orderItemId String   @unique
+  createdAt   DateTime @default(now())
 
-  user    User    @relation(fields: [userId], references: [id])
-  product Product @relation(fields: [productId], references: [id])
-}
+  user      User      @relation(fields: [userId], references: [id])
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItem OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
 
-model Order {
-  id         String        @id @default(uuid())
-  userId     String
-  status     String        @default("PENDING")
-  total      Decimal
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
-
-  user   User         @relation(fields: [userId], references: [id])
-  items  OrderItem[]
-}
-
-model OrderItem {
-  id        String  @id @default(uuid())
-  orderId   String
-  productId String
-  quantity  Int     @default(1)
-  price     Decimal
-
-  order   Order   @relation(fields: [orderId], references: [id])
-  product Product @relation(fields: [productId], references: [id])
+  @@index([userId])
+  @@index([productId])
 }
 
 model Resume {
@@ -157,22 +226,365 @@ model Article {
   slug      String   @unique
   content   String
   excerpt   String?
-  category  ArticleCategory
-  tags      String[]
+  category  String
+  tags      Json     @default("[]")
   published Boolean  @default(false)
   authorId  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  author User @relation(fields: [authorId], references: [id])
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
 
-enum ArticleCategory {
-  CAREER_GUIDE
-  INTERVIEW_TIPS
-  RESUME_EXAMPLES
-  JOB_SEARCH
-  COMPUTER_LITERACY
-  WORKPLACE_COMMUNICATION
-  PRODUCTIVITY
+model Cart {
+  id        String     @id @default(uuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id        String   @id @default(uuid())
+  cartId    String
+  productId String
+  quantity  Int      @default(1)
+  updatedAt DateTime @updatedAt
+
+  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([cartId])
+  @@index([productId])
+}
+
+model Order {
+  id         String   @id @default(uuid())
+  userId     String
+  status     OrderStatus @default(PENDING)
+  total      Decimal
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user   User             @relation(fields: [userId], references: [id])
+  items  OrderItem[]
+  supportTickets SupportTicket[]
+
+  @@index([userId])
+}
+
+model OrderItem {
+  id             String    @id @default(uuid())
+  orderId        String
+  productId      String
+  quantity       Int       @default(1)
+  price          Decimal
+  status         OrderItemStatus @default(PENDING)
+  trackingNumber String?
+  packedAt       DateTime?
+  shippedAt      DateTime?
+  deliveredAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  order    Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product  Product   @relation(fields: [productId], references: [id])
+  warranty Warranty?
+  feedback Review?
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Warranty {
+  id          String   @id @default(uuid())
+  orderItemId String   @unique
+  productId   String
+  userId      String
+  months      Int
+  startDate   DateTime
+  endDate     DateTime
+  status      WarrantyStatus @default(ACTIVE)
+  claimDate   DateTime?
+  claimReason String?
+  claimStatus WarrantyClaimStatus?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orderItem OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([productId])
+}
+
+model SellerProfile {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  accountType        SellerAccountType @default(PERSONAL)
+  phone              String?
+  address            String?
+  verificationStatus VerificationStatus @default(PENDING)
+  reviewedBy         String?
+  reviewNotes        String?
+  verifiedAt         DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  user       User              @relation("SellerProfileOwner", fields: [userId], references: [id], onDelete: Cascade)
+  reviewer   User?             @relation("SellerProfileReviewer", fields: [reviewedBy], references: [id])
+  documents  SellerDocument[]
+  products   Product[]
+  conversationsAsSeller Conversation[] @relation("SellerConversations")
+}
+
+model SellerDocument {
+  id              String   @id @default(uuid())
+  sellerProfileId String
+  type            SellerDocumentType
+  filename        String
+  url             String
+  uploadedAt      DateTime @default(now())
+
+  sellerProfile SellerProfile @relation(fields: [sellerProfileId], references: [id], onDelete: Cascade)
+}
+
+model Conversation {
+  id           String   @id @default(uuid())
+  buyerId      String
+  sellerId     String
+  productId    String?
+  lastMessageAt DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  buyer    User      @relation("BuyerConversations", fields: [buyerId], references: [id], onDelete: NoAction)
+  seller   SellerProfile @relation("SellerConversations", fields: [sellerId], references: [id], onDelete: Cascade)
+  product  Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
+  messages Message[]
+
+  @@index([buyerId])
+  @@index([sellerId])
+  @@unique([buyerId, sellerId, productId])
+}
+
+model Message {
+  id             String   @id @default(uuid())
+  conversationId String
+  senderId       String
+  content        String
+  readAt         DateTime?
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: NoAction)
+
+  @@index([conversationId])
+  @@index([senderId])
+}
+
+model SupportTicket {
+  id         String   @id @default(uuid())
+  customerId String
+  subject    String
+  status     SupportTicketStatus @default(OPEN)
+  orderId    String?
+  productId  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  customer User             @relation("CustomerTickets", fields: [customerId], references: [id], onDelete: NoAction)
+  order    Order?           @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  product  Product?         @relation(fields: [productId], references: [id], onDelete: SetNull)
+  messages SupportMessage[]
+
+  @@index([customerId])
+}
+
+model SupportMessage {
+  id        String   @id @default(uuid())
+  ticketId  String
+  senderId  String
+  content   String
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  sender User          @relation(fields: [senderId], references: [id], onDelete: NoAction)
+
+  @@index([ticketId])
+  @@index([senderId])
+}
+
+// ── Document Editor ──
+
+model DocumentFolder {
+  id        String     @id @default(uuid())
+  userId    String
+  name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documents Document[]
+}
+
+model Document {
+  id        String   @id @default(uuid())
+  userId    String
+  folderId  String?
+  title     String
+  content   String   @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folder DocumentFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+}
+
+// ── Diagram Creator (Mermaid) ──
+
+model Diagram {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  code      String
+  type      String   @default("flowchart")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ── Flashcard System (SM-2) ──
+
+model FlashcardDeck {
+  id          String     @id @default(uuid())
+  userId      String
+  title       String
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cards Flashcard[]
+
+  @@unique([userId, title])
+}
+
+model Flashcard {
+  id        String            @id @default(uuid())
+  deckId    String
+  front     String
+  back      String
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  deck    FlashcardDeck     @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  reviews FlashcardReview[]
+
+  @@index([deckId])
+}
+
+model FlashcardReview {
+  id          String   @id @default(uuid())
+  flashcardId String
+  userId      String
+  ease        Float    @default(2.5)
+  interval    Int      @default(0)
+  nextReview  DateTime
+  reviewedAt  DateTime @default(now())
+
+  flashcard Flashcard @relation(fields: [flashcardId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([flashcardId])
+  @@index([userId])
+}
+
+// ── Quiz System ──
+
+model Quiz {
+  id          String        @id @default(uuid())
+  userId      String
+  title       String
+  description String?
+  public      Boolean       @default(false)
+  timeLimit   Int?          @default(0)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questions QuizQuestion[]
+  attempts  QuizAttempt[]
+
+  @@unique([userId, title])
+}
+
+model QuizQuestion {
+  id            String       @id @default(uuid())
+  quizId        String
+  type          QuestionType @default(MULTIPLE_CHOICE)
+  question      String
+  options       Json         @default("[]")
+  correctAnswer String
+  points        Int          @default(1)
+  order         Int          @default(0)
+  createdAt     DateTime     @default(now())
+
+  quiz    Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  answers QuizAnswer[]
+
+  @@index([quizId])
+}
+
+model QuizAttempt {
+  id          String       @id @default(uuid())
+  quizId      String
+  userId      String
+  score       Float        @default(0)
+  totalPoints Int          @default(0)
+  startedAt   DateTime     @default(now())
+  completedAt DateTime?
+
+  quiz    Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers QuizAnswer[]
+
+  @@index([quizId])
+  @@index([userId])
+}
+
+model QuizAnswer {
+  id         String   @id @default(uuid())
+  attemptId  String
+  questionId String
+  answer     String
+  isCorrect  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  attempt  QuizAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([attemptId])
+  @@index([questionId])
+}
+
+// ── Study Notes / Wiki ──
+
+model Note {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  content   String
+  tags      Json     @default("[]")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, title])
 }

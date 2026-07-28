@@ -36,7 +36,8 @@ const handler = NextAuth({
             name: user.name,
             role: user.role,
           };
-        } catch {
+        } catch (err) {
+          console.error("Auth error:", err);
           return null;
         }
       },
@@ -48,7 +49,7 @@ const handler = NextAuth({
       return token;
     },
     async session({ session, token }) {
-      if (session.user) session.user.role = token.role as string;
+      if (session.user) session.user.role = (typeof token.role === "string" ? token.role : "CUSTOMER");
       return session;
     },
   },

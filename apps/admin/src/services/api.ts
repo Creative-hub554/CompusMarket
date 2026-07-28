@@ -72,17 +72,29 @@ export const api = {
   },
   articles: {
     list: () => fetchApi<Article[]>("/articles"),
-    all: () => fetchApi<Article[]>("/articles/all"),
+    all: () =>
+      fetch("/api/admin/articles").then((r) => {
+        if (!r.ok) throw new Error(`API error: ${r.status}`);
+        return r.json();
+      }),
     bySlug: (slug: string) => fetchApi<Article>(`/articles/${slug}`),
     create: (data: Record<string, unknown>) =>
-      fetchApi<Article>("/articles", {
+      fetch("/api/admin/articles", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
+      }).then((r) => {
+        if (!r.ok) throw new Error(`API error: ${r.status}`);
+        return r.json();
       }),
     update: (id: string, data: Record<string, unknown>) =>
-      fetchApi<Article>(`/articles/${id}`, {
+      fetch(`/api/admin/articles/${id}`, {
         method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
+      }).then((r) => {
+        if (!r.ok) throw new Error(`API error: ${r.status}`);
+        return r.json();
       }),
   },
   upload: async (file: File): Promise<{ url: string; filename: string }> => {

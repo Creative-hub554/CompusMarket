@@ -1,13 +1,15 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { api } from "@/services/api";
+import { prisma } from "@theo/database";
 
 export default async function AdminArticlesPage() {
   const session = await getServerSession();
   if (!session) redirect("/login");
 
-  const articles = await api.articles.all();
+  const articles = await prisma.article.findMany({
+    orderBy: { createdAt: "desc" },
+  });
 
   return (
     <div>
