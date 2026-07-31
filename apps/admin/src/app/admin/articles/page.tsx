@@ -31,6 +31,7 @@ export default async function AdminArticlesPage() {
               <th className="px-4 py-3 text-left font-medium">Category</th>
               <th className="px-4 py-3 text-left font-medium">Status</th>
               <th className="px-4 py-3 text-left font-medium">Date</th>
+              <th className="px-4 py-3 text-left font-medium">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -47,6 +48,14 @@ export default async function AdminArticlesPage() {
                 </td>
                 <td className="px-4 py-3 text-gray-500">
                   {new Date(article.createdAt).toLocaleDateString()}
+                </td>
+                <td className="px-4 py-3">
+                  <Link
+                    href={`/admin/articles/${article.id}/edit`}
+                    className="text-blue-600 hover:underline"
+                  >
+                    Edit
+                  </Link>
                 </td>
               </tr>
             ))}

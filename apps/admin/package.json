@@ -18,9 +18,10 @@
     "next": "^15.0.0",
     "next-auth": "^4.24.14",
     "openai": "^6.45.0",
-    "socket.io-client": "^4.8.3",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "recharts": "^3.10.1",
+    "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.0.0",

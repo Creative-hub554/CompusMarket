@@ -10,3 +10,5 @@ turbo
 apps/*/.env
 apps/*/node_modules/
 **/*.db
+
+*.tsbuildinfo

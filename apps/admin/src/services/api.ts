@@ -69,6 +69,34 @@ export const api = {
   categories: {
     list: () => fetchApi<Category[]>("/categories"),
     seed: () => fetchApi<Category[]>("/categories/seed", { method: "POST" }),
+    adminList: () =>
+      fetch("/api/admin/categories").then((r) => {
+        if (!r.ok) throw new Error(`API error: ${r.status}`);
+        return r.json();
+      }),
+    create: (data: Record<string, unknown>) =>
+      fetch("/api/admin/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }).then((r) => {
+        if (!r.ok) throw new Error(`API error: ${r.status}`);
+        return r.json();
+      }),
+    update: (id: string, data: Record<string, unknown>) =>
+      fetch(`/api/admin/categories/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }).then((r) => {
+        if (!r.ok) throw new Error(`API error: ${r.status}`);
+        return r.json();
+      }),
+    remove: (id: string) =>
+      fetch(`/api/admin/categories/${id}`, { method: "DELETE" }).then((r) => {
+        if (!r.ok) throw new Error(`API error: ${r.status}`);
+        return r.json();
+      }),
   },
   articles: {
     list: () => fetchApi<Article[]>("/articles"),
@@ -96,7 +124,17 @@ export const api = {
         if (!r.ok) throw new Error(`API error: ${r.status}`);
         return r.json();
       }),
+    byId: (id: string) =>
+      fetch(`/api/admin/articles/${id}`).then((r) => {
+        if (!r.ok) throw new Error(`API error: ${r.status}`);
+        return r.json();
+      }),
   },
+  stats: () =>
+    fetch("/api/admin/stats").then((r) => {
+      if (!r.ok) throw new Error(`API error: ${r.status}`);
+      return r.json();
+    }),
   upload: async (file: File): Promise<{ url: string; filename: string }> => {
     const formData = new FormData();
     formData.append("file", file);
