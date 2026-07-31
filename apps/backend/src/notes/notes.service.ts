@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import type { Prisma } from "@theo/database";
 
 @Injectable()
 export class NotesService {
@@ -11,7 +12,7 @@ export class NotesService {
   }
 
   async findByUser(userId: string, search?: string) {
-    const where: any = { userId };
+    const where: Prisma.NoteWhereInput = { userId };
     if (search) {
       where.OR = [
         { title: { contains: search } },

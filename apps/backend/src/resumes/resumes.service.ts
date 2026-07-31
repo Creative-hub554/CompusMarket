@@ -1,13 +1,13 @@
 import { Injectable, NotFoundException, ForbiddenException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import type { Resume } from "@theo/database";
+import type { Prisma, Resume } from "@theo/database";
 
 @Injectable()
 export class ResumesService {
   constructor(private prisma: PrismaService) {}
   async create(userId: string, title: string, data: Record<string, unknown>) {
     return this.prisma.resume.create({
-      data: { userId, title, data: structuredClone(data) as any },
+      data: { userId, title, data: structuredClone(data) as Prisma.InputJsonValue },
     });
   }
 
@@ -35,7 +35,7 @@ export class ResumesService {
       where: { id },
       data: {
         ...(data.title && { title: data.title }),
-        ...(data.data && { data: structuredClone(data.data) as any }),
+        ...(data.data && { data: structuredClone(data.data) as Prisma.InputJsonValue }),
       },
     });
   }

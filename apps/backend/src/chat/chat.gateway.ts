@@ -15,6 +15,8 @@ if (!JWT_SECRET) {
   throw new Error("Missing JWT secret: set AUTH_SECRET or JWT_SECRET env var");
 }
 
+type AuthenticatedSocket = Socket & { userId?: string };
+
 @WebSocketGateway({
   cors: { origin: "*", credentials: true },
 })
@@ -32,7 +34,7 @@ export class ChatGateway implements OnGatewayConnection {
     }
     try {
       const payload = verify(token, JWT_SECRET!) as { sub: string };
-      (client as any).userId = payload.sub;
+      (client as AuthenticatedSocket).userId = payload.sub;
     } catch {
       client.disconnect();
     }
@@ -40,11 +42,11 @@ export class ChatGateway implements OnGatewayConnection {
 
   @SubscribeMessage("joinConversation")
   async handleJoinConversation(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { conversationId: string },
   ) {
     try {
-      const userId = (client as any).userId;
+      const userId = client.userId;
       if (!userId) return;
 
       const conversation = await this.prisma.conversation.findUnique({
@@ -65,11 +67,11 @@ export class ChatGateway implements OnGatewayConnection {
 
   @SubscribeMessage("sendMessage")
   async handleSendMessage(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { conversationId: string; content: string },
   ) {
     try {
-      const userId = (client as any).userId;
+      const userId = client.userId;
       if (!userId || !data.content?.trim() || data.content.length > 5000) return;
 
       const conversation = await this.prisma.conversation.findUnique({
@@ -103,11 +105,11 @@ export class ChatGateway implements OnGatewayConnection {
 
   @SubscribeMessage("markAsRead")
   async handleMarkAsRead(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { conversationId: string },
   ) {
     try {
-      const userId = (client as any).userId;
+      const userId = client.userId;
       if (!userId) return;
 
       await this.prisma.message.updateMany({
@@ -127,11 +129,11 @@ export class ChatGateway implements OnGatewayConnection {
 
   @SubscribeMessage("joinSupportTicket")
   async handleJoinSupportTicket(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { ticketId: string },
   ) {
     try {
-      const userId = (client as any).userId;
+      const userId = client.userId;
       if (!userId) return;
 
       const ticket = await this.prisma.supportTicket.findUnique({
@@ -153,11 +155,11 @@ export class ChatGateway implements OnGatewayConnection {
 
   @SubscribeMessage("sendSupportMessage")
   async handleSendSupportMessage(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { ticketId: string; content: string },
   ) {
     try {
-      const userId = (client as any).userId;
+      const userId = client.userId;
       if (!userId || !data.content?.trim() || data.content.length > 5000) return;
 
       const ticket = await this.prisma.supportTicket.findUnique({
@@ -193,11 +195,11 @@ export class ChatGateway implements OnGatewayConnection {
 
   @SubscribeMessage("markSupportAsRead")
   async handleMarkSupportAsRead(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { ticketId: string },
   ) {
     try {
-      const userId = (client as any).userId;
+      const userId = client.userId;
       if (!userId) return;
 
       await this.prisma.supportMessage.updateMany({

@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { Meilisearch: MeiliSearch } = require("meilisearch");
+import { Meilisearch } from "meilisearch";
+import type { Prisma } from "@theo/database";
 
 const INDEX_NAME = "products";
 
@@ -10,16 +10,16 @@ export class SearchService implements OnModuleInit {
   constructor(private prisma: PrismaService) {}
 
   private readonly logger = new Logger(SearchService.name);
-  private client: any = null;
+  private client: Meilisearch | null = null;
 
   onModuleInit() {
     const host = process.env.MEILI_HOST || "http://localhost:7700";
     const key = process.env.MEILI_API_KEY || "";
 
     try {
-      this.client = new MeiliSearch({ host, apiKey: key });
+      this.client = new Meilisearch({ host, apiKey: key });
       this.logger.log(`Meilisearch client initialized (${host})`);
-    } catch (e) {
+    } catch {
       this.logger.warn("Failed to initialize Meilisearch client. Search will be unavailable.");
     }
   }
@@ -151,20 +151,22 @@ export class SearchService implements OnModuleInit {
     query: string,
     filters?: { categoryId?: string; minPrice?: number; maxPrice?: number },
   ) {
-    const where: any = {
+    const where: Prisma.ProductWhereInput = {
       status: "ACTIVE",
       OR: [
         { name: { contains: query } },
         { description: { contains: query } },
       ],
+      ...(filters?.categoryId ? { categoryId: filters.categoryId } : {}),
+      ...(filters?.minPrice !== undefined || filters?.maxPrice !== undefined
+        ? {
+            price: {
+              ...(filters?.minPrice !== undefined ? { gte: filters.minPrice } : {}),
+              ...(filters?.maxPrice !== undefined ? { lte: filters.maxPrice } : {}),
+            },
+          }
+        : {}),
     };
-
-    if (filters?.categoryId) where.categoryId = filters.categoryId;
-    if (filters?.minPrice !== undefined || filters?.maxPrice !== undefined) {
-      where.price = {};
-      if (filters?.minPrice !== undefined) where.price.gte = filters.minPrice;
-      if (filters?.maxPrice !== undefined) where.price.lte = filters.maxPrice;
-    }
 
     const products = await this.prisma.product.findMany({
       where,
