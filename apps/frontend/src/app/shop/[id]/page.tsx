@@ -23,6 +23,12 @@ export default async function ProductDetailPage({ params }: Props) {
     notFound();
   }
 
+  const reviews = product.reviews || [];
+  const average =
+    reviews.length > 0
+      ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+      : 0;
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 animate-fade-in">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -98,6 +104,59 @@ export default async function ProductDetailPage({ params }: Props) {
           </div>
         </div>
       </div>
+
+      {/* Reviews */}
+      <section className="mt-12">
+        <div className="flex items-center gap-3 mb-6">
+          <h2 className="text-xl font-bold">Customer Reviews</h2>
+          {reviews.length > 0 && (
+            <span className="flex items-center gap-1 text-sm text-yellow-500">
+              <span className="text-base">{"★".repeat(Math.round(average))}{"☆".repeat(5 - Math.round(average))}</span>
+              <span className="text-gray-600 font-medium">{average.toFixed(1)}</span>
+              <span className="text-gray-400">({reviews.length})</span>
+            </span>
+          )}
+        </div>
+
+        {reviews.length === 0 ? (
+          <p className="text-gray-500 text-sm">No reviews yet.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {reviews.map((review) => (
+              <div key={review.id} className="rounded-xl border p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-yellow-500">
+                      {"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}
+                    </span>
+                    <span className="text-sm font-medium">
+                      {review.user.name || "Customer"}
+                    </span>
+                  </div>
+                  <span className="text-xs text-gray-400">
+                    {new Date(review.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+                {review.comment && (
+                  <p className="text-sm text-gray-700">{review.comment}</p>
+                )}
+                {review.images?.length > 0 && (
+                  <div className="flex gap-2 mt-2">
+                    {review.images.map((url, i) => (
+                      <img
+                        key={i}
+                        src={url}
+                        alt=""
+                        className="w-14 h-14 object-cover rounded border"
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }

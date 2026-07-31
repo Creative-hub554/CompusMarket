@@ -26,7 +26,17 @@ export type Product = {
   stock: number;
   warrantyMonths?: number;
   category: { id: string; name: string; slug: string };
+  reviews?: Review[];
   createdAt: string;
+};
+
+export type Review = {
+  id: string;
+  rating: number;
+  comment: string | null;
+  images: string[];
+  createdAt: string;
+  user: { name: string | null };
 };
 
 export type Category = {
