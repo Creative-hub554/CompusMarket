@@ -1,5 +1,7 @@
-import type { Metadata, Viewport } from "next";
+﻿import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
 import { Nav } from "@/components/Nav";
 import SessionWrapper from "@/components/SessionWrapper";
 
@@ -20,17 +22,22 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, statusBarStyle: "default", title: "KHMERONLINESHOP" },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body className="min-h-screen bg-white text-gray-900 antialiased">
         <SessionWrapper>
-          <Nav />
-          <main>{children}</main>
+          <NextIntlClientProvider locale={locale} messages={messages}>
+            <Nav />
+            <main>{children}</main>
+          </NextIntlClientProvider>
         </SessionWrapper>
       </body>
     </html>

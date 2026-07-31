@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 type Order = {
   id: string;
@@ -12,6 +13,7 @@ type Order = {
 };
 
 export default function OrdersPage() {
+  const t = useTranslations("orders");
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -28,15 +30,15 @@ export default function OrdersPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="mx-auto max-w-4xl px-4 py-8">Loading...</div>;
+  if (loading) return <div className="mx-auto max-w-4xl px-4 py-8">{t("loading")}</div>;
 
   if (error) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold mb-4 text-khmer-red">Something went wrong</h1>
-        <p className="text-gray-600 mb-4">Unable to load your orders. You may need to sign in.</p>
+        <h1 className="text-2xl font-bold mb-4 text-khmer-red">{t("errorTitle")}</h1>
+        <p className="text-gray-600 mb-4">{t("errorDesc")}</p>
         <Link href="/login" className="text-blue-600 hover:underline">
-          Sign in to view your orders
+          {t("signInToView")}
         </Link>
       </div>
     );
@@ -52,16 +54,16 @@ export default function OrdersPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">My Orders</h1>
+      <h1 className="text-2xl font-bold mb-6">{t("title")}</h1>
 
       {orders.length === 0 ? (
         <div className="text-center py-16">
-          <p className="text-gray-500 mb-4">No orders yet</p>
+          <p className="text-gray-500 mb-4">{t("empty")}</p>
           <Link
             href="/shop"
             className="text-blue-600 hover:underline"
           >
-            Start Shopping
+            {t("startShopping")}
           </Link>
         </div>
       ) : (
@@ -75,10 +77,12 @@ export default function OrdersPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">
-                    Order #{order.id.slice(0, 8).toUpperCase()}
+                    {t("orderNumber", { id: order.id.slice(0, 8).toUpperCase() })}
                   </p>
                   <p className="text-sm text-gray-500">
-                    {order.items.length} item{order.items.length !== 1 ? "s" : ""}{" "}
+                    {order.items.length === 1
+                      ? t("itemCount", { count: order.items.length })
+                      : t("itemCountPlural", { count: order.items.length })}{" "}
                     &middot; {new Date(order.createdAt).toLocaleDateString()}
                   </p>
                 </div>

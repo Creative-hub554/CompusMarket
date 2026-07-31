@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useCartStore } from "@/stores/cart";
 
 export function AddToCartButton({ productId }: { productId: string }) {
+  const t = useTranslations("addToCart");
   const [loading, setLoading] = useState(false);
   const [added, setAdded] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
@@ -15,7 +17,7 @@ export function AddToCartButton({ productId }: { productId: string }) {
       setAdded(true);
       setTimeout(() => setAdded(false), 2000);
     } catch {
-      alert("Please log in to add items to cart");
+      alert(t("loginRequired"));
     } finally {
       setLoading(false);
     }
@@ -32,11 +34,11 @@ export function AddToCartButton({ productId }: { productId: string }) {
       } disabled:opacity-50`}
     >
       {loading ? (
-        <span className="inline-block animate-pulse">Adding...</span>
+        <span className="inline-block animate-pulse">{t("adding")}</span>
       ) : added ? (
-        <span className="inline-flex items-center gap-1">Added to Cart!</span>
+        <span className="inline-flex items-center gap-1">{t("added")}</span>
       ) : (
-        "Add to Cart"
+        t("add")
       )}
     </button>
   );

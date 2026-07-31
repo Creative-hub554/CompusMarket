@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import OrderItemTimeline from "@/components/OrderItemTimeline";
 
 type Feedback = {
@@ -45,6 +46,7 @@ const itemStatusColors: Record<string, string> = {
 };
 
 export default function OrderDetailPage() {
+  const t = useTranslations("order");
   const { id } = useParams<{ id: string }>();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -78,14 +80,14 @@ export default function OrderDetailPage() {
     fetchOrder();
   };
 
-  if (loading) return <div className="mx-auto max-w-3xl px-4 py-8">Loading...</div>;
+  if (loading) return <div className="mx-auto max-w-3xl px-4 py-8">{t("loading")}</div>;
 
   if (!order) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold mb-4">Order Not Found</h1>
+        <h1 className="text-2xl font-bold mb-4">{t("notFoundTitle")}</h1>
         <Link href="/orders" className="text-khmer-blue hover:underline">
-          View My Orders
+          {t("viewMyOrders")}
         </Link>
       </div>
     );
@@ -94,9 +96,9 @@ export default function OrderDetailPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 animate-fade-in">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold gold-underline">Order Confirmed</h1>
+        <h1 className="text-2xl font-bold gold-underline">{t("orderConfirmed")}</h1>
         <p className="text-gray-500 text-sm mt-3">
-          Order #{order.id.slice(0, 8).toUpperCase()} &middot;{" "}
+          {t("orderNumber", { id: order.id.slice(0, 8).toUpperCase() })} &middot;{" "}
           {new Date(order.createdAt).toLocaleDateString()}
         </p>
       </div>
@@ -109,7 +111,7 @@ export default function OrderDetailPage() {
                 {item.product.images?.[0] ? (
                   <img src={item.product.images[0]} alt={item.product.name} className="h-full w-full object-contain" />
                 ) : (
-                  <span className="text-gray-400 text-xs flex items-center justify-center h-full">No img</span>
+                  <span className="text-gray-400 text-xs flex items-center justify-center h-full">{t("noImage")}</span>
                 )}
               </div>
               <div className="flex-1">
@@ -125,7 +127,7 @@ export default function OrderDetailPage() {
                   {item.quantity} x ${Number(item.price).toLocaleString()}
                 </p>
                 {item.trackingNumber && (
-                  <p className="text-xs text-gray-400 mt-1">Tracking: {item.trackingNumber}</p>
+                  <p className="text-xs text-gray-400 mt-1">{t("tracking", { number: item.trackingNumber })}</p>
                 )}
 
                 {/* Timeline */}
@@ -153,7 +155,7 @@ export default function OrderDetailPage() {
             {item.feedback && (
               <div className="mt-3 pt-3 border-t bg-green-50 rounded-lg p-3">
                 <p className="text-sm font-medium text-green-800">
-                  Your Review &middot; {item.feedback.rating}/5
+                  {t("yourReview")} &middot; {item.feedback.rating}/5
                   <span className="text-yellow-500 ml-1">
                     {"★".repeat(item.feedback.rating)}{"☆".repeat(5 - item.feedback.rating)}
                   </span>
@@ -175,19 +177,19 @@ export default function OrderDetailPage() {
       </div>
 
       <div className="mt-6 border-t pt-4 flex items-center justify-between text-lg font-bold">
-        <span>Total</span>
+        <span>{t("total")}</span>
         <span className="text-khmer-red">${Number(order.total).toLocaleString()}</span>
       </div>
 
       <div className="mt-6 flex gap-4">
         <Link href="/orders" className="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50 transition-colors">
-          View All Orders
+          {t("viewAllOrders")}
         </Link>
         <Link href="/shop" className="rounded-lg bg-khmer-blue px-4 py-2 text-sm text-white hover:bg-khmer-blue-light transition-colors">
-          Continue Shopping
+          {t("continueShopping")}
         </Link>
         <Link href={`/support/new?orderId=${order.id}`} className="rounded-lg border border-red-300 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
-          Contact Support
+          {t("contactSupport")}
         </Link>
       </div>
     </div>
@@ -195,6 +197,7 @@ export default function OrderDetailPage() {
 }
 
 function FeedbackForm({ onSubmit }: { onSubmit: (rating: number, comment: string, images: string[]) => void }) {
+  const t = useTranslations("order");
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [images, setImages] = useState<string[]>([]);
@@ -229,7 +232,7 @@ function FeedbackForm({ onSubmit }: { onSubmit: (rating: number, comment: string
 
   return (
     <div className="mt-3 pt-3 border-t">
-      <p className="text-sm font-medium mb-2">Leave Feedback</p>
+      <p className="text-sm font-medium mb-2">{t("feedbackTitle")}</p>
       <div className="space-y-2">
         <div className="flex gap-1">
           {[1, 2, 3, 4, 5].map((star) => (
@@ -245,7 +248,7 @@ function FeedbackForm({ onSubmit }: { onSubmit: (rating: number, comment: string
         <textarea
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          placeholder="Share your experience with this product (optional)"
+          placeholder={t("feedbackPlaceholder")}
           rows={2}
           className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
         />
@@ -264,14 +267,14 @@ function FeedbackForm({ onSubmit }: { onSubmit: (rating: number, comment: string
               ))}
             </div>
           )}
-          <span className="text-xs text-gray-400">Up to 3 photos</span>
+          <span className="text-xs text-gray-400">{t("feedbackPhotos")}</span>
         </div>
         <button
           onClick={handleSubmit}
           disabled={submitting}
           className="bg-khmer-blue text-white px-4 py-1.5 rounded text-sm font-medium hover:bg-khmer-blue-light transition-colors disabled:opacity-50"
         >
-          {submitting ? "Submitting..." : "Submit Feedback"}
+          {submitting ? t("feedbackSubmitting") : t("feedbackSubmit")}
         </button>
       </div>
     </div>

@@ -1,13 +1,8 @@
 import type { Product } from "@/services/api";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 type Props = { product: Product };
-
-const conditionLabels: Record<string, string> = {
-  A: "Like New",
-  B: "Good",
-  C: "Fair",
-};
 
 const conditionColors: Record<string, string> = {
   A: "bg-green-100 text-green-800",
@@ -15,7 +10,13 @@ const conditionColors: Record<string, string> = {
   C: "bg-orange-100 text-orange-800",
 };
 
-export function ProductCard({ product }: Props) {
+export async function ProductCard({ product }: Props) {
+  const t = await getTranslations("product");
+  const conditionLabels: Record<string, string> = {
+    A: t("conditionA"),
+    B: t("conditionB"),
+    C: t("conditionC"),
+  };
   const images = product.images as string[];
   return (
     <Link
@@ -44,7 +45,7 @@ export function ProductCard({ product }: Props) {
             {conditionLabels[product.condition] || product.condition}
           </span>
           {product.sellerId && (
-            <span className="text-xs text-khmer-blue">Seller</span>
+            <span className="text-xs text-khmer-blue">{t("seller")}</span>
           )}
         </div>
         <p className="text-lg font-bold text-khmer-red">

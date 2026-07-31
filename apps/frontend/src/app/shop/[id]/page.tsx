@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { api } from "@/services/api";
 import { notFound } from "next/navigation";
 import { AddToCartButton } from "@/components/AddToCartButton";
@@ -6,15 +7,10 @@ import { ChatWithSellerButton } from "@/components/ChatWithSellerButton";
 
 export const dynamic = "force-dynamic";
 
-const conditionLabels: Record<string, string> = {
-  A: "Like New",
-  B: "Good",
-  C: "Fair",
-};
-
 type Props = { params: Promise<{ id: string }> };
 
 export default async function ProductDetailPage({ params }: Props) {
+  const t = await getTranslations("product");
   const { id } = await params;
   let product;
   try {
@@ -22,6 +18,12 @@ export default async function ProductDetailPage({ params }: Props) {
   } catch {
     notFound();
   }
+
+  const conditionLabels: Record<string, string> = {
+    A: t("conditionA"),
+    B: t("conditionB"),
+    C: t("conditionC"),
+  };
 
   const reviews = product.reviews || [];
   const average =
@@ -40,7 +42,7 @@ export default async function ProductDetailPage({ params }: Props) {
               className="h-full w-full object-contain hover:scale-105 transition-transform duration-500"
             />
           ) : (
-            <div className="text-gray-400">No image</div>
+            <div className="text-gray-400">{t("noImage")}</div>
           )}
         </div>
 
@@ -60,7 +62,7 @@ export default async function ProductDetailPage({ params }: Props) {
             </span>
             {product.warrantyMonths && (
               <span className="rounded-full bg-khmer-blue/10 px-3 py-1 text-khmer-blue font-medium">
-                {product.warrantyMonths}mo warranty
+                {t("warrantyMonths", { months: product.warrantyMonths })}
               </span>
             )}
             <span
@@ -70,18 +72,18 @@ export default async function ProductDetailPage({ params }: Props) {
                   : "bg-red-100 text-red-800"
               }`}
             >
-              {product.stock > 0 ? `In Stock (${product.stock})` : "Out of Stock"}
+              {product.stock > 0 ? t("inStock", { stock: product.stock }) : t("outOfStock")}
             </span>
           </div>
 
           {product.sellerId && (
             <p className="text-sm text-khmer-blue flex items-center gap-1">
-              Sold by a verified seller
+              {t("soldByVerified")}
             </p>
           )}
 
           <div>
-            <h2 className="font-semibold mb-1">Description</h2>
+            <h2 className="font-semibold mb-1">{t("description")}</h2>
             <p className="text-gray-600 text-sm whitespace-pre-wrap leading-relaxed">
               {product.description}
             </p>
@@ -89,7 +91,7 @@ export default async function ProductDetailPage({ params }: Props) {
 
           {product.serialNumber && (
             <p className="text-xs text-gray-400">
-              Serial: {product.serialNumber}
+              {t("serial", { serial: product.serialNumber })}
             </p>
           )}
 
@@ -99,7 +101,7 @@ export default async function ProductDetailPage({ params }: Props) {
               <ChatWithSellerButton sellerId={product.sellerId} productId={product.id} />
             )}
             <Link href={`/support/new?productId=${product.id}`} className="block text-center rounded-lg border border-red-300 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
-              Contact Support
+              {t("contactSupport")}
             </Link>
           </div>
         </div>
@@ -108,7 +110,7 @@ export default async function ProductDetailPage({ params }: Props) {
       {/* Reviews */}
       <section className="mt-12">
         <div className="flex items-center gap-3 mb-6">
-          <h2 className="text-xl font-bold">Customer Reviews</h2>
+          <h2 className="text-xl font-bold">{t("reviews")}</h2>
           {reviews.length > 0 && (
             <span className="flex items-center gap-1 text-sm text-yellow-500">
               <span className="text-base">{"★".repeat(Math.round(average))}{"☆".repeat(5 - Math.round(average))}</span>
@@ -119,7 +121,7 @@ export default async function ProductDetailPage({ params }: Props) {
         </div>
 
         {reviews.length === 0 ? (
-          <p className="text-gray-500 text-sm">No reviews yet.</p>
+          <p className="text-gray-500 text-sm">{t("noReviews")}</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {reviews.map((review) => (
@@ -130,7 +132,7 @@ export default async function ProductDetailPage({ params }: Props) {
                       {"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}
                     </span>
                     <span className="text-sm font-medium">
-                      {review.user.name || "Customer"}
+                      {review.user.name || t("customer")}
                     </span>
                   </div>
                   <span className="text-xs text-gray-400">

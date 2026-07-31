@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 type SearchHit = {
   id: string;
@@ -15,6 +16,8 @@ type SearchHit = {
 };
 
 export function SearchBar() {
+  const t = useTranslations("shop");
+  const nav = useTranslations("nav");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchHit[]>([]);
   const [open, setOpen] = useState(false);
@@ -78,10 +81,10 @@ export function SearchBar() {
           type="text"
           value={query}
           onChange={(e) => handleChange(e.target.value)}
-          placeholder="Search products..."
+          placeholder={nav("searchPlaceholder")}
           className="w-64 pl-10 pr-4 py-2 text-sm bg-white/15 text-white placeholder-white/50 border border-white/20 rounded-full focus:outline-none focus:border-khmer-gold focus:bg-white/20 transition-all"
           onFocus={() => results.length > 0 && setOpen(true)}
-          aria-label="Search products"
+          aria-label={nav("searchPlaceholder")}
         />
         {loading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -129,14 +132,14 @@ export function SearchBar() {
             }}
             className="block px-4 py-2 text-center text-sm text-blue-600 hover:bg-blue-50 border-t border-gray-100"
           >
-            View all results
+            {t("viewAllResults")}
           </Link>
         </div>
       )}
 
       {open && query.trim().length >= 2 && results.length === 0 && !loading && (
         <div className="absolute top-full mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4 text-center text-sm text-gray-400">
-          No products found for &ldquo;{query}&rdquo;
+          {t("noResults")} &ldquo;{query}&rdquo;
         </div>
       )}
     </div>
