@@ -116,6 +116,12 @@ export default function SellerDashboardPage() {
 
           <div className="flex flex-wrap gap-3">
             <button
+              onClick={() => router.push("/seller/products")}
+              className="border border-gray-300 px-6 py-2 rounded hover:bg-gray-50 transition-colors"
+            >
+              My Products
+            </button>
+            <button
               onClick={() => router.push("/seller/products/new")}
               disabled={(profile._count?.products || 0) >= maxProducts}
               className="bg-khmer-blue text-white px-6 py-2 rounded hover:bg-khmer-blue-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
