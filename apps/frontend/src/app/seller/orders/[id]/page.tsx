@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import OrderItemTimeline from "@/components/OrderItemTimeline";
 
 type OrderItem = {
   id: string;
@@ -157,14 +158,14 @@ export default function SellerOrderDetailPage() {
             </div>
 
             {/* Timeline */}
-            <div className="flex items-center gap-2 text-xs text-gray-500 mb-3 flex-wrap">
-              <span className={`px-2 py-0.5 rounded ${item.status !== "PENDING" ? "bg-green-100 text-green-700" : "bg-gray-100"}`}>Approved</span>
-              <span className="text-gray-300">&rarr;</span>
-              <span className={`px-2 py-0.5 rounded ${item.status === "PACKING" || item.status === "SHIPPED" || item.status === "DELIVERED" ? "bg-green-100 text-green-700" : "bg-gray-100"}`}>Packed</span>
-              <span className="text-gray-300">&rarr;</span>
-              <span className={`px-2 py-0.5 rounded ${item.status === "SHIPPED" || item.status === "DELIVERED" ? "bg-green-100 text-green-700" : "bg-gray-100"}`}>Shipped</span>
-              <span className="text-gray-300">&rarr;</span>
-              <span className={`px-2 py-0.5 rounded ${item.status === "DELIVERED" ? "bg-green-100 text-green-700" : "bg-gray-100"}`}>Delivered</span>
+            <div className="mb-3">
+              <OrderItemTimeline
+                status={item.status}
+                trackingNumber={item.trackingNumber}
+                packedAt={item.packedAt}
+                shippedAt={item.shippedAt}
+                deliveredAt={item.deliveredAt}
+              />
             </div>
 
             {/* Actions */}

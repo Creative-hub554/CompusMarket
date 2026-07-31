@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import OrderItemTimeline from "@/components/OrderItemTimeline";
 
 type Feedback = {
   id: string;
@@ -18,6 +19,9 @@ type OrderItem = {
   price: number;
   status: string;
   trackingNumber: string | null;
+  packedAt: string | null;
+  shippedAt: string | null;
+  deliveredAt: string | null;
   feedback: Feedback;
   product: { id: string; name: string; price: number; images: string[] };
 };
@@ -124,21 +128,15 @@ export default function OrderDetailPage() {
                   <p className="text-xs text-gray-400 mt-1">Tracking: {item.trackingNumber}</p>
                 )}
 
-                {/* Timeline dots */}
-                <div className="flex items-center gap-1.5 mt-2 text-xs">
-                  {["APPROVED", "PACKING", "SHIPPED", "DELIVERED"].map((step, i) => {
-                    const statusOrder = ["PENDING", "APPROVED", "PACKING", "SHIPPED", "DELIVERED"];
-                    const currentIdx = statusOrder.indexOf(item.status);
-                    const stepIdx = i + 1;
-                    const done = currentIdx >= stepIdx;
-                    return (
-                      <span key={step} className={`flex items-center gap-1 ${done ? "text-green-600" : "text-gray-300"}`}>
-                        {i > 0 && <span className="w-2 border-t border-current" />}
-                        <span className={`w-2 h-2 rounded-full ${done ? "bg-green-500" : "bg-gray-200"}`} />
-                        <span>{step.charAt(0) + step.slice(1).toLowerCase()}</span>
-                      </span>
-                    );
-                  })}
+                {/* Timeline */}
+                <div className="mt-3">
+                  <OrderItemTimeline
+                    status={item.status}
+                    trackingNumber={item.trackingNumber}
+                    packedAt={item.packedAt}
+                    shippedAt={item.shippedAt}
+                    deliveredAt={item.deliveredAt}
+                  />
                 </div>
               </div>
               <p className="font-medium shrink-0">
