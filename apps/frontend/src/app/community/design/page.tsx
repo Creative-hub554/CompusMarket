@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { categoryThumbs } from "@/components/community/CategoryThumbs";
 
 const categories = [
   {
@@ -430,8 +431,10 @@ export default function DesignPage() {
             Back to all categories
           </button>
           <div className={`rounded-2xl border p-6 ${activeData.bg}`}>
-            <div className="flex items-center gap-3 mb-4">
-              <span className="text-3xl">{activeData.icon}</span>
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-20 h-16 rounded-xl overflow-hidden ring-1 ring-black/10 shrink-0 shadow-sm">
+                {(() => { const T = categoryThumbs[activeData.id]; return T ? <T className="w-full h-full" /> : <div className="w-full h-full flex items-center justify-center text-3xl bg-white">{activeData.icon}</div> })()}
+              </div>
               <div>
                 <h2 className="text-xl font-bold text-gray-900">{activeData.name}</h2>
                 <p className="text-sm text-gray-500">{activeData.count}+ free PNG resources</p>
@@ -489,8 +492,8 @@ export default function DesignPage() {
                   onClick={() => setActiveCategory(cat.id)}
                   className="text-left rounded-xl border border-gray-200 bg-white p-5 hover:shadow-md transition group card-hover"
                 >
-                  <div className={`w-12 h-12 ${cat.bg} rounded-xl flex items-center justify-center mb-3 text-2xl`}>
-                    {cat.icon}
+                  <div className={`w-full h-24 rounded-lg overflow-hidden ring-1 ring-black/5 mb-3`}>
+                    {(() => { const T = categoryThumbs[cat.id]; return T ? <T className="w-full h-full" /> : <div className="w-full h-full flex items-center justify-center text-3xl bg-white">{cat.icon}</div> })()}
                   </div>
                   <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-khmer-blue transition-colors">{cat.name}</h3>
                   <p className="text-sm text-gray-400">{cat.count}+ free resources</p>
@@ -515,7 +518,9 @@ export default function DesignPage() {
                   onClick={() => setActiveCategory(cat.id)}
                   className="w-full text-left flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 hover:shadow-sm transition group"
                 >
-                  <span className="text-2xl">{cat.icon}</span>
+                  <div className="w-24 h-16 rounded-lg overflow-hidden ring-1 ring-black/5 shrink-0">
+                    {(() => { const T = categoryThumbs[cat.id]; return T ? <T className="w-full h-full" /> : <div className="w-full h-full flex items-center justify-center text-2xl bg-white">{cat.icon}</div> })()}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-gray-900 group-hover:text-khmer-blue transition-colors">{cat.name}</h3>
                     <p className="text-xs text-gray-400">{cat.count}+ resources across {cat.sites.length} subcategories</p>

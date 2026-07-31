@@ -5,11 +5,11 @@ import dynamic from "next/dynamic";
 import { ResumeData } from "@/components/resume/types";
 import { sampleResume, emptyResume } from "@/components/resume/utils";
 import { getAllTemplates } from "@/components/resume/registry";
+import "@/components/resume/templates";
 import { AiResumeAssistant } from "@/components/ai/AiResumeAssistant";
 import { useTranslation, TranslationProvider } from "@/lib/useTranslation";
 import TemplateGallery from "@/components/resume/TemplateGallery";
 import DraggableList, { DragHandle } from "@/components/resume/DraggableList";
-import "@/components/resume/templates";
 
 const ResumePDF = dynamic(() => import("@/components/ResumePDF"), {
   ssr: false,

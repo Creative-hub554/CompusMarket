@@ -54,20 +54,7 @@ export function Nav() {
           </Link>
           <Link href="/orders" className="nav-link opacity-90 hover:opacity-100">Orders</Link>
           <Link href="/warranties" className="nav-link opacity-90 hover:opacity-100">Warranties</Link>
-          <div className="relative group">
-            <Link href="/community" className="nav-link opacity-90 hover:opacity-100">Community</Link>
-            <div className="absolute left-0 top-full mt-2 bg-white rounded-lg shadow-xl py-1 min-w-40 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 border border-gray-100">
-              <Link href="/community/resume" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-600 hover:text-white transition-colors">Resume Builder</Link>
-              <Link href="/community/careers" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-600 hover:text-white transition-colors">Career Resources</Link>
-              <hr className="my-1 border-gray-100" />
-              <Link href="/community/documents" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-600 hover:text-white transition-colors">Documents</Link>
-              <Link href="/community/diagrams" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-600 hover:text-white transition-colors">Diagrams</Link>
-              <Link href="/community/flashcards" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-600 hover:text-white transition-colors">Flashcards</Link>
-              <Link href="/community/quizzes" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-600 hover:text-white transition-colors">Quizzes</Link>
-              <Link href="/community/notes" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-600 hover:text-white transition-colors">Study Notes</Link>
-              <Link href="/community/design" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-600 hover:text-white transition-colors">Design Assets</Link>
-            </div>
-          </div>
+          <Link href="/community" className="nav-link opacity-90 hover:opacity-100">Community</Link>
           <Link href="/messages" className="nav-link opacity-90 hover:opacity-100">Messages</Link>
           <Link href="/support" className="nav-link opacity-90 hover:opacity-100">Support</Link>
           <Link href="/seller/dashboard" className="nav-link opacity-90 hover:opacity-100">Seller</Link>
@@ -123,12 +110,6 @@ export function Nav() {
             <Link href="/orders" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-white/10 transition-colors">Orders</Link>
             <Link href="/warranties" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-white/10 transition-colors">Warranties</Link>
             <Link href="/community" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-white/10 transition-colors">Community</Link>
-            <Link href="/community/documents" onClick={() => setOpen(false)} className="rounded px-3 py-2 pl-6 hover:bg-white/10 transition-colors text-sm">Documents</Link>
-            <Link href="/community/diagrams" onClick={() => setOpen(false)} className="rounded px-3 py-2 pl-6 hover:bg-white/10 transition-colors text-sm">Diagrams</Link>
-            <Link href="/community/flashcards" onClick={() => setOpen(false)} className="rounded px-3 py-2 pl-6 hover:bg-white/10 transition-colors text-sm">Flashcards</Link>
-            <Link href="/community/quizzes" onClick={() => setOpen(false)} className="rounded px-3 py-2 pl-6 hover:bg-white/10 transition-colors text-sm">Quizzes</Link>
-            <Link href="/community/notes" onClick={() => setOpen(false)} className="rounded px-3 py-2 pl-6 hover:bg-white/10 transition-colors text-sm">Study Notes</Link>
-            <Link href="/community/design" onClick={() => setOpen(false)} className="rounded px-3 py-2 pl-6 hover:bg-white/10 transition-colors text-sm">Design Assets</Link>
             <Link href="/messages" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-white/10 transition-colors">Messages</Link>
             <Link href="/support" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-white/10 transition-colors">Support</Link>
             <Link href="/seller/dashboard" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-white/10 transition-colors">Seller</Link>

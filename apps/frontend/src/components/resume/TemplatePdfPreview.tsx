@@ -29,18 +29,91 @@ function Skeleton() {
   );
 }
 
+function Placeholder() {
+  return (
+    <div style={{
+      width: "100%", height: "100%", borderRadius: 10,
+      backgroundColor: "#f3f4f6", display: "flex", alignItems: "center", justifyContent: "center",
+      color: "#d1d5db",
+    }}>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+        <line x1="9" y1="9" x2="15" y2="9" /><line x1="9" y1="13" x2="13" y2="13" />
+      </svg>
+    </div>
+  );
+}
+
+async function renderTemplatePreview(configId: string): Promise<string> {
+  const [{ pdf }, { default: ResumePDF }, pdfjs] = await Promise.all([
+    import("@react-pdf/renderer"),
+    import("@/components/ResumePDF"),
+    import("pdfjs-dist"),
+  ]);
+
+  if (!pdfjs.GlobalWorkerOptions.workerSrc) {
+    pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+  }
+
+  const blob = await pdf(
+    <ResumePDF data={sampleResume} template={configId} locale="en" />
+  ).toBlob();
+  const data = new Uint8Array(await blob.arrayBuffer());
+  const loadingTask = pdfjs.getDocument({ data });
+  const doc = await loadingTask.promise;
+  try {
+    const page = await doc.getPage(1);
+    const viewport = page.getViewport({ scale: 2 });
+    const canvas = document.createElement("canvas");
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Failed to get canvas context");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    await page.render({ canvas, viewport }).promise;
+    return canvas.toDataURL("image/png");
+  } finally {
+    await loadingTask.destroy();
+  }
+}
+
 export default function TemplatePdfPreview({ config, onLoad }: Props) {
   const [url, setUrl] = useState<string | null>(cache.get(config.id) || null);
   const [loading, setLoading] = useState(!cache.has(config.id));
+  const [inView, setInView] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef(true);
+  const onLoadRef = useRef(onLoad);
+  onLoadRef.current = onLoad;
 
   useEffect(() => {
     mountedRef.current = true;
+    const el = containerRef.current;
+    if (!el) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setInView(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) setInView(true);
+        });
+      },
+      { rootMargin: "300px 0px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!inView) return;
     const cached = cache.get(config.id);
     if (cached) {
       setUrl(cached);
       setLoading(false);
-      onLoad?.();
+      onLoadRef.current?.();
       return;
     }
 
@@ -49,21 +122,12 @@ export default function TemplatePdfPreview({ config, onLoad }: Props) {
 
     (async () => {
       try {
-        const { pdf } = await import("@react-pdf/renderer");
-        const { default: ResumePDF } = await import(
-          "@/components/ResumePDF"
-        );
-
-        const blob = await pdf(
-          <ResumePDF data={sampleResume} template={config.id} locale="en" />
-        ).toBlob();
-        const objectUrl = URL.createObjectURL(blob);
-
+        const png = await renderTemplatePreview(config.id);
         if (!cancelled && mountedRef.current) {
-          cache.set(config.id, objectUrl);
-          setUrl(objectUrl);
+          cache.set(config.id, png);
+          setUrl(png);
           setLoading(false);
-          onLoad?.();
+          onLoadRef.current?.();
         }
       } catch {
         if (!cancelled && mountedRef.current) {
@@ -75,35 +139,33 @@ export default function TemplatePdfPreview({ config, onLoad }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [config.id, onLoad]);
-
-  if (loading) return <Skeleton />;
-
-  if (!url) {
-    return (
-      <div style={{
-        width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center",
-        flexDirection: "column", gap: 8,
-        backgroundColor: "#f9fafb", borderRadius: 10, color: "#9ca3af", fontSize: 13,
-      }}>
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="1.5">
-          <rect x="3" y="3" width="18" height="18" rx="2" />
-          <line x1="9" y1="9" x2="15" y2="9" /><line x1="9" y1="13" x2="13" y2="13" />
-        </svg>
-        Preview unavailable
-      </div>
-    );
-  }
+  }, [config.id, inView]);
 
   return (
-    <img
-      src={url}
-      alt={config.name}
-      style={{
-        width: "100%", height: "100%", objectFit: "contain", borderRadius: 10,
-        boxShadow: "0 4px 24px rgba(0,0,0,0.1)",
-        backgroundColor: "#fff",
-      }}
-    />
+    <div ref={containerRef} style={{ width: "100%", height: "100%" }}>
+      {!inView ? <Placeholder /> : loading ? <Skeleton /> : !url ? (
+        <div style={{
+          width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center",
+          flexDirection: "column", gap: 8,
+          backgroundColor: "#f9fafb", borderRadius: 10, color: "#9ca3af", fontSize: 13,
+        }}>
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="1.5">
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <line x1="9" y1="9" x2="15" y2="9" /><line x1="9" y1="13" x2="13" y2="13" />
+          </svg>
+          Preview unavailable
+        </div>
+      ) : (
+        <img
+          src={url}
+          alt={config.name}
+          style={{
+            width: "100%", height: "100%", objectFit: "contain", borderRadius: 10,
+            boxShadow: "0 4px 24px rgba(0,0,0,0.1)",
+            backgroundColor: "#fff",
+          }}
+        />
+      )}
+    </div>
   );
 }
