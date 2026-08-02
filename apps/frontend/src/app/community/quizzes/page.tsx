@@ -23,6 +23,12 @@ export default function QuizzesPage() {
   const [newTitle, setNewTitle] = useState("");
   const [search, setSearch] = useState("");
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [showAi, setShowAi] = useState(false);
+  const [aiTopic, setAiTopic] = useState("");
+  const [aiCount, setAiCount] = useState(5);
+  const [aiLang, setAiLang] = useState<"km" | "en">("km");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState("");
 
   async function loadQuizzes() {
     setLoading(true);
@@ -56,6 +62,45 @@ export default function QuizzesPage() {
     setDeleting(null);
   }
 
+  async function generateQuiz() {
+    if (!aiTopic.trim()) return;
+    setAiLoading(true);
+    setAiError("");
+    try {
+      const res = await fetch("/api/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "generate-quiz",
+          data: { topic: aiTopic.trim(), numberOfQuestions: aiCount, language: aiLang },
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.result?.title || !Array.isArray(json.result.questions)) {
+        throw new Error(json.error || "Generation failed");
+      }
+      const quiz = json.result;
+      const quizRes = await fetch("/api/quizzes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: quiz.title, description: quiz.description || "" }),
+      });
+      const created = await quizRes.json();
+      for (const q of quiz.questions) {
+        await fetch(`/api/quizzes/${created.id}/questions`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(q),
+        });
+      }
+      window.location.href = `/community/quizzes/${created.id}`;
+    } catch (err) {
+      setAiError(err instanceof Error ? err.message : "Failed to generate quiz.");
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
   const filtered = quizzes.filter((q) =>
     q.title.toLowerCase().includes(search.toLowerCase())
   );
@@ -80,13 +125,60 @@ export default function QuizzesPage() {
           <h1 className="page-title">Quizzes</h1>
           <p className="page-subtitle">Create and take quizzes to test your knowledge.</p>
         </div>
-        <button onClick={() => setShowNew(!showNew)} className="btn-primary">
-          <span className="flex items-center gap-1.5">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-            New Quiz
-          </span>
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowAi(!showAi)}
+            className="rounded-lg border border-purple-300 bg-purple-50 px-3 py-2 text-sm font-medium text-purple-700 hover:bg-purple-100 transition"
+          >
+            ✨ AI Generate
+          </button>
+          <button onClick={() => setShowNew(!showNew)} className="btn-primary">
+            <span className="flex items-center gap-1.5">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              New Quiz
+            </span>
+          </button>
+        </div>
       </div>
+
+      {showAi && (
+        <div className="mb-6 p-5 border border-purple-200 rounded-xl bg-purple-50">
+          <h2 className="text-sm font-semibold text-purple-800 mb-3">✨ AI Generate Quiz</h2>
+          <div className="flex gap-2 items-start">
+            <input
+              value={aiTopic}
+              onChange={(e) => setAiTopic(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && generateQuiz()}
+              placeholder="Topic, e.g. JavaScript basics, Geography, Biology..."
+              className="input-field flex-1"
+              disabled={aiLoading}
+            />
+            <input
+              type="number"
+              value={aiCount}
+              min={3}
+              max={10}
+              onChange={(e) => setAiCount(Number(e.target.value))}
+              className="w-20 rounded border px-2 py-2 text-sm bg-white"
+              disabled={aiLoading}
+              title="Number of questions (3-10)"
+            />
+            <select
+              value={aiLang}
+              onChange={(e) => setAiLang(e.target.value as "km" | "en")}
+              className="rounded border px-2 py-2 text-sm bg-white"
+              disabled={aiLoading}
+            >
+              <option value="km">ខ្មែរ</option>
+              <option value="en">English</option>
+            </select>
+            <button onClick={generateQuiz} disabled={aiLoading || !aiTopic.trim()} className="btn-success whitespace-nowrap">
+              {aiLoading ? "Generating..." : "Generate"}
+            </button>
+          </div>
+          {aiError && <p className="text-sm text-red-600 mt-2">{aiError}</p>}
+        </div>
+      )}
 
       <div className="mb-5 relative">
         <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>

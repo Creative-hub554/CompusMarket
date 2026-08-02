@@ -24,6 +24,11 @@ export default function NewArticlePage() {
     category: "CAREER_GUIDE",
     tags: "",
   });
+  const [showAi, setShowAi] = useState(false);
+  const [aiTopic, setAiTopic] = useState("");
+  const [aiLang, setAiLang] = useState<"km" | "en">("km");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState("");
 
   function handleSlug(title: string) {
     setForm((prev) => ({
@@ -31,6 +36,37 @@ export default function NewArticlePage() {
       title,
       slug: title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
     }));
+  }
+
+  async function generateArticle() {
+    if (!aiTopic.trim()) return;
+    setAiLoading(true);
+    setAiError("");
+    try {
+      const res = await fetch("/api/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "generate-article",
+          data: { topic: aiTopic.trim(), category: form.category, language: aiLang },
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.result?.content) throw new Error(json.error || "Generation failed");
+      const article = json.result;
+      setForm((prev) => ({
+        ...prev,
+        title: article.title,
+        slug: article.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
+        excerpt: article.excerpt,
+        content: article.content,
+        tags: Array.isArray(article.tags) ? article.tags.join(", ") : "",
+      }));
+    } catch (err) {
+      setAiError(err instanceof Error ? err.message : "Failed to generate article.");
+    } finally {
+      setAiLoading(false);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -45,6 +81,50 @@ export default function NewArticlePage() {
   return (
     <div className="max-w-2xl">
       <h1 className="text-2xl font-bold mb-6">New Article</h1>
+      <button
+        type="button"
+        onClick={() => setShowAi(!showAi)}
+        className="mb-4 rounded-lg border border-purple-300 bg-purple-50 px-4 py-2 text-sm font-medium text-purple-700 hover:bg-purple-100 transition"
+      >
+        ✨ Generate with AI
+      </button>
+      {showAi && (
+        <div className="mb-6 p-5 border border-purple-200 rounded-xl bg-purple-50">
+          <h2 className="text-sm font-semibold text-purple-800 mb-3">✨ AI Generate Article</h2>
+          <div className="flex gap-2 items-start">
+            <input
+              type="text"
+              value={aiTopic}
+              onChange={(e) => setAiTopic(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && generateArticle()}
+              placeholder="Topic, e.g. How to prepare for a job interview..."
+              className="flex-1 rounded border px-3 py-2 text-sm"
+              disabled={aiLoading}
+            />
+            <select
+              value={aiLang}
+              onChange={(e) => setAiLang(e.target.value as "km" | "en")}
+              className="rounded border px-2 py-2 text-sm bg-white"
+              disabled={aiLoading}
+            >
+              <option value="km">ខ្មែរ</option>
+              <option value="en">English</option>
+            </select>
+            <button
+              type="button"
+              onClick={generateArticle}
+              disabled={aiLoading || !aiTopic.trim()}
+              className="rounded bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50 transition"
+            >
+              {aiLoading ? "Generating..." : "Generate"}
+            </button>
+          </div>
+          <p className="text-xs text-purple-600 mt-2">
+            Fills the form below using the selected category. Review before creating.
+          </p>
+          {aiError && <p className="text-sm text-red-600 mt-2">{aiError}</p>}
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1">Title</label>
