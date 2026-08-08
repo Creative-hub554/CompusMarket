@@ -33,22 +33,32 @@ export class SearchService implements OnModuleInit {
     if (!this.isAvailable()) return;
     try {
       const indexes = await this.client!.getIndexes();
-      const exists = indexes.results.some((i: { uid: string }) => i.uid === INDEX_NAME);
-      if (!exists) {
-        await this.client!.createIndex(INDEX_NAME, { primaryKey: "id" });
-        await this.client!.index(INDEX_NAME).updateFilterableAttributes([
-          "categoryId",
-          "condition",
-          "status",
-          "price",
-        ]);
-        await this.client!.index(INDEX_NAME).updateSearchableAttributes([
-          "name",
-          "description",
-          "categoryName",
-        ]);
-        this.logger.log(`Index "${INDEX_NAME}" created`);
+      const existing = indexes.results.find((i: { uid: string }) => i.uid === INDEX_NAME);
+
+      if (existing && existing.primaryKey) {
+        return;
       }
+
+      if (existing) {
+        // The index was auto-created without a primary key (e.g. a failed
+        // documentAddition task). Recreate it so documents can be indexed.
+        await this.client!.deleteIndex(INDEX_NAME);
+        this.logger.log(`Index "${INDEX_NAME}" recreated with primary key`);
+      }
+
+      await this.client!.createIndex(INDEX_NAME, { primaryKey: "id" });
+      await this.client!.index(INDEX_NAME).updateFilterableAttributes([
+        "categoryId",
+        "condition",
+        "status",
+        "price",
+      ]);
+      await this.client!.index(INDEX_NAME).updateSearchableAttributes([
+        "name",
+        "description",
+        "categoryName",
+      ]);
+      this.logger.log(`Index "${INDEX_NAME}" created`);
     } catch (e) {
       this.logger.error("Failed to ensure index", e);
     }
@@ -57,6 +67,7 @@ export class SearchService implements OnModuleInit {
   async indexProduct(productId: string) {
     if (!this.isAvailable()) return;
     try {
+      await this.ensureIndex();
       const product = await this.prisma.product.findUnique({
         where: { id: productId },
         include: { category: true },
@@ -86,6 +97,7 @@ export class SearchService implements OnModuleInit {
   async removeFromIndex(productId: string) {
     if (!this.isAvailable()) return;
     try {
+      await this.ensureIndex();
       await this.client!.index(INDEX_NAME).deleteDocument(productId);
       this.logger.log(`Removed product ${productId} from index`);
     } catch (e) {
