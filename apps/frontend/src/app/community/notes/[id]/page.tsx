@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { useAuthedFetch } from "@/lib/useAuthedFetch";
 
 interface NoteData {
   id: string;
@@ -18,6 +19,7 @@ interface NoteData {
 export default function NoteEditorPage() {
   const { id } = useParams();
   const router = useRouter();
+  const authedFetch = useAuthedFetch();
   const [note, setNote] = useState<NoteData | null>(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -35,7 +37,7 @@ export default function NoteEditorPage() {
   const loadedRef = useRef(false);
 
   useEffect(() => {
-    fetch(`/api/notes/${id}`)
+    authedFetch(`/api/notes/${id}`)
       .then((r) => r.json())
       .then((data) => {
         setNote(data);
@@ -45,13 +47,13 @@ export default function NoteEditorPage() {
         setLoading(false);
       })
       .catch((err) => { console.error("Failed to load note:", err); setLoading(false); });
-  }, [id]);
+  }, [id, authedFetch]);
 
   const save = useCallback(async () => {
     setSaving(true);
     const tags = tagsInput.split(",").map((t) => t.trim()).filter(Boolean);
     try {
-      await fetch(`/api/notes/${id}`, {
+      await authedFetch(`/api/notes/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, content: contentRef.current, tags }),
@@ -60,7 +62,7 @@ export default function NoteEditorPage() {
       setDirty(false);
     } catch (err) { console.error("Failed to save:", err); }
     setSaving(false);
-  }, [id, title, tagsInput]);
+  }, [id, title, tagsInput, authedFetch]);
 
   saveRef.current = save;
 
@@ -77,7 +79,7 @@ export default function NoteEditorPage() {
   async function deleteNote() {
     if (!confirm("Delete this note permanently?")) return;
     try {
-      await fetch(`/api/notes/${id}`, { method: "DELETE" });
+      await authedFetch(`/api/notes/${id}`, { method: "DELETE" });
       router.push("/community/notes");
     } catch (err) { console.error("Failed to delete:", err); }
   }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useAuthedFetch } from "@/lib/useAuthedFetch";
 
 interface QuizItem {
   id: string;
@@ -17,6 +18,7 @@ interface QuizItem {
 
 export default function QuizzesPage() {
   const { data: session } = useSession();
+  const authedFetch = useAuthedFetch();
   const [quizzes, setQuizzes] = useState<QuizItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNew, setShowNew] = useState(false);
@@ -33,7 +35,7 @@ export default function QuizzesPage() {
   async function loadQuizzes() {
     setLoading(true);
     try {
-      const res = await fetch("/api/quizzes");
+      const res = await authedFetch("/api/quizzes");
       setQuizzes(await res.json());
     } catch (err) { console.error("Failed to load quizzes:", err); }
     setLoading(false);
@@ -43,7 +45,7 @@ export default function QuizzesPage() {
 
   async function createQuiz() {
     if (!newTitle.trim()) return;
-    const res = await fetch("/api/quizzes", {
+    const res = await authedFetch("/api/quizzes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title: newTitle }),
@@ -56,7 +58,7 @@ export default function QuizzesPage() {
     if (!confirm("Delete this quiz and all its data?")) return;
     setDeleting(id);
     try {
-      await fetch(`/api/quizzes/${id}`, { method: "DELETE" });
+      await authedFetch(`/api/quizzes/${id}`, { method: "DELETE" });
       setQuizzes((prev) => prev.filter((q) => q.id !== id));
     } catch (err) { console.error("Failed to delete:", err); }
     setDeleting(null);
@@ -67,7 +69,7 @@ export default function QuizzesPage() {
     setAiLoading(true);
     setAiError("");
     try {
-      const res = await fetch("/api/ai", {
+      const res = await authedFetch("/api/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -80,14 +82,14 @@ export default function QuizzesPage() {
         throw new Error(json.error || "Generation failed");
       }
       const quiz = json.result;
-      const quizRes = await fetch("/api/quizzes", {
+      const quizRes = await authedFetch("/api/quizzes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: quiz.title, description: quiz.description || "" }),
       });
       const created = await quizRes.json();
       for (const q of quiz.questions) {
-        await fetch(`/api/quizzes/${created.id}/questions`, {
+        await authedFetch(`/api/quizzes/${created.id}/questions`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(q),

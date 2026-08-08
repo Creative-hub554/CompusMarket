@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useAuthedFetch } from "@/lib/useAuthedFetch";
 
 interface NoteItem {
   id: string;
@@ -15,6 +16,7 @@ interface NoteItem {
 
 export default function NotesPage() {
   const { data: session } = useSession();
+  const authedFetch = useAuthedFetch();
   const [notes, setNotes] = useState<NoteItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -29,16 +31,16 @@ export default function NotesPage() {
 
   useEffect(() => {
     const params = search ? `?search=${encodeURIComponent(search)}` : "";
-    fetch(`/api/notes${params}`)
+    authedFetch(`/api/notes${params}`)
       .then((r) => r.json())
       .then(setNotes)
       .catch((err) => { console.error("Failed to load notes:", err); })
       .finally(() => setLoading(false));
-  }, [search]);
+  }, [search, authedFetch]);
 
   async function createNote() {
     if (!newTitle.trim()) return;
-    const res = await fetch("/api/notes", {
+    const res = await authedFetch("/api/notes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title: newTitle }),
@@ -51,7 +53,7 @@ export default function NotesPage() {
     if (!confirm("Delete this note permanently?")) return;
     setDeleting(id);
     try {
-      await fetch(`/api/notes/${id}`, { method: "DELETE" });
+      await authedFetch(`/api/notes/${id}`, { method: "DELETE" });
       setNotes((prev) => prev.filter((n) => n.id !== id));
     } catch (err) { console.error("Failed to delete:", err); }
     setDeleting(null);
@@ -62,14 +64,14 @@ export default function NotesPage() {
     setAiLoading(true);
     setAiError("");
     try {
-      const res = await fetch("/api/ai", {
+      const res = await authedFetch("/api/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "generate-note", data: { topic: aiTopic.trim(), language: aiLang } }),
       });
       const json = await res.json();
       if (!res.ok || !json.result?.title) throw new Error(json.error || "Generation failed");
-      const noteRes = await fetch("/api/notes", {
+      const noteRes = await authedFetch("/api/notes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: json.result.title, content: json.result.content }),

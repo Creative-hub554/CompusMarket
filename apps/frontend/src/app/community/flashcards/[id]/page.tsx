@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useAuthedFetch } from "@/lib/useAuthedFetch";
 
 interface CardData {
   id: string;
@@ -12,6 +13,7 @@ interface CardData {
 
 export default function StudyPage() {
   const { id } = useParams();
+  const authedFetch = useAuthedFetch();
   const [deck, setDeck] = useState<{ id: string; title: string } | null>(null);
   const [cards, setCards] = useState<CardData[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -21,7 +23,7 @@ export default function StudyPage() {
   const [reviewing, setReviewing] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/flashcards/decks/${id}`)
+    authedFetch(`/api/flashcards/decks/${id}`)
       .then((r) => r.json())
       .then((data) => {
         setDeck(data);
@@ -29,14 +31,14 @@ export default function StudyPage() {
         setLoading(false);
       })
       .catch((err) => { console.error("Failed to load deck:", err); setLoading(false); });
-  }, [id]);
+  }, [id, authedFetch]);
 
   const review = useCallback(async (quality: number) => {
     const card = cards[currentIndex];
     if (!card || reviewing) return;
     setReviewing(true);
     try {
-      await fetch(`/api/flashcards/cards/${card.id}/review`, {
+      await authedFetch(`/api/flashcards/cards/${card.id}/review`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ quality }),
@@ -49,7 +51,7 @@ export default function StudyPage() {
       }
     } catch (err) { console.error("Failed to submit review:", err); }
     setReviewing(false);
-  }, [cards, currentIndex, reviewing]);
+  }, [cards, currentIndex, reviewing, authedFetch]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (!flipped && e.code === "Space") {

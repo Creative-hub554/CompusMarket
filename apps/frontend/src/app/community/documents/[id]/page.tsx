@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { TipTapEditor } from "@/components/editor/TipTapEditor";
+import { useAuthedFetch } from "@/lib/useAuthedFetch";
 
 interface DocumentData {
   id: string;
@@ -18,6 +19,7 @@ interface DocumentData {
 export default function DocumentEditorPage() {
   const { id } = useParams();
   const router = useRouter();
+  const authedFetch = useAuthedFetch();
   const [doc, setDoc] = useState<DocumentData | null>(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -34,7 +36,7 @@ export default function DocumentEditorPage() {
   const loadedRef = useRef(false);
 
   useEffect(() => {
-    fetch(`/api/documents/${id}`)
+    authedFetch(`/api/documents/${id}`)
       .then((r) => r.json())
       .then((data) => {
         setDoc(data);
@@ -45,7 +47,7 @@ export default function DocumentEditorPage() {
         setLoading(false);
       })
       .catch((err) => { console.error("Failed to load document:", err); setLoading(false); });
-  }, [id]);
+  }, [id, authedFetch]);
 
   function updateCounts(html: string) {
     const text = html.replace(/<[^>]+>/g, "").trim();
@@ -56,7 +58,7 @@ export default function DocumentEditorPage() {
   const save = useCallback(async () => {
     setSaving(true);
     try {
-      await fetch(`/api/documents/${id}`, {
+      await authedFetch(`/api/documents/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, content: contentRef.current }),
@@ -65,7 +67,7 @@ export default function DocumentEditorPage() {
       setDirty(false);
     } catch (err) { console.error("Failed to save:", err); }
     setSaving(false);
-  }, [id, title]);
+  }, [id, title, authedFetch]);
 
   saveRef.current = save;
 
@@ -83,7 +85,7 @@ export default function DocumentEditorPage() {
   async function deleteDocument() {
     if (!confirm("Delete this document permanently?")) return;
     try {
-      await fetch(`/api/documents/${id}`, { method: "DELETE" });
+      await authedFetch(`/api/documents/${id}`, { method: "DELETE" });
       router.push("/community/documents");
     } catch (err) { console.error("Failed to delete:", err); }
   }

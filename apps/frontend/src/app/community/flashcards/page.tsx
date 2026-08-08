@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useAuthedFetch } from "@/lib/useAuthedFetch";
 
 interface FlashcardDeckItem {
   id: string;
@@ -15,6 +16,7 @@ interface FlashcardDeckItem {
 
 export default function FlashcardsPage() {
   const { data: session } = useSession();
+  const authedFetch = useAuthedFetch();
   const [decks, setDecks] = useState<FlashcardDeckItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNew, setShowNew] = useState(false);
@@ -26,7 +28,7 @@ export default function FlashcardsPage() {
   async function loadDecks() {
     setLoading(true);
     try {
-      const res = await fetch("/api/flashcards/decks");
+      const res = await authedFetch("/api/flashcards/decks");
       setDecks(await res.json());
     } catch (err) { console.error("Failed to load decks:", err); }
     setLoading(false);
@@ -36,7 +38,7 @@ export default function FlashcardsPage() {
 
   async function createDeck() {
     if (!newTitle.trim()) return;
-    await fetch("/api/flashcards/decks", {
+    await authedFetch("/api/flashcards/decks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title: newTitle, description: newDesc }),
@@ -51,7 +53,7 @@ export default function FlashcardsPage() {
     if (!confirm("Delete this deck and all its cards?")) return;
     setDeleting(id);
     try {
-      await fetch(`/api/flashcards/decks/${id}`, { method: "DELETE" });
+      await authedFetch(`/api/flashcards/decks/${id}`, { method: "DELETE" });
       setDecks((prev) => prev.filter((d) => d.id !== id));
     } catch (err) { console.error("Failed to delete:", err); }
     setDeleting(null);

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslation } from "@/lib/useTranslation";
+import { useAuthedFetch } from "@/lib/useAuthedFetch";
 
 type Props = {
   onImprove: (text: string) => void;
@@ -10,6 +11,7 @@ type Props = {
 
 export function AiResumeAssistant({ onImprove, currentSummary = "" }: Props) {
   const { t } = useTranslation();
+  const authedFetch = useAuthedFetch();
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"summary" | "experience" | "cover-letter">("summary");
   const [summary, setSummary] = useState(currentSummary);
@@ -43,7 +45,7 @@ export function AiResumeAssistant({ onImprove, currentSummary = "" }: Props) {
         };
       }
 
-      const res = await fetch("/api/ai", {
+      const res = await authedFetch("/api/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action, data }),

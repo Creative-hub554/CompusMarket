@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useAuthedFetch } from "@/lib/useAuthedFetch";
 
 interface CardItem {
   id: string;
@@ -13,6 +14,7 @@ interface CardItem {
 
 export default function EditDeckPage() {
   const { id } = useParams();
+  const authedFetch = useAuthedFetch();
   const [deck, setDeck] = useState<{ id: string; title: string; description: string | null } | null>(null);
   const [cards, setCards] = useState<CardItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,20 +25,20 @@ export default function EditDeckPage() {
 
   const loadDeck = useCallback(async () => {
     try {
-      const res = await fetch(`/api/flashcards/decks/${id}`);
+      const res = await authedFetch(`/api/flashcards/decks/${id}`);
       const data = await res.json();
       setDeck(data);
       setCards(data.cards || []);
     } catch (err) { console.error("Failed to load deck:", err); }
     setLoading(false);
-  }, [id]);
+  }, [id, authedFetch]);
 
   useEffect(() => { loadDeck(); }, [loadDeck]);
 
   async function addCard() {
     if (!front.trim() || !back.trim()) return;
     try {
-      await fetch(`/api/flashcards/decks/${id}/cards`, {
+      await authedFetch(`/api/flashcards/decks/${id}/cards`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ front, back }),
@@ -50,7 +52,7 @@ export default function EditDeckPage() {
   async function deleteCard(cardId: string) {
     if (!confirm("Delete this card?")) return;
     try {
-      await fetch(`/api/flashcards/cards/${cardId}`, { method: "DELETE" });
+      await authedFetch(`/api/flashcards/cards/${cardId}`, { method: "DELETE" });
       loadDeck();
     } catch (err) { console.error("Failed to delete card:", err); }
   }
@@ -62,7 +64,7 @@ export default function EditDeckPage() {
         const [f, ...rest] = line.split("\t");
         const b = rest.join("\t");
         if (f && b) {
-          await fetch(`/api/flashcards/decks/${id}/cards`, {
+          await authedFetch(`/api/flashcards/decks/${id}/cards`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ front: f.trim(), back: b.trim() }),

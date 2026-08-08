@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAuthedFetch } from "@/lib/useAuthedFetch";
 
 type Question = { id: string; type: string; question: string; options: string[]; correctAnswer: string; points: number; order: number };
 
@@ -33,6 +34,7 @@ interface ResultData {
 export default function QuizDetailPage() {
   const { id } = useParams();
   const router = useRouter();
+  const authedFetch = useAuthedFetch();
   const [quiz, setQuiz] = useState<QuizData | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,7 +57,7 @@ export default function QuizDetailPage() {
 
   const loadQuiz = useCallback(async () => {
     try {
-      const res = await fetch(`/api/quizzes/${id}`);
+      const res = await authedFetch(`/api/quizzes/${id}`);
       const data = await res.json();
       setQuiz(data);
       setQuestions(data.questions || []);
@@ -64,13 +66,13 @@ export default function QuizDetailPage() {
       setIsPublic(data.public || false);
     } catch (err) { console.error("Failed to load quiz:", err); }
     setLoading(false);
-  }, [id]);
+  }, [id, authedFetch]);
 
   useEffect(() => { loadQuiz(); }, [loadQuiz]);
 
   async function updateQuiz() {
     try {
-      await fetch(`/api/quizzes/${id}`, {
+      await authedFetch(`/api/quizzes/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: newTitle, description: newDesc, public: isPublic }),
@@ -83,7 +85,7 @@ export default function QuizDetailPage() {
   async function deleteQuiz() {
     if (!confirm("Delete this quiz permanently?")) return;
     try {
-      await fetch(`/api/quizzes/${id}`, { method: "DELETE" });
+      await authedFetch(`/api/quizzes/${id}`, { method: "DELETE" });
       router.push("/community/quizzes");
     } catch (err) { console.error("Failed to delete quiz:", err); }
   }
@@ -92,7 +94,7 @@ export default function QuizDetailPage() {
     if (!qText.trim() || !qAnswer.trim()) return;
     const options = qType === "MULTIPLE_CHOICE" ? qOptions.split("\n").map((s) => s.trim()).filter(Boolean) : [];
     try {
-      await fetch(`/api/quizzes/${id}/questions`, {
+      await authedFetch(`/api/quizzes/${id}/questions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: qType, question: qText, options, correctAnswer: qAnswer, points: 1, order: questions.length }),
@@ -107,14 +109,14 @@ export default function QuizDetailPage() {
 
   async function deleteQuestion(qId: string) {
     try {
-      await fetch(`/api/quizzes/questions/${qId}`, { method: "DELETE" });
+      await authedFetch(`/api/quizzes/questions/${qId}`, { method: "DELETE" });
       loadQuiz();
     } catch (err) { console.error("Failed to delete question:", err); }
   }
 
   async function loadAttempts() {
     try {
-      const res = await fetch(`/api/quizzes/${id}/attempts`);
+      const res = await authedFetch(`/api/quizzes/${id}/attempts`);
       setAttempts(await res.json());
       setShowAttempts(!showAttempts);
     } catch (err) { console.error("Failed to load attempts:", err); }
@@ -122,7 +124,7 @@ export default function QuizDetailPage() {
 
   async function startQuiz() {
     try {
-      const res = await fetch(`/api/quizzes/${id}/attempts`, { method: "POST" });
+      const res = await authedFetch(`/api/quizzes/${id}/attempts`, { method: "POST" });
       const attempt = await res.json();
       setAttemptId(attempt.id);
       setMode("take");
@@ -132,7 +134,7 @@ export default function QuizDetailPage() {
   async function submitAnswer(questionId: string) {
     if (!attemptId || !answers[questionId]) return;
     try {
-      await fetch(`/api/quizzes/attempts/${attemptId}/answers`, {
+      await authedFetch(`/api/quizzes/attempts/${attemptId}/answers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ questionId, answer: answers[questionId] }),
@@ -147,7 +149,7 @@ export default function QuizDetailPage() {
       for (const q of questions) {
         if (answers[q.id]) await submitAnswer(q.id);
       }
-      const res = await fetch(`/api/quizzes/attempts/${attemptId}/complete`, { method: "POST" });
+      const res = await authedFetch(`/api/quizzes/attempts/${attemptId}/complete`, { method: "POST" });
       const data = await res.json();
       setResult(data);
       setMode("result");

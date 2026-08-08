@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { MermaidPreview } from "@/components/editor/MermaidPreview";
+import { useAuthedFetch } from "@/lib/useAuthedFetch";
 
 const diagramTypes = [
   { value: "flowchart", label: "Flowchart" },
@@ -29,6 +30,7 @@ interface DiagramData {
 export default function DiagramEditorPage() {
   const { id } = useParams();
   const router = useRouter();
+  const authedFetch = useAuthedFetch();
   const [diagram, setDiagram] = useState<DiagramData | null>(null);
   const [title, setTitle] = useState("");
   const [code, setCode] = useState("");
@@ -47,7 +49,7 @@ export default function DiagramEditorPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    fetch(`/api/diagrams/${id}`)
+    authedFetch(`/api/diagrams/${id}`)
       .then((r) => r.json())
       .then((data) => {
         setDiagram(data);
@@ -57,12 +59,12 @@ export default function DiagramEditorPage() {
         setLoading(false);
       })
       .catch((err) => { console.error("Failed to load diagram:", err); setLoading(false); });
-  }, [id]);
+  }, [id, authedFetch]);
 
   async function save() {
     setSaving(true);
     try {
-      await fetch(`/api/diagrams/${id}`, {
+      await authedFetch(`/api/diagrams/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, code: codeRef.current, type }),
@@ -86,7 +88,7 @@ export default function DiagramEditorPage() {
   async function deleteDiagram() {
     if (!confirm("Delete this diagram?")) return;
     try {
-      await fetch(`/api/diagrams/${id}`, { method: "DELETE" });
+      await authedFetch(`/api/diagrams/${id}`, { method: "DELETE" });
       router.push("/community/diagrams");
     } catch (err) { console.error("Failed to delete:", err); }
   }

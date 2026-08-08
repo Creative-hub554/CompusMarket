@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useAuthedFetch } from "@/lib/useAuthedFetch";
 
 const diagramTypes = [
   { value: "flowchart", label: "Flowchart", color: "badge bg-blue-100 text-blue-700" },
@@ -45,6 +46,7 @@ interface DiagramItem {
 
 export default function DiagramsPage() {
   const { data: session } = useSession();
+  const authedFetch = useAuthedFetch();
   const [diagrams, setDiagrams] = useState<DiagramItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNew, setShowNew] = useState(false);
@@ -55,7 +57,7 @@ export default function DiagramsPage() {
   async function loadDiagrams() {
     setLoading(true);
     try {
-      const res = await fetch("/api/diagrams");
+      const res = await authedFetch("/api/diagrams");
       setDiagrams(await res.json());
     } catch (err) { console.error("Failed to load diagrams:", err); }
     setLoading(false);
@@ -65,7 +67,7 @@ export default function DiagramsPage() {
 
   async function createDiagram() {
     if (!newTitle.trim()) return;
-    const res = await fetch("/api/diagrams", {
+    const res = await authedFetch("/api/diagrams", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title: newTitle, type: newType, code: getTemplate(newType) }),
@@ -78,7 +80,7 @@ export default function DiagramsPage() {
     if (!confirm("Delete this diagram?")) return;
     setDeleting(id);
     try {
-      await fetch(`/api/diagrams/${id}`, { method: "DELETE" });
+      await authedFetch(`/api/diagrams/${id}`, { method: "DELETE" });
       setDiagrams((prev) => prev.filter((d) => d.id !== id));
     } catch (err) { console.error("Failed to delete:", err); }
     setDeleting(null);

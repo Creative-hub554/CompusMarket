@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useAuthedFetch } from "@/lib/useAuthedFetch";
 
 interface DocumentItem {
   id: string;
@@ -16,6 +17,7 @@ interface DocumentItem {
 
 export default function DocumentsPage() {
   const { data: session } = useSession();
+  const authedFetch = useAuthedFetch();
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNew, setShowNew] = useState(false);
@@ -25,7 +27,7 @@ export default function DocumentsPage() {
   async function loadDocs() {
     setLoading(true);
     try {
-      const res = await fetch("/api/documents");
+      const res = await authedFetch("/api/documents");
       setDocuments(await res.json());
     } catch (err) { console.error("Failed to load documents:", err); }
     setLoading(false);
@@ -35,7 +37,7 @@ export default function DocumentsPage() {
 
   async function createDocument() {
     if (!newTitle.trim()) return;
-    const res = await fetch("/api/documents", {
+    const res = await authedFetch("/api/documents", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title: newTitle }),
@@ -48,7 +50,7 @@ export default function DocumentsPage() {
     if (!confirm("Delete this document permanently?")) return;
     setDeleting(id);
     try {
-      await fetch(`/api/documents/${id}`, { method: "DELETE" });
+      await authedFetch(`/api/documents/${id}`, { method: "DELETE" });
       setDocuments((prev) => prev.filter((d) => d.id !== id));
     } catch (err) { console.error("Failed to delete:", err); }
     setDeleting(null);
