@@ -1,26 +1,32 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --color-khmer-blue: #1a237e;
-  --color-khmer-red: #d42027;
+  --color-ink: #0f172a;
+  --color-accent: #6366f1;
+  --color-accent-dark: #4338ca;
+
+  /* Legacy aliases — keep existing pages compiling during migration */
+  --color-khmer-blue: #0f172a;
+  --color-khmer-blue-light: #4338ca;
+  --color-khmer-red: #dc2626;
   --color-khmer-gold: #d4a027;
-  --color-khmer-blue-light: #283593;
-  --color-khmer-red-light: #e53935;
   --color-khmer-gold-light: #f0c040;
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-khmer-blue) transparent;
+  scrollbar-color: var(--color-ink) transparent;
 }
 
 body {
   font-family: 'Inter', sans-serif;
+  color: var(--color-ink);
 }
 
 h1, h2, h3, h4 {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -0.02em;
 }
 
 @keyframes fadeInUp {
@@ -61,3 +67,53 @@ a, button {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px -6px rgba(26, 35, 126, 0.12);
 }
+
+/* ---- UI primitives ---- */
+
+.btn-primary {
+  @apply rounded-lg bg-slate-900 px-4 py-2 text-sm text-white font-medium hover:bg-indigo-700 transition disabled:opacity-40;
+}
+
+.input-field {
+  @apply rounded-lg border border-slate-300 px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition;
+}
+
+.card {
+  @apply rounded-xl border border-slate-200 bg-white;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -8px rgba(15, 23, 42, 0.15);
+}
+
+.page-title {
+  @apply text-3xl font-bold inline-block tracking-tight;
+  position: relative;
+}
+.page-title::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 48px;
+  height: 3px;
+  background: linear-gradient(90deg, #6366f1, #a5b4fc);
+  border-radius: 2px;
+}
+
+/* Nav link hover effect */
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #6366f1;
+  transition: width 0.3s ease;
+}
+.nav-link:hover::after { width: 100%; }
