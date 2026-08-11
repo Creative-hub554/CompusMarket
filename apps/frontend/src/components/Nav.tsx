@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { SearchBar } from "./SearchBar";
 import { LocaleSwitcher } from "./LocaleSwitcher";
 import { useCartStore } from "@/stores/cart";
+import { Button } from "@theo/ui";
 
 export function Nav() {
   const t = useTranslations("nav");
@@ -74,8 +75,8 @@ export function Nav() {
               {t("signOut")}
             </button>
           ) : (
-            <Link href="/login" className="rounded bg-khmer-gold text-khmer-blue px-3 py-1.5 text-sm font-semibold hover:bg-yellow-500 transition-colors animate-pulse-glow">
-              {t("signIn")}
+            <Link href="/login">
+              <Button>{t("signIn")}</Button>
             </Link>
           )}
         </div>
