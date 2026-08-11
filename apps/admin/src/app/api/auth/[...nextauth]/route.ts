@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import jwt from "jsonwebtoken";
 
 const handler = NextAuth({
   session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
@@ -50,6 +51,14 @@ const handler = NextAuth({
     },
     async session({ session, token }) {
       if (session.user) session.user.role = (typeof token.role === "string" ? token.role : "CUSTOMER");
+      const secret = process.env.AUTH_SECRET || process.env.JWT_SECRET || "";
+      if (secret && token.sub) {
+        session.accessToken = jwt.sign(
+          { sub: token.sub, role: token.role || "CUSTOMER" },
+          secret,
+          { expiresIn: "30d" }
+        );
+      }
       return session;
     },
   },

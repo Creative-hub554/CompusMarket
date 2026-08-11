@@ -2,10 +2,15 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
 
 export async function fetchApi<T>(
   path: string,
-  options?: RequestInit
+  options?: RequestInit,
+  token?: string
 ): Promise<T> {
+  const headers = new Headers(options?.headers);
+  headers.set("Content-Type", "application/json");
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: { "Content-Type": "application/json", ...options?.headers },
+    headers,
     ...options,
   });
   if (!res.ok) throw new Error(`API error: ${res.status}`);
@@ -53,18 +58,18 @@ export const api = {
   products: {
     list: () => fetchApi<Product[]>("/products"),
     byId: (id: string) => fetchApi<Product>(`/products/${id}`),
-    create: (data: Record<string, unknown>) =>
+    create: (data: Record<string, unknown>, token?: string) =>
       fetchApi<Product>("/products", {
         method: "POST",
         body: JSON.stringify(data),
-      }),
-    update: (id: string, data: Record<string, unknown>) =>
+      }, token),
+    update: (id: string, data: Record<string, unknown>, token?: string) =>
       fetchApi<Product>(`/products/${id}`, {
         method: "PATCH",
         body: JSON.stringify(data),
-      }),
-    delete: (id: string) =>
-      fetchApi<void>(`/products/${id}`, { method: "DELETE" }),
+      }, token),
+    delete: (id: string, token?: string) =>
+      fetchApi<void>(`/products/${id}`, { method: "DELETE" }, token),
   },
   categories: {
     list: () => fetchApi<Category[]>("/categories"),

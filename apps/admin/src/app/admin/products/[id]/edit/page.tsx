@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { api, type Category } from "@/services/api";
 
 export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
+  const { data: session } = useSession();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -71,7 +73,7 @@ export default function EditProductPage() {
       warrantyMonths: form.warrantyMonths
         ? parseInt(form.warrantyMonths)
         : undefined,
-    });
+    }, session?.accessToken);
     router.push("/admin/products");
   }
 
