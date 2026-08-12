@@ -111,10 +111,10 @@ export default function CommunityPage() {
             <div className={`w-12 h-12 ${tool.bg} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200 ${tool.color}`}>
               {tool.icon}
             </div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-1.5 group-hover:text-khmer-blue transition-colors">
+            <h2 className="text-lg font-semibold text-slate-900 mb-1.5 group-hover:text-indigo-600 transition-colors">
               {tool.title}
             </h2>
-            <p className="text-sm text-gray-500 leading-relaxed">{tool.desc}</p>
+            <p className="text-sm text-slate-500 leading-relaxed">{tool.desc}</p>
           </Link>
         ))}
       </div>

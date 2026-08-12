@@ -68,7 +68,7 @@ export default function DocumentsPage() {
           <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
         </div>
         <h1 className="text-2xl font-bold mb-2">Documents</h1>
-        <p className="text-gray-500 mb-4">Sign in to create and edit rich text documents.</p>
+        <p className="text-slate-500 mb-4">Sign in to create and edit rich text documents.</p>
         <Link href="/login" className="btn-primary">Sign In</Link>
       </div>
     );
@@ -90,7 +90,7 @@ export default function DocumentsPage() {
       </div>
 
       {showNew && (
-        <div className="mb-6 p-5 border rounded-xl bg-gray-50 flex gap-2 items-start">
+        <div className="mb-6 p-5 border rounded-xl bg-slate-50 flex gap-2 items-start">
           <input
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
@@ -108,8 +108,8 @@ export default function DocumentsPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (
             <div key={i} className="card p-4 animate-pulse">
-              <div className="h-5 bg-gray-200 rounded w-3/4 mb-3" />
-              <div className="h-3 bg-gray-200 rounded w-1/2" />
+              <div className="h-5 bg-slate-200 rounded w-3/4 mb-3" />
+              <div className="h-3 bg-slate-200 rounded w-1/2" />
             </div>
           ))}
         </div>
@@ -118,8 +118,8 @@ export default function DocumentsPage() {
           <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-indigo-400">
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
           </div>
-          <p className="text-xl font-medium text-gray-500 mb-1">No documents yet</p>
-          <p className="text-sm text-gray-400">Click &quot;+ New Document&quot; to create your first one.</p>
+          <p className="text-xl font-medium text-slate-500 mb-1">No documents yet</p>
+          <p className="text-sm text-slate-400">Click &quot;+ New Document&quot; to create your first one.</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 stagger-children">
@@ -128,10 +128,10 @@ export default function DocumentsPage() {
             return (
               <div key={doc.id} className="card relative group">
                 <Link href={`/community/documents/${doc.id}`} className="block p-5">
-                  <h3 className="font-semibold truncate text-gray-900 group-hover:text-khmer-blue transition-colors">{doc.title}</h3>
-                  {preview && <p className="text-xs text-gray-400 mt-2 line-clamp-2 leading-relaxed">{preview}</p>}
+                  <h3 className="font-semibold truncate text-slate-900 group-hover:text-indigo-600 transition-colors">{doc.title}</h3>
+                  {preview && <p className="text-xs text-slate-400 mt-2 line-clamp-2 leading-relaxed">{preview}</p>}
                   <div className="flex items-center justify-between mt-4">
-                    <span className="text-xs text-gray-400">{new Date(doc.updatedAt).toLocaleDateString()}</span>
+                    <span className="text-xs text-slate-400">{new Date(doc.updatedAt).toLocaleDateString()}</span>
                     {doc.folder && <span className="tag">{doc.folder.name}</span>}
                   </div>
                 </Link>

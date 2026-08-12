@@ -205,23 +205,23 @@ function ResumeBuilderContent() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold">{t.resume.title}</h1>
-          <p className="text-gray-500 text-sm mt-1">{t.resume.subtitle}</p>
+          <p className="text-slate-500 text-sm mt-1">{t.resume.subtitle}</p>
           <button
             onClick={() => setGalleryOpen(true)}
-            className="mt-2 inline-flex items-center gap-2 rounded-lg border bg-white px-3 py-1.5 text-sm hover:bg-gray-50"
+            className="mt-2 inline-flex items-center gap-2 rounded-lg border bg-white px-3 py-1.5 text-sm hover:bg-slate-50"
           >
             <span style={{
               display: "inline-block", width: 10, height: 10, borderRadius: "50%",
-              backgroundColor: (templates.find((t) => t.id === selectedTemplate)?.config.colors.primary || "#1a237e"),
+              backgroundColor: (templates.find((t) => t.id === selectedTemplate)?.config.colors.primary || "#4338ca"),
             }} />
             <span className="font-medium">{locale === "km" ? templates.find((t) => t.id === selectedTemplate)?.nameKm : templates.find((t) => t.id === selectedTemplate)?.name}</span>
-            <span className="text-xs text-gray-400">{locale === "km" ? "ប្តូរ" : "Change"}</span>
+            <span className="text-xs text-slate-400">{locale === "km" ? "ប្តូរ" : "Change"}</span>
           </button>
         </div>
         <div className="flex gap-2 items-center">
           <button
             onClick={() => setLocale(locale === "en" ? "km" : "en")}
-            className="rounded border px-3 py-1.5 text-sm hover:bg-gray-100"
+            className="rounded border px-3 py-1.5 text-sm hover:bg-slate-100"
           >
             {locale === "en" ? t.resume.languageKm : t.resume.languageEn}
           </button>
@@ -239,7 +239,7 @@ function ResumeBuilderContent() {
           </button>
           <button
             onClick={() => setExportLocale(exportLocale === "en" ? "km" : "en")}
-            className={`rounded px-2 py-1.5 text-xs font-medium border ${exportLocale === "km" ? "bg-amber-100 border-amber-300 text-amber-800" : "bg-gray-50 border-gray-200 text-gray-600"}`}
+            className={`rounded px-2 py-1.5 text-xs font-medium border ${exportLocale === "km" ? "bg-amber-100 border-amber-300 text-amber-800" : "bg-slate-50 border-slate-200 text-slate-600"}`}
           >
             {exportLocale === "en" ? "ខ្មែរ" : "EN"}
           </button>
@@ -263,7 +263,7 @@ function ResumeBuilderContent() {
                 className={`block w-full rounded px-3 py-2 text-left text-sm font-medium transition ${
                   activeSection === item.id
                     ? "bg-blue-100 text-blue-700"
-                    : "text-gray-600 hover:bg-gray-100"
+                    : "text-slate-600 hover:bg-slate-100"
                 }`}
               >
                 {item.label}
@@ -271,13 +271,13 @@ function ResumeBuilderContent() {
             ))}
             <hr className="my-3" />
             <div className="space-y-1">
-              <p className="text-xs font-semibold text-gray-400 px-3 uppercase">
+              <p className="text-xs font-semibold text-slate-400 px-3 uppercase">
                 {t.resume.savedResumes}
               </p>
               {loading ? (
-                <p className="px-3 text-xs text-gray-400">{t.resume.loading}</p>
+                <p className="px-3 text-xs text-slate-400">{t.resume.loading}</p>
               ) : savedResumes.length === 0 ? (
-                <p className="px-3 text-xs text-gray-400">{t.resume.noSavedResumes}</p>
+                <p className="px-3 text-xs text-slate-400">{t.resume.noSavedResumes}</p>
               ) : (
                 savedResumes.map((r) => (
                   <div key={r.id} className="flex items-center gap-1 px-2">
@@ -286,14 +286,14 @@ function ResumeBuilderContent() {
                       className={`flex-1 rounded px-2 py-1 text-left text-xs transition ${
                         currentResumeId === r.id
                           ? "bg-blue-50 text-blue-700"
-                          : "text-gray-600 hover:bg-gray-100"
+                          : "text-slate-600 hover:bg-slate-100"
                       }`}
                     >
                       {r.title}
                     </button>
                     <button
                       onClick={() => deleteResume(r.id)}
-                      className="text-gray-400 hover:text-red-500 text-xs"
+                      className="text-slate-400 hover:text-red-500 text-xs"
                     >
                       x
                     </button>
@@ -366,13 +366,13 @@ function ResumeBuilderContent() {
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-1">
                         <DragHandle index={i} onDragStart={() => {}} />
-                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                           {edu.institution || t.resume.institution}
                         </span>
                       </div>
                       <button
                         onClick={() => removeItem(resume.education, i, reorderEducation)}
-                        className="text-gray-400 hover:text-red-500 text-sm px-1"
+                        className="text-slate-400 hover:text-red-500 text-sm px-1"
                         title="Remove"
                       >
                         ✕
@@ -423,13 +423,13 @@ function ResumeBuilderContent() {
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-1">
                         <DragHandle index={i} onDragStart={() => {}} />
-                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                           {exp.company || t.resume.company}
                         </span>
                       </div>
                       <button
                         onClick={() => removeItem(resume.experience, i, reorderExperience)}
-                        className="text-gray-400 hover:text-red-500 text-sm px-1"
+                        className="text-slate-400 hover:text-red-500 text-sm px-1"
                         title="Remove"
                       >
                         ✕
@@ -487,14 +487,14 @@ function ResumeBuilderContent() {
                 renderItem={(item, i) => (
                   <div data-draggable-item className="flex items-center gap-2 mb-2">
                     <DragHandle index={i} onDragStart={() => {}} />
-                    <span className="flex-1 rounded bg-gray-100 px-3 py-1.5 text-sm flex items-center justify-between">
+                    <span className="flex-1 rounded bg-slate-100 px-3 py-1.5 text-sm flex items-center justify-between">
                       <span>{item.name}</span>
                       <button
                         onClick={() => {
                           const updated = resume.skills.filter((_, j) => j !== i);
                           setResume((prev) => ({ ...prev, skills: updated }));
                         }}
-                        className="text-gray-400 hover:text-red-500 ml-2"
+                        className="text-slate-400 hover:text-red-500 ml-2"
                       >
                         ✕
                       </button>
@@ -522,13 +522,13 @@ function ResumeBuilderContent() {
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-1">
                         <DragHandle index={i} onDragStart={() => {}} />
-                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                           {cert.name || t.resume.name}
                         </span>
                       </div>
                       <button
                         onClick={() => removeItem(resume.certifications, i, reorderCertifications)}
-                        className="text-gray-400 hover:text-red-500 text-sm px-1"
+                        className="text-slate-400 hover:text-red-500 text-sm px-1"
                         title="Remove"
                       >
                         ✕
@@ -571,13 +571,13 @@ function ResumeBuilderContent() {
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-1">
                         <DragHandle index={i} onDragStart={() => {}} />
-                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                           {lang.name || t.resume.language}
                         </span>
                       </div>
                       <button
                         onClick={() => removeItem(resume.languages, i, reorderLanguages)}
-                        className="text-gray-400 hover:text-red-500 text-sm px-1"
+                        className="text-slate-400 hover:text-red-500 text-sm px-1"
                         title="Remove"
                       >
                         ✕

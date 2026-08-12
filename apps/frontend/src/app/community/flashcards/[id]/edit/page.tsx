@@ -77,19 +77,19 @@ export default function EditDeckPage() {
     } catch (err) { console.error("Failed to import cards:", err); }
   }
 
-  if (loading) return <div className="max-w-2xl mx-auto text-center py-16 text-gray-400">Loading...</div>;
-  if (!deck) return <div className="max-w-2xl mx-auto text-center py-16"><p className="text-gray-400">Deck not found</p></div>;
+  if (loading) return <div className="max-w-2xl mx-auto text-center py-16 text-slate-400">Loading...</div>;
+  if (!deck) return <div className="max-w-2xl mx-auto text-center py-16"><p className="text-slate-400">Deck not found</p></div>;
 
   return (
     <div className="max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <Link href="/community/flashcards" className="text-gray-400 hover:text-gray-600 transition-colors inline-flex items-center gap-1 text-sm">
+          <Link href="/community/flashcards" className="text-slate-400 hover:text-slate-600 transition-colors inline-flex items-center gap-1 text-sm">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
             Back
           </Link>
-          <h1 className="text-xl font-bold mt-1 font-['Playfair_Display']">{deck.title}</h1>
-          <p className="text-sm text-gray-500">{cards.length} card{cards.length !== 1 ? "s" : ""}</p>
+          <h1 className="text-xl font-bold mt-1">{deck.title}</h1>
+          <p className="text-sm text-slate-500">{cards.length} card{cards.length !== 1 ? "s" : ""}</p>
         </div>
         <div className="flex gap-2">
           <button onClick={() => setShowBulk(!showBulk)} className="btn-ghost">
@@ -105,14 +105,14 @@ export default function EditDeckPage() {
       </div>
 
       {showBulk ? (
-        <div className="mb-6 p-5 border rounded-xl bg-gray-50 space-y-3">
+        <div className="mb-6 p-5 border rounded-xl bg-slate-50 space-y-3">
           <h2 className="section-title">Bulk Import</h2>
-          <p className="text-xs text-gray-500">Paste one card per line. Separate front and back with a <kbd className="px-1 py-0.5 bg-white rounded text-xs font-mono border">Tab</kbd> key.</p>
+          <p className="text-xs text-slate-500">Paste one card per line. Separate front and back with a <kbd className="px-1 py-0.5 bg-white rounded text-xs font-mono border">Tab</kbd> key.</p>
           <textarea value={bulk} onChange={(e) => setBulk(e.target.value)} placeholder={`Example:\nWhat is 2+2?\t4\nCapital of France?\tParis`} className="input-field font-mono text-sm" rows={5} />
           <button onClick={importBulk} disabled={!bulk.trim()} className="btn-success">Import Cards</button>
         </div>
       ) : (
-        <div className="mb-6 p-5 border rounded-xl bg-gray-50 space-y-3">
+        <div className="mb-6 p-5 border rounded-xl bg-slate-50 space-y-3">
           <h2 className="section-title">Add Card</h2>
           <input value={front} onChange={(e) => setFront(e.target.value)} onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && addCard()} placeholder="Front (question)" className="input-field" />
           <input value={back} onChange={(e) => setBack(e.target.value)} onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && addCard()} placeholder="Back (answer)" className="input-field" />
@@ -122,14 +122,14 @@ export default function EditDeckPage() {
 
       <div className="space-y-2">
         {cards.length === 0 ? (
-          <p className="text-gray-400 text-center py-8">No cards yet. Add your first card above.</p>
+          <p className="text-slate-400 text-center py-8">No cards yet. Add your first card above.</p>
         ) : (
           cards.map((card, i) => (
-            <div key={card.id} className="flex items-start gap-3 p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition group">
-              <span className="text-xs text-gray-400 font-mono mt-1 w-6 shrink-0">{i + 1}.</span>
+            <div key={card.id} className="flex items-start gap-3 p-4 border border-slate-200 rounded-xl hover:bg-slate-50 transition group">
+              <span className="text-xs text-slate-400 font-mono mt-1 w-6 shrink-0">{i + 1}.</span>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">{card.front}</p>
-                <p className="text-xs text-gray-500 mt-0.5 truncate">{card.back}</p>
+                <p className="text-sm font-medium text-slate-900 truncate">{card.front}</p>
+                <p className="text-xs text-slate-500 mt-0.5 truncate">{card.back}</p>
               </div>
               <button onClick={() => deleteCard(card.id)} className="btn-danger text-xs px-2 py-0.5 opacity-60 hover:opacity-100 transition shrink-0">Delete</button>
             </div>
@@ -138,7 +138,7 @@ export default function EditDeckPage() {
       </div>
 
       {cards.length > 0 && (
-        <div className="mt-4 text-xs text-gray-400">
+        <div className="mt-4 text-xs text-slate-400">
           Total: {cards.length} card{cards.length !== 1 ? "s" : ""}
           {deck.description && <span> — {deck.description}</span>}
         </div>

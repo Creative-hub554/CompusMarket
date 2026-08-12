@@ -58,8 +58,8 @@ export function AiResumeAssistant({ onImprove, currentSummary = "" }: Props) {
   }
 
   return (
-    <div className="rounded-lg border border-purple-200 bg-purple-50 p-4">
-      <h3 className="text-sm font-semibold text-purple-800 mb-3">{t.ai.title}</h3>
+    <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-4">
+      <h3 className="text-sm font-semibold text-indigo-800 mb-3">{t.ai.title}</h3>
 
       <div className="flex gap-2 mb-3">
         {(["summary", "experience", "cover-letter"] as const).map((m) => (
@@ -67,7 +67,7 @@ export function AiResumeAssistant({ onImprove, currentSummary = "" }: Props) {
             key={m}
             onClick={() => setMode(m)}
             className={`px-3 py-1 text-xs rounded-full transition ${
-              mode === m ? "bg-purple-600 text-white" : "bg-white text-purple-600 border border-purple-200"
+              mode === m ? "bg-indigo-600 text-white" : "bg-white text-indigo-600 border border-indigo-200"
             }`}
           >
             {m === "summary" ? t.ai.summary : m === "experience" ? t.ai.experience : t.ai.coverLetter}
@@ -163,7 +163,7 @@ export function AiResumeAssistant({ onImprove, currentSummary = "" }: Props) {
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="w-full rounded bg-purple-600 px-3 py-1.5 text-sm text-white hover:bg-purple-700 disabled:opacity-50 transition"
+          className="w-full rounded bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700 disabled:opacity-50 transition"
         >
           {loading ? t.ai.generating : mode === "summary" ? t.ai.improveSummary : mode === "experience" ? t.ai.improveDescription : t.ai.generateCoverLetter}
         </button>

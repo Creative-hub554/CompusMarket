@@ -108,10 +108,10 @@ export default function DiagramEditorPage() {
 
   const lineCount = code.split("\n").length;
 
-  if (loading) return <div className="text-center py-16 text-gray-400">Loading...</div>;
+  if (loading) return <div className="text-center py-16 text-slate-400">Loading...</div>;
   if (!diagram) return (
     <div className="text-center py-16">
-      <p className="text-gray-400 mb-3">Diagram not found</p>
+      <p className="text-slate-400 mb-3">Diagram not found</p>
       <Link href="/community/diagrams" className="btn-primary">Back</Link>
     </div>
   );
@@ -119,14 +119,14 @@ export default function DiagramEditorPage() {
   return (
     <div>
       <div className="mb-5 flex items-center gap-3 flex-wrap">
-        <Link href="/community/diagrams" className="text-gray-400 hover:text-gray-600 transition-colors" aria-label="Back to diagrams">
+        <Link href="/community/diagrams" className="text-slate-400 hover:text-slate-600 transition-colors" aria-label="Back to diagrams">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
         </Link>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} className="flex-1 text-2xl font-bold border-none outline-none bg-transparent min-w-[200px] font-['Playfair_Display']" placeholder="Untitled Diagram" />
+        <input value={title} onChange={(e) => setTitle(e.target.value)} className="flex-1 text-2xl font-bold border-none outline-none bg-transparent min-w-[200px]" placeholder="Untitled Diagram" />
         <select value={type} onChange={(e) => setType(e.target.value)} className="input-field w-auto min-w-[130px]">
           {diagramTypes.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
         </select>
-        <span className="flex items-center gap-1.5 text-xs text-gray-400">
+        <span className="flex items-center gap-1.5 text-xs text-slate-400">
           <span className={`status-dot ${statusClass()}`} />
           {statusText()}
         </span>
@@ -169,11 +169,11 @@ export default function DiagramEditorPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Diagram Code</label>
-            <span className="text-xs text-gray-400">{lineCount} lines</span>
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Diagram Code</label>
+            <span className="text-xs text-slate-400">{lineCount} lines</span>
           </div>
           <div className="relative">
-            <div className="absolute left-0 top-0 bottom-0 w-10 bg-gray-50 border-r border-gray-200 rounded-l-xl flex flex-col items-end pr-2 pt-3 text-xs text-gray-400 font-mono select-none overflow-hidden pointer-events-none">
+            <div className="absolute left-0 top-0 bottom-0 w-10 bg-slate-50 border-r border-slate-200 rounded-l-xl flex flex-col items-end pr-2 pt-3 text-xs text-slate-400 font-mono select-none overflow-hidden pointer-events-none">
               {Array.from({ length: Math.max(lineCount, 1) }, (_, i) => (
                 <span key={i} className="leading-6">{i + 1}</span>
               ))}
@@ -182,7 +182,7 @@ export default function DiagramEditorPage() {
               ref={textareaRef}
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm font-mono h-[550px] resize-none focus:outline-none focus:ring-2 focus:ring-khmer-blue/30 focus:border-khmer-blue transition pl-14 leading-6"
+              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm font-mono h-[550px] resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition pl-14 leading-6"
               placeholder="Enter Mermaid diagram code..."
               spellCheck={false}
             />
@@ -190,7 +190,7 @@ export default function DiagramEditorPage() {
         </div>
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Live Preview</label>
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Live Preview</label>
           </div>
           <MermaidPreview code={code} />
         </div>

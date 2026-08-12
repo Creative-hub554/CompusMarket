@@ -18,7 +18,7 @@ const categories = [
       { name: "Angkor Thom", count: 25, color: "bg-orange-100 text-orange-800" },
       { name: "Banteay Srei", count: 22, color: "bg-pink-100 text-pink-800" },
       { name: "Preah Khan", count: 18, color: "bg-slate-100 text-slate-800" },
-      { name: "Other Temples", count: 30, color: "bg-gray-100 text-gray-800" },
+      { name: "Other Temples", count: 30, color: "bg-slate-100 text-slate-800" },
     ],
     sources: [
       { name: "Freepik - Angkor Vectors", url: "https://www.freepik.com/search?format=search&query=angkor+wat", type: "Vectors & PNGs" },
@@ -185,7 +185,7 @@ const categories = [
       { name: "Traditional Houses", count: 25, color: "bg-stone-100 text-stone-800" },
       { name: "Pagodas & Wats", count: 30, color: "bg-yellow-100 text-yellow-800" },
       { name: "Royal Palace", count: 18, color: "bg-amber-100 text-amber-800" },
-      { name: "Colonial Architecture", count: 12, color: "bg-gray-100 text-gray-800" },
+      { name: "Colonial Architecture", count: 12, color: "bg-slate-100 text-slate-800" },
       { name: "Modern Khmer Design", count: 10, color: "bg-slate-100 text-slate-800" },
     ],
     sources: [
@@ -258,7 +258,7 @@ const categories = [
 const colorPalettes = [
   {
     name: "Khmer Flag",
-    colors: ["#1a237e", "#d42027", "#ffffff"],
+    colors: ["#0f172a", "#dc2626", "#ffffff"],
     desc: "National flag colors",
   },
   {
@@ -303,7 +303,7 @@ const colorPalettes = [
   },
   {
     name: "Silk Weave",
-    colors: ["#C62828", "#AD1457", "#6A1B9A", "#283593", "#00838F"],
+    colors: ["#C62828", "#AD1457", "#6A1B9A", "#4338ca", "#00838F"],
     desc: "Traditional silk textiles",
   },
   {
@@ -351,28 +351,28 @@ export default function DesignPage() {
 
       {/* Stats Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-        <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
-          <span className="text-2xl font-bold text-khmer-blue">{totalResources}+</span>
-          <p className="text-xs text-gray-500 mt-1">Free PNG Resources</p>
+        <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
+          <span className="text-2xl font-bold text-slate-900">{totalResources}+</span>
+          <p className="text-xs text-slate-500 mt-1">Free PNG Resources</p>
         </div>
-        <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
-          <span className="text-2xl font-bold text-khmer-gold">{categories.length}</span>
-          <p className="text-xs text-gray-500 mt-1">Categories</p>
+        <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
+          <span className="text-2xl font-bold text-amber-500">{categories.length}</span>
+          <p className="text-xs text-slate-500 mt-1">Categories</p>
         </div>
-        <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
           <span className="text-2xl font-bold text-green-600">{totalSources}+</span>
-          <p className="text-xs text-gray-500 mt-1">Source Links</p>
+          <p className="text-xs text-slate-500 mt-1">Source Links</p>
         </div>
-        <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
           <span className="text-2xl font-bold text-purple-600">{colorPalettes.length}</span>
-          <p className="text-xs text-gray-500 mt-1">Color Palettes</p>
+          <p className="text-xs text-slate-500 mt-1">Color Palettes</p>
         </div>
       </div>
 
       {/* Search & View Toggle */}
       <div className="flex gap-3 mb-6 items-center">
         <div className="relative flex-1">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -380,11 +380,11 @@ export default function DesignPage() {
             className="input-field pl-10"
           />
         </div>
-        <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
-          <button onClick={() => setViewMode("grid")} className={`px-3 py-1.5 text-xs rounded-md transition font-medium ${viewMode === "grid" ? "bg-white shadow-sm text-khmer-blue" : "text-gray-500 hover:text-gray-700"}`}>
+        <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
+          <button onClick={() => setViewMode("grid")} className={`px-3 py-1.5 text-xs rounded-md transition font-medium ${viewMode === "grid" ? "bg-white shadow-sm text-indigo-600" : "text-slate-500 hover:text-slate-700"}`}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" /></svg>
           </button>
-          <button onClick={() => setViewMode("list")} className={`px-3 py-1.5 text-xs rounded-md transition font-medium ${viewMode === "list" ? "bg-white shadow-sm text-khmer-blue" : "text-gray-500 hover:text-gray-700"}`}>
+          <button onClick={() => setViewMode("list")} className={`px-3 py-1.5 text-xs rounded-md transition font-medium ${viewMode === "list" ? "bg-white shadow-sm text-indigo-600" : "text-slate-500 hover:text-slate-700"}`}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
           </button>
         </div>
@@ -398,20 +398,20 @@ export default function DesignPage() {
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
           {colorPalettes.map((palette) => (
-            <div key={palette.name} className="rounded-xl border border-gray-200 bg-white p-3 hover:shadow-md transition">
+            <div key={palette.name} className="rounded-xl border border-slate-200 bg-white p-3 hover:shadow-md transition">
               <div className="flex rounded-lg overflow-hidden h-8 mb-2">
                 {palette.colors.map((c, i) => (
                   <div key={i} className="flex-1" style={{ backgroundColor: c }} title={c} />
                 ))}
               </div>
-              <p className="text-xs font-semibold text-gray-800 truncate">{palette.name}</p>
-              <p className="text-[10px] text-gray-400 truncate">{palette.desc}</p>
+              <p className="text-xs font-semibold text-slate-800 truncate">{palette.name}</p>
+              <p className="text-[10px] text-slate-400 truncate">{palette.desc}</p>
               <div className="flex flex-wrap gap-1 mt-1.5">
                 {palette.colors.map((c, i) => (
                   <button
                     key={i}
                     onClick={() => navigator.clipboard.writeText(c)}
-                    className="text-[10px] font-mono text-gray-500 hover:text-khmer-blue bg-gray-50 px-1.5 py-0.5 rounded hover:bg-blue-50 transition"
+                    className="text-[10px] font-mono text-slate-500 hover:text-indigo-600 bg-slate-50 px-1.5 py-0.5 rounded hover:bg-blue-50 transition"
                     title={`Copy ${c}`}
                   >
                     {c}
@@ -426,7 +426,7 @@ export default function DesignPage() {
       {/* Category Browser */}
       {activeData ? (
         <div className="mb-8">
-          <button onClick={() => setActiveCategory(null)} className="text-sm text-gray-500 hover:text-gray-700 mb-4 flex items-center gap-1">
+          <button onClick={() => setActiveCategory(null)} className="text-sm text-slate-500 hover:text-slate-700 mb-4 flex items-center gap-1">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
             Back to all categories
           </button>
@@ -436,8 +436,8 @@ export default function DesignPage() {
                 {(() => { const T = categoryThumbs[activeData.id]; return T ? <T className="w-full h-full" /> : <div className="w-full h-full flex items-center justify-center text-3xl bg-white">{activeData.icon}</div> })()}
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">{activeData.name}</h2>
-                <p className="text-sm text-gray-500">{activeData.count}+ free PNG resources</p>
+                <h2 className="text-xl font-bold text-slate-900">{activeData.name}</h2>
+                <p className="text-sm text-slate-500">{activeData.count}+ free PNG resources</p>
               </div>
             </div>
 
@@ -450,7 +450,7 @@ export default function DesignPage() {
               ))}
             </div>
 
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Free Download Sources</h3>
+            <h3 className="text-sm font-semibold text-slate-700 mb-3">Free Download Sources</h3>
             <div className="grid gap-2">
               {activeData.sources.map((src) => (
                 <a
@@ -458,16 +458,16 @@ export default function DesignPage() {
                   href={src.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between bg-white rounded-xl px-4 py-3 hover:shadow-sm transition border border-gray-200 group"
+                  className="flex items-center justify-between bg-white rounded-xl px-4 py-3 hover:shadow-sm transition border border-slate-200 group"
                 >
                   <div className="flex items-center gap-3">
-                    <svg className="w-5 h-5 text-khmer-blue shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                    <svg className="w-5 h-5 text-indigo-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                     <div>
-                      <p className="text-sm font-medium text-gray-800 group-hover:text-khmer-blue transition">{src.name}</p>
-                      <span className="text-xs text-gray-400">{src.type}</span>
+                      <p className="text-sm font-medium text-slate-800 group-hover:text-indigo-600 transition">{src.name}</p>
+                      <span className="text-xs text-slate-400">{src.type}</span>
                     </div>
                   </div>
-                  <svg className="w-4 h-4 text-gray-300 group-hover:text-khmer-blue transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                  <svg className="w-4 h-4 text-slate-300 group-hover:text-indigo-600 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                 </a>
               ))}
             </div>
@@ -480,7 +480,7 @@ export default function DesignPage() {
         <section>
           <h2 className="section-title mb-4">Browse by Category</h2>
           {filteredCategories.length === 0 ? (
-            <div className="text-center py-12 text-gray-400">
+            <div className="text-center py-12 text-slate-400">
               <p className="text-lg">No categories match your search</p>
               <p className="text-sm mt-1">Try a different keyword.</p>
             </div>
@@ -490,13 +490,13 @@ export default function DesignPage() {
                 <button
                   key={cat.id}
                   onClick={() => setActiveCategory(cat.id)}
-                  className="text-left rounded-xl border border-gray-200 bg-white p-5 hover:shadow-md transition group card-hover"
+                  className="text-left rounded-xl border border-slate-200 bg-white p-5 hover:shadow-md transition group card-hover"
                 >
                   <div className={`w-full h-24 rounded-lg overflow-hidden ring-1 ring-black/5 mb-3`}>
                     {(() => { const T = categoryThumbs[cat.id]; return T ? <T className="w-full h-full" /> : <div className="w-full h-full flex items-center justify-center text-3xl bg-white">{cat.icon}</div> })()}
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-khmer-blue transition-colors">{cat.name}</h3>
-                  <p className="text-sm text-gray-400">{cat.count}+ free resources</p>
+                  <h3 className="font-semibold text-slate-900 mb-1 group-hover:text-indigo-600 transition-colors">{cat.name}</h3>
+                  <p className="text-sm text-slate-400">{cat.count}+ free resources</p>
                   <div className="flex flex-wrap gap-1 mt-3">
                     {cat.sites.slice(0, 3).map((site) => (
                       <span key={site.name} className={`${site.color} text-[10px] rounded px-1.5 py-0.5`}>
@@ -504,7 +504,7 @@ export default function DesignPage() {
                       </span>
                     ))}
                     {cat.sites.length > 3 && (
-                      <span className="text-[10px] text-gray-400 px-1">+{cat.sites.length - 3}</span>
+                      <span className="text-[10px] text-slate-400 px-1">+{cat.sites.length - 3}</span>
                     )}
                   </div>
                 </button>
@@ -516,17 +516,17 @@ export default function DesignPage() {
                 <button
                   key={cat.id}
                   onClick={() => setActiveCategory(cat.id)}
-                  className="w-full text-left flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 hover:shadow-sm transition group"
+                  className="w-full text-left flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 hover:shadow-sm transition group"
                 >
                   <div className="w-24 h-16 rounded-lg overflow-hidden ring-1 ring-black/5 shrink-0">
                     {(() => { const T = categoryThumbs[cat.id]; return T ? <T className="w-full h-full" /> : <div className="w-full h-full flex items-center justify-center text-2xl bg-white">{cat.icon}</div> })()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 group-hover:text-khmer-blue transition-colors">{cat.name}</h3>
-                    <p className="text-xs text-gray-400">{cat.count}+ resources across {cat.sites.length} subcategories</p>
+                    <h3 className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">{cat.name}</h3>
+                    <p className="text-xs text-slate-400">{cat.count}+ resources across {cat.sites.length} subcategories</p>
                   </div>
-                  <span className="text-xs text-gray-400">{cat.sources.length} sources</span>
-                  <svg className="w-5 h-5 text-gray-300 group-hover:text-khmer-blue transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                  <span className="text-xs text-slate-400">{cat.sources.length} sources</span>
+                  <svg className="w-5 h-5 text-slate-300 group-hover:text-indigo-600 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                 </button>
               ))}
             </div>
@@ -535,39 +535,39 @@ export default function DesignPage() {
       ) : null}
 
       {/* Design Tips Section */}
-      <section className="mt-10 p-6 rounded-2xl bg-gradient-to-br from-khmer-blue/5 to-purple-50/50 border border-khmer-blue/10">
+      <section className="mt-10 p-6 rounded-2xl bg-gradient-to-br from-slate-900/5 to-indigo-50/50 border border-indigo-600/10">
         <h2 className="section-title mb-4 flex items-center gap-2">
-          <svg className="w-5 h-5 text-khmer-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+          <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
           Design Tips for Cambodia-Themed Projects
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-          <div className="bg-white/80 rounded-xl p-4 border border-gray-100">
+          <div className="bg-white/80 rounded-xl p-4 border border-slate-100">
             <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center mb-2">
               <span className="text-lg">🎨</span>
             </div>
-            <p className="font-medium text-gray-800 mb-1">Use Authentic Colors</p>
-            <p className="text-xs text-gray-500">Reference the color palettes above — especially temple stone, saffron, and flag colors for authentic Khmer design.</p>
+            <p className="font-medium text-slate-800 mb-1">Use Authentic Colors</p>
+            <p className="text-xs text-slate-500">Reference the color palettes above — especially temple stone, saffron, and flag colors for authentic Khmer design.</p>
           </div>
-          <div className="bg-white/80 rounded-xl p-4 border border-gray-100">
+          <div className="bg-white/80 rounded-xl p-4 border border-slate-100">
             <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mb-2">
               <span className="text-lg">🖼️</span>
             </div>
-            <p className="font-medium text-gray-800 mb-1">High-Resolution Assets</p>
-            <p className="text-xs text-gray-500">Use Unsplash and Pexels for print-ready photos. Freepik and Vecteezy are best for scalable vectors and PNGs.</p>
+            <p className="font-medium text-slate-800 mb-1">High-Resolution Assets</p>
+            <p className="text-xs text-slate-500">Use Unsplash and Pexels for print-ready photos. Freepik and Vecteezy are best for scalable vectors and PNGs.</p>
           </div>
-          <div className="bg-white/80 rounded-xl p-4 border border-gray-100">
+          <div className="bg-white/80 rounded-xl p-4 border border-slate-100">
             <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mb-2">
               <span className="text-lg">✒️</span>
             </div>
-            <p className="font-medium text-gray-800 mb-1">Pair Fonts Carefully</p>
-            <p className="text-xs text-gray-500">Combine Playfair Display (headings) with Inter (body) for a clean, professional Khmer-themed layout.</p>
+            <p className="font-medium text-slate-800 mb-1">Pair Fonts Carefully</p>
+            <p className="text-xs text-slate-500">Use Inter throughout — tight letter-spacing for headings, regular for body — for a clean, professional Khmer-themed layout.</p>
           </div>
-          <div className="bg-white/80 rounded-xl p-4 border border-gray-100">
+          <div className="bg-white/80 rounded-xl p-4 border border-slate-100">
             <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mb-2">
               <span className="text-lg">📐</span>
             </div>
-            <p className="font-medium text-gray-800 mb-1">Respect the Culture</p>
-            <p className="text-xs text-gray-500">Always use images respectfully. Avoid modifying sacred symbols. Credit photographers when required.</p>
+            <p className="font-medium text-slate-800 mb-1">Respect the Culture</p>
+            <p className="text-xs text-slate-500">Always use images respectfully. Avoid modifying sacred symbols. Credit photographers when required.</p>
           </div>
         </div>
       </section>

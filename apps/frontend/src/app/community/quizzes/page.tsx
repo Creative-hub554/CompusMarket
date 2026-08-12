@@ -114,7 +114,7 @@ export default function QuizzesPage() {
           <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
         </div>
         <h1 className="text-2xl font-bold mb-2">Quizzes</h1>
-        <p className="text-gray-500 mb-4">Sign in to create and take quizzes.</p>
+        <p className="text-slate-500 mb-4">Sign in to create and take quizzes.</p>
         <Link href="/login" className="btn-primary">Sign In</Link>
       </div>
     );
@@ -183,12 +183,12 @@ export default function QuizzesPage() {
       )}
 
       <div className="mb-5 relative">
-        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
         <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search quizzes..." className="input-field pl-10" />
       </div>
 
       {showNew && (
-        <div className="mb-6 p-5 border rounded-xl bg-gray-50 flex gap-2 items-start">
+        <div className="mb-6 p-5 border rounded-xl bg-slate-50 flex gap-2 items-start">
           <input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} onKeyDown={(e) => e.key === "Enter" && createQuiz()} placeholder="Quiz title..." className="input-field flex-1" autoFocus />
           <button onClick={createQuiz} className="btn-success">Create</button>
           <button onClick={() => { setShowNew(false); setNewTitle(""); }} className="btn-ghost">Cancel</button>
@@ -198,7 +198,7 @@ export default function QuizzesPage() {
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="card p-4 animate-pulse"><div className="h-5 bg-gray-200 rounded w-2/3 mb-3" /><div className="h-3 bg-gray-200 rounded w-1/3" /></div>
+            <div key={i} className="card p-4 animate-pulse"><div className="h-5 bg-slate-200 rounded w-2/3 mb-3" /><div className="h-3 bg-slate-200 rounded w-1/3" /></div>
           ))}
         </div>
       ) : filtered.length === 0 ? (
@@ -206,17 +206,17 @@ export default function QuizzesPage() {
           <div className="w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-rose-400">
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
           </div>
-          <p className="text-xl font-medium text-gray-500 mb-1">{search ? "No quizzes match your search" : "No quizzes yet"}</p>
-          <p className="text-sm text-gray-400">{search ? "Try a different search term." : 'Click "+ New Quiz" to create your first one.'}</p>
+          <p className="text-xl font-medium text-slate-500 mb-1">{search ? "No quizzes match your search" : "No quizzes yet"}</p>
+          <p className="text-sm text-slate-400">{search ? "Try a different search term." : 'Click "+ New Quiz" to create your first one.'}</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 stagger-children">
           {filtered.map((quiz) => (
             <div key={quiz.id} className="card relative group">
               <Link href={`/community/quizzes/${quiz.id}`} className="block p-5">
-                <h3 className="font-semibold truncate text-gray-900 group-hover:text-khmer-blue transition-colors">{quiz.title}</h3>
-                {quiz.description && <p className="text-sm text-gray-500 mt-1.5 line-clamp-2 leading-relaxed">{quiz.description}</p>}
-                <div className="flex items-center gap-3 mt-4 text-xs text-gray-400">
+                <h3 className="font-semibold truncate text-slate-900 group-hover:text-indigo-600 transition-colors">{quiz.title}</h3>
+                {quiz.description && <p className="text-sm text-slate-500 mt-1.5 line-clamp-2 leading-relaxed">{quiz.description}</p>}
+                <div className="flex items-center gap-3 mt-4 text-xs text-slate-400">
                   <span>{quiz._count?.questions ?? 0} questions</span>
                   <span>{quiz._count?.attempts ?? 0} attempts</span>
                   {quiz.public && <span className="badge bg-green-100 text-green-700">Public</span>}

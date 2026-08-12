@@ -163,10 +163,10 @@ export default function QuizDetailPage() {
     { value: "SHORT_ANSWER", label: "Short Answer" },
   ];
 
-  if (loading) return <div className="max-w-3xl mx-auto text-center py-16 text-gray-400">Loading...</div>;
+  if (loading) return <div className="max-w-3xl mx-auto text-center py-16 text-slate-400">Loading...</div>;
   if (!quiz) return (
     <div className="max-w-3xl mx-auto text-center py-16">
-      <p className="text-gray-400 mb-3">Quiz not found</p>
+      <p className="text-slate-400 mb-3">Quiz not found</p>
       <Link href="/community/quizzes" className="btn-primary">Back</Link>
     </div>
   );
@@ -177,23 +177,23 @@ export default function QuizDetailPage() {
     return (
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold font-['Playfair_Display']">{quiz.title}</h1>
+          <h1 className="text-xl font-bold">{quiz.title}</h1>
           <button onClick={finishQuiz} disabled={submitting} className="btn-primary">
             {submitting ? "Submitting..." : "Finish Quiz"}
           </button>
         </div>
         <div className="progress-bar mb-6">
-          <div className="progress-fill bg-khmer-blue" style={{ width: `${progress}%` }} />
+          <div className="progress-fill bg-indigo-600" style={{ width: `${progress}%` }} />
         </div>
-        <p className="text-xs text-gray-400 mb-6 text-right">{answered} of {questions.length} answered</p>
+        <p className="text-xs text-slate-400 mb-6 text-right">{answered} of {questions.length} answered</p>
         <div className="space-y-5">
           {questions.map((q, i) => (
-            <div key={q.id} className={`border rounded-xl p-5 transition ${answers[q.id] ? "border-khmer-blue/20 bg-blue-50/30" : "border-gray-200"}`}>
-              <p className="font-medium mb-3 text-gray-900">{i + 1}. {q.question} <span className="text-xs text-gray-400 font-normal">({q.points} pt)</span></p>
+            <div key={q.id} className={`border rounded-xl p-5 transition ${answers[q.id] ? "border-indigo-600/20 bg-indigo-50/30" : "border-slate-200"}`}>
+              <p className="font-medium mb-3 text-slate-900">{i + 1}. {q.question} <span className="text-xs text-slate-400 font-normal">({q.points} pt)</span></p>
               {q.type === "TRUE_FALSE" ? (
                 <div className="flex gap-3">
                   {["True", "False"].map((opt) => (
-                    <label key={opt} className={`flex items-center gap-2 cursor-pointer p-3 rounded-xl border-2 transition ${answers[q.id] === opt ? "border-khmer-blue bg-khmer-blue/5 text-khmer-blue font-medium" : "border-gray-200 hover:border-gray-300"}`}>
+                    <label key={opt} className={`flex items-center gap-2 cursor-pointer p-3 rounded-xl border-2 transition ${answers[q.id] === opt ? "border-indigo-600 bg-indigo-50 text-indigo-600 font-medium" : "border-slate-200 hover:border-slate-300"}`}>
                       <input type="radio" name={q.id} value={opt} checked={answers[q.id] === opt} onChange={() => setAnswers((a) => ({ ...a, [q.id]: opt }))} className="sr-only" />
                       {opt}
                     </label>
@@ -204,9 +204,9 @@ export default function QuizDetailPage() {
               ) : (
                 <div className="space-y-2">
                   {(q.options || []).map((opt: string) => (
-                    <label key={opt} className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl border-2 transition ${answers[q.id] === opt ? "border-khmer-blue bg-khmer-blue/5" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"}`}>
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${answers[q.id] === opt ? "border-khmer-blue" : "border-gray-300"}`}>
-                        {answers[q.id] === opt && <div className="w-2.5 h-2.5 rounded-full bg-khmer-blue" />}
+                    <label key={opt} className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl border-2 transition ${answers[q.id] === opt ? "border-indigo-600 bg-indigo-50" : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"}`}>
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${answers[q.id] === opt ? "border-indigo-600" : "border-slate-300"}`}>
+                        {answers[q.id] === opt && <div className="w-2.5 h-2.5 rounded-full bg-indigo-600" />}
                       </div>
                       <input type="radio" name={q.id} value={opt} checked={answers[q.id] === opt} onChange={() => setAnswers((a) => ({ ...a, [q.id]: opt }))} className="sr-only" />
                       <span className="text-sm">{opt}</span>
@@ -225,11 +225,11 @@ export default function QuizDetailPage() {
     return (
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-8">
-          <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 bg-gradient-to-br from-khmer-blue to-blue-600 text-white">
+          <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 bg-gradient-to-br from-indigo-600 to-blue-600 text-white">
             <span className="text-3xl font-bold">{Math.round(result.score)}%</span>
           </div>
-          <h1 className="text-2xl font-bold font-['Playfair_Display'] mb-1">{quiz?.title} — Results</h1>
-          <p className="text-gray-500">{result.answers.filter((a: any) => a.isCorrect).length} / {questions.length} correct</p>
+          <h1 className="text-2xl font-bold mb-1">{quiz?.title} — Results</h1>
+          <p className="text-slate-500">{result.answers.filter((a: any) => a.isCorrect).length} / {questions.length} correct</p>
         </div>
         <div className="space-y-4">
           {result.answers?.map((answer: any) => {
@@ -246,9 +246,9 @@ export default function QuizDetailPage() {
                     )}
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium text-gray-900">{q.question}</p>
+                    <p className="font-medium text-slate-900">{q.question}</p>
                     <p className="text-sm mt-1">Your answer: <span className="font-medium">{answer.answer}</span></p>
-                    {!answer.isCorrect && <p className="text-sm text-gray-500 mt-0.5">Correct answer: <span className="font-medium text-green-600">{q.correctAnswer}</span></p>}
+                    {!answer.isCorrect && <p className="text-sm text-slate-500 mt-0.5">Correct answer: <span className="font-medium text-green-600">{q.correctAnswer}</span></p>}
                   </div>
                 </div>
               </div>
@@ -267,7 +267,7 @@ export default function QuizDetailPage() {
     <div className="max-w-3xl mx-auto">
       <div className="flex items-start justify-between mb-6">
         <div className="flex-1">
-          <Link href="/community/quizzes" className="text-gray-400 hover:text-gray-600 transition-colors inline-flex items-center gap-1 text-sm">
+          <Link href="/community/quizzes" className="text-slate-400 hover:text-slate-600 transition-colors inline-flex items-center gap-1 text-sm">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
             Back
           </Link>
@@ -275,8 +275,8 @@ export default function QuizDetailPage() {
             <div className="mt-2 space-y-3">
               <input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} className="input-field text-xl font-bold" />
               <input value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="Description" className="input-field" />
-              <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-                <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} className="rounded border-gray-300 text-khmer-blue focus:ring-khmer-blue" />
+              <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+                <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
                 Public (anyone can take this quiz)
               </label>
               <div className="flex gap-2">
@@ -286,15 +286,15 @@ export default function QuizDetailPage() {
             </div>
           ) : (
             <>
-              <h1 className="text-2xl font-bold mt-1 font-['Playfair_Display']">{quiz.title}</h1>
-              {quiz.description && <p className="text-gray-500 mt-1">{quiz.description}</p>}
-              <div className="flex items-center gap-3 mt-2 text-xs text-gray-400 flex-wrap">
+              <h1 className="text-2xl font-bold mt-1">{quiz.title}</h1>
+              {quiz.description && <p className="text-slate-500 mt-1">{quiz.description}</p>}
+              <div className="flex items-center gap-3 mt-2 text-xs text-slate-400 flex-wrap">
                 <span className="flex items-center gap-1">
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                   {questions.length} questions
                 </span>
                 {quiz.timeLimit != null && quiz.timeLimit > 0 && <span>{quiz.timeLimit} min limit</span>}
-                {quiz.public ? <span className="badge bg-green-100 text-green-700">Public</span> : <span className="badge bg-gray-100 text-gray-600">Private</span>}
+                {quiz.public ? <span className="badge bg-green-100 text-green-700">Public</span> : <span className="badge bg-slate-100 text-slate-600">Private</span>}
               </div>
             </>
           )}
@@ -326,16 +326,16 @@ export default function QuizDetailPage() {
         </div>
 
         {showAttempts && (
-          <div className="border border-gray-200 rounded-xl p-5 space-y-3 bg-gray-50/50 animate-slide-down">
-            <h3 className="text-sm font-semibold text-gray-700">Attempt History</h3>
+          <div className="border border-slate-200 rounded-xl p-5 space-y-3 bg-slate-50/50 animate-slide-down">
+            <h3 className="text-sm font-semibold text-slate-700">Attempt History</h3>
             {attempts.length === 0 ? (
-              <p className="text-xs text-gray-400">No attempts yet.</p>
+              <p className="text-xs text-slate-400">No attempts yet.</p>
             ) : (
               attempts.map((a) => (
-                <div key={a.id} className="flex items-center justify-between text-sm border-b border-gray-200 pb-2 last:border-0">
-                  <span className="text-gray-600">{a.user?.name || a.user?.email}</span>
+                <div key={a.id} className="flex items-center justify-between text-sm border-b border-slate-200 pb-2 last:border-0">
+                  <span className="text-slate-600">{a.user?.name || a.user?.email}</span>
                   <span className="font-medium">{a.completedAt ? `${Math.round(a.score)}%` : <span className="text-amber-600">In progress</span>}</span>
-                  <span className="text-xs text-gray-400">{new Date(a.startedAt).toLocaleDateString()}</span>
+                  <span className="text-xs text-slate-400">{new Date(a.startedAt).toLocaleDateString()}</span>
                 </div>
               ))
             )}
@@ -343,7 +343,7 @@ export default function QuizDetailPage() {
         )}
 
         {showAddQuestion && (
-          <div className="border border-gray-200 rounded-xl p-5 bg-gray-50/50 space-y-3 animate-slide-down">
+          <div className="border border-slate-200 rounded-xl p-5 bg-slate-50/50 space-y-3 animate-slide-down">
             <h3 className="section-title">New Question</h3>
             <select value={qType} onChange={(e) => setQType(e.target.value)} className="input-field">
               {questionTypes.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
@@ -359,14 +359,14 @@ export default function QuizDetailPage() {
 
         <div className="space-y-3">
           {questions.map((q, i) => (
-            <div key={q.id} className="group border border-gray-200 rounded-xl p-5 hover:shadow-sm transition">
+            <div key={q.id} className="group border border-slate-200 rounded-xl p-5 hover:shadow-sm transition">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <p className="font-medium text-gray-900">{i + 1}. {q.question}</p>
+                  <p className="font-medium text-slate-900">{i + 1}. {q.question}</p>
                   <div className="flex items-center gap-2 mt-2 flex-wrap">
-                    <span className="badge bg-gray-100 text-gray-600 capitalize">{q.type.replace(/_/g, " ").toLowerCase()}</span>
-                    <span className="text-xs text-gray-400">{q.points} pt</span>
-                    <span className="text-xs text-gray-400">Answer: <span className="font-medium text-gray-600">{q.correctAnswer}</span></span>
+                    <span className="badge bg-slate-100 text-slate-600 capitalize">{q.type.replace(/_/g, " ").toLowerCase()}</span>
+                    <span className="text-xs text-slate-400">{q.points} pt</span>
+                    <span className="text-xs text-slate-400">Answer: <span className="font-medium text-slate-600">{q.correctAnswer}</span></span>
                   </div>
                 </div>
                 <button onClick={() => deleteQuestion(q.id)} className="opacity-60 hover:opacity-100 transition btn-danger text-xs px-2 py-0.5 ml-2">Delete</button>
@@ -374,7 +374,7 @@ export default function QuizDetailPage() {
             </div>
           ))}
           {questions.length === 0 && !showAddQuestion && (
-            <div className="text-center py-10 text-gray-400">
+            <div className="text-center py-10 text-slate-400">
               <p>No questions yet. Click &quot;+ Add Question&quot; to add one.</p>
             </div>
           )}

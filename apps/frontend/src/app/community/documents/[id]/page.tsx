@@ -113,10 +113,10 @@ export default function DocumentEditorPage() {
     return "saved";
   }
 
-  if (loading) return <div className="text-center py-16 text-gray-400">Loading...</div>;
+  if (loading) return <div className="text-center py-16 text-slate-400">Loading...</div>;
   if (!doc) return (
     <div className="text-center py-16">
-      <p className="text-gray-400 mb-3">Document not found</p>
+      <p className="text-slate-400 mb-3">Document not found</p>
       <Link href="/community/documents" className="btn-primary">Back to Documents</Link>
     </div>
   );
@@ -124,16 +124,16 @@ export default function DocumentEditorPage() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-5 flex items-center gap-3 flex-wrap">
-        <Link href="/community/documents" className="text-gray-400 hover:text-gray-600 transition-colors" aria-label="Back to documents">
+        <Link href="/community/documents" className="text-slate-400 hover:text-slate-600 transition-colors" aria-label="Back to documents">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
         </Link>
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="flex-1 text-2xl font-bold border-none outline-none bg-transparent min-w-[200px] font-['Playfair_Display']"
+          className="flex-1 text-2xl font-bold border-none outline-none bg-transparent min-w-[200px]"
           placeholder="Untitled Document"
         />
-        <span className="flex items-center gap-1.5 text-xs text-gray-400">
+        <span className="flex items-center gap-1.5 text-xs text-slate-400">
           <span className={`status-dot ${statusClass()}`} />
           {statusText()}
         </span>
@@ -146,7 +146,7 @@ export default function DocumentEditorPage() {
         </button>
         <button onClick={deleteDocument} className="btn-danger">Delete</button>
       </div>
-      <div className="flex gap-4 text-xs text-gray-400 mb-4 flex-wrap">
+      <div className="flex gap-4 text-xs text-slate-400 mb-4 flex-wrap">
         <span className="flex items-center gap-1">
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" /></svg>
           {wordCount} words

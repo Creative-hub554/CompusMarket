@@ -19,7 +19,7 @@ export default async function CareersPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
       <h1 className="text-3xl font-bold mb-2">Career Resources</h1>
-      <p className="text-gray-600 mb-8">
+      <p className="text-slate-600 mb-8">
         Free guides and tips to help you advance your career.
       </p>
 
@@ -31,7 +31,7 @@ export default async function CareersPage() {
               <li key={cat.id}>
                 <Link
                   href={`/community/careers?cat=${cat.id}`}
-                  className="text-gray-600 hover:text-blue-600"
+                  className="text-slate-600 hover:text-blue-600"
                 >
                   {cat.label}
                 </Link>
@@ -73,7 +73,7 @@ export default async function CareersPage() {
                   <h2 className="text-lg font-semibold mt-1">
                     {article.title}
                   </h2>
-                  <p className="text-gray-600 text-sm mt-2">
+                  <p className="text-slate-600 text-sm mt-2">
                     {article.excerpt}
                   </p>
                 </article>
@@ -94,11 +94,11 @@ export default async function CareersPage() {
                     {article.title}
                   </h2>
                   {article.excerpt && (
-                    <p className="text-gray-600 text-sm mt-2">
+                    <p className="text-slate-600 text-sm mt-2">
                       {article.excerpt}
                     </p>
                   )}
-                  <p className="text-xs text-gray-400 mt-2">
+                  <p className="text-xs text-slate-400 mt-2">
                     {new Date(article.createdAt).toLocaleDateString()}
                   </p>
                 </Link>

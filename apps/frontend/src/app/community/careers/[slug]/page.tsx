@@ -21,7 +21,7 @@ export default async function ArticlePage({ params }: Props) {
         {article.category.replace(/_/g, " ")}
       </p>
       <h1 className="text-3xl font-bold mt-2 mb-4">{article.title}</h1>
-      <p className="text-sm text-gray-400 mb-8">
+      <p className="text-sm text-slate-400 mb-8">
         {article.author?.name && `By ${article.author.name} · `}
         {new Date(article.createdAt).toLocaleDateString()}
       </p>
