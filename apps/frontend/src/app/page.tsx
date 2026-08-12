@@ -1,66 +1,95 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { api } from "@/services/api";
+
+export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const t = await getTranslations("home");
   const nav = await getTranslations("nav");
+  const categories = await api.categories.list();
 
   const features = [
     { title: t("feature1Title"), desc: t("feature1Desc"), icon: "🛡️" },
     { title: t("feature2Title"), desc: t("feature2Desc"), icon: "🤝" },
     { title: t("feature3Title"), desc: t("feature3Desc"), icon: "🌱" },
   ];
+  const tiles = categories.slice(0, 4);
 
   return (
     <div>
-      {/* Hero */}
-      <section className="banner-flag text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(212,160,39,0.15),transparent_50%)]" />
-        <div className="mx-auto max-w-7xl px-4 py-28 text-center relative">
+      {/* Hero: split layout */}
+      <section className="bg-gradient-to-br from-slate-900 via-[#1e1b4b] to-[#4338ca] text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(99,102,241,0.25),transparent_55%)]" />
+        <div className="mx-auto max-w-7xl px-4 py-20 md:py-28 grid md:grid-cols-2 gap-12 items-center relative">
           <div className="animate-fade-in-up">
-            <h1 className="font-['Playfair_Display'] text-6xl md:text-7xl font-bold tracking-[0.12em] leading-none">
-              KHMERONLINESHOP
-            </h1>
-            <p className="text-sm md:text-base tracking-[0.4em] text-khmer-gold font-medium mt-2 uppercase">
+            <p className="text-xs md:text-sm tracking-[0.3em] text-indigo-300 font-semibold uppercase">
               bytheo
             </p>
-            <div className="w-12 h-0.5 bg-khmer-gold/60 mx-auto rounded-full my-6" />
-            <p className="text-lg md:text-xl text-white/70 max-w-xl mx-auto font-light tracking-wide">
-              {t("heroSubtitle")}
+            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-[1.1] mt-3">
+              Shop Khmer products with confidence.
+            </h1>
+            <p className="text-white/70 mt-4 text-base md:text-lg font-light max-w-md">
+              Trusted sellers · 30-day warranty · support in Khmer
             </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href="/shop"
+                className="inline-block rounded-lg bg-indigo-600 text-white px-8 py-3 font-bold hover:bg-indigo-500 transition-all hover:scale-[1.03] shadow-xl"
+              >
+                {t("browseShop")}
+              </Link>
+              <Link
+                href="/seller/apply"
+                className="inline-block rounded-lg border border-white/30 text-white/90 px-8 py-3 font-semibold hover:bg-white/10 transition-all hover:scale-[1.03]"
+              >
+                {t("becomeSeller")}
+              </Link>
+            </div>
           </div>
-          <div className="mt-10 flex gap-4 justify-center animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
-            <Link
-              href="/shop"
-              className="inline-block rounded-lg bg-khmer-gold text-khmer-blue px-10 py-3 font-bold tracking-wide hover:bg-yellow-500 transition-all hover:scale-[1.03] shadow-xl"
-            >
-              {t("browseShop")}
-            </Link>
-            <Link
-              href="/community"
-              className="inline-block rounded-lg border border-white/30 text-white/90 px-10 py-3 font-medium tracking-wide hover:bg-white/10 transition-all hover:scale-[1.03]"
-            >
-              {t("community")}
-            </Link>
+          <div className="hidden md:flex animate-fade-in-up" style={{ animationDelay: "0.15s" }}>
+            <div className="ml-auto rounded-2xl border border-white/20 bg-white/10 backdrop-blur w-full max-w-sm p-8 flex flex-col items-center justify-center gap-4 aspect-square">
+              <span className="text-6xl">🛍️</span>
+              <p className="text-white/80 text-sm text-center">
+                Phones · Fashion · Home · Food — from trusted Khmer sellers
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="py-24">
-        <div className="mx-auto max-w-7xl px-4">
-          <div className="text-center mb-16">
-            <h2 className="font-['Playfair_Display'] text-3xl font-bold tracking-wide">
-              {t("whyTitle")} <span className="text-khmer-blue">KHMERONLINESHOP</span>
-            </h2>
-            <p className="text-xs tracking-[0.3em] text-khmer-gold mt-1 uppercase">bytheo</p>
+      {/* Category tiles */}
+      {tiles.length > 0 && (
+        <section className="py-14">
+          <div className="mx-auto max-w-7xl px-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {tiles.map((cat) => (
+                <Link
+                  key={cat.id}
+                  href={`/shop?category=${cat.slug}`}
+                  className="card-hover rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm hover:border-indigo-300"
+                >
+                  <div className="text-3xl mb-2">🛍️</div>
+                  <div className="font-bold text-slate-900">{cat.name}</div>
+                </Link>
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 stagger-children">
+        </section>
+      )}
+
+      {/* Features */}
+      <section className="py-14">
+        <div className="mx-auto max-w-7xl px-4">
+          <h2 className="text-3xl font-extrabold tracking-tight text-center">
+            {t("whyTitle")} <span className="text-indigo-600">KHMERONLINESHOP</span>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12 stagger-children">
             {features.map((f) => (
-              <div key={f.title} className="card-hover rounded-2xl border border-gray-100 p-10 text-left bg-white shadow-sm">
+              <div key={f.title} className="card-hover rounded-2xl border border-slate-200 p-10 text-left bg-white shadow-sm hover:border-indigo-200">
                 <span className="text-3xl mb-5 block">{f.icon}</span>
-                <h3 className="font-['Playfair_Display'] text-xl font-bold mb-3">{f.title}</h3>
-                <p className="text-gray-500 leading-relaxed text-sm">{f.desc}</p>
+                <h3 className="text-xl font-bold mb-3">{f.title}</h3>
+                <p className="text-slate-500 leading-relaxed text-sm">{f.desc}</p>
               </div>
             ))}
           </div>
@@ -68,15 +97,12 @@ export default async function Home() {
       </section>
 
       {/* CTA */}
-      <section className="bg-gradient-to-r from-khmer-blue to-khmer-blue-light text-white">
+      <section className="bg-gradient-to-r from-slate-900 to-indigo-900 text-white">
         <div className="mx-auto max-w-4xl px-4 py-20 text-center">
-          <h2 className="font-['Playfair_Display'] text-3xl font-bold mb-4">{t("becomeSeller")}</h2>
-          <p className="text-white/70 mb-8 max-w-lg mx-auto text-sm leading-relaxed">
-            {t("becomeSellerDesc")}
-          </p>
+          <h2 className="text-3xl font-extrabold mb-4 tracking-tight">{t("becomeSellerDesc")}</h2>
           <Link
             href="/seller/apply"
-            className="inline-block rounded-lg bg-khmer-gold text-khmer-blue px-10 py-3 font-bold tracking-wide hover:bg-yellow-500 transition-all hover:scale-[1.03] shadow-xl"
+            className="inline-block rounded-lg bg-indigo-600 text-white px-10 py-3 font-bold hover:bg-indigo-500 transition-all hover:scale-[1.03] shadow-xl"
           >
             {t("applyNow")}
           </Link>
@@ -84,14 +110,14 @@ export default async function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white/50 text-sm">
+      <footer className="bg-slate-900 text-white/50 text-sm">
         <div className="mx-auto max-w-7xl px-4 py-10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="text-center md:text-left">
-              <p className="font-['Playfair_Display'] text-base font-bold tracking-wider text-white">
+              <p className="text-base font-bold tracking-wider text-white">
                 KHMERONLINESHOP
               </p>
-              <p className="text-[10px] tracking-[0.3em] text-khmer-gold mt-0.5">bytheo</p>
+              <p className="text-[10px] tracking-[0.3em] text-indigo-400 mt-0.5">bytheo</p>
             </div>
             <div className="flex gap-8 text-xs tracking-wide">
               <Link href="/terms/buyer" className="hover:text-white transition-colors">{nav("buyerTerms")}</Link>
