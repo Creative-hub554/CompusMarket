@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { SearchBar } from "./SearchBar";
@@ -11,6 +12,7 @@ import { Button } from "@theo/ui";
 
 export function Nav() {
   const t = useTranslations("nav");
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const { data: session } = useSession();
   const cartItems = useCartStore((s) => s.items);
@@ -75,9 +77,7 @@ export function Nav() {
               {t("signOut")}
             </button>
           ) : (
-            <Link href="/login">
-              <Button>{t("signIn")}</Button>
-            </Link>
+            <Button onClick={() => router.push("/login")}>{t("signIn")}</Button>
           )}
         </div>
 
