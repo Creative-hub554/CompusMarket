@@ -9,10 +9,14 @@ export default function SellerApplyPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const [step, setStep] = useState(0);
-  const [accountType, setAccountType] = useState<"PERSONAL" | "BUSINESS">("PERSONAL");
+  const [accountType, setAccountType] = useState<"PERSONAL" | "BUSINESS">(
+    "PERSONAL",
+  );
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
-  const [documents, setDocuments] = useState<{ type: string; file: File | null; url: string; filename: string }[]>([]);
+  const [documents, setDocuments] = useState<
+    { type: string; file: File | null; url: string; filename: string }[]
+  >([]);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -21,8 +25,15 @@ export default function SellerApplyPage() {
     return (
       <div className="max-w-xl mx-auto px-4 py-12 text-center">
         <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
-        <p className="text-slate-600 mb-4">Please sign in to apply as a seller.</p>
-        <Link href="/login" className="text-indigo-600 font-medium hover:underline">Go to Login</Link>
+        <p className="text-slate-600 mb-4">
+          Please sign in to apply as a seller.
+        </p>
+        <Link
+          href="/login"
+          className="text-indigo-600 font-medium hover:underline"
+        >
+          Go to Login
+        </Link>
       </div>
     );
   }
@@ -35,7 +46,10 @@ export default function SellerApplyPage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
       if (!res.ok) throw new Error("Upload failed");
       const data = await res.json();
       setDocuments((prev) => [
@@ -88,7 +102,9 @@ export default function SellerApplyPage() {
           <div key={label} className="flex-1 text-center">
             <div
               className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center text-sm font-medium ${
-                i <= step ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-500"
+                i <= step
+                  ? "bg-indigo-600 text-white"
+                  : "bg-slate-200 text-slate-500"
               }`}
             >
               {i + 1}
@@ -113,7 +129,7 @@ export default function SellerApplyPage() {
               onClick={() => setAccountType("PERSONAL")}
               className={`p-6 border-2 rounded-lg text-left ${
                 accountType === "PERSONAL"
-                  ? "border-blue-500 bg-blue-50"
+                  ? "border-indigo-500 bg-indigo-50"
                   : "border-slate-200 hover:border-slate-300"
               }`}
             >
@@ -125,7 +141,7 @@ export default function SellerApplyPage() {
               onClick={() => setAccountType("BUSINESS")}
               className={`p-6 border-2 rounded-lg text-left ${
                 accountType === "BUSINESS"
-                  ? "border-blue-500 bg-blue-50"
+                  ? "border-indigo-500 bg-indigo-50"
                   : "border-slate-200 hover:border-slate-300"
               }`}
             >
@@ -136,7 +152,7 @@ export default function SellerApplyPage() {
           </div>
           <button
             onClick={() => setStep(1)}
-            className="mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+            className="mt-4 bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700"
           >
             Next
           </button>
@@ -148,7 +164,9 @@ export default function SellerApplyPage() {
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Contact Details</h2>
           <div>
-            <label className="block text-sm font-medium text-slate-700">Phone (optional)</label>
+            <label className="block text-sm font-medium text-slate-700">
+              Phone (optional)
+            </label>
             <input
               type="tel"
               value={phone}
@@ -157,7 +175,9 @@ export default function SellerApplyPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700">Address (optional)</label>
+            <label className="block text-sm font-medium text-slate-700">
+              Address (optional)
+            </label>
             <textarea
               value={address}
               onChange={(e) => setAddress(e.target.value)}
@@ -166,10 +186,16 @@ export default function SellerApplyPage() {
             />
           </div>
           <div className="flex gap-3">
-            <button onClick={() => setStep(0)} className="px-6 py-2 border border-slate-300 rounded hover:bg-slate-50">
+            <button
+              onClick={() => setStep(0)}
+              className="px-6 py-2 border border-slate-300 rounded hover:bg-slate-50"
+            >
               Back
             </button>
-            <button onClick={() => setStep(2)} className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+            <button
+              onClick={() => setStep(2)}
+              className="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700"
+            >
               Next
             </button>
           </div>
@@ -185,9 +211,14 @@ export default function SellerApplyPage() {
             Images are automatically compressed to webp format.
           </p>
           {requiredDocs.map((docType) => (
-            <div key={docType} className="border border-slate-200 rounded-lg p-4">
+            <div
+              key={docType}
+              className="border border-slate-200 rounded-lg p-4"
+            >
               <label className="block text-sm font-medium text-slate-700 mb-2">
-                {docType === "ID" ? "Government ID (Passport / National ID)" : "Business License"}
+                {docType === "ID"
+                  ? "Government ID (Passport / National ID)"
+                  : "Business License"}
               </label>
               <input
                 type="file"
@@ -196,7 +227,7 @@ export default function SellerApplyPage() {
                   const file = e.target.files?.[0];
                   if (file) handleUpload(docType, file);
                 }}
-                className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
               />
               {documents.find((d) => d.type === docType) && (
                 <p className="text-sm text-green-600 mt-1">Uploaded</p>
@@ -204,13 +235,18 @@ export default function SellerApplyPage() {
             </div>
           ))}
           <div className="flex gap-3">
-            <button onClick={() => setStep(1)} className="px-6 py-2 border border-slate-300 rounded hover:bg-slate-50">
+            <button
+              onClick={() => setStep(1)}
+              className="px-6 py-2 border border-slate-300 rounded hover:bg-slate-50"
+            >
               Back
             </button>
             <button
               onClick={() => setStep(3)}
-              disabled={requiredDocs.some((t) => !documents.find((d) => d.type === t))}
-              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={requiredDocs.some(
+                (t) => !documents.find((d) => d.type === t),
+              )}
+              className="px-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
             </button>
@@ -223,24 +259,39 @@ export default function SellerApplyPage() {
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Review &amp; Submit</h2>
           <div className="bg-slate-50 rounded-lg p-4 space-y-2">
-            <p><strong>Account Type:</strong> {accountType}</p>
-            <p><strong>Phone:</strong> {phone || "—"}</p>
-            <p><strong>Address:</strong> {address || "—"}</p>
-            <p><strong>Documents:</strong></p>
+            <p>
+              <strong>Account Type:</strong> {accountType}
+            </p>
+            <p>
+              <strong>Phone:</strong> {phone || "—"}
+            </p>
+            <p>
+              <strong>Address:</strong> {address || "—"}
+            </p>
+            <p>
+              <strong>Documents:</strong>
+            </p>
             <ul className="list-disc pl-6">
               {documents.map((d) => (
                 <li key={d.type} className="text-sm">
-                  {d.type === "ID" ? "Government ID" : "Business License"} — Uploaded
+                  {d.type === "ID" ? "Government ID" : "Business License"} —
+                  Uploaded
                 </li>
               ))}
             </ul>
           </div>
           <p className="text-sm text-slate-500">
             By submitting, you agree to the{" "}
-            <a href="/terms/seller" className="text-blue-600 underline">Seller Terms &amp; Conditions</a>.
+            <a href="/terms/seller" className="text-indigo-600 underline">
+              Seller Terms &amp; Conditions
+            </a>
+            .
           </p>
           <div className="flex gap-3">
-            <button onClick={() => setStep(2)} className="px-6 py-2 border border-slate-300 rounded hover:bg-slate-50">
+            <button
+              onClick={() => setStep(2)}
+              className="px-6 py-2 border border-slate-300 rounded hover:bg-slate-50"
+            >
               Back
             </button>
             <button

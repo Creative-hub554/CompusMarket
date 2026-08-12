@@ -37,9 +37,7 @@ export default function LoginPage() {
           <h1 className="text-2xl font-bold">Admin Login</h1>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <p className="text-sm text-red-600 text-center">{error}</p>
-          )}
+          {error && <p className="text-sm text-red-600 text-center">{error}</p>}
           <input
             type="email"
             placeholder="Email"

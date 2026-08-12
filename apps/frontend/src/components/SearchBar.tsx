@@ -23,7 +23,9 @@ export function SearchBar() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -82,7 +84,7 @@ export function SearchBar() {
           value={query}
           onChange={(e) => handleChange(e.target.value)}
           placeholder={nav("searchPlaceholder")}
-          className="w-64 pl-10 pr-4 py-2 text-sm bg-white/15 text-white placeholder-white/50 border border-white/20 rounded-full focus:outline-none focus:border-khmer-gold focus:bg-white/20 transition-all"
+          className="w-64 pl-10 pr-4 py-2 text-sm bg-white/15 text-white placeholder-white/50 border border-white/20 rounded-full focus:outline-none focus:border-indigo-400 focus:bg-white/20 transition-all"
           onFocus={() => results.length > 0 && setOpen(true)}
           aria-label={nav("searchPlaceholder")}
         />
@@ -108,10 +110,24 @@ export function SearchBar() {
               >
                 <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center text-xs text-gray-400 shrink-0">
                   {hit.images?.[0] ? (
-                    <img src={hit.images[0]} alt="" className="w-full h-full object-cover rounded" />
+                    <img
+                      src={hit.images[0]}
+                      alt=""
+                      className="w-full h-full object-cover rounded"
+                    />
                   ) : (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
                     </svg>
                   )}
                 </div>
@@ -130,7 +146,7 @@ export function SearchBar() {
               setOpen(false);
               setQuery("");
             }}
-            className="block px-4 py-2 text-center text-sm text-blue-600 hover:bg-blue-50 border-t border-gray-100"
+            className="block px-4 py-2 text-center text-sm text-indigo-600 hover:bg-indigo-50 border-t border-gray-100"
           >
             {t("viewAllResults")}
           </Link>

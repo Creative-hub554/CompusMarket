@@ -17,7 +17,7 @@ export default async function ArticlePage({ params }: Props) {
 
   return (
     <article className="mx-auto max-w-3xl px-4 py-8">
-      <p className="text-sm text-blue-600 font-medium uppercase tracking-wide">
+      <p className="text-sm text-indigo-600 font-medium uppercase tracking-wide">
         {article.category.replace(/_/g, " ")}
       </p>
       <h1 className="text-3xl font-bold mt-2 mb-4">{article.title}</h1>

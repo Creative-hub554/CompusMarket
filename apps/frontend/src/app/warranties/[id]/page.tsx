@@ -14,8 +14,18 @@ type Warranty = {
   claimReason: string | null;
   claimStatus: string | null;
   notes: string | null;
-  product: { id: string; name: string; description: string; price: number; images: string[] };
-  orderItem: { id: string; price: number; order: { id: string; createdAt: string } };
+  product: {
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    images: string[];
+  };
+  orderItem: {
+    id: string;
+    price: number;
+    order: { id: string; createdAt: string };
+  };
   createdAt: string;
 };
 
@@ -56,13 +66,14 @@ export default function WarrantyDetailPage() {
     setClaiming(false);
   }
 
-  if (loading) return <div className="mx-auto max-w-4xl px-4 py-8">Loading...</div>;
+  if (loading)
+    return <div className="mx-auto max-w-4xl px-4 py-8">Loading...</div>;
 
   if (error || !warranty) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16 text-center">
         <h1 className="text-2xl font-bold mb-4">Warranty Not Found</h1>
-        <Link href="/warranties" className="text-blue-600 hover:underline">
+        <Link href="/warranties" className="text-indigo-600 hover:underline">
           &larr; Back to Warranties
         </Link>
       </div>
@@ -70,12 +81,15 @@ export default function WarrantyDetailPage() {
   }
 
   const daysLeft = Math.ceil(
-    (new Date(warranty.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+    (new Date(warranty.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
   );
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
-      <Link href="/warranties" className="text-sm text-blue-600 hover:underline mb-4 block">
+      <Link
+        href="/warranties"
+        className="text-sm text-indigo-600 hover:underline mb-4 block"
+      >
         &larr; My Warranties
       </Link>
 
@@ -87,8 +101,12 @@ export default function WarrantyDetailPage() {
         <div className="rounded-lg border p-4">
           <h2 className="font-semibold mb-2">Product</h2>
           <p className="font-medium">{warranty.product.name}</p>
-          <p className="text-sm text-gray-500">Price: ${warranty.product.price}</p>
-          <p className="text-sm text-gray-500 mt-2">{warranty.product.description}</p>
+          <p className="text-sm text-gray-500">
+            Price: ${warranty.product.price}
+          </p>
+          <p className="text-sm text-gray-500 mt-2">
+            {warranty.product.description}
+          </p>
         </div>
 
         <div className="rounded-lg border p-4">
@@ -112,7 +130,8 @@ export default function WarrantyDetailPage() {
               <p className="text-sm mt-1">{warranty.status}</p>
               {warranty.claimStatus && (
                 <p className="text-sm mt-1">
-                  Claim Status: <span className="font-medium">{warranty.claimStatus}</span>
+                  Claim Status:{" "}
+                  <span className="font-medium">{warranty.claimStatus}</span>
                 </p>
               )}
             </div>
@@ -162,12 +181,14 @@ export default function WarrantyDetailPage() {
               <p className="text-sm text-gray-600">{warranty.claimReason}</p>
               {warranty.claimDate && (
                 <p className="text-xs text-gray-400 mt-1">
-                  Submitted on {new Date(warranty.claimDate).toLocaleDateString()}
+                  Submitted on{" "}
+                  {new Date(warranty.claimDate).toLocaleDateString()}
                 </p>
               )}
               {warranty.notes && (
                 <div className="mt-2 p-2 bg-gray-50 rounded text-sm">
-                  <span className="font-medium">Seller notes:</span> {warranty.notes}
+                  <span className="font-medium">Seller notes:</span>{" "}
+                  {warranty.notes}
                 </div>
               )}
             </div>

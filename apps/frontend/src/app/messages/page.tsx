@@ -11,7 +11,10 @@ type Conversation = {
   sellerId: string;
   lastMessageAt: string | null;
   buyer: { id: string; name: string | null; email: string };
-  seller: { id: string; user: { id: string; name: string | null; email: string } };
+  seller: {
+    id: string;
+    user: { id: string; name: string | null; email: string };
+  };
   messages: { content: string }[];
   _count: { messages: number };
 };
@@ -34,8 +37,15 @@ export default function MessagesPage() {
     return (
       <div className="max-w-xl mx-auto px-4 py-12 text-center">
         <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
-        <p className="text-gray-600 mb-4">Please sign in to view your messages.</p>
-        <Link href="/login" className="text-khmer-blue font-medium hover:underline">Go to Login</Link>
+        <p className="text-gray-600 mb-4">
+          Please sign in to view your messages.
+        </p>
+        <Link
+          href="/login"
+          className="text-slate-900 font-medium hover:underline"
+        >
+          Go to Login
+        </Link>
       </div>
     );
   }
@@ -52,9 +62,7 @@ export default function MessagesPage() {
         <div className="space-y-2">
           {conversations.map((conv) => {
             const other =
-              conv.buyerId === session.user?.id
-                ? conv.seller.user
-                : conv.buyer;
+              conv.buyerId === session.user?.id ? conv.seller.user : conv.buyer;
             return (
               <button
                 key={conv.id}
@@ -69,7 +77,7 @@ export default function MessagesPage() {
                     </p>
                   </div>
                   {conv._count.messages > 0 && (
-                    <span className="bg-blue-600 text-white text-xs rounded-full px-2 py-1">
+                    <span className="bg-indigo-600 text-white text-xs rounded-full px-2 py-1">
                       {conv._count.messages}
                     </span>
                   )}

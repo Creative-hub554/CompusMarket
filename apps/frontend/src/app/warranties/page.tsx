@@ -38,14 +38,19 @@ export default function MyWarrantiesPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="mx-auto max-w-4xl px-4 py-8">Loading...</div>;
+  if (loading)
+    return <div className="mx-auto max-w-4xl px-4 py-8">Loading...</div>;
 
   if (error) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold mb-4 text-khmer-red">Something went wrong</h1>
-        <p className="text-gray-600 mb-4">Unable to load your warranties. You may need to sign in.</p>
-        <Link href="/login" className="text-blue-600 hover:underline">
+        <h1 className="text-2xl font-bold mb-4 text-red-600">
+          Something went wrong
+        </h1>
+        <p className="text-gray-600 mb-4">
+          Unable to load your warranties. You may need to sign in.
+        </p>
+        <Link href="/login" className="text-indigo-600 hover:underline">
           Sign in to view your warranties
         </Link>
       </div>
@@ -59,7 +64,7 @@ export default function MyWarrantiesPage() {
       {warranties.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-gray-500 mb-4">No warranties yet</p>
-          <Link href="/shop" className="text-blue-600 hover:underline">
+          <Link href="/shop" className="text-indigo-600 hover:underline">
             Browse Products
           </Link>
         </div>
@@ -67,13 +72,14 @@ export default function MyWarrantiesPage() {
         <div className="space-y-4">
           {warranties.map((w) => {
             const daysLeft = Math.ceil(
-              (new Date(w.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+              (new Date(w.endDate).getTime() - Date.now()) /
+                (1000 * 60 * 60 * 24),
             );
             return (
               <Link
                 key={w.id}
                 href={`/warranties/${w.id}`}
-                className="block rounded-lg border p-4 hover:border-blue-300 transition"
+                className="block rounded-lg border p-4 hover:border-indigo-300 transition"
               >
                 <div className="flex items-center justify-between">
                   <div>
@@ -110,7 +116,10 @@ export default function MyWarrantiesPage() {
         </div>
       )}
       <div className="mt-8 text-center">
-        <Link href="/support/new" className="inline-block rounded-lg border border-red-300 px-6 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
+        <Link
+          href="/support/new"
+          className="inline-block rounded-lg border border-red-300 px-6 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+        >
           Need help with a warranty? Contact Support
         </Link>
       </div>

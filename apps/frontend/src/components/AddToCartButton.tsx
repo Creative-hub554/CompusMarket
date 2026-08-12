@@ -30,7 +30,7 @@ export function AddToCartButton({ productId }: { productId: string }) {
       className={`w-full rounded-lg py-3 text-white font-medium transition-all duration-200 hover:scale-[1.02] active:scale-95 ${
         added
           ? "bg-green-600 hover:bg-green-700"
-          : "bg-khmer-red hover:bg-khmer-red-light"
+          : "bg-red-600 hover:bg-red-700"
       } disabled:opacity-50`}
     >
       {loading ? (

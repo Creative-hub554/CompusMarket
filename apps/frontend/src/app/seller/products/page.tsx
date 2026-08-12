@@ -45,7 +45,12 @@ export default function SellerProductsPage() {
     return (
       <div className="max-w-3xl mx-auto px-4 py-12 text-center">
         <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
-        <Link href="/login" className="text-indigo-600 font-medium hover:underline">Go to Login</Link>
+        <Link
+          href="/login"
+          className="text-indigo-600 font-medium hover:underline"
+        >
+          Go to Login
+        </Link>
       </div>
     );
   }
@@ -87,7 +92,9 @@ export default function SellerProductsPage() {
       </p>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">{error}</div>
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
+        </div>
       )}
 
       {loading ? (
@@ -105,7 +112,10 @@ export default function SellerProductsPage() {
       ) : (
         <div className="space-y-3">
           {products.map((product) => (
-            <div key={product.id} className="flex items-center gap-4 border rounded-lg p-4 bg-white">
+            <div
+              key={product.id}
+              className="flex items-center gap-4 border rounded-lg p-4 bg-white"
+            >
               {product.images?.[0] ? (
                 <img
                   src={product.images[0]}
@@ -130,22 +140,27 @@ export default function SellerProductsPage() {
                     {product.status}
                   </span>
                 </div>
-                <p className="text-sm text-slate-500 truncate">{product.category.name}</p>
+                <p className="text-sm text-slate-500 truncate">
+                  {product.category.name}
+                </p>
                 <p className="text-sm font-semibold text-slate-900">
-                  ${Number(product.price).toLocaleString()} · Stock: {product.stock}
+                  ${Number(product.price).toLocaleString()} · Stock:{" "}
+                  {product.stock}
                 </p>
               </div>
               <div className="flex flex-col gap-2 shrink-0">
                 <Link
                   href={`/seller/products/${product.id}/edit`}
-                  className="text-blue-600 text-sm font-medium hover:underline text-center"
+                  className="text-indigo-600 text-sm font-medium hover:underline text-center"
                 >
                   Edit
                 </Link>
                 <button
                   onClick={() => toggleStatus(product)}
                   className={`text-sm font-medium hover:underline ${
-                    product.status === "ACTIVE" ? "text-red-600" : "text-green-600"
+                    product.status === "ACTIVE"
+                      ? "text-red-600"
+                      : "text-green-600"
                   }`}
                 >
                   {product.status === "ACTIVE" ? "Disable" : "Enable"}

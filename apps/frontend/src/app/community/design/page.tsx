@@ -15,16 +15,40 @@ const categories = [
       { name: "Angkor Wat", count: 45, color: "bg-amber-100 text-amber-800" },
       { name: "Bayon", count: 28, color: "bg-stone-100 text-stone-800" },
       { name: "Ta Prohm", count: 32, color: "bg-emerald-100 text-emerald-800" },
-      { name: "Angkor Thom", count: 25, color: "bg-orange-100 text-orange-800" },
+      {
+        name: "Angkor Thom",
+        count: 25,
+        color: "bg-orange-100 text-orange-800",
+      },
       { name: "Banteay Srei", count: 22, color: "bg-pink-100 text-pink-800" },
       { name: "Preah Khan", count: 18, color: "bg-slate-100 text-slate-800" },
-      { name: "Other Temples", count: 30, color: "bg-slate-100 text-slate-800" },
+      {
+        name: "Other Temples",
+        count: 30,
+        color: "bg-slate-100 text-slate-800",
+      },
     ],
     sources: [
-      { name: "Freepik - Angkor Vectors", url: "https://www.freepik.com/search?format=search&query=angkor+wat", type: "Vectors & PNGs" },
-      { name: "Pixabay - Angkor Wat", url: "https://pixabay.com/images/search/angkor+wat/", type: "Free PNG/Photos" },
-      { name: "Unsplash - Cambodia Temples", url: "https://unsplash.com/s/photos/angkor-wat", type: "Free Photos" },
-      { name: "CleanPNG - Angkor", url: "https://www.cleanpng.com/search/angkor-wat.html", type: "PNG Cutouts" },
+      {
+        name: "Freepik - Angkor Vectors",
+        url: "https://www.freepik.com/search?format=search&query=angkor+wat",
+        type: "Vectors & PNGs",
+      },
+      {
+        name: "Pixabay - Angkor Wat",
+        url: "https://pixabay.com/images/search/angkor+wat/",
+        type: "Free PNG/Photos",
+      },
+      {
+        name: "Unsplash - Cambodia Temples",
+        url: "https://unsplash.com/s/photos/angkor-wat",
+        type: "Free Photos",
+      },
+      {
+        name: "CleanPNG - Angkor",
+        url: "https://www.cleanpng.com/search/angkor-wat.html",
+        type: "PNG Cutouts",
+      },
     ],
   },
   {
@@ -36,17 +60,49 @@ const categories = [
     bg: "bg-red-50",
     sites: [
       { name: "Apsara Dance", count: 38, color: "bg-red-100 text-red-800" },
-      { name: "Classical Dance", count: 30, color: "bg-rose-100 text-rose-800" },
-      { name: "Ceremonies & Rituals", count: 42, color: "bg-purple-100 text-purple-800" },
-      { name: "Monks & Buddhism", count: 35, color: "bg-yellow-100 text-yellow-800" },
-      { name: "Festivals (Pchum Ben, Khmer New Year)", count: 45, color: "bg-green-100 text-green-800" },
+      {
+        name: "Classical Dance",
+        count: 30,
+        color: "bg-rose-100 text-rose-800",
+      },
+      {
+        name: "Ceremonies & Rituals",
+        count: 42,
+        color: "bg-purple-100 text-purple-800",
+      },
+      {
+        name: "Monks & Buddhism",
+        count: 35,
+        color: "bg-yellow-100 text-yellow-800",
+      },
+      {
+        name: "Festivals (Pchum Ben, Khmer New Year)",
+        count: 45,
+        color: "bg-green-100 text-green-800",
+      },
       { name: "Village Life", count: 30, color: "bg-teal-100 text-teal-800" },
     ],
     sources: [
-      { name: "Freepik - Khmer Culture", url: "https://www.freepik.com/search?format=search&query=khmer+culture", type: "Vectors & PNGs" },
-      { name: "Flaticon - Cambodia Icons", url: "https://www.flaticon.com/search?word=cambodia", type: "PNG Icons" },
-      { name: "PNGTree - Apsara", url: "https://pngtree.com/so/apsara", type: "PNG Resources" },
-      { name: "Vecteezy - Khmer Dance", url: "https://www.vecteezy.com/free-vector/khmer-dance", type: "Free Vectors" },
+      {
+        name: "Freepik - Khmer Culture",
+        url: "https://www.freepik.com/search?format=search&query=khmer+culture",
+        type: "Vectors & PNGs",
+      },
+      {
+        name: "Flaticon - Cambodia Icons",
+        url: "https://www.flaticon.com/search?word=cambodia",
+        type: "PNG Icons",
+      },
+      {
+        name: "PNGTree - Apsara",
+        url: "https://pngtree.com/so/apsara",
+        type: "PNG Resources",
+      },
+      {
+        name: "Vecteezy - Khmer Dance",
+        url: "https://www.vecteezy.com/free-vector/khmer-dance",
+        type: "Free Vectors",
+      },
     ],
   },
   {
@@ -59,15 +115,35 @@ const categories = [
     sites: [
       { name: "Cambodian Flag", count: 25, color: "bg-blue-100 text-blue-800" },
       { name: "Royal Arms", count: 12, color: "bg-indigo-100 text-indigo-800" },
-      { name: "National Symbols", count: 20, color: "bg-cyan-100 text-cyan-800" },
+      {
+        name: "National Symbols",
+        count: 20,
+        color: "bg-cyan-100 text-cyan-800",
+      },
       { name: "Map of Cambodia", count: 18, color: "bg-sky-100 text-sky-800" },
       { name: "Krama Patterns", count: 20, color: "bg-red-100 text-red-800" },
     ],
     sources: [
-      { name: "Flagpedia - Cambodia Flag", url: "https://flagpedia.net/cambodia", type: "Flag PNGs" },
-      { name: "Wikimedia - Cambodia", url: "https://commons.wikimedia.org/wiki/Cambodia", type: "Free Media" },
-      { name: "PNGMart - Cambodia Flag", url: "https://www.pngmart.com/search/cambodia", type: "PNG Downloads" },
-      { name: "Countryflags - Cambodia", url: "https://www.countryflags.com/cambodia-flag-image/", type: "Flag PNGs" },
+      {
+        name: "Flagpedia - Cambodia Flag",
+        url: "https://flagpedia.net/cambodia",
+        type: "Flag PNGs",
+      },
+      {
+        name: "Wikimedia - Cambodia",
+        url: "https://commons.wikimedia.org/wiki/Cambodia",
+        type: "Free Media",
+      },
+      {
+        name: "PNGMart - Cambodia Flag",
+        url: "https://www.pngmart.com/search/cambodia",
+        type: "PNG Downloads",
+      },
+      {
+        name: "Countryflags - Cambodia",
+        url: "https://www.countryflags.com/cambodia-flag-image/",
+        type: "Flag PNGs",
+      },
     ],
   },
   {
@@ -81,13 +157,33 @@ const categories = [
       { name: "Sampot", count: 35, color: "bg-pink-100 text-pink-800" },
       { name: "Krama (Scarf)", count: 28, color: "bg-rose-100 text-rose-800" },
       { name: "Wedding Attire", count: 30, color: "bg-red-100 text-red-800" },
-      { name: "Traditional Jewelry", count: 22, color: "bg-yellow-100 text-yellow-800" },
-      { name: "Modern Khmer Fashion", count: 35, color: "bg-purple-100 text-purple-800" },
+      {
+        name: "Traditional Jewelry",
+        count: 22,
+        color: "bg-yellow-100 text-yellow-800",
+      },
+      {
+        name: "Modern Khmer Fashion",
+        count: 35,
+        color: "bg-purple-100 text-purple-800",
+      },
     ],
     sources: [
-      { name: "Freepik - Cambodian Traditional", url: "https://www.freepik.com/search?format=search&query=cambodian+traditional+clothing", type: "Free PNGs" },
-      { name: "PNGTree - Sampot", url: "https://pngtree.com/so/sampot", type: "PNG Resources" },
-      { name: "Vecteezy - Khmer Fashion", url: "https://www.vecteezy.com/free-vector/khmer-clothing", type: "Free Vectors" },
+      {
+        name: "Freepik - Cambodian Traditional",
+        url: "https://www.freepik.com/search?format=search&query=cambodian+traditional+clothing",
+        type: "Free PNGs",
+      },
+      {
+        name: "PNGTree - Sampot",
+        url: "https://pngtree.com/so/sampot",
+        type: "PNG Resources",
+      },
+      {
+        name: "Vecteezy - Khmer Fashion",
+        url: "https://www.vecteezy.com/free-vector/khmer-clothing",
+        type: "Free Vectors",
+      },
     ],
   },
   {
@@ -100,15 +196,35 @@ const categories = [
     sites: [
       { name: "Amok", count: 22, color: "bg-orange-100 text-orange-800" },
       { name: "Lok Lak", count: 18, color: "bg-red-100 text-red-800" },
-      { name: "Nom Banh Chok", count: 15, color: "bg-yellow-100 text-yellow-800" },
-      { name: "Fruits (Mango, Dragonfruit)", count: 28, color: "bg-green-100 text-green-800" },
+      {
+        name: "Nom Banh Chok",
+        count: 15,
+        color: "bg-yellow-100 text-yellow-800",
+      },
+      {
+        name: "Fruits (Mango, Dragonfruit)",
+        count: 28,
+        color: "bg-green-100 text-green-800",
+      },
       { name: "Street Food", count: 25, color: "bg-amber-100 text-amber-800" },
       { name: "Desserts", count: 22, color: "bg-pink-100 text-pink-800" },
     ],
     sources: [
-      { name: "Freepik - Cambodian Food", url: "https://www.freepik.com/search?format=search&query=cambodian+food", type: "Free PNGs & Vectors" },
-      { name: "Pixabay - Asian Food", url: "https://pixabay.com/images/search/cambodian+food/", type: "Free Photos" },
-      { name: "CleanPNG - Food", url: "https://www.cleanpng.com/search/cambodian-food.html", type: "PNG Cutouts" },
+      {
+        name: "Freepik - Cambodian Food",
+        url: "https://www.freepik.com/search?format=search&query=cambodian+food",
+        type: "Free PNGs & Vectors",
+      },
+      {
+        name: "Pixabay - Asian Food",
+        url: "https://pixabay.com/images/search/cambodian+food/",
+        type: "Free Photos",
+      },
+      {
+        name: "CleanPNG - Food",
+        url: "https://www.cleanpng.com/search/cambodian-food.html",
+        type: "PNG Cutouts",
+      },
     ],
   },
   {
@@ -121,16 +237,48 @@ const categories = [
     sites: [
       { name: "Mekong River", count: 30, color: "bg-blue-100 text-blue-800" },
       { name: "Tonle Sap Lake", count: 25, color: "bg-cyan-100 text-cyan-800" },
-      { name: "Beaches (Sihanoukville, Koh Rong)", count: 35, color: "bg-sky-100 text-sky-800" },
-      { name: "Rice Fields & Countryside", count: 40, color: "bg-green-100 text-green-800" },
-      { name: "Rainforest & Wildlife", count: 35, color: "bg-emerald-100 text-emerald-800" },
-      { name: "Sunrise/Sunset", count: 35, color: "bg-orange-100 text-orange-800" },
+      {
+        name: "Beaches (Sihanoukville, Koh Rong)",
+        count: 35,
+        color: "bg-sky-100 text-sky-800",
+      },
+      {
+        name: "Rice Fields & Countryside",
+        count: 40,
+        color: "bg-green-100 text-green-800",
+      },
+      {
+        name: "Rainforest & Wildlife",
+        count: 35,
+        color: "bg-emerald-100 text-emerald-800",
+      },
+      {
+        name: "Sunrise/Sunset",
+        count: 35,
+        color: "bg-orange-100 text-orange-800",
+      },
     ],
     sources: [
-      { name: "Unsplash - Cambodia", url: "https://unsplash.com/s/photos/cambodia", type: "Free Photos" },
-      { name: "Pexels - Cambodia", url: "https://www.pexels.com/search/cambodia/", type: "Free Stock Photos" },
-      { name: "Pixabay - Cambodia", url: "https://pixabay.com/images/search/cambodia/", type: "Free Images" },
-      { name: "Freepik - Cambodia Landscape", url: "https://www.freepik.com/search?format=search&query=cambodia+landscape", type: "Vectors & PNGs" },
+      {
+        name: "Unsplash - Cambodia",
+        url: "https://unsplash.com/s/photos/cambodia",
+        type: "Free Photos",
+      },
+      {
+        name: "Pexels - Cambodia",
+        url: "https://www.pexels.com/search/cambodia/",
+        type: "Free Stock Photos",
+      },
+      {
+        name: "Pixabay - Cambodia",
+        url: "https://pixabay.com/images/search/cambodia/",
+        type: "Free Images",
+      },
+      {
+        name: "Freepik - Cambodia Landscape",
+        url: "https://www.freepik.com/search?format=search&query=cambodia+landscape",
+        type: "Vectors & PNGs",
+      },
     ],
   },
   {
@@ -141,16 +289,48 @@ const categories = [
     color: "text-purple-700",
     bg: "bg-purple-50",
     sites: [
-      { name: "Traditional Patterns", count: 35, color: "bg-purple-100 text-purple-800" },
-      { name: "Silk Weaving", count: 25, color: "bg-fuchsia-100 text-fuchsia-800" },
-      { name: "Batik & Ikat", count: 20, color: "bg-indigo-100 text-indigo-800" },
-      { name: "Ornamental Motifs", count: 22, color: "bg-violet-100 text-violet-800" },
-      { name: "Sacred Geometry", count: 18, color: "bg-pink-100 text-pink-800" },
+      {
+        name: "Traditional Patterns",
+        count: 35,
+        color: "bg-purple-100 text-purple-800",
+      },
+      {
+        name: "Silk Weaving",
+        count: 25,
+        color: "bg-fuchsia-100 text-fuchsia-800",
+      },
+      {
+        name: "Batik & Ikat",
+        count: 20,
+        color: "bg-indigo-100 text-indigo-800",
+      },
+      {
+        name: "Ornamental Motifs",
+        count: 22,
+        color: "bg-violet-100 text-violet-800",
+      },
+      {
+        name: "Sacred Geometry",
+        count: 18,
+        color: "bg-pink-100 text-pink-800",
+      },
     ],
     sources: [
-      { name: "Freepik - Khmer Pattern", url: "https://www.freepik.com/search?format=search&query=khmer+pattern", type: "Free Patterns" },
-      { name: "Flaticon - Cambodia Pattern", url: "https://www.flaticon.com/search?word=cambodia+pattern", type: "PNG Icons" },
-      { name: "Vecteezy - Khmer Pattern", url: "https://www.vecteezy.com/free-vector/khmer-pattern", type: "Free Vectors" },
+      {
+        name: "Freepik - Khmer Pattern",
+        url: "https://www.freepik.com/search?format=search&query=khmer+pattern",
+        type: "Free Patterns",
+      },
+      {
+        name: "Flaticon - Cambodia Pattern",
+        url: "https://www.flaticon.com/search?word=cambodia+pattern",
+        type: "PNG Icons",
+      },
+      {
+        name: "Vecteezy - Khmer Pattern",
+        url: "https://www.vecteezy.com/free-vector/khmer-pattern",
+        type: "Free Vectors",
+      },
     ],
   },
   {
@@ -161,17 +341,45 @@ const categories = [
     color: "text-green-700",
     bg: "bg-green-50",
     sites: [
-      { name: "Kouprey (National Animal)", count: 12, color: "bg-green-100 text-green-800" },
-      { name: "Royal Turtle", count: 15, color: "bg-emerald-100 text-emerald-800" },
+      {
+        name: "Kouprey (National Animal)",
+        count: 12,
+        color: "bg-green-100 text-green-800",
+      },
+      {
+        name: "Royal Turtle",
+        count: 15,
+        color: "bg-emerald-100 text-emerald-800",
+      },
       { name: "Elephants", count: 18, color: "bg-slate-100 text-slate-800" },
-      { name: "Birds (Mekong species)", count: 22, color: "bg-sky-100 text-sky-800" },
-      { name: "Mekong Dolphins", count: 10, color: "bg-blue-100 text-blue-800" },
+      {
+        name: "Birds (Mekong species)",
+        count: 22,
+        color: "bg-sky-100 text-sky-800",
+      },
+      {
+        name: "Mekong Dolphins",
+        count: 10,
+        color: "bg-blue-100 text-blue-800",
+      },
       { name: "Other Wildlife", count: 8, color: "bg-teal-100 text-teal-800" },
     ],
     sources: [
-      { name: "Unsplash - Cambodia Wildlife", url: "https://unsplash.com/s/photos/cambodia-wildlife", type: "Free Photos" },
-      { name: "Pexels - Animals Cambodia", url: "https://www.pexels.com/search/cambodia%20animal/", type: "Free Stock" },
-      { name: "Freepik - Wildlife Vectors", url: "https://www.freepik.com/search?format=search&query=cambodia+animals", type: "Free Vectors" },
+      {
+        name: "Unsplash - Cambodia Wildlife",
+        url: "https://unsplash.com/s/photos/cambodia-wildlife",
+        type: "Free Photos",
+      },
+      {
+        name: "Pexels - Animals Cambodia",
+        url: "https://www.pexels.com/search/cambodia%20animal/",
+        type: "Free Stock",
+      },
+      {
+        name: "Freepik - Wildlife Vectors",
+        url: "https://www.freepik.com/search?format=search&query=cambodia+animals",
+        type: "Free Vectors",
+      },
     ],
   },
   {
@@ -182,15 +390,39 @@ const categories = [
     color: "text-stone-700",
     bg: "bg-stone-50",
     sites: [
-      { name: "Traditional Houses", count: 25, color: "bg-stone-100 text-stone-800" },
-      { name: "Pagodas & Wats", count: 30, color: "bg-yellow-100 text-yellow-800" },
+      {
+        name: "Traditional Houses",
+        count: 25,
+        color: "bg-stone-100 text-stone-800",
+      },
+      {
+        name: "Pagodas & Wats",
+        count: 30,
+        color: "bg-yellow-100 text-yellow-800",
+      },
       { name: "Royal Palace", count: 18, color: "bg-amber-100 text-amber-800" },
-      { name: "Colonial Architecture", count: 12, color: "bg-slate-100 text-slate-800" },
-      { name: "Modern Khmer Design", count: 10, color: "bg-slate-100 text-slate-800" },
+      {
+        name: "Colonial Architecture",
+        count: 12,
+        color: "bg-slate-100 text-slate-800",
+      },
+      {
+        name: "Modern Khmer Design",
+        count: 10,
+        color: "bg-slate-100 text-slate-800",
+      },
     ],
     sources: [
-      { name: "Unsplash - Khmer Architecture", url: "https://unsplash.com/s/photos/khmer-architecture", type: "Free Photos" },
-      { name: "Freepik - Cambodia Building", url: "https://www.freepik.com/search?format=search&query=cambodia+building", type: "Vectors & PNGs" },
+      {
+        name: "Unsplash - Khmer Architecture",
+        url: "https://unsplash.com/s/photos/khmer-architecture",
+        type: "Free Photos",
+      },
+      {
+        name: "Freepik - Cambodia Building",
+        url: "https://www.freepik.com/search?format=search&query=cambodia+building",
+        type: "Vectors & PNGs",
+      },
     ],
   },
   {
@@ -202,15 +434,43 @@ const categories = [
     bg: "bg-sky-50",
     sites: [
       { name: "Children", count: 35, color: "bg-sky-100 text-sky-800" },
-      { name: "Monks in Daily Life", count: 30, color: "bg-orange-100 text-orange-800" },
-      { name: "Farmers & Fishermen", count: 35, color: "bg-green-100 text-green-800" },
-      { name: "Artisans & Craftsmen", count: 28, color: "bg-yellow-100 text-yellow-800" },
-      { name: "Festival & Celebration", count: 32, color: "bg-red-100 text-red-800" },
+      {
+        name: "Monks in Daily Life",
+        count: 30,
+        color: "bg-orange-100 text-orange-800",
+      },
+      {
+        name: "Farmers & Fishermen",
+        count: 35,
+        color: "bg-green-100 text-green-800",
+      },
+      {
+        name: "Artisans & Craftsmen",
+        count: 28,
+        color: "bg-yellow-100 text-yellow-800",
+      },
+      {
+        name: "Festival & Celebration",
+        count: 32,
+        color: "bg-red-100 text-red-800",
+      },
     ],
     sources: [
-      { name: "Unsplash - Cambodian People", url: "https://unsplash.com/s/photos/cambodian-people", type: "Free Photos" },
-      { name: "Pexels - Cambodia People", url: "https://www.pexels.com/search/cambodia%20people/", type: "Free Stock" },
-      { name: "Freepik - Cambodian People", url: "https://www.freepik.com/search?format=search&query=cambodian+people", type: "Free Vectors" },
+      {
+        name: "Unsplash - Cambodian People",
+        url: "https://unsplash.com/s/photos/cambodian-people",
+        type: "Free Photos",
+      },
+      {
+        name: "Pexels - Cambodia People",
+        url: "https://www.pexels.com/search/cambodia%20people/",
+        type: "Free Stock",
+      },
+      {
+        name: "Freepik - Cambodian People",
+        url: "https://www.freepik.com/search?format=search&query=cambodian+people",
+        type: "Free Vectors",
+      },
     ],
   },
   {
@@ -221,16 +481,40 @@ const categories = [
     color: "text-yellow-700",
     bg: "bg-yellow-50",
     sites: [
-      { name: "Buddha Statues", count: 30, color: "bg-yellow-100 text-yellow-800" },
+      {
+        name: "Buddha Statues",
+        count: 30,
+        color: "bg-yellow-100 text-yellow-800",
+      },
       { name: "Pagoda Art", count: 25, color: "bg-amber-100 text-amber-800" },
-      { name: "Hindu Deities (Vishnu, Shiva)", count: 20, color: "bg-orange-100 text-orange-800" },
+      {
+        name: "Hindu Deities (Vishnu, Shiva)",
+        count: 20,
+        color: "bg-orange-100 text-orange-800",
+      },
       { name: "Spirit Houses", count: 18, color: "bg-red-100 text-red-800" },
-      { name: "Meditation & Yoga", count: 17, color: "bg-purple-100 text-purple-800" },
+      {
+        name: "Meditation & Yoga",
+        count: 17,
+        color: "bg-purple-100 text-purple-800",
+      },
     ],
     sources: [
-      { name: "Freepik - Buddha", url: "https://www.freepik.com/search?format=search&query=buddha+cambodia", type: "Free PNGs" },
-      { name: "CleanPNG - Buddha", url: "https://www.cleanpng.com/search/buddha.html", type: "PNG Cutouts" },
-      { name: "PNGTree - Buddhist", url: "https://pngtree.com/so/buddhist", type: "PNG Resources" },
+      {
+        name: "Freepik - Buddha",
+        url: "https://www.freepik.com/search?format=search&query=buddha+cambodia",
+        type: "Free PNGs",
+      },
+      {
+        name: "CleanPNG - Buddha",
+        url: "https://www.cleanpng.com/search/buddha.html",
+        type: "PNG Cutouts",
+      },
+      {
+        name: "PNGTree - Buddhist",
+        url: "https://pngtree.com/so/buddhist",
+        type: "PNG Resources",
+      },
     ],
   },
   {
@@ -241,16 +525,40 @@ const categories = [
     color: "text-indigo-600",
     bg: "bg-indigo-50",
     sites: [
-      { name: "Khmer UI Icons", count: 50, color: "bg-indigo-100 text-indigo-800" },
-      { name: "Country Silhouettes", count: 30, color: "bg-blue-100 text-blue-800" },
+      {
+        name: "Khmer UI Icons",
+        count: 50,
+        color: "bg-indigo-100 text-indigo-800",
+      },
+      {
+        name: "Country Silhouettes",
+        count: 30,
+        color: "bg-blue-100 text-blue-800",
+      },
       { name: "Travel Badges", count: 40, color: "bg-cyan-100 text-cyan-800" },
       { name: "Food Icons", count: 45, color: "bg-orange-100 text-orange-800" },
-      { name: "Cultural Symbols", count: 35, color: "bg-purple-100 text-purple-800" },
+      {
+        name: "Cultural Symbols",
+        count: 35,
+        color: "bg-purple-100 text-purple-800",
+      },
     ],
     sources: [
-      { name: "Flaticon - Cambodia Icons", url: "https://www.flaticon.com/search?word=cambodia+flag", type: "Free PNG Icons" },
-      { name: "SVGRepo - Cambodia", url: "https://www.svgrepo.com/collection/cambodia-vectors/", type: "Free SVGs/PNGs" },
-      { name: "Icon8 - Cambodia", url: "https://icons8.com/icons/set/cambodia", type: "Free Icons" },
+      {
+        name: "Flaticon - Cambodia Icons",
+        url: "https://www.flaticon.com/search?word=cambodia+flag",
+        type: "Free PNG Icons",
+      },
+      {
+        name: "SVGRepo - Cambodia",
+        url: "https://www.svgrepo.com/collection/cambodia-vectors/",
+        type: "Free SVGs/PNGs",
+      },
+      {
+        name: "Icon8 - Cambodia",
+        url: "https://icons8.com/icons/set/cambodia",
+        type: "Free Icons",
+      },
     ],
   },
 ];
@@ -329,7 +637,7 @@ export default function DesignPage() {
     return categories.filter(
       (c) =>
         c.name.toLowerCase().includes(q) ||
-        c.sites.some((s) => s.name.toLowerCase().includes(q))
+        c.sites.some((s) => s.name.toLowerCase().includes(q)),
     );
   }, [search]);
 
@@ -345,26 +653,35 @@ export default function DesignPage() {
       <div className="mb-6">
         <h1 className="page-title">Design Assets</h1>
         <p className="page-subtitle">
-          Free Cambodia-themed PNG resources, color palettes, and design tools for your projects.
+          Free Cambodia-themed PNG resources, color palettes, and design tools
+          for your projects.
         </p>
       </div>
 
       {/* Stats Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
-          <span className="text-2xl font-bold text-slate-900">{totalResources}+</span>
+          <span className="text-2xl font-bold text-slate-900">
+            {totalResources}+
+          </span>
           <p className="text-xs text-slate-500 mt-1">Free PNG Resources</p>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
-          <span className="text-2xl font-bold text-amber-500">{categories.length}</span>
+          <span className="text-2xl font-bold text-amber-500">
+            {categories.length}
+          </span>
           <p className="text-xs text-slate-500 mt-1">Categories</p>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
-          <span className="text-2xl font-bold text-green-600">{totalSources}+</span>
+          <span className="text-2xl font-bold text-green-600">
+            {totalSources}+
+          </span>
           <p className="text-xs text-slate-500 mt-1">Source Links</p>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
-          <span className="text-2xl font-bold text-purple-600">{colorPalettes.length}</span>
+          <span className="text-2xl font-bold text-indigo-600">
+            {colorPalettes.length}
+          </span>
           <p className="text-xs text-slate-500 mt-1">Color Palettes</p>
         </div>
       </div>
@@ -372,7 +689,19 @@ export default function DesignPage() {
       {/* Search & View Toggle */}
       <div className="flex gap-3 mb-6 items-center">
         <div className="relative flex-1">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          <svg
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -381,11 +710,41 @@ export default function DesignPage() {
           />
         </div>
         <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
-          <button onClick={() => setViewMode("grid")} className={`px-3 py-1.5 text-xs rounded-md transition font-medium ${viewMode === "grid" ? "bg-white shadow-sm text-indigo-600" : "text-slate-500 hover:text-slate-700"}`}>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" /></svg>
+          <button
+            onClick={() => setViewMode("grid")}
+            className={`px-3 py-1.5 text-xs rounded-md transition font-medium ${viewMode === "grid" ? "bg-white shadow-sm text-indigo-600" : "text-slate-500 hover:text-slate-700"}`}
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"
+              />
+            </svg>
           </button>
-          <button onClick={() => setViewMode("list")} className={`px-3 py-1.5 text-xs rounded-md transition font-medium ${viewMode === "list" ? "bg-white shadow-sm text-indigo-600" : "text-slate-500 hover:text-slate-700"}`}>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+          <button
+            onClick={() => setViewMode("list")}
+            className={`px-3 py-1.5 text-xs rounded-md transition font-medium ${viewMode === "list" ? "bg-white shadow-sm text-indigo-600" : "text-slate-500 hover:text-slate-700"}`}
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 10h16M4 14h16M4 18h16"
+              />
+            </svg>
           </button>
         </div>
       </div>
@@ -398,20 +757,32 @@ export default function DesignPage() {
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
           {colorPalettes.map((palette) => (
-            <div key={palette.name} className="rounded-xl border border-slate-200 bg-white p-3 hover:shadow-md transition">
+            <div
+              key={palette.name}
+              className="rounded-xl border border-slate-200 bg-white p-3 hover:shadow-md transition"
+            >
               <div className="flex rounded-lg overflow-hidden h-8 mb-2">
                 {palette.colors.map((c, i) => (
-                  <div key={i} className="flex-1" style={{ backgroundColor: c }} title={c} />
+                  <div
+                    key={i}
+                    className="flex-1"
+                    style={{ backgroundColor: c }}
+                    title={c}
+                  />
                 ))}
               </div>
-              <p className="text-xs font-semibold text-slate-800 truncate">{palette.name}</p>
-              <p className="text-[10px] text-slate-400 truncate">{palette.desc}</p>
+              <p className="text-xs font-semibold text-slate-800 truncate">
+                {palette.name}
+              </p>
+              <p className="text-[10px] text-slate-400 truncate">
+                {palette.desc}
+              </p>
               <div className="flex flex-wrap gap-1 mt-1.5">
                 {palette.colors.map((c, i) => (
                   <button
                     key={i}
                     onClick={() => navigator.clipboard.writeText(c)}
-                    className="text-[10px] font-mono text-slate-500 hover:text-indigo-600 bg-slate-50 px-1.5 py-0.5 rounded hover:bg-blue-50 transition"
+                    className="text-[10px] font-mono text-slate-500 hover:text-indigo-600 bg-slate-50 px-1.5 py-0.5 rounded hover:bg-indigo-50 transition"
                     title={`Copy ${c}`}
                   >
                     {c}
@@ -426,31 +797,66 @@ export default function DesignPage() {
       {/* Category Browser */}
       {activeData ? (
         <div className="mb-8">
-          <button onClick={() => setActiveCategory(null)} className="text-sm text-slate-500 hover:text-slate-700 mb-4 flex items-center gap-1">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+          <button
+            onClick={() => setActiveCategory(null)}
+            className="text-sm text-slate-500 hover:text-slate-700 mb-4 flex items-center gap-1"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
             Back to all categories
           </button>
           <div className={`rounded-2xl border p-6 ${activeData.bg}`}>
             <div className="flex items-center gap-4 mb-4">
               <div className="w-20 h-16 rounded-xl overflow-hidden ring-1 ring-black/10 shrink-0 shadow-sm">
-                {(() => { const T = categoryThumbs[activeData.id]; return T ? <T className="w-full h-full" /> : <div className="w-full h-full flex items-center justify-center text-3xl bg-white">{activeData.icon}</div> })()}
+                {(() => {
+                  const T = categoryThumbs[activeData.id];
+                  return T ? (
+                    <T className="w-full h-full" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-3xl bg-white">
+                      {activeData.icon}
+                    </div>
+                  );
+                })()}
               </div>
               <div>
-                <h2 className="text-xl font-bold text-slate-900">{activeData.name}</h2>
-                <p className="text-sm text-slate-500">{activeData.count}+ free PNG resources</p>
+                <h2 className="text-xl font-bold text-slate-900">
+                  {activeData.name}
+                </h2>
+                <p className="text-sm text-slate-500">
+                  {activeData.count}+ free PNG resources
+                </p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 mb-6">
               {activeData.sites.map((site) => (
-                <div key={site.name} className={`${site.color} rounded-lg px-3 py-2 text-xs font-medium text-center`}>
+                <div
+                  key={site.name}
+                  className={`${site.color} rounded-lg px-3 py-2 text-xs font-medium text-center`}
+                >
                   {site.name}
-                  <span className="block text-[10px] opacity-70 mt-0.5">{site.count} PNGs</span>
+                  <span className="block text-[10px] opacity-70 mt-0.5">
+                    {site.count} PNGs
+                  </span>
                 </div>
               ))}
             </div>
 
-            <h3 className="text-sm font-semibold text-slate-700 mb-3">Free Download Sources</h3>
+            <h3 className="text-sm font-semibold text-slate-700 mb-3">
+              Free Download Sources
+            </h3>
             <div className="grid gap-2">
               {activeData.sources.map((src) => (
                 <a
@@ -461,13 +867,39 @@ export default function DesignPage() {
                   className="flex items-center justify-between bg-white rounded-xl px-4 py-3 hover:shadow-sm transition border border-slate-200 group"
                 >
                   <div className="flex items-center gap-3">
-                    <svg className="w-5 h-5 text-indigo-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                    <svg
+                      className="w-5 h-5 text-indigo-600 shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                      />
+                    </svg>
                     <div>
-                      <p className="text-sm font-medium text-slate-800 group-hover:text-indigo-600 transition">{src.name}</p>
+                      <p className="text-sm font-medium text-slate-800 group-hover:text-indigo-600 transition">
+                        {src.name}
+                      </p>
                       <span className="text-xs text-slate-400">{src.type}</span>
                     </div>
                   </div>
-                  <svg className="w-4 h-4 text-slate-300 group-hover:text-indigo-600 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                  <svg
+                    className="w-4 h-4 text-slate-300 group-hover:text-indigo-600 transition"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                    />
+                  </svg>
                 </a>
               ))}
             </div>
@@ -492,19 +924,39 @@ export default function DesignPage() {
                   onClick={() => setActiveCategory(cat.id)}
                   className="text-left rounded-xl border border-slate-200 bg-white p-5 hover:shadow-md transition group card-hover"
                 >
-                  <div className={`w-full h-24 rounded-lg overflow-hidden ring-1 ring-black/5 mb-3`}>
-                    {(() => { const T = categoryThumbs[cat.id]; return T ? <T className="w-full h-full" /> : <div className="w-full h-full flex items-center justify-center text-3xl bg-white">{cat.icon}</div> })()}
+                  <div
+                    className={`w-full h-24 rounded-lg overflow-hidden ring-1 ring-black/5 mb-3`}
+                  >
+                    {(() => {
+                      const T = categoryThumbs[cat.id];
+                      return T ? (
+                        <T className="w-full h-full" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-3xl bg-white">
+                          {cat.icon}
+                        </div>
+                      );
+                    })()}
                   </div>
-                  <h3 className="font-semibold text-slate-900 mb-1 group-hover:text-indigo-600 transition-colors">{cat.name}</h3>
-                  <p className="text-sm text-slate-400">{cat.count}+ free resources</p>
+                  <h3 className="font-semibold text-slate-900 mb-1 group-hover:text-indigo-600 transition-colors">
+                    {cat.name}
+                  </h3>
+                  <p className="text-sm text-slate-400">
+                    {cat.count}+ free resources
+                  </p>
                   <div className="flex flex-wrap gap-1 mt-3">
                     {cat.sites.slice(0, 3).map((site) => (
-                      <span key={site.name} className={`${site.color} text-[10px] rounded px-1.5 py-0.5`}>
+                      <span
+                        key={site.name}
+                        className={`${site.color} text-[10px] rounded px-1.5 py-0.5`}
+                      >
                         {site.name}
                       </span>
                     ))}
                     {cat.sites.length > 3 && (
-                      <span className="text-[10px] text-slate-400 px-1">+{cat.sites.length - 3}</span>
+                      <span className="text-[10px] text-slate-400 px-1">
+                        +{cat.sites.length - 3}
+                      </span>
                     )}
                   </div>
                 </button>
@@ -519,14 +971,42 @@ export default function DesignPage() {
                   className="w-full text-left flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 hover:shadow-sm transition group"
                 >
                   <div className="w-24 h-16 rounded-lg overflow-hidden ring-1 ring-black/5 shrink-0">
-                    {(() => { const T = categoryThumbs[cat.id]; return T ? <T className="w-full h-full" /> : <div className="w-full h-full flex items-center justify-center text-2xl bg-white">{cat.icon}</div> })()}
+                    {(() => {
+                      const T = categoryThumbs[cat.id];
+                      return T ? (
+                        <T className="w-full h-full" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-2xl bg-white">
+                          {cat.icon}
+                        </div>
+                      );
+                    })()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">{cat.name}</h3>
-                    <p className="text-xs text-slate-400">{cat.count}+ resources across {cat.sites.length} subcategories</p>
+                    <h3 className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                      {cat.name}
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      {cat.count}+ resources across {cat.sites.length}{" "}
+                      subcategories
+                    </p>
                   </div>
-                  <span className="text-xs text-slate-400">{cat.sources.length} sources</span>
-                  <svg className="w-5 h-5 text-slate-300 group-hover:text-indigo-600 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                  <span className="text-xs text-slate-400">
+                    {cat.sources.length} sources
+                  </span>
+                  <svg
+                    className="w-5 h-5 text-slate-300 group-hover:text-indigo-600 transition"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
                 </button>
               ))}
             </div>
@@ -537,7 +1017,19 @@ export default function DesignPage() {
       {/* Design Tips Section */}
       <section className="mt-10 p-6 rounded-2xl bg-gradient-to-br from-slate-900/5 to-indigo-50/50 border border-indigo-600/10">
         <h2 className="section-title mb-4 flex items-center gap-2">
-          <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+          <svg
+            className="w-5 h-5 text-amber-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+            />
+          </svg>
           Design Tips for Cambodia-Themed Projects
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
@@ -545,29 +1037,49 @@ export default function DesignPage() {
             <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center mb-2">
               <span className="text-lg">🎨</span>
             </div>
-            <p className="font-medium text-slate-800 mb-1">Use Authentic Colors</p>
-            <p className="text-xs text-slate-500">Reference the color palettes above — especially temple stone, saffron, and flag colors for authentic Khmer design.</p>
+            <p className="font-medium text-slate-800 mb-1">
+              Use Authentic Colors
+            </p>
+            <p className="text-xs text-slate-500">
+              Reference the color palettes above — especially temple stone,
+              saffron, and flag colors for authentic Khmer design.
+            </p>
           </div>
           <div className="bg-white/80 rounded-xl p-4 border border-slate-100">
             <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mb-2">
               <span className="text-lg">🖼️</span>
             </div>
-            <p className="font-medium text-slate-800 mb-1">High-Resolution Assets</p>
-            <p className="text-xs text-slate-500">Use Unsplash and Pexels for print-ready photos. Freepik and Vecteezy are best for scalable vectors and PNGs.</p>
+            <p className="font-medium text-slate-800 mb-1">
+              High-Resolution Assets
+            </p>
+            <p className="text-xs text-slate-500">
+              Use Unsplash and Pexels for print-ready photos. Freepik and
+              Vecteezy are best for scalable vectors and PNGs.
+            </p>
           </div>
           <div className="bg-white/80 rounded-xl p-4 border border-slate-100">
             <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mb-2">
               <span className="text-lg">✒️</span>
             </div>
-            <p className="font-medium text-slate-800 mb-1">Pair Fonts Carefully</p>
-            <p className="text-xs text-slate-500">Use Inter throughout — tight letter-spacing for headings, regular for body — for a clean, professional Khmer-themed layout.</p>
+            <p className="font-medium text-slate-800 mb-1">
+              Pair Fonts Carefully
+            </p>
+            <p className="text-xs text-slate-500">
+              Use Inter throughout — tight letter-spacing for headings, regular
+              for body — for a clean, professional Khmer-themed layout.
+            </p>
           </div>
           <div className="bg-white/80 rounded-xl p-4 border border-slate-100">
             <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mb-2">
               <span className="text-lg">📐</span>
             </div>
-            <p className="font-medium text-slate-800 mb-1">Respect the Culture</p>
-            <p className="text-xs text-slate-500">Always use images respectfully. Avoid modifying sacred symbols. Credit photographers when required.</p>
+            <p className="font-medium text-slate-800 mb-1">
+              Respect the Culture
+            </p>
+            <p className="text-xs text-slate-500">
+              Always use images respectfully. Avoid modifying sacred symbols.
+              Credit photographers when required.
+            </p>
           </div>
         </div>
       </section>

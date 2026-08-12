@@ -85,7 +85,10 @@ export default function SellerEditProductPage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
       if (!res.ok) throw new Error("Upload failed");
       const data = await res.json();
       setImages((prev) => [...prev, data.url]);
@@ -132,19 +135,26 @@ export default function SellerEditProductPage() {
     );
   }
 
-  if (loading) return <p className="max-w-xl mx-auto px-4 py-12 text-slate-500">Loading...</p>;
+  if (loading)
+    return (
+      <p className="max-w-xl mx-auto px-4 py-12 text-slate-500">Loading...</p>
+    );
 
   return (
     <div className="max-w-xl mx-auto px-4 py-12">
       <h1 className="text-2xl font-bold mb-6">Edit Product</h1>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">{error}</div>
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
+        </div>
       )}
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700">Status</label>
+          <label className="block text-sm font-medium text-slate-700">
+            Status
+          </label>
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
@@ -154,12 +164,15 @@ export default function SellerEditProductPage() {
             <option value="DISABLED">Disabled</option>
           </select>
           <p className="text-xs text-slate-500 mt-1">
-            Disabled products are hidden from the shop but keep their product slot.
+            Disabled products are hidden from the shop but keep their product
+            slot.
           </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700">Name</label>
+          <label className="block text-sm font-medium text-slate-700">
+            Name
+          </label>
           <input
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -168,7 +181,9 @@ export default function SellerEditProductPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700">Description</label>
+          <label className="block text-sm font-medium text-slate-700">
+            Description
+          </label>
           <textarea
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -179,7 +194,9 @@ export default function SellerEditProductPage() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700">Price ($)</label>
+            <label className="block text-sm font-medium text-slate-700">
+              Price ($)
+            </label>
             <input
               type="number"
               step="0.01"
@@ -189,7 +206,9 @@ export default function SellerEditProductPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700">Stock</label>
+            <label className="block text-sm font-medium text-slate-700">
+              Stock
+            </label>
             <input
               type="number"
               value={form.stock}
@@ -201,7 +220,9 @@ export default function SellerEditProductPage() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700">Category</label>
+            <label className="block text-sm font-medium text-slate-700">
+              Category
+            </label>
             <select
               value={form.categoryId}
               onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
@@ -209,12 +230,16 @@ export default function SellerEditProductPage() {
             >
               <option value="">Select category</option>
               {categories.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700">Condition</label>
+            <label className="block text-sm font-medium text-slate-700">
+              Condition
+            </label>
             <select
               value={form.condition}
               onChange={(e) => setForm({ ...form, condition: e.target.value })}
@@ -229,40 +254,56 @@ export default function SellerEditProductPage() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700">Warranty (months)</label>
+            <label className="block text-sm font-medium text-slate-700">
+              Warranty (months)
+            </label>
             <input
               type="number"
               value={form.warrantyMonths}
-              onChange={(e) => setForm({ ...form, warrantyMonths: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, warrantyMonths: e.target.value })
+              }
               className="mt-1 block w-full border border-slate-300 rounded px-3 py-2"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700">Serial Number</label>
+            <label className="block text-sm font-medium text-slate-700">
+              Serial Number
+            </label>
             <input
               value={form.serialNumber}
-              onChange={(e) => setForm({ ...form, serialNumber: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, serialNumber: e.target.value })
+              }
               className="mt-1 block w-full border border-slate-300 rounded px-3 py-2"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700">Images (max 5)</label>
+          <label className="block text-sm font-medium text-slate-700">
+            Images (max 5)
+          </label>
           <input
             type="file"
             accept="image/*"
             onChange={handleImageUpload}
             disabled={uploading || images.length >= 5}
-            className="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
+            className="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 disabled:opacity-50"
           />
           {images.length > 0 && (
             <div className="flex gap-2 mt-2 flex-wrap">
               {images.map((url, i) => (
                 <div key={i} className="relative">
-                  <img src={url} alt="" className="w-20 h-20 object-cover rounded border" />
+                  <img
+                    src={url}
+                    alt=""
+                    className="w-20 h-20 object-cover rounded border"
+                  />
                   <button
-                    onClick={() => setImages((prev) => prev.filter((_, j) => j !== i))}
+                    onClick={() =>
+                      setImages((prev) => prev.filter((_, j) => j !== i))
+                    }
                     className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center"
                   >
                     ×
@@ -276,7 +317,7 @@ export default function SellerEditProductPage() {
         <button
           onClick={handleSubmit}
           disabled={submitting || !form.name || !form.price || !form.categoryId}
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {submitting ? "Saving..." : "Save Changes"}
         </button>

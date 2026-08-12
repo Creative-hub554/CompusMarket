@@ -15,7 +15,13 @@ const ResumePDF = dynamic(() => import("@/components/ResumePDF"), {
   ssr: false,
 });
 
-type SavedResume = { id: string; title: string; data: ResumeData; template?: string; updatedAt: string };
+type SavedResume = {
+  id: string;
+  title: string;
+  data: ResumeData;
+  template?: string;
+  updatedAt: string;
+};
 
 function ResumeBuilderContent() {
   const { t, locale, setLocale } = useTranslation();
@@ -28,7 +34,8 @@ function ResumeBuilderContent() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [pdfExporting, setPdfExporting] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<string>("single-column-blue");
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<string>("single-column-blue");
   const [galleryOpen, setGalleryOpen] = useState(true);
   const [exportLocale, setExportLocale] = useState<"en" | "km">("en");
 
@@ -38,8 +45,15 @@ function ResumeBuilderContent() {
     setPdfExporting(true);
     try {
       const { pdf } = await import("@react-pdf/renderer");
-      const { default: ResumePDFComponent } = await import("@/components/ResumePDF");
-      const blob = await pdf(<ResumePDFComponent data={resume} template={selectedTemplate} locale={exportLocale} />).toBlob();
+      const { default: ResumePDFComponent } =
+        await import("@/components/ResumePDF");
+      const blob = await pdf(
+        <ResumePDFComponent
+          data={resume}
+          template={selectedTemplate}
+          locale={exportLocale}
+        />,
+      ).toBlob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -68,7 +82,14 @@ function ResumeBuilderContent() {
       ...prev,
       education: [
         ...prev.education,
-        { id: crypto.randomUUID(), institution: "", degree: "", field: "", startDate: "", endDate: "" },
+        {
+          id: crypto.randomUUID(),
+          institution: "",
+          degree: "",
+          field: "",
+          startDate: "",
+          endDate: "",
+        },
       ],
     }));
   }
@@ -78,7 +99,14 @@ function ResumeBuilderContent() {
       ...prev,
       experience: [
         ...prev.experience,
-        { id: crypto.randomUUID(), company: "", position: "", startDate: "", endDate: "", description: "" },
+        {
+          id: crypto.randomUUID(),
+          company: "",
+          position: "",
+          startDate: "",
+          endDate: "",
+          description: "",
+        },
       ],
     }));
   }
@@ -123,7 +151,11 @@ function ResumeBuilderContent() {
     setResume((prev) => ({ ...prev, skills: items }));
   }
 
-  function removeItem<T>(arr: T[], index: number, setter: (items: T[]) => void) {
+  function removeItem<T>(
+    arr: T[],
+    index: number,
+    setter: (items: T[]) => void,
+  ) {
     const updated = [...arr];
     updated.splice(index, 1);
     setter(updated);
@@ -146,13 +178,21 @@ function ResumeBuilderContent() {
         await fetch(`/api/resumes/${currentResumeId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title: resumeTitle, data: resume, template: selectedTemplate }),
+          body: JSON.stringify({
+            title: resumeTitle,
+            data: resume,
+            template: selectedTemplate,
+          }),
         });
       } else {
         const res = await fetch("/api/resumes", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title: resumeTitle, data: resume, template: selectedTemplate }),
+          body: JSON.stringify({
+            title: resumeTitle,
+            data: resume,
+            template: selectedTemplate,
+          }),
         });
         const created = await res.json();
         setCurrentResumeId(created.id);
@@ -198,7 +238,12 @@ function ResumeBuilderContent() {
     { id: "languages", label: t.resume.languages },
   ];
 
-  const levelOptions = [t.resume.beginner, t.resume.intermediate, t.resume.advanced, t.resume.native];
+  const levelOptions = [
+    t.resume.beginner,
+    t.resume.intermediate,
+    t.resume.advanced,
+    t.resume.native,
+  ];
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
@@ -210,12 +255,25 @@ function ResumeBuilderContent() {
             onClick={() => setGalleryOpen(true)}
             className="mt-2 inline-flex items-center gap-2 rounded-lg border bg-white px-3 py-1.5 text-sm hover:bg-slate-50"
           >
-            <span style={{
-              display: "inline-block", width: 10, height: 10, borderRadius: "50%",
-              backgroundColor: (templates.find((t) => t.id === selectedTemplate)?.config.colors.primary || "#4338ca"),
-            }} />
-            <span className="font-medium">{locale === "km" ? templates.find((t) => t.id === selectedTemplate)?.nameKm : templates.find((t) => t.id === selectedTemplate)?.name}</span>
-            <span className="text-xs text-slate-400">{locale === "km" ? "ប្តូរ" : "Change"}</span>
+            <span
+              style={{
+                display: "inline-block",
+                width: 10,
+                height: 10,
+                borderRadius: "50%",
+                backgroundColor:
+                  templates.find((t) => t.id === selectedTemplate)?.config
+                    .colors.primary || "#4338ca",
+              }}
+            />
+            <span className="font-medium">
+              {locale === "km"
+                ? templates.find((t) => t.id === selectedTemplate)?.nameKm
+                : templates.find((t) => t.id === selectedTemplate)?.name}
+            </span>
+            <span className="text-xs text-slate-400">
+              {locale === "km" ? "ប្តូរ" : "Change"}
+            </span>
           </button>
         </div>
         <div className="flex gap-2 items-center">
@@ -246,7 +304,7 @@ function ResumeBuilderContent() {
           <button
             onClick={handleExportPdf}
             disabled={pdfExporting}
-            className="rounded bg-blue-600 px-4 py-1.5 text-sm text-white hover:bg-blue-700 inline-block disabled:opacity-50"
+            className="rounded bg-indigo-600 px-4 py-1.5 text-sm text-white hover:bg-indigo-700 inline-block disabled:opacity-50"
           >
             {pdfExporting ? t.resume.generating : t.resume.exportPdf}
           </button>
@@ -262,7 +320,7 @@ function ResumeBuilderContent() {
                 onClick={() => setActiveSection(item.id)}
                 className={`block w-full rounded px-3 py-2 text-left text-sm font-medium transition ${
                   activeSection === item.id
-                    ? "bg-blue-100 text-blue-700"
+                    ? "bg-indigo-100 text-indigo-700"
                     : "text-slate-600 hover:bg-slate-100"
                 }`}
               >
@@ -275,9 +333,13 @@ function ResumeBuilderContent() {
                 {t.resume.savedResumes}
               </p>
               {loading ? (
-                <p className="px-3 text-xs text-slate-400">{t.resume.loading}</p>
+                <p className="px-3 text-xs text-slate-400">
+                  {t.resume.loading}
+                </p>
               ) : savedResumes.length === 0 ? (
-                <p className="px-3 text-xs text-slate-400">{t.resume.noSavedResumes}</p>
+                <p className="px-3 text-xs text-slate-400">
+                  {t.resume.noSavedResumes}
+                </p>
               ) : (
                 savedResumes.map((r) => (
                   <div key={r.id} className="flex items-center gap-1 px-2">
@@ -285,7 +347,7 @@ function ResumeBuilderContent() {
                       onClick={() => loadResume(r)}
                       className={`flex-1 rounded px-2 py-1 text-left text-xs transition ${
                         currentResumeId === r.id
-                          ? "bg-blue-50 text-blue-700"
+                          ? "bg-indigo-50 text-indigo-700"
                           : "text-slate-600 hover:bg-slate-100"
                       }`}
                     >
@@ -302,7 +364,7 @@ function ResumeBuilderContent() {
               )}
               <button
                 onClick={newResume}
-                className="w-full rounded px-2 py-1 text-left text-xs text-blue-600 hover:bg-blue-50"
+                className="w-full rounded px-2 py-1 text-left text-xs text-indigo-600 hover:bg-indigo-50"
               >
                 {t.resume.newResume}
               </button>
@@ -325,7 +387,10 @@ function ResumeBuilderContent() {
                       onChange={(e) =>
                         setResume((prev) => ({
                           ...prev,
-                          personalInfo: { ...prev.personalInfo, [key]: e.target.value },
+                          personalInfo: {
+                            ...prev.personalInfo,
+                            [key]: e.target.value,
+                          },
                         }))
                       }
                       className="w-full rounded border px-3 py-2 text-sm"
@@ -333,12 +398,21 @@ function ResumeBuilderContent() {
                     />
                   ) : (
                     <input
-                      type={key === "email" ? "email" : key === "phone" ? "tel" : "text"}
+                      type={
+                        key === "email"
+                          ? "email"
+                          : key === "phone"
+                            ? "tel"
+                            : "text"
+                      }
                       value={value}
                       onChange={(e) =>
                         setResume((prev) => ({
                           ...prev,
-                          personalInfo: { ...prev.personalInfo, [key]: e.target.value },
+                          personalInfo: {
+                            ...prev.personalInfo,
+                            [key]: e.target.value,
+                          },
                         }))
                       }
                       className="w-full rounded border px-3 py-2 text-sm"
@@ -353,7 +427,10 @@ function ResumeBuilderContent() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold">{t.resume.education}</h2>
-                <button onClick={addEducation} className="rounded bg-blue-600 px-3 py-1 text-sm text-white">
+                <button
+                  onClick={addEducation}
+                  className="rounded bg-indigo-600 px-3 py-1 text-sm text-white"
+                >
                   {t.resume.add}
                 </button>
               </div>
@@ -362,7 +439,10 @@ function ResumeBuilderContent() {
                 onReorder={reorderEducation}
                 keyExtractor={(e) => e.id}
                 renderItem={(edu, i) => (
-                  <div data-draggable-item className="rounded border p-4 space-y-3 mb-3 bg-white">
+                  <div
+                    data-draggable-item
+                    className="rounded border p-4 space-y-3 mb-3 bg-white"
+                  >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-1">
                         <DragHandle index={i} onDragStart={() => {}} />
@@ -371,7 +451,9 @@ function ResumeBuilderContent() {
                         </span>
                       </div>
                       <button
-                        onClick={() => removeItem(resume.education, i, reorderEducation)}
+                        onClick={() =>
+                          removeItem(resume.education, i, reorderEducation)
+                        }
                         className="text-slate-400 hover:text-red-500 text-sm px-1"
                         title="Remove"
                       >
@@ -380,24 +462,76 @@ function ResumeBuilderContent() {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="col-span-2">
-                        <label className="text-xs font-medium">{t.resume.institution}</label>
-                        <input value={edu.institution} onChange={(e) => { const u = [...resume.education]; u[i] = { ...edu, institution: e.target.value }; setResume((p) => ({ ...p, education: u })); }} className="w-full rounded border px-3 py-2 text-sm" />
+                        <label className="text-xs font-medium">
+                          {t.resume.institution}
+                        </label>
+                        <input
+                          value={edu.institution}
+                          onChange={(e) => {
+                            const u = [...resume.education];
+                            u[i] = { ...edu, institution: e.target.value };
+                            setResume((p) => ({ ...p, education: u }));
+                          }}
+                          className="w-full rounded border px-3 py-2 text-sm"
+                        />
                       </div>
                       <div>
-                        <label className="text-xs font-medium">{t.resume.degree}</label>
-                        <input value={edu.degree} onChange={(e) => { const u = [...resume.education]; u[i] = { ...edu, degree: e.target.value }; setResume((p) => ({ ...p, education: u })); }} className="w-full rounded border px-3 py-2 text-sm" />
+                        <label className="text-xs font-medium">
+                          {t.resume.degree}
+                        </label>
+                        <input
+                          value={edu.degree}
+                          onChange={(e) => {
+                            const u = [...resume.education];
+                            u[i] = { ...edu, degree: e.target.value };
+                            setResume((p) => ({ ...p, education: u }));
+                          }}
+                          className="w-full rounded border px-3 py-2 text-sm"
+                        />
                       </div>
                       <div>
-                        <label className="text-xs font-medium">{t.resume.field}</label>
-                        <input value={edu.field} onChange={(e) => { const u = [...resume.education]; u[i] = { ...edu, field: e.target.value }; setResume((p) => ({ ...p, education: u })); }} className="w-full rounded border px-3 py-2 text-sm" />
+                        <label className="text-xs font-medium">
+                          {t.resume.field}
+                        </label>
+                        <input
+                          value={edu.field}
+                          onChange={(e) => {
+                            const u = [...resume.education];
+                            u[i] = { ...edu, field: e.target.value };
+                            setResume((p) => ({ ...p, education: u }));
+                          }}
+                          className="w-full rounded border px-3 py-2 text-sm"
+                        />
                       </div>
                       <div>
-                        <label className="text-xs font-medium">{t.resume.start}</label>
-                        <input type="date" value={edu.startDate} onChange={(e) => { const u = [...resume.education]; u[i] = { ...edu, startDate: e.target.value }; setResume((p) => ({ ...p, education: u })); }} className="w-full rounded border px-3 py-2 text-sm" />
+                        <label className="text-xs font-medium">
+                          {t.resume.start}
+                        </label>
+                        <input
+                          type="date"
+                          value={edu.startDate}
+                          onChange={(e) => {
+                            const u = [...resume.education];
+                            u[i] = { ...edu, startDate: e.target.value };
+                            setResume((p) => ({ ...p, education: u }));
+                          }}
+                          className="w-full rounded border px-3 py-2 text-sm"
+                        />
                       </div>
                       <div>
-                        <label className="text-xs font-medium">{t.resume.end}</label>
-                        <input type="date" value={edu.endDate} onChange={(e) => { const u = [...resume.education]; u[i] = { ...edu, endDate: e.target.value }; setResume((p) => ({ ...p, education: u })); }} className="w-full rounded border px-3 py-2 text-sm" />
+                        <label className="text-xs font-medium">
+                          {t.resume.end}
+                        </label>
+                        <input
+                          type="date"
+                          value={edu.endDate}
+                          onChange={(e) => {
+                            const u = [...resume.education];
+                            u[i] = { ...edu, endDate: e.target.value };
+                            setResume((p) => ({ ...p, education: u }));
+                          }}
+                          className="w-full rounded border px-3 py-2 text-sm"
+                        />
                       </div>
                     </div>
                   </div>
@@ -410,7 +544,10 @@ function ResumeBuilderContent() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold">{t.resume.experience}</h2>
-                <button onClick={addExperience} className="rounded bg-blue-600 px-3 py-1 text-sm text-white">
+                <button
+                  onClick={addExperience}
+                  className="rounded bg-indigo-600 px-3 py-1 text-sm text-white"
+                >
                   {t.resume.add}
                 </button>
               </div>
@@ -419,7 +556,10 @@ function ResumeBuilderContent() {
                 onReorder={reorderExperience}
                 keyExtractor={(e) => e.id}
                 renderItem={(exp, i) => (
-                  <div data-draggable-item className="rounded border p-4 space-y-3 mb-3 bg-white">
+                  <div
+                    data-draggable-item
+                    className="rounded border p-4 space-y-3 mb-3 bg-white"
+                  >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-1">
                         <DragHandle index={i} onDragStart={() => {}} />
@@ -428,7 +568,9 @@ function ResumeBuilderContent() {
                         </span>
                       </div>
                       <button
-                        onClick={() => removeItem(resume.experience, i, reorderExperience)}
+                        onClick={() =>
+                          removeItem(resume.experience, i, reorderExperience)
+                        }
                         className="text-slate-400 hover:text-red-500 text-sm px-1"
                         title="Remove"
                       >
@@ -437,26 +579,79 @@ function ResumeBuilderContent() {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="col-span-2">
-                        <label className="text-xs font-medium">{t.resume.company}</label>
-                        <input value={exp.company} onChange={(e) => { const u = [...resume.experience]; u[i] = { ...exp, company: e.target.value }; setResume((p) => ({ ...p, experience: u })); }} className="w-full rounded border px-3 py-2 text-sm" />
+                        <label className="text-xs font-medium">
+                          {t.resume.company}
+                        </label>
+                        <input
+                          value={exp.company}
+                          onChange={(e) => {
+                            const u = [...resume.experience];
+                            u[i] = { ...exp, company: e.target.value };
+                            setResume((p) => ({ ...p, experience: u }));
+                          }}
+                          className="w-full rounded border px-3 py-2 text-sm"
+                        />
                       </div>
                       <div>
-                        <label className="text-xs font-medium">{t.resume.position}</label>
-                        <input value={exp.position} onChange={(e) => { const u = [...resume.experience]; u[i] = { ...exp, position: e.target.value }; setResume((p) => ({ ...p, experience: u })); }} className="w-full rounded border px-3 py-2 text-sm" />
+                        <label className="text-xs font-medium">
+                          {t.resume.position}
+                        </label>
+                        <input
+                          value={exp.position}
+                          onChange={(e) => {
+                            const u = [...resume.experience];
+                            u[i] = { ...exp, position: e.target.value };
+                            setResume((p) => ({ ...p, experience: u }));
+                          }}
+                          className="w-full rounded border px-3 py-2 text-sm"
+                        />
                       </div>
                       <div className="flex gap-2">
                         <div className="flex-1">
-                          <label className="text-xs font-medium">{t.resume.start}</label>
-                          <input type="date" value={exp.startDate} onChange={(e) => { const u = [...resume.experience]; u[i] = { ...exp, startDate: e.target.value }; setResume((p) => ({ ...p, experience: u })); }} className="w-full rounded border px-3 py-2 text-sm" />
+                          <label className="text-xs font-medium">
+                            {t.resume.start}
+                          </label>
+                          <input
+                            type="date"
+                            value={exp.startDate}
+                            onChange={(e) => {
+                              const u = [...resume.experience];
+                              u[i] = { ...exp, startDate: e.target.value };
+                              setResume((p) => ({ ...p, experience: u }));
+                            }}
+                            className="w-full rounded border px-3 py-2 text-sm"
+                          />
                         </div>
                         <div className="flex-1">
-                          <label className="text-xs font-medium">{t.resume.end}</label>
-                          <input type="date" value={exp.endDate} onChange={(e) => { const u = [...resume.experience]; u[i] = { ...exp, endDate: e.target.value }; setResume((p) => ({ ...p, experience: u })); }} className="w-full rounded border px-3 py-2 text-sm" />
+                          <label className="text-xs font-medium">
+                            {t.resume.end}
+                          </label>
+                          <input
+                            type="date"
+                            value={exp.endDate}
+                            onChange={(e) => {
+                              const u = [...resume.experience];
+                              u[i] = { ...exp, endDate: e.target.value };
+                              setResume((p) => ({ ...p, experience: u }));
+                            }}
+                            className="w-full rounded border px-3 py-2 text-sm"
+                          />
                         </div>
                       </div>
                       <div className="col-span-2">
-                        <label className="text-xs font-medium">{t.resume.description}</label>
-                        <textarea value={exp.description} onChange={(e) => { const u = [...resume.experience]; u[i] = { ...exp, description: e.target.value }; setResume((p) => ({ ...p, experience: u })); }} className="w-full rounded border px-3 py-2 text-sm" rows={3} />
+                        <label className="text-xs font-medium">
+                          {t.resume.description}
+                        </label>
+                        <textarea
+                          value={exp.description}
+                          onChange={(e) => {
+                            const u = [...resume.experience];
+                            u[i] = { ...exp, description: e.target.value };
+                            setResume((p) => ({ ...p, experience: u }));
+                          }}
+                          className="w-full rounded border px-3 py-2 text-sm"
+                          rows={3}
+                        />
                       </div>
                     </div>
                   </div>
@@ -472,26 +667,39 @@ function ResumeBuilderContent() {
                 <input
                   value={newSkill}
                   onChange={(e) => setNewSkill(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addSkill())}
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && (e.preventDefault(), addSkill())
+                  }
                   placeholder={t.resume.skillPlaceholder}
                   className="flex-1 rounded border px-3 py-2 text-sm"
                 />
-                <button onClick={addSkill} className="rounded bg-blue-600 px-4 py-2 text-sm text-white">
+                <button
+                  onClick={addSkill}
+                  className="rounded bg-indigo-600 px-4 py-2 text-sm text-white"
+                >
                   {t.resume.add}
                 </button>
               </div>
               <DraggableList
-                items={resume.skills.map((s, idx) => ({ id: `skill-${idx}`, name: s }))}
+                items={resume.skills.map((s, idx) => ({
+                  id: `skill-${idx}`,
+                  name: s,
+                }))}
                 onReorder={(items) => reorderSkills(items.map((i) => i.name))}
                 keyExtractor={(e) => e.id}
                 renderItem={(item, i) => (
-                  <div data-draggable-item className="flex items-center gap-2 mb-2">
+                  <div
+                    data-draggable-item
+                    className="flex items-center gap-2 mb-2"
+                  >
                     <DragHandle index={i} onDragStart={() => {}} />
                     <span className="flex-1 rounded bg-slate-100 px-3 py-1.5 text-sm flex items-center justify-between">
                       <span>{item.name}</span>
                       <button
                         onClick={() => {
-                          const updated = resume.skills.filter((_, j) => j !== i);
+                          const updated = resume.skills.filter(
+                            (_, j) => j !== i,
+                          );
                           setResume((prev) => ({ ...prev, skills: updated }));
                         }}
                         className="text-slate-400 hover:text-red-500 ml-2"
@@ -508,8 +716,13 @@ function ResumeBuilderContent() {
           {activeSection === "certifications" && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">{t.resume.certifications}</h2>
-                <button onClick={addCertification} className="rounded bg-blue-600 px-3 py-1 text-sm text-white">
+                <h2 className="text-xl font-semibold">
+                  {t.resume.certifications}
+                </h2>
+                <button
+                  onClick={addCertification}
+                  className="rounded bg-indigo-600 px-3 py-1 text-sm text-white"
+                >
                   {t.resume.add}
                 </button>
               </div>
@@ -518,7 +731,10 @@ function ResumeBuilderContent() {
                 onReorder={reorderCertifications}
                 keyExtractor={(e) => e.id}
                 renderItem={(cert, i) => (
-                  <div data-draggable-item className="rounded border p-4 space-y-3 mb-3 bg-white">
+                  <div
+                    data-draggable-item
+                    className="rounded border p-4 space-y-3 mb-3 bg-white"
+                  >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-1">
                         <DragHandle index={i} onDragStart={() => {}} />
@@ -527,7 +743,13 @@ function ResumeBuilderContent() {
                         </span>
                       </div>
                       <button
-                        onClick={() => removeItem(resume.certifications, i, reorderCertifications)}
+                        onClick={() =>
+                          removeItem(
+                            resume.certifications,
+                            i,
+                            reorderCertifications,
+                          )
+                        }
                         className="text-slate-400 hover:text-red-500 text-sm px-1"
                         title="Remove"
                       >
@@ -536,16 +758,47 @@ function ResumeBuilderContent() {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="col-span-2">
-                        <label className="text-xs font-medium">{t.resume.name}</label>
-                        <input value={cert.name} onChange={(e) => { const u = [...resume.certifications]; u[i] = { ...cert, name: e.target.value }; setResume((p) => ({ ...p, certifications: u })); }} className="w-full rounded border px-3 py-2 text-sm" />
+                        <label className="text-xs font-medium">
+                          {t.resume.name}
+                        </label>
+                        <input
+                          value={cert.name}
+                          onChange={(e) => {
+                            const u = [...resume.certifications];
+                            u[i] = { ...cert, name: e.target.value };
+                            setResume((p) => ({ ...p, certifications: u }));
+                          }}
+                          className="w-full rounded border px-3 py-2 text-sm"
+                        />
                       </div>
                       <div>
-                        <label className="text-xs font-medium">{t.resume.issuer}</label>
-                        <input value={cert.issuer} onChange={(e) => { const u = [...resume.certifications]; u[i] = { ...cert, issuer: e.target.value }; setResume((p) => ({ ...p, certifications: u })); }} className="w-full rounded border px-3 py-2 text-sm" />
+                        <label className="text-xs font-medium">
+                          {t.resume.issuer}
+                        </label>
+                        <input
+                          value={cert.issuer}
+                          onChange={(e) => {
+                            const u = [...resume.certifications];
+                            u[i] = { ...cert, issuer: e.target.value };
+                            setResume((p) => ({ ...p, certifications: u }));
+                          }}
+                          className="w-full rounded border px-3 py-2 text-sm"
+                        />
                       </div>
                       <div>
-                        <label className="text-xs font-medium">{t.resume.date}</label>
-                        <input type="date" value={cert.date} onChange={(e) => { const u = [...resume.certifications]; u[i] = { ...cert, date: e.target.value }; setResume((p) => ({ ...p, certifications: u })); }} className="w-full rounded border px-3 py-2 text-sm" />
+                        <label className="text-xs font-medium">
+                          {t.resume.date}
+                        </label>
+                        <input
+                          type="date"
+                          value={cert.date}
+                          onChange={(e) => {
+                            const u = [...resume.certifications];
+                            u[i] = { ...cert, date: e.target.value };
+                            setResume((p) => ({ ...p, certifications: u }));
+                          }}
+                          className="w-full rounded border px-3 py-2 text-sm"
+                        />
                       </div>
                     </div>
                   </div>
@@ -558,7 +811,10 @@ function ResumeBuilderContent() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold">{t.resume.languages}</h2>
-                <button onClick={addLanguage} className="rounded bg-blue-600 px-3 py-1 text-sm text-white">
+                <button
+                  onClick={addLanguage}
+                  className="rounded bg-indigo-600 px-3 py-1 text-sm text-white"
+                >
                   {t.resume.add}
                 </button>
               </div>
@@ -567,7 +823,10 @@ function ResumeBuilderContent() {
                 onReorder={reorderLanguages}
                 keyExtractor={(e) => e.id}
                 renderItem={(lang, i) => (
-                  <div data-draggable-item className="rounded border p-4 mb-3 bg-white">
+                  <div
+                    data-draggable-item
+                    className="rounded border p-4 mb-3 bg-white"
+                  >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-1">
                         <DragHandle index={i} onDragStart={() => {}} />
@@ -576,7 +835,9 @@ function ResumeBuilderContent() {
                         </span>
                       </div>
                       <button
-                        onClick={() => removeItem(resume.languages, i, reorderLanguages)}
+                        onClick={() =>
+                          removeItem(resume.languages, i, reorderLanguages)
+                        }
                         className="text-slate-400 hover:text-red-500 text-sm px-1"
                         title="Remove"
                       >
@@ -585,12 +846,32 @@ function ResumeBuilderContent() {
                     </div>
                     <div className="flex gap-3 items-end">
                       <div className="flex-1">
-                        <label className="text-xs font-medium">{t.resume.language}</label>
-                        <input value={lang.name} onChange={(e) => { const u = [...resume.languages]; u[i] = { ...lang, name: e.target.value }; setResume((p) => ({ ...p, languages: u })); }} className="w-full rounded border px-3 py-2 text-sm" />
+                        <label className="text-xs font-medium">
+                          {t.resume.language}
+                        </label>
+                        <input
+                          value={lang.name}
+                          onChange={(e) => {
+                            const u = [...resume.languages];
+                            u[i] = { ...lang, name: e.target.value };
+                            setResume((p) => ({ ...p, languages: u }));
+                          }}
+                          className="w-full rounded border px-3 py-2 text-sm"
+                        />
                       </div>
                       <div className="w-40">
-                        <label className="text-xs font-medium">{t.resume.level}</label>
-                        <select value={lang.level} onChange={(e) => { const u = [...resume.languages]; u[i] = { ...lang, level: e.target.value }; setResume((p) => ({ ...p, languages: u })); }} className="w-full rounded border px-3 py-2 text-sm">
+                        <label className="text-xs font-medium">
+                          {t.resume.level}
+                        </label>
+                        <select
+                          value={lang.level}
+                          onChange={(e) => {
+                            const u = [...resume.languages];
+                            u[i] = { ...lang, level: e.target.value };
+                            setResume((p) => ({ ...p, languages: u }));
+                          }}
+                          className="w-full rounded border px-3 py-2 text-sm"
+                        >
                           {levelOptions.map((opt) => (
                             <option key={opt}>{opt}</option>
                           ))}
@@ -613,7 +894,10 @@ function ResumeBuilderContent() {
                   ...prev,
                   personalInfo: { ...prev.personalInfo, summary: text },
                 }));
-              } else if (activeSection === "experience" && resume.experience.length > 0) {
+              } else if (
+                activeSection === "experience" &&
+                resume.experience.length > 0
+              ) {
                 const updated = [...resume.experience];
                 const idx = updated.length - 1;
                 updated[idx] = { ...updated[idx], description: text };

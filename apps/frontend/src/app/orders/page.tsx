@@ -30,14 +30,17 @@ export default function OrdersPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="mx-auto max-w-4xl px-4 py-8">{t("loading")}</div>;
+  if (loading)
+    return <div className="mx-auto max-w-4xl px-4 py-8">{t("loading")}</div>;
 
   if (error) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold mb-4 text-khmer-red">{t("errorTitle")}</h1>
+        <h1 className="text-2xl font-bold mb-4 text-red-600">
+          {t("errorTitle")}
+        </h1>
         <p className="text-gray-600 mb-4">{t("errorDesc")}</p>
-        <Link href="/login" className="text-blue-600 hover:underline">
+        <Link href="/login" className="text-indigo-600 hover:underline">
           {t("signInToView")}
         </Link>
       </div>
@@ -46,8 +49,8 @@ export default function OrdersPage() {
 
   const statusColors: Record<string, string> = {
     PENDING: "bg-yellow-100 text-yellow-800",
-    PROCESSING: "bg-blue-100 text-blue-800",
-    SHIPPED: "bg-purple-100 text-purple-800",
+    PROCESSING: "bg-indigo-100 text-indigo-800",
+    SHIPPED: "bg-indigo-100 text-indigo-800",
     DELIVERED: "bg-green-100 text-green-800",
     CANCELLED: "bg-red-100 text-red-800",
   };
@@ -59,10 +62,7 @@ export default function OrdersPage() {
       {orders.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-gray-500 mb-4">{t("empty")}</p>
-          <Link
-            href="/shop"
-            className="text-blue-600 hover:underline"
-          >
+          <Link href="/shop" className="text-indigo-600 hover:underline">
             {t("startShopping")}
           </Link>
         </div>
@@ -72,17 +72,21 @@ export default function OrdersPage() {
             <Link
               key={order.id}
               href={`/orders/${order.id}`}
-              className="block rounded-lg border p-4 hover:border-blue-300 transition"
+              className="block rounded-lg border p-4 hover:border-indigo-300 transition"
             >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">
-                    {t("orderNumber", { id: order.id.slice(0, 8).toUpperCase() })}
+                    {t("orderNumber", {
+                      id: order.id.slice(0, 8).toUpperCase(),
+                    })}
                   </p>
                   <p className="text-sm text-gray-500">
                     {order.items.length === 1
                       ? t("itemCount", { count: order.items.length })
-                      : t("itemCountPlural", { count: order.items.length })}{" "}
+                      : t("itemCountPlural", {
+                          count: order.items.length,
+                        })}{" "}
                     &middot; {new Date(order.createdAt).toLocaleDateString()}
                   </p>
                 </div>

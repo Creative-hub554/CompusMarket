@@ -2,15 +2,24 @@ type ThumbProps = { className?: string };
 
 export function AngkorThumb({ className }: ThumbProps) {
   return (
-    <svg viewBox="0 0 200 140" className={className} xmlns="http://www.w3.org/2000/svg">
+    <svg
+      viewBox="0 0 200 140"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <defs>
         <linearGradient id="angkorSky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#ffd89b" /><stop offset="1" stopColor="#f4a261" />
+          <stop offset="0" stopColor="#ffd89b" />
+          <stop offset="1" stopColor="#f4a261" />
         </linearGradient>
       </defs>
       <rect width="200" height="140" fill="url(#angkorSky)" />
       <circle cx="100" cy="32" r="18" fill="#ffb703" opacity="0.9" />
-      <path d="M0 140 L0 105 Q40 95 100 105 Q160 95 200 105 L200 140 Z" fill="#e76f51" opacity="0.35" />
+      <path
+        d="M0 140 L0 105 Q40 95 100 105 Q160 95 200 105 L200 140 Z"
+        fill="#e76f51"
+        opacity="0.35"
+      />
       <g fill="#a67c52">
         <rect x="86" y="70" width="8" height="20" rx="2" />
         <rect x="106" y="70" width="8" height="20" rx="2" />
@@ -26,7 +35,14 @@ export function AngkorThumb({ className }: ThumbProps) {
       <rect x="40" y="104" width="120" height="10" fill="#6b4527" />
       <g fill="#5c3d21">
         <rect x="34" y="108" width="132" height="10" />
-        <rect x="0" y="118" width="200" height="8" fill="#5c3d21" opacity="0.7" />
+        <rect
+          x="0"
+          y="118"
+          width="200"
+          height="8"
+          fill="#5c3d21"
+          opacity="0.7"
+        />
       </g>
     </svg>
   );
@@ -34,10 +50,15 @@ export function AngkorThumb({ className }: ThumbProps) {
 
 export function CultureThumb({ className }: ThumbProps) {
   return (
-    <svg viewBox="0 0 200 140" className={className} xmlns="http://www.w3.org/2000/svg">
+    <svg
+      viewBox="0 0 200 140"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <defs>
         <linearGradient id="culBg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#1a3a5c" /><stop offset="1" stopColor="#0d2137" />
+          <stop offset="0" stopColor="#1a3a5c" />
+          <stop offset="1" stopColor="#0d2137" />
         </linearGradient>
       </defs>
       <rect width="200" height="140" fill="url(#culBg)" />
@@ -53,8 +74,18 @@ export function CultureThumb({ className }: ThumbProps) {
         <path d="M82 60 Q74 56 72 50 L88 58 Z" />
         <path d="M118 60 Q126 56 128 50 L112 58 Z" />
       </g>
-      <path d="M88 96 L84 130 L116 130 L112 96 Z" fill="#e74c3c" opacity="0.85" />
-      <path d="M80 52 Q76 40 82 32 Q90 26 98 32 Q104 26 112 30" fill="none" stroke="#f5c542" strokeWidth="3" strokeLinecap="round" />
+      <path
+        d="M88 96 L84 130 L116 130 L112 96 Z"
+        fill="#e74c3c"
+        opacity="0.85"
+      />
+      <path
+        d="M80 52 Q76 40 82 32 Q90 26 98 32 Q104 26 112 30"
+        fill="none"
+        stroke="#f5c542"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
       <circle cx="100" cy="100" r="2" fill="#ffd9a0" />
       <circle cx="84" cy="96" r="1.5" fill="#ffd9a0" opacity="0.7" />
       <circle cx="116" cy="96" r="1.5" fill="#ffd9a0" opacity="0.7" />
@@ -64,29 +95,54 @@ export function CultureThumb({ className }: ThumbProps) {
 
 export function FlagThumb({ className }: ThumbProps) {
   return (
-    <svg viewBox="0 0 200 140" className={className} xmlns="http://www.w3.org/2000/svg">
+    <svg
+      viewBox="0 0 200 140"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <rect width="200" height="140" fill="#f1f5f9" />
-      <rect x="20" y="40" width="160" height="60" fill="#fff" stroke="#0f172a" strokeWidth="2" />
-      <rect x="20" y="40" width="160" height="16" fill="#d42027" />
-      <rect x="20" y="84" width="160" height="16" fill="#d42027" />
-      <g fill="#1a237e">
+      <rect
+        x="20"
+        y="40"
+        width="160"
+        height="60"
+        fill="#fff"
+        stroke="#0f172a"
+        strokeWidth="2"
+      />
+      <rect x="20" y="40" width="160" height="16" fill="#dc2626" />
+      <rect x="20" y="84" width="160" height="16" fill="#dc2626" />
+      <g fill="#0f172a">
         <rect x="96" y="58" width="8" height="16" rx="2" />
         <rect x="104" y="52" width="8" height="14" rx="2" />
         <rect x="88" y="66" width="8" height="12" rx="2" />
         <rect x="112" y="66" width="8" height="12" rx="2" />
         <rect x="92" y="72" width="16" height="4" rx="1" />
       </g>
-      <circle cx="100" cy="112" r="4" fill="#d42027" />
-      <text x="100" y="124" textAnchor="middle" fontSize="9" fill="#64748b" fontWeight="600">🇰🇭</text>
+      <circle cx="100" cy="112" r="4" fill="#dc2626" />
+      <text
+        x="100"
+        y="124"
+        textAnchor="middle"
+        fontSize="9"
+        fill="#64748b"
+        fontWeight="600"
+      >
+        🇰🇭
+      </text>
     </svg>
   );
 }
 
 export function ClothingThumb({ className }: ThumbProps) {
   return (
-    <svg viewBox="0 0 200 140" className={className} xmlns="http://www.w3.org/2000/svg">
+    <svg
+      viewBox="0 0 200 140"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <rect width="200" height="140" fill="#fdf2f8" />
-      <g fill="#d42027">
+      <g fill="#dc2626">
         <path d="M60 50 L48 40 Q66 28 88 32 L84 44 Z" />
         <path d="M140 50 L152 40 Q134 28 112 32 L116 44 Z" />
         <path d="M60 50 L64 78 L70 90 L90 92 L90 72 Q80 66 74 52 Z" />
@@ -100,20 +156,44 @@ export function ClothingThumb({ className }: ThumbProps) {
         <path d="M74 72 Q100 68 126 72" fill="none" />
         <path d="M76 84 Q100 80 124 84" fill="none" />
       </g>
-      <circle cx="100" cy="114" r="4" fill="#d42027" opacity="0.6" />
+      <circle cx="100" cy="114" r="4" fill="#dc2626" opacity="0.6" />
     </svg>
   );
 }
 
 export function FoodThumb({ className }: ThumbProps) {
   return (
-    <svg viewBox="0 0 200 140" className={className} xmlns="http://www.w3.org/2000/svg">
+    <svg
+      viewBox="0 0 200 140"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <rect width="200" height="140" fill="#fff7ed" />
       <ellipse cx="100" cy="118" rx="52" ry="10" fill="#e2e8f0" />
-      <path d="M58 62 Q60 34 100 30 Q140 34 142 62 L146 100 Q100 112 54 100 Z" fill="#f8fafc" stroke="#cbd5e1" strokeWidth="2" />
-      <path d="M62 72 Q100 82 138 72" stroke="#e2e8f0" strokeWidth="2" fill="none" />
-      <path d="M70 50 Q100 58 130 50" stroke="#e2e8f0" strokeWidth="2" fill="none" />
-      <path d="M74 58 Q100 64 126 58" stroke="#e2e8f0" strokeWidth="2" fill="none" />
+      <path
+        d="M58 62 Q60 34 100 30 Q140 34 142 62 L146 100 Q100 112 54 100 Z"
+        fill="#f8fafc"
+        stroke="#cbd5e1"
+        strokeWidth="2"
+      />
+      <path
+        d="M62 72 Q100 82 138 72"
+        stroke="#e2e8f0"
+        strokeWidth="2"
+        fill="none"
+      />
+      <path
+        d="M70 50 Q100 58 130 50"
+        stroke="#e2e8f0"
+        strokeWidth="2"
+        fill="none"
+      />
+      <path
+        d="M74 58 Q100 64 126 58"
+        stroke="#e2e8f0"
+        strokeWidth="2"
+        fill="none"
+      />
       <g fill="#fb923c">
         <path d="M88 52 Q94 40 100 52 Q94 58 88 52 Z" />
         <path d="M100 48 Q106 36 112 48 Q106 54 100 48 Z" />
@@ -124,26 +204,64 @@ export function FoodThumb({ className }: ThumbProps) {
         <circle cx="114" cy="52" r="2" />
         <circle cx="78" cy="54" r="2.5" />
       </g>
-      <rect x="86" y="78" width="28" height="3" rx="1.5" fill="#ef4444" opacity="0.7" />
-      <rect x="88" y="84" width="24" height="3" rx="1.5" fill="#f97316" opacity="0.7" />
-      <rect x="90" y="90" width="20" height="3" rx="1.5" fill="#22c55e" opacity="0.7" />
+      <rect
+        x="86"
+        y="78"
+        width="28"
+        height="3"
+        rx="1.5"
+        fill="#ef4444"
+        opacity="0.7"
+      />
+      <rect
+        x="88"
+        y="84"
+        width="24"
+        height="3"
+        rx="1.5"
+        fill="#f97316"
+        opacity="0.7"
+      />
+      <rect
+        x="90"
+        y="90"
+        width="20"
+        height="3"
+        rx="1.5"
+        fill="#22c55e"
+        opacity="0.7"
+      />
     </svg>
   );
 }
 
 export function NatureThumb({ className }: ThumbProps) {
   return (
-    <svg viewBox="0 0 200 140" className={className} xmlns="http://www.w3.org/2000/svg">
+    <svg
+      viewBox="0 0 200 140"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <defs>
         <linearGradient id="natSky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#38bdf8" /><stop offset="1" stopColor="#bae6fd" />
+          <stop offset="0" stopColor="#38bdf8" />
+          <stop offset="1" stopColor="#bae6fd" />
         </linearGradient>
       </defs>
       <rect width="200" height="140" fill="url(#natSky)" />
       <circle cx="160" cy="24" r="12" fill="#fde047" opacity="0.9" />
-      <path d="M0 100 Q30 80 55 92 Q80 78 110 90 Q140 76 165 88 Q185 80 200 90 L200 140 L0 140 Z" fill="#16a34a" />
-      <path d="M0 112 Q40 96 75 106 Q120 94 160 104 Q180 100 200 106 L200 140 L0 140 Z" fill="#15803d" />
-      <path d="M0 122 Q50 110 100 118 Q150 110 200 118 L200 140 L0 140 Z" fill="#166534" />
+      <path
+        d="M0 100 Q30 80 55 92 Q80 78 110 90 Q140 76 165 88 Q185 80 200 90 L200 140 L0 140 Z"
+        fill="#16a34a"
+      />
+      <path
+        d="M0 112 Q40 96 75 106 Q120 94 160 104 Q180 100 200 106 L200 140 L0 140 Z"
+        fill="#15803d"
+      />
+      <path
+        d="M0 122 Q50 110 100 118 Q150 110 200 118 L200 140 L0 140 Z"
+        fill="#166534"
+      />
       <g fill="#134e4a">
         <path d="M90 80 L70 38 L85 30 L100 46 L90 80 Z" />
         <path d="M110 84 L128 40 L113 32 L100 48 L110 84 Z" />
@@ -153,15 +271,31 @@ export function NatureThumb({ className }: ThumbProps) {
         <path d="M130 86 L120 58 Q140 52 150 60 Z" />
         <path d="M137 62 Q148 56 152 64 Q140 68 137 62 Z" fill="#134e4a" />
       </g>
-      <path d="M30 70 Q40 64 46 70" stroke="#ffffff" strokeWidth="2" fill="none" opacity="0.5" />
-      <path d="M38 78 Q48 72 54 78" stroke="#ffffff" strokeWidth="2" fill="none" opacity="0.4" />
+      <path
+        d="M30 70 Q40 64 46 70"
+        stroke="#ffffff"
+        strokeWidth="2"
+        fill="none"
+        opacity="0.5"
+      />
+      <path
+        d="M38 78 Q48 72 54 78"
+        stroke="#ffffff"
+        strokeWidth="2"
+        fill="none"
+        opacity="0.4"
+      />
     </svg>
   );
 }
 
 export function PatternThumb({ className }: ThumbProps) {
   return (
-    <svg viewBox="0 0 200 140" className={className} xmlns="http://www.w3.org/2000/svg">
+    <svg
+      viewBox="0 0 200 140"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <rect width="200" height="140" fill="#faf5f0" />
       <g fill="none" stroke="#c0392b" strokeWidth="2">
         <path d="M0 12 L200 12" opacity="0.6" />
@@ -177,7 +311,7 @@ export function PatternThumb({ className }: ThumbProps) {
       <g fill="none" stroke="#8b5e3c" strokeWidth="2" opacity="0.7">
         <path d="M32 32 L52 32 M72 32 L92 32 M112 32 L132 32 M152 32 L172 32" />
       </g>
-      <g fill="#d4a027">
+      <g fill="#f59e0b">
         <circle cx="20" cy="72" r="5" opacity="0.9" />
         <circle cx="50" cy="60" r="4" opacity="0.8" />
         <circle cx="80" cy="74" r="5" opacity="0.9" />
@@ -186,9 +320,17 @@ export function PatternThumb({ className }: ThumbProps) {
         <circle cx="170" cy="60" r="4" opacity="0.8" />
       </g>
       <g stroke="#8b5e3c" strokeWidth="1.5" fill="none" opacity="0.8">
-        <path d="M20 56 L20 88 M50 44 L50 76 M80 58 L80 90 M110 44 L110 76 M140 58 L140 90 M170 44 L170 76" strokeDasharray="2 3" />
+        <path
+          d="M20 56 L20 88 M50 44 L50 76 M80 58 L80 90 M110 44 L110 76 M140 58 L140 90 M170 44 L170 76"
+          strokeDasharray="2 3"
+        />
       </g>
-      <path d="M10 100 L190 100" stroke="#c0392b" strokeWidth="2" opacity="0.5" />
+      <path
+        d="M10 100 L190 100"
+        stroke="#c0392b"
+        strokeWidth="2"
+        opacity="0.5"
+      />
       <g fill="#a0522d" opacity="0.85">
         <path d="M18 104 L26 96 L34 104 L26 112 Z" />
         <path d="M58 104 L66 96 L74 104 L66 112 Z" />
@@ -202,10 +344,15 @@ export function PatternThumb({ className }: ThumbProps) {
 
 export function WildlifeThumb({ className }: ThumbProps) {
   return (
-    <svg viewBox="0 0 200 140" className={className} xmlns="http://www.w3.org/2000/svg">
+    <svg
+      viewBox="0 0 200 140"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <defs>
         <linearGradient id="wilBg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#d9f99d" /><stop offset="1" stopColor="#86efac" />
+          <stop offset="0" stopColor="#d9f99d" />
+          <stop offset="1" stopColor="#86efac" />
         </linearGradient>
       </defs>
       <rect width="200" height="140" fill="url(#wilBg)" />
@@ -230,8 +377,20 @@ export function WildlifeThumb({ className }: ThumbProps) {
         <circle cx="122" cy="56" r="2" fill="#fff" />
         <path d="M74 40 Q68 32 78 30 Q84 28 82 36 Z" fill="#64748b" />
         <path d="M126 40 Q132 32 122 30 Q116 28 118 36 Z" fill="#64748b" />
-        <path d="M86 74 Q94 86 100 92" fill="none" stroke="#1e293b" strokeWidth="3" strokeLinecap="round" />
-        <path d="M114 74 Q106 86 100 92" fill="none" stroke="#1e293b" strokeWidth="3" strokeLinecap="round" />
+        <path
+          d="M86 74 Q94 86 100 92"
+          fill="none"
+          stroke="#1e293b"
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
+        <path
+          d="M114 74 Q106 86 100 92"
+          fill="none"
+          stroke="#1e293b"
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
       </g>
       <g fill="#94a3b8">
         <circle cx="46" cy="70" r="3" opacity="0.7" />
@@ -252,10 +411,15 @@ export function WildlifeThumb({ className }: ThumbProps) {
 
 export function ArchitectureThumb({ className }: ThumbProps) {
   return (
-    <svg viewBox="0 0 200 140" className={className} xmlns="http://www.w3.org/2000/svg">
+    <svg
+      viewBox="0 0 200 140"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <defs>
         <linearGradient id="archBg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#bfdbfe" /><stop offset="1" stopColor="#dbeafe" />
+          <stop offset="0" stopColor="#bfdbfe" />
+          <stop offset="1" stopColor="#dbeafe" />
         </linearGradient>
       </defs>
       <rect width="200" height="140" fill="url(#archBg)" />
@@ -266,7 +430,12 @@ export function ArchitectureThumb({ className }: ThumbProps) {
       </g>
       <path d="M60 70 L100 46 L140 70 Z" fill="#a0522d" />
       <path d="M60 70 L60 112 L140 112 L140 70 Z" fill="#c08552" />
-      <path d="M60 70 L100 46 L140 70 Z" fill="none" stroke="#8b5e3c" strokeWidth="2" />
+      <path
+        d="M60 70 L100 46 L140 70 Z"
+        fill="none"
+        stroke="#8b5e3c"
+        strokeWidth="2"
+      />
       <g fill="#8b5e3c">
         <rect x="92" y="34" width="16" height="10" rx="2" />
         <path d="M88 34 L100 26 L112 34 Z" />
@@ -285,8 +454,22 @@ export function ArchitectureThumb({ className }: ThumbProps) {
         <rect x="144" y="92" width="4" height="8" rx="2" />
         <rect x="166" y="88" width="4" height="8" rx="2" />
       </g>
-      <rect x="0" y="112" width="200" height="28" fill="#92400e" opacity="0.9" />
-      <rect x="0" y="116" width="200" height="24" fill="#78350f" opacity="0.8" />
+      <rect
+        x="0"
+        y="112"
+        width="200"
+        height="28"
+        fill="#92400e"
+        opacity="0.9"
+      />
+      <rect
+        x="0"
+        y="116"
+        width="200"
+        height="24"
+        fill="#78350f"
+        opacity="0.8"
+      />
       <g fill="#b45309" opacity="0.7">
         <rect x="12" y="120" width="30" height="4" rx="2" />
         <rect x="80" y="120" width="30" height="4" rx="2" />
@@ -298,10 +481,15 @@ export function ArchitectureThumb({ className }: ThumbProps) {
 
 export function PeopleThumb({ className }: ThumbProps) {
   return (
-    <svg viewBox="0 0 200 140" className={className} xmlns="http://www.w3.org/2000/svg">
+    <svg
+      viewBox="0 0 200 140"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <defs>
         <linearGradient id="pplBg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#fbcfe8" /><stop offset="1" stopColor="#fce7f3" />
+          <stop offset="0" stopColor="#fbcfe8" />
+          <stop offset="1" stopColor="#fce7f3" />
         </linearGradient>
       </defs>
       <rect width="200" height="140" fill="url(#pplBg)" />
@@ -320,10 +508,14 @@ export function PeopleThumb({ className }: ThumbProps) {
         <path d="M88 60 Q90 46 100 46 Q110 46 112 60 L112 72 L88 72 Z" />
         <path d="M94 50 Q96 42 100 42 Q104 42 106 50 Z" fill="#232f3e" />
       </g>
-      <path d="M40 84 Q70 76 100 80 Q130 84 160 80 L160 88 Q130 92 100 88 Q70 84 40 88 Z" fill="#7a5230" opacity="0.6" />
+      <path
+        d="M40 84 Q70 76 100 80 Q130 84 160 80 L160 88 Q130 92 100 88 Q70 84 40 88 Z"
+        fill="#7a5230"
+        opacity="0.6"
+      />
       <path d="M44 76 Q46 72 48 76 Z" fill="#7a5230" />
-      <rect x="44" y="78" width="4" height="6" fill="#d42027" opacity="0.5" />
-      <rect x="146" y="76" width="4" height="6" fill="#d42027" opacity="0.5" />
+      <rect x="44" y="78" width="4" height="6" fill="#dc2626" opacity="0.5" />
+      <rect x="146" y="76" width="4" height="6" fill="#dc2626" opacity="0.5" />
       <g fill="#92400e" opacity="0.9">
         <rect x="86" y="108" width="28" height="10" rx="2" />
         <path d="M86 108 L100 100 L114 108 Z" />
@@ -332,7 +524,11 @@ export function PeopleThumb({ className }: ThumbProps) {
         <rect x="116" y="104" width="26" height="9" rx="2" />
         <path d="M116 104 L129 96 L142 104 Z" />
       </g>
-      <path d="M60 96 Q100 106 140 96 L140 104 Q100 114 60 104 Z" fill="#78350f" opacity="0.7" />
+      <path
+        d="M60 96 Q100 106 140 96 L140 104 Q100 114 60 104 Z"
+        fill="#78350f"
+        opacity="0.7"
+      />
       <g fill="#fbbf24">
         <circle cx="50" cy="120" r="3" opacity="0.8" />
         <circle cx="80" cy="122" r="2.5" opacity="0.7" />
@@ -345,10 +541,15 @@ export function PeopleThumb({ className }: ThumbProps) {
 
 export function ReligiousThumb({ className }: ThumbProps) {
   return (
-    <svg viewBox="0 0 200 140" className={className} xmlns="http://www.w3.org/2000/svg">
+    <svg
+      viewBox="0 0 200 140"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <defs>
         <linearGradient id="relBg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#fef3c7" /><stop offset="1" stopColor="#fde68a" />
+          <stop offset="0" stopColor="#fef3c7" />
+          <stop offset="1" stopColor="#fde68a" />
         </linearGradient>
       </defs>
       <rect width="200" height="140" fill="url(#relBg)" />
@@ -369,8 +570,16 @@ export function ReligiousThumb({ className }: ThumbProps) {
         <rect x="70" y="78" width="5" height="12" rx="2.5" />
         <rect x="125" y="78" width="5" height="12" rx="2.5" />
       </g>
-      <path d="M0 130 Q50 118 100 124 Q150 130 200 122 L200 140 L0 140 Z" fill="#b45309" opacity="0.8" />
-      <path d="M0 136 Q60 126 120 132 Q170 136 200 130 L200 140 L0 140 Z" fill="#92400e" opacity="0.9" />
+      <path
+        d="M0 130 Q50 118 100 124 Q150 130 200 122 L200 140 L0 140 Z"
+        fill="#b45309"
+        opacity="0.8"
+      />
+      <path
+        d="M0 136 Q60 126 120 132 Q170 136 200 130 L200 140 L0 140 Z"
+        fill="#92400e"
+        opacity="0.9"
+      />
       <g fill="#fde047">
         <circle cx="30" cy="34" r="3" opacity="0.8" />
         <circle cx="170" cy="30" r="3" opacity="0.8" />
@@ -383,7 +592,11 @@ export function ReligiousThumb({ className }: ThumbProps) {
 
 export function IconsThumb({ className }: ThumbProps) {
   return (
-    <svg viewBox="0 0 200 140" className={className} xmlns="http://www.w3.org/2000/svg">
+    <svg
+      viewBox="0 0 200 140"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <rect width="200" height="140" fill="#eef2ff" />
       <g>
         <rect x="20" y="20" width="34" height="34" rx="8" fill="#4f46e5" />
@@ -404,7 +617,13 @@ export function IconsThumb({ className }: ThumbProps) {
         <rect x="112" y="70" width="34" height="34" rx="8" fill="#e11d48" />
         <rect x="158" y="70" width="22" height="34" rx="8" fill="#ca8a04" />
       </g>
-      <g fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" opacity="0.9">
+      <g
+        fill="none"
+        stroke="#fff"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        opacity="0.9"
+      >
         <path d="M37 76 L37 98" />
         <path d="M26 87 L48 87" />
         <circle cx="83" cy="87" r="7" />
@@ -424,7 +643,10 @@ export function IconsThumb({ className }: ThumbProps) {
   );
 }
 
-export const categoryThumbs: Record<string, (props: ThumbProps) => React.JSX.Element> = {
+export const categoryThumbs: Record<
+  string,
+  (props: ThumbProps) => React.JSX.Element
+> = {
   angkor: AngkorThumb,
   culture: CultureThumb,
   flag: FlagThumb,

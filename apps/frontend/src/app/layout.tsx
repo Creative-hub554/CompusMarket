@@ -8,7 +8,7 @@ import SessionWrapper from "@/components/SessionWrapper";
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#1a237e",
+  themeColor: "#0f172a",
 };
 
 export const metadata: Metadata = {
@@ -16,10 +16,17 @@ export const metadata: Metadata = {
   description: "Smart Commerce & Community Platform for Cambodia",
   manifest: "/manifest.json",
   icons: {
-    icon: [{ url: "/icon-192.png", sizes: "192x192", type: "image/png" }, { url: "/icon-512.png", sizes: "512x512", type: "image/png" }],
+    icon: [
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
     apple: [{ url: "/icon-192.png", sizes: "192x192" }],
   },
-  appleWebApp: { capable: true, statusBarStyle: "default", title: "KHMERONLINESHOP" },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "KHMERONLINESHOP",
+  },
 };
 
 export default async function RootLayout({

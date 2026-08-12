@@ -21,7 +21,7 @@ type OrderItem = {
 
 const statusColors: Record<string, string> = {
   PENDING: "bg-yellow-100 text-yellow-800",
-  APPROVED: "bg-blue-100 text-blue-800",
+  APPROVED: "bg-indigo-100 text-indigo-800",
   PACKING: "bg-indigo-50 text-indigo-700",
   SHIPPED: "bg-indigo-100 text-indigo-800",
   DELIVERED: "bg-green-100 text-green-800",
@@ -51,12 +51,18 @@ export default function SellerOrdersPage() {
     return (
       <div className="max-w-3xl mx-auto px-4 py-12 text-center">
         <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
-        <Link href="/login" className="text-indigo-600 font-medium hover:underline">Go to Login</Link>
+        <Link
+          href="/login"
+          className="text-indigo-600 font-medium hover:underline"
+        >
+          Go to Login
+        </Link>
       </div>
     );
   }
 
-  const filtered = filter === "all" ? items : items.filter((i) => i.status === filter);
+  const filtered =
+    filter === "all" ? items : items.filter((i) => i.status === filter);
   const pendingCount = items.filter((i) => i.status === "PENDING").length;
 
   return (
@@ -67,7 +73,16 @@ export default function SellerOrdersPage() {
       </p>
 
       <div className="flex gap-2 mb-6 flex-wrap">
-        {["all", "PENDING", "APPROVED", "PACKING", "SHIPPED", "DELIVERED", "REJECTED", "CANCELLED"].map((f) => (
+        {[
+          "all",
+          "PENDING",
+          "APPROVED",
+          "PACKING",
+          "SHIPPED",
+          "DELIVERED",
+          "REJECTED",
+          "CANCELLED",
+        ].map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
@@ -97,15 +112,25 @@ export default function SellerOrdersPage() {
               <div className="flex items-start gap-4">
                 <div className="w-16 h-16 bg-slate-100 rounded-lg overflow-hidden shrink-0">
                   {item.product.images?.[0] ? (
-                    <img src={item.product.images[0]} alt="" className="w-full h-full object-cover" />
+                    <img
+                      src={item.product.images[0]}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs">img</div>
+                    <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs">
+                      img
+                    </div>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-medium truncate">{item.product.name}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[item.status] || "bg-slate-100"}`}>
+                    <span className="font-medium truncate">
+                      {item.product.name}
+                    </span>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[item.status] || "bg-slate-100"}`}
+                    >
                       {item.status}
                     </span>
                   </div>
@@ -113,7 +138,8 @@ export default function SellerOrdersPage() {
                     Qty: {item.quantity} &middot; ${item.price.toFixed(2)}
                   </p>
                   <p className="text-xs text-slate-400">
-                    Buyer: {item.order.user.name || item.order.user.email} &middot; Order #{item.order.id.slice(0, 8)}
+                    Buyer: {item.order.user.name || item.order.user.email}{" "}
+                    &middot; Order #{item.order.id.slice(0, 8)}
                   </p>
                 </div>
                 <div className="text-xs text-slate-400 shrink-0">

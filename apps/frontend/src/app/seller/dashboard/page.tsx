@@ -35,8 +35,15 @@ export default function SellerDashboardPage() {
     return (
       <div className="max-w-xl mx-auto px-4 py-12 text-center">
         <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
-        <p className="text-slate-600 mb-4">Please sign in to view your seller dashboard.</p>
-        <Link href="/login" className="text-indigo-600 font-medium hover:underline">Go to Login</Link>
+        <p className="text-slate-600 mb-4">
+          Please sign in to view your seller dashboard.
+        </p>
+        <Link
+          href="/login"
+          className="text-indigo-600 font-medium hover:underline"
+        >
+          Go to Login
+        </Link>
       </div>
     );
   }
@@ -59,25 +66,32 @@ export default function SellerDashboardPage() {
 
       {!profile ? (
         <div className="text-center py-12">
-          <p className="text-slate-600 mb-4">You haven&apos;t applied to become a seller yet.</p>
+          <p className="text-slate-600 mb-4">
+            You haven&apos;t applied to become a seller yet.
+          </p>
           <button
             onClick={() => router.push("/seller/apply")}
-            className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+            className="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700"
           >
             Apply Now
           </button>
         </div>
       ) : profile.verificationStatus === "PENDING" ? (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-          <h2 className="text-lg font-semibold text-yellow-800 mb-2">Application Pending</h2>
+          <h2 className="text-lg font-semibold text-yellow-800 mb-2">
+            Application Pending
+          </h2>
           <p className="text-yellow-700">
             Your seller application is being reviewed. This typically takes
-            approximately 3 business days. We&apos;ll notify you once it&apos;s approved.
+            approximately 3 business days. We&apos;ll notify you once it&apos;s
+            approved.
           </p>
         </div>
       ) : profile.verificationStatus === "REJECTED" ? (
         <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-          <h2 className="text-lg font-semibold text-red-800 mb-2">Application Rejected</h2>
+          <h2 className="text-lg font-semibold text-red-800 mb-2">
+            Application Rejected
+          </h2>
           {profile.reviewNotes && (
             <p className="text-red-700 mb-2">Reason: {profile.reviewNotes}</p>
           )}
@@ -101,11 +115,11 @@ export default function SellerDashboardPage() {
             <div className="flex items-center gap-2">
               <div className="flex-1 bg-slate-200 rounded-full h-3">
                 <div
-                  className="bg-blue-600 h-3 rounded-full"
+                  className="bg-indigo-600 h-3 rounded-full"
                   style={{
                     width: `${Math.min(
                       ((profile._count?.products || 0) / maxProducts) * 100,
-                      100
+                      100,
                     )}%`,
                   }}
                 />

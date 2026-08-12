@@ -97,7 +97,10 @@ export function ProductTabs({ product }: { product: Product }) {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {reviews.map((review) => (
-                <div key={review.id} className="rounded-xl border border-slate-200 p-4">
+                <div
+                  key={review.id}
+                  className="rounded-xl border border-slate-200 p-4"
+                >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-yellow-500">

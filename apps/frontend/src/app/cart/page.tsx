@@ -31,13 +31,14 @@ export default function CartPage() {
     router.push(`/orders/${order.id}`);
   }
 
-  if (loading) return <div className="mx-auto max-w-4xl px-4 py-8">{t("loading")}</div>;
+  if (loading)
+    return <div className="mx-auto max-w-4xl px-4 py-8">{t("loading")}</div>;
 
   if (items.length === 0) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16 text-center">
         <h1 className="text-2xl font-bold mb-4">{t("emptyTitle")}</h1>
-        <Link href="/shop" className="text-blue-600 hover:underline">
+        <Link href="/shop" className="text-indigo-600 hover:underline">
           {t("continueShopping")}
         </Link>
       </div>
@@ -46,14 +47,17 @@ export default function CartPage() {
 
   const total = items.reduce(
     (sum, item) => sum + Number(item.product.price) * item.quantity,
-    0
+    0,
   );
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">{t("title")}</h1>
-        <button onClick={clearCart} className="text-sm text-red-600 hover:underline">
+        <button
+          onClick={clearCart}
+          className="text-sm text-red-600 hover:underline"
+        >
           {t("clearCart")}
         </button>
       </div>
@@ -79,7 +83,7 @@ export default function CartPage() {
             <div className="flex-1 min-w-0">
               <Link
                 href={`/shop/${item.product.id}`}
-                className="font-medium hover:text-blue-600 truncate block"
+                className="font-medium hover:text-indigo-600 truncate block"
               >
                 {item.product.name}
               </Link>
@@ -126,7 +130,7 @@ export default function CartPage() {
         </div>
         <button
           onClick={checkout}
-          className="mt-4 w-full rounded-lg bg-blue-600 py-3 text-white font-medium hover:bg-blue-700 transition"
+          className="mt-4 w-full rounded-lg bg-indigo-600 py-3 text-white font-medium hover:bg-indigo-700 transition"
         >
           {t("checkout")}
         </button>

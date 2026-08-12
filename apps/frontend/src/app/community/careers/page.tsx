@@ -19,7 +19,7 @@ export default async function CareersPage({
       ...article,
       categorySlug: article.category,
     })),
-    cat
+    cat,
   ) as unknown as ApiArticle[];
 
   const categories = [
@@ -73,7 +73,7 @@ export default async function CareersPage({
                   href={`/community/careers/${article.slug}`}
                   className="block rounded-lg border p-6 hover:shadow-md transition"
                 >
-                  <p className="text-xs text-blue-600 font-medium uppercase tracking-wide">
+                  <p className="text-xs text-indigo-600 font-medium uppercase tracking-wide">
                     {article.category.replace(/_/g, " ")}
                   </p>
                   <h2 className="text-lg font-semibold mt-1">

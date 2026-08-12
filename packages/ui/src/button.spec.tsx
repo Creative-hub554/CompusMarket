@@ -11,6 +11,8 @@ describe("Button", () => {
 
   it("applies a custom className", () => {
     render(<Button className="mt-4">Go</Button>);
-    expect(screen.getByRole("button", { name: "Go" }).className).toContain("mt-4");
+    expect(screen.getByRole("button", { name: "Go" }).className).toContain(
+      "mt-4",
+    );
   });
 });

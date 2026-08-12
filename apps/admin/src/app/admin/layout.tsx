@@ -45,14 +45,26 @@ export default function AdminLayout({
             className="md:hidden p-2 -ml-2 rounded-lg hover:bg-slate-100"
             aria-label="Open navigation"
           >
-            <svg className="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            <svg
+              className="w-5 h-5 text-slate-700"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
             </svg>
           </button>
           <Link href="/admin" className="no-underline shrink-0">
             <span className="font-extrabold tracking-tight text-slate-900 whitespace-nowrap">
               KHMER<span className="text-indigo-600">SHOP</span>{" "}
-              <span className="text-xs font-semibold text-slate-400">ADMIN</span>
+              <span className="text-xs font-semibold text-slate-400">
+                ADMIN
+              </span>
             </span>
           </Link>
           <div className="hidden md:block ml-4 flex-1 min-w-0">{nav}</div>
@@ -68,7 +80,10 @@ export default function AdminLayout({
       {/* Mobile drawer */}
       {navOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
-          <div className="absolute inset-0 bg-black/20" onClick={() => setNavOpen(false)} />
+          <div
+            className="absolute inset-0 bg-black/20"
+            onClick={() => setNavOpen(false)}
+          />
           <div className="absolute left-0 top-0 h-full w-64 bg-white shadow-xl p-4">
             <div className="flex items-center justify-between mb-4">
               <span className="font-extrabold tracking-tight text-slate-900">
@@ -79,12 +94,25 @@ export default function AdminLayout({
                 className="p-1 rounded-lg hover:bg-slate-100"
                 aria-label="Close navigation"
               >
-                <svg className="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-5 h-5 text-slate-700"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
-            <div className="flex flex-col gap-1" onClick={() => setNavOpen(false)}>
+            <div
+              className="flex flex-col gap-1"
+              onClick={() => setNavOpen(false)}
+            >
               {NAV_ITEMS.map((item) => (
                 <Link
                   key={item.href}

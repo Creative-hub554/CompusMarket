@@ -38,7 +38,7 @@ type Stats = {
 const STATUS_COLORS: Record<string, string> = {
   PENDING: "#f59e0b",
   PROCESSING: "#3b82f6",
-  SHIPPED: "#8b5cf6",
+  SHIPPED: "#6366f1",
   DELIVERED: "#10b981",
   CANCELLED: "#ef4444",
 };
@@ -73,15 +73,30 @@ export default function AdminDashboard() {
   }));
 
   const kpis = [
-    { label: "Total Revenue", value: `$${stats.totalRevenue.toLocaleString()}` },
-    { label: "Revenue (30d)", value: `$${stats.revenueLast30Days.toLocaleString()}` },
+    {
+      label: "Total Revenue",
+      value: `$${stats.totalRevenue.toLocaleString()}`,
+    },
+    {
+      label: "Revenue (30d)",
+      value: `$${stats.revenueLast30Days.toLocaleString()}`,
+    },
     { label: "Total Users", value: stats.totalUsers.toLocaleString() },
     { label: "Products", value: stats.totalProducts.toLocaleString() },
     { label: "Categories", value: stats.totalCategories.toLocaleString() },
     { label: "Active Sellers", value: stats.activeSellers.toLocaleString() },
-    { label: "Pending Sellers", value: stats.pendingSellerApps.toLocaleString() },
-    { label: "Pending Warranty Claims", value: stats.pendingWarrantyClaims.toLocaleString() },
-    { label: "Open Support Tickets", value: stats.openSupportTickets.toLocaleString() },
+    {
+      label: "Pending Sellers",
+      value: stats.pendingSellerApps.toLocaleString(),
+    },
+    {
+      label: "Pending Warranty Claims",
+      value: stats.pendingWarrantyClaims.toLocaleString(),
+    },
+    {
+      label: "Open Support Tickets",
+      value: stats.openSupportTickets.toLocaleString(),
+    },
   ];
 
   return (
@@ -90,7 +105,10 @@ export default function AdminDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
         {kpis.map((kpi) => (
-          <div key={kpi.label} className="rounded-lg border bg-white shadow-sm p-4">
+          <div
+            key={kpi.label}
+            className="rounded-lg border bg-white shadow-sm p-4"
+          >
             <p className="text-sm text-slate-500">{kpi.label}</p>
             <p className="text-2xl font-bold mt-1">{kpi.value}</p>
           </div>
@@ -99,7 +117,9 @@ export default function AdminDashboard() {
 
       {stats.lowStockProducts.length > 0 && (
         <div className="mb-8 rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-          <h2 className="font-semibold text-yellow-800 mb-2">Low Stock Alerts</h2>
+          <h2 className="font-semibold text-yellow-800 mb-2">
+            Low Stock Alerts
+          </h2>
           <ul className="space-y-1 text-sm text-yellow-800">
             {stats.lowStockProducts.map((p) => (
               <li key={p.id}>
@@ -153,7 +173,10 @@ export default function AdminDashboard() {
                   innerRadius={60}
                   outerRadius={100}
                   label={(props) => {
-                    const { name, count } = props as { name?: string; count?: number };
+                    const { name, count } = props as {
+                      name?: string;
+                      count?: number;
+                    };
                     return `${name}: ${count}`;
                   }}
                 >
@@ -168,7 +191,9 @@ export default function AdminDashboard() {
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <p className="py-16 text-center text-slate-500 text-sm">No orders yet.</p>
+            <p className="py-16 text-center text-slate-500 text-sm">
+              No orders yet.
+            </p>
           )}
         </div>
       </div>

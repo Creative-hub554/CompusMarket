@@ -34,7 +34,9 @@ export default function NotesPage() {
     authedFetch(`/api/notes${params}`)
       .then((r) => r.json())
       .then(setNotes)
-      .catch((err) => { console.error("Failed to load notes:", err); })
+      .catch((err) => {
+        console.error("Failed to load notes:", err);
+      })
       .finally(() => setLoading(false));
   }, [search, authedFetch]);
 
@@ -55,7 +57,9 @@ export default function NotesPage() {
     try {
       await authedFetch(`/api/notes/${id}`, { method: "DELETE" });
       setNotes((prev) => prev.filter((n) => n.id !== id));
-    } catch (err) { console.error("Failed to delete:", err); }
+    } catch (err) {
+      console.error("Failed to delete:", err);
+    }
     setDeleting(null);
   }
 
@@ -67,19 +71,28 @@ export default function NotesPage() {
       const res = await authedFetch("/api/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "generate-note", data: { topic: aiTopic.trim(), language: aiLang } }),
+        body: JSON.stringify({
+          action: "generate-note",
+          data: { topic: aiTopic.trim(), language: aiLang },
+        }),
       });
       const json = await res.json();
-      if (!res.ok || !json.result?.title) throw new Error(json.error || "Generation failed");
+      if (!res.ok || !json.result?.title)
+        throw new Error(json.error || "Generation failed");
       const noteRes = await authedFetch("/api/notes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: json.result.title, content: json.result.content }),
+        body: JSON.stringify({
+          title: json.result.title,
+          content: json.result.content,
+        }),
       });
       const note = await noteRes.json();
       window.location.href = `/community/notes/${note.id}`;
     } catch (err) {
-      setAiError(err instanceof Error ? err.message : "Failed to generate note.");
+      setAiError(
+        err instanceof Error ? err.message : "Failed to generate note.",
+      );
     } finally {
       setAiLoading(false);
     }
@@ -94,11 +107,27 @@ export default function NotesPage() {
     return (
       <div className="text-center py-16">
         <div className="w-16 h-16 bg-cyan-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-cyan-500">
-          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
+          <svg
+            className="w-8 h-8"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
+            />
+          </svg>
         </div>
         <h1 className="text-2xl font-bold mb-2">Study Notes</h1>
-        <p className="text-slate-500 mb-4">Sign in to write and organize study notes with Markdown.</p>
-        <Link href="/login" className="btn-primary">Sign In</Link>
+        <p className="text-slate-500 mb-4">
+          Sign in to write and organize study notes with Markdown.
+        </p>
+        <Link href="/login" className="btn-primary">
+          Sign In
+        </Link>
       </div>
     );
   }
@@ -108,18 +137,32 @@ export default function NotesPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="page-title">Study Notes</h1>
-          <p className="page-subtitle">Write and organize your study notes with Markdown.</p>
+          <p className="page-subtitle">
+            Write and organize your study notes with Markdown.
+          </p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={() => setShowAi(!showAi)}
-            className="rounded-lg border border-purple-300 bg-purple-50 px-3 py-2 text-sm font-medium text-purple-700 hover:bg-purple-100 transition"
+            className="rounded-lg border border-indigo-300 bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition"
           >
             ✨ AI Generate
           </button>
           <button onClick={() => setShowNew(!showNew)} className="btn-primary">
             <span className="flex items-center gap-1.5">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
               New Note
             </span>
           </button>
@@ -127,8 +170,10 @@ export default function NotesPage() {
       </div>
 
       {showAi && (
-        <div className="mb-6 p-5 border border-purple-200 rounded-xl bg-purple-50">
-          <h2 className="text-sm font-semibold text-purple-800 mb-3">✨ AI Generate Note</h2>
+        <div className="mb-6 p-5 border border-indigo-200 rounded-xl bg-indigo-50">
+          <h2 className="text-sm font-semibold text-indigo-800 mb-3">
+            ✨ AI Generate Note
+          </h2>
           <div className="flex gap-2 items-start">
             <input
               value={aiTopic}
@@ -147,7 +192,11 @@ export default function NotesPage() {
               <option value="km">ខ្មែរ</option>
               <option value="en">English</option>
             </select>
-            <button onClick={generateNote} disabled={aiLoading || !aiTopic.trim()} className="btn-success whitespace-nowrap">
+            <button
+              onClick={generateNote}
+              disabled={aiLoading || !aiTopic.trim()}
+              className="btn-success whitespace-nowrap"
+            >
               {aiLoading ? "Generating..." : "Generate"}
             </button>
           </div>
@@ -156,15 +205,49 @@ export default function NotesPage() {
       )}
 
       <div className="mb-5 relative">
-        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search notes by title or content..." className="input-field pl-10" />
+        <svg
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
+        </svg>
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search notes by title or content..."
+          className="input-field pl-10"
+        />
       </div>
 
       {showNew && (
         <div className="mb-6 p-5 border rounded-xl bg-slate-50 flex gap-2 items-start">
-          <input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} onKeyDown={(e) => e.key === "Enter" && createNote()} placeholder="Note title..." className="input-field flex-1" autoFocus />
-          <button onClick={createNote} className="btn-success">Create</button>
-          <button onClick={() => { setShowNew(false); setNewTitle(""); }} className="btn-ghost">Cancel</button>
+          <input
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && createNote()}
+            placeholder="Note title..."
+            className="input-field flex-1"
+            autoFocus
+          />
+          <button onClick={createNote} className="btn-success">
+            Create
+          </button>
+          <button
+            onClick={() => {
+              setShowNew(false);
+              setNewTitle("");
+            }}
+            className="btn-ghost"
+          >
+            Cancel
+          </button>
         </div>
       )}
 
@@ -181,25 +264,55 @@ export default function NotesPage() {
       ) : notes.length === 0 ? (
         <div className="text-center py-20">
           <div className="w-16 h-16 bg-cyan-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-cyan-400">
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
+            <svg
+              className="w-8 h-8"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
+              />
+            </svg>
           </div>
-          <p className="text-xl font-medium text-slate-500 mb-1">{search ? "No notes match your search" : "No notes yet"}</p>
-          <p className="text-sm text-slate-400">{search ? "Try a different search term." : 'Click "+ New Note" to create your first one.'}</p>
+          <p className="text-xl font-medium text-slate-500 mb-1">
+            {search ? "No notes match your search" : "No notes yet"}
+          </p>
+          <p className="text-sm text-slate-400">
+            {search
+              ? "Try a different search term."
+              : 'Click "+ New Note" to create your first one.'}
+          </p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 stagger-children">
           {notes.map((note) => {
             const tags: string[] = note.tags || [];
             const words = getWordCount(note.content);
-            const preview = note.content?.replace(/[#*`\[\]]/g, "").substring(0, 150) || "";
+            const preview =
+              note.content?.replace(/[#*`\[\]]/g, "").substring(0, 150) || "";
             return (
               <div key={note.id} className="card relative group">
-                <Link href={`/community/notes/${note.id}`} className="block p-5">
-                  <h3 className="font-semibold truncate text-slate-900 group-hover:text-indigo-600 transition-colors">{note.title}</h3>
-                  {preview && <p className="text-xs text-slate-400 mt-2 line-clamp-3 leading-relaxed">{preview}</p>}
+                <Link
+                  href={`/community/notes/${note.id}`}
+                  className="block p-5"
+                >
+                  <h3 className="font-semibold truncate text-slate-900 group-hover:text-indigo-600 transition-colors">
+                    {note.title}
+                  </h3>
+                  {preview && (
+                    <p className="text-xs text-slate-400 mt-2 line-clamp-3 leading-relaxed">
+                      {preview}
+                    </p>
+                  )}
                   <div className="flex items-center gap-2 mt-4 text-xs text-slate-400 flex-wrap">
                     {tags.slice(0, 3).map((tag) => (
-                      <span key={tag} className="tag">{tag}</span>
+                      <span key={tag} className="tag">
+                        {tag}
+                      </span>
                     ))}
                     {words > 0 && <span>{words} words</span>}
                     <span>{new Date(note.updatedAt).toLocaleDateString()}</span>

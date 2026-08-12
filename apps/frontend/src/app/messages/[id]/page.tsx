@@ -35,8 +35,7 @@ export default function ChatPage() {
       .then((convs) => {
         const conv = convs.find((c: any) => c.id === id);
         if (conv) {
-          const other =
-            conv.buyerId === userId ? conv.seller.user : conv.buyer;
+          const other = conv.buyerId === userId ? conv.seller.user : conv.buyer;
           setOtherName(other.name || other.email);
         }
       });
@@ -49,10 +48,13 @@ export default function ChatPage() {
       .then((r) => r.json())
       .then((d) => {
         if (cancelled) return;
-        const socket = io(process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000", {
-          query: { token: d.token },
-          transports: ["websocket", "polling"],
-        });
+        const socket = io(
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000",
+          {
+            query: { token: d.token },
+            transports: ["websocket", "polling"],
+          },
+        );
         socket.on("connect", () => {
           socket.emit("joinConversation", { conversationId: id });
         });
@@ -77,7 +79,12 @@ export default function ChatPage() {
       <div className="max-w-xl mx-auto px-4 py-12 text-center">
         <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
         <p className="text-gray-600 mb-4">Please sign in to view messages.</p>
-        <Link href="/login" className="text-khmer-blue font-medium hover:underline">Go to Login</Link>
+        <Link
+          href="/login"
+          className="text-slate-900 font-medium hover:underline"
+        >
+          Go to Login
+        </Link>
       </div>
     );
   }
@@ -97,19 +104,26 @@ export default function ChatPage() {
 
       <div className="border rounded-lg h-96 overflow-y-auto p-4 mb-4 space-y-3 bg-gray-50">
         {messages.length === 0 && (
-          <p className="text-gray-400 text-center py-12">No messages yet. Start the conversation!</p>
+          <p className="text-gray-400 text-center py-12">
+            No messages yet. Start the conversation!
+          </p>
         )}
         {messages.map((msg) => {
           const isMe = msg.senderId === session.user?.id;
           return (
-            <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+            <div
+              key={msg.id}
+              className={`flex ${isMe ? "justify-end" : "justify-start"}`}
+            >
               <div
                 className={`max-w-[75%] rounded-lg px-4 py-2 ${
-                  isMe ? "bg-blue-600 text-white" : "bg-white border"
+                  isMe ? "bg-indigo-600 text-white" : "bg-white border"
                 }`}
               >
                 <p className="text-sm">{msg.content}</p>
-                <p className={`text-xs mt-1 ${isMe ? "text-blue-200" : "text-gray-400"}`}>
+                <p
+                  className={`text-xs mt-1 ${isMe ? "text-indigo-200" : "text-gray-400"}`}
+                >
                   {new Date(msg.createdAt).toLocaleTimeString()}
                 </p>
               </div>
@@ -131,7 +145,7 @@ export default function ChatPage() {
         <button
           onClick={sendMessage}
           disabled={!input.trim()}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+          className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 disabled:opacity-50"
         >
           Send
         </button>

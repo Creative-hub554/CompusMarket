@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 @source "../../../../packages/ui/src";
 @import "tailwindcss";
 
@@ -22,53 +22,94 @@
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   color: var(--color-ink);
 }
 
-h1, h2, h3, h4 {
-  font-family: 'Inter', sans-serif;
+h1,
+h2,
+h3,
+h4 {
+  font-family: "Inter", sans-serif;
   letter-spacing: -0.02em;
 }
 
 /* ---- Keyframes ---- */
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes shimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 @keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
-  50%      { box-shadow: 0 0 0 8px rgba(99, 102, 241, 0); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(99, 102, 241, 0);
+  }
 }
 
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes templeFloat {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-6px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
 }
 
 /* ---- Utility classes ---- */
 
-.animate-fade-in-up { animation: fadeInUp 0.6s ease-out both; }
-.animate-fade-in { animation: fadeIn 0.5s ease-out both; }
-.animate-slide-down { animation: slideDown 0.3s ease-out both; }
-.animate-pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out both;
+}
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out both;
+}
+.animate-slide-down {
+  animation: slideDown 0.3s ease-out both;
+}
+.animate-pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
 
 .animate-shimmer {
   background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
@@ -76,20 +117,46 @@ h1, h2, h3, h4 {
   animation: shimmer 1.5s infinite;
 }
 
-.animate-temple-float { animation: templeFloat 3s ease-in-out infinite; }
+.animate-temple-float {
+  animation: templeFloat 3s ease-in-out infinite;
+}
 
-.stagger-children > * { animation: fadeInUp 0.5s ease-out both; }
-.stagger-children > *:nth-child(1)  { animation-delay: 0.05s; }
-.stagger-children > *:nth-child(2)  { animation-delay: 0.10s; }
-.stagger-children > *:nth-child(3)  { animation-delay: 0.15s; }
-.stagger-children > *:nth-child(4)  { animation-delay: 0.20s; }
-.stagger-children > *:nth-child(5)  { animation-delay: 0.25s; }
-.stagger-children > *:nth-child(6)  { animation-delay: 0.30s; }
-.stagger-children > *:nth-child(7)  { animation-delay: 0.35s; }
-.stagger-children > *:nth-child(8)  { animation-delay: 0.40s; }
-.stagger-children > *:nth-child(9)  { animation-delay: 0.45s; }
-.stagger-children > *:nth-child(10) { animation-delay: 0.50s; }
-.stagger-children > *:nth-child(n+11) { animation-delay: 0.55s; }
+.stagger-children > * {
+  animation: fadeInUp 0.5s ease-out both;
+}
+.stagger-children > *:nth-child(1) {
+  animation-delay: 0.05s;
+}
+.stagger-children > *:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.stagger-children > *:nth-child(3) {
+  animation-delay: 0.15s;
+}
+.stagger-children > *:nth-child(4) {
+  animation-delay: 0.2s;
+}
+.stagger-children > *:nth-child(5) {
+  animation-delay: 0.25s;
+}
+.stagger-children > *:nth-child(6) {
+  animation-delay: 0.3s;
+}
+.stagger-children > *:nth-child(7) {
+  animation-delay: 0.35s;
+}
+.stagger-children > *:nth-child(8) {
+  animation-delay: 0.4s;
+}
+.stagger-children > *:nth-child(9) {
+  animation-delay: 0.45s;
+}
+.stagger-children > *:nth-child(10) {
+  animation-delay: 0.5s;
+}
+.stagger-children > *:nth-child(n + 11) {
+  animation-delay: 0.55s;
+}
 
 /* ---- UI primitives ---- */
 
@@ -115,7 +182,9 @@ h1, h2, h3, h4 {
 
 .card {
   @apply rounded-xl border border-slate-200 bg-white;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
 }
 .card:hover {
   transform: translateY(-4px);
@@ -151,7 +220,7 @@ h1, h2, h3, h4 {
   position: relative;
 }
 .page-title::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -4px;
   left: 0;
@@ -172,29 +241,52 @@ h1, h2, h3, h4 {
   border-radius: 50%;
   margin-right: 4px;
 }
-.status-dot.saved { background: #16a34a; }
-.status-dot.saving { background: #f59e0b; animation: pulse 1s infinite; }
-.status-dot.unsaved { background: #dc2626; }
+.status-dot.saved {
+  background: #16a34a;
+}
+.status-dot.saving {
+  background: #f59e0b;
+  animation: pulse 1s infinite;
+}
+.status-dot.unsaved {
+  background: #dc2626;
+}
 
 /* 3D card flip */
-.flip-card { perspective: 1000px; }
+.flip-card {
+  perspective: 1000px;
+}
 .flip-card-inner {
   transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   transform-style: preserve-3d;
 }
-.flip-card-inner.flipped { transform: rotateY(180deg); }
-.flip-card-front, .flip-card-back {
+.flip-card-inner.flipped {
+  transform: rotateY(180deg);
+}
+.flip-card-front,
+.flip-card-back {
   backface-visibility: hidden;
   position: absolute;
   inset: 0;
 }
-.flip-card-back { transform: rotateY(180deg); }
+.flip-card-back {
+  transform: rotateY(180deg);
+}
 
-a, button { transition: all 0.2s ease; }
-img { transition: transform 0.3s ease, opacity 0.3s ease; }
+a,
+button {
+  transition: all 0.2s ease;
+}
+img {
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
+}
 
 .card-hover {
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
 }
 .card-hover:hover {
   transform: translateY(-4px);
@@ -211,7 +303,7 @@ img { transition: transform 0.3s ease, opacity 0.3s ease; }
   position: relative;
 }
 .gold-underline::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -4px;
   left: 0;
@@ -226,7 +318,7 @@ img { transition: transform 0.3s ease, opacity 0.3s ease; }
   position: relative;
 }
 .nav-link::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -2px;
   left: 0;
@@ -235,4 +327,6 @@ img { transition: transform 0.3s ease, opacity 0.3s ease; }
   background: #6366f1;
   transition: width 0.3s ease;
 }
-.nav-link:hover::after { width: 100%; }
+.nav-link:hover::after {
+  width: 100%;
+}
