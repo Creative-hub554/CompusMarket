@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useTranslation } from "@/lib/useTranslation";
 import { io, Socket } from "socket.io-client";
 
 type Message = {
@@ -28,10 +27,10 @@ type Ticket = {
 };
 
 const statusStyles: Record<Ticket["status"], string> = {
-  OPEN: "bg-[#1a2e1f] text-[#4ade80]",
-  IN_PROGRESS: "bg-[#1a2638] text-[#60a5fa]",
-  RESOLVED: "bg-[#1a1a1e] text-[#6b6b73]",
-  CLOSED: "bg-[#1a1a1e] text-[#6b6b73]",
+  OPEN: "bg-green-100 text-green-800",
+  IN_PROGRESS: "bg-indigo-100 text-indigo-800",
+  RESOLVED: "bg-slate-100 text-slate-700",
+  CLOSED: "bg-slate-100 text-slate-700",
 };
 
 const statusLabels: Record<Ticket["status"], string> = {
@@ -44,7 +43,6 @@ const statusLabels: Record<Ticket["status"], string> = {
 export default function TicketDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data: session } = useSession();
-  const { t } = useTranslation();
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -98,11 +96,11 @@ export default function TicketDetailPage() {
 
   if (!session) {
     return (
-      <div className="min-h-[calc(100vh-64px)] bg-[#0a0a0b] flex items-center justify-center">
+      <div className="min-h-[calc(100vh-64px)] bg-white flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-[#fafafa] mb-4">Sign In Required</h1>
-          <p className="text-[#a1a1aa] mb-4">Please sign in to view this ticket.</p>
-          <Link href="/login" className="text-[#60a5fa] font-medium hover:underline">Go to Login</Link>
+          <h1 className="text-2xl font-bold text-slate-900 mb-4">Sign In Required</h1>
+          <p className="text-slate-500 mb-4">Please sign in to view this ticket.</p>
+          <Link href="/login" className="text-indigo-600 font-medium hover:underline">Go to Login</Link>
         </div>
       </div>
     );
@@ -110,18 +108,18 @@ export default function TicketDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-[calc(100vh-64px)] bg-[#0a0a0b] flex items-center justify-center">
-        <div className="h-8 w-48 bg-[#1a1a1e] rounded animate-pulse" />
+      <div className="min-h-[calc(100vh-64px)] bg-white flex items-center justify-center">
+        <div className="h-8 w-48 bg-slate-200 rounded animate-pulse" />
       </div>
     );
   }
 
   if (!ticket) {
     return (
-      <div className="min-h-[calc(100vh-64px)] bg-[#0a0a0b] flex items-center justify-center">
+      <div className="min-h-[calc(100vh-64px)] bg-white flex items-center justify-center">
         <div className="text-center">
-          <p className="text-[#6b6b73] mb-4">Ticket not found</p>
-          <Link href="/support" className="text-[#60a5fa] font-medium hover:underline">Back to Support</Link>
+          <p className="text-slate-600 mb-4">Ticket not found</p>
+          <Link href="/support" className="text-indigo-600 font-medium hover:underline">Back to Support</Link>
         </div>
       </div>
     );
@@ -137,14 +135,14 @@ export default function TicketDetailPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-[#0a0a0b] flex flex-col">
-      <div className="border-b border-[#1a1a1e] px-6 py-4">
-        <Link href="/support" className="text-[#a1a1aa] text-sm hover:text-[#fafafa] transition-colors mb-2 inline-block">
+    <div className="min-h-[calc(100vh-64px)] bg-white flex flex-col">
+      <div className="border-b border-slate-200 px-6 py-4">
+        <Link href="/support" className="text-slate-500 text-sm hover:text-slate-900 transition-colors mb-2 inline-block">
           &larr; Back to Support
         </Link>
-        <h1 className="text-lg font-bold text-[#fafafa]">{ticket.subject}</h1>
+        <h1 className="text-lg font-bold text-slate-900">{ticket.subject}</h1>
         <div className="flex items-center gap-3 mt-1">
-          <span className="text-[#a1a1aa] text-sm">{ticket.customer.name || ticket.customer.email}</span>
+          <span className="text-slate-500 text-sm">{ticket.customer.name || ticket.customer.email}</span>
           <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${statusStyles[ticket.status]}`}>
             {statusLabels[ticket.status]}
           </span>
@@ -152,24 +150,24 @@ export default function TicketDetailPage() {
       </div>
 
       {(ticket.orderId || ticket.productId) && (
-        <div className="mx-6 mt-4 bg-[#141416] border border-[#1a1a1e] rounded-xl p-4 flex items-center gap-3">
+        <div className="mx-6 mt-4 bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center gap-3">
           {ticket.order ? (
             <>
-              <span className="text-[#60a5fa] text-lg">&#x1F4E6;</span>
+              <span className="text-indigo-600 text-lg">&#x1F4E6;</span>
               <div className="flex-1">
-                <p className="text-[#fafafa] text-sm font-medium">Regarding Order</p>
-                <p className="text-[#a1a1aa] text-xs">#{ticket.order.orderNumber}</p>
+                <p className="text-slate-900 text-sm font-medium">Regarding Order</p>
+                <p className="text-slate-500 text-xs">#{ticket.order.orderNumber}</p>
               </div>
-              <Link href={`/orders/${ticket.order.id}`} className="text-[#60a5fa] text-sm hover:underline">
+              <Link href={`/orders/${ticket.order.id}`} className="text-indigo-600 text-sm hover:underline">
                 View Order
               </Link>
             </>
           ) : (
             <>
-              <span className="text-[#60a5fa] text-lg">&#x1F50D;</span>
+              <span className="text-indigo-600 text-lg">&#x1F50D;</span>
               <div className="flex-1">
-                <p className="text-[#fafafa] text-sm font-medium">Regarding Product</p>
-                <p className="text-[#a1a1aa] text-xs">{ticket.product?.name}</p>
+                <p className="text-slate-900 text-sm font-medium">Regarding Product</p>
+                <p className="text-slate-500 text-xs">{ticket.product?.name}</p>
               </div>
             </>
           )}
@@ -179,7 +177,7 @@ export default function TicketDetailPage() {
       <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
         {messages.length === 0 && (
           <div className="flex items-center justify-center h-full">
-            <p className="text-[#52525b] text-sm">No messages yet</p>
+            <p className="text-slate-500 text-sm">No messages yet</p>
           </div>
         )}
         {messages.map((msg) => {
@@ -189,17 +187,17 @@ export default function TicketDetailPage() {
               <div
                 className={`max-w-[75%] ${
                   isMe
-                    ? "bg-[#fafafa] text-[#0a0a0b] rounded-2xl rounded-br-md"
-                    : "bg-[#1a1a20] text-[#e3e3e6] rounded-2xl rounded-bl-md"
+                    ? "bg-indigo-600 text-white rounded-2xl rounded-br-md"
+                    : "bg-slate-100 text-slate-900 rounded-2xl rounded-bl-md"
                 } px-4 py-2.5 text-sm`}
               >
                 <p>{msg.content}</p>
                 <div className={`flex items-center gap-1 mt-1 ${isMe ? "justify-end" : "justify-start"}`}>
-                  <span className="text-[11px] text-[#52525b]">
+                  <span className={`text-[11px] ${isMe ? "text-indigo-200" : "text-slate-500"}`}>
                     {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </span>
                   {isMe && (
-                    <span className={`text-[11px] ${msg.readAt ? "text-[#60a5fa]" : "text-[#52525b]"}`}>
+                    <span className={`text-[11px] ${msg.readAt ? "text-indigo-200" : "text-indigo-300"}`}>
                       {msg.readAt ? "\u2713\u2713" : "\u2713"}
                     </span>
                   )}
@@ -211,7 +209,7 @@ export default function TicketDetailPage() {
         <div ref={bottomRef} />
       </div>
 
-      <div className="border-t border-[#1a1a1e] px-6 py-4">
+      <div className="border-t border-slate-200 px-6 py-4">
         <div className="flex gap-2 items-end">
           <textarea
             value={input}
@@ -224,12 +222,12 @@ export default function TicketDetailPage() {
             }}
             placeholder="Type your message..."
             rows={1}
-            className="flex-1 bg-[#141416] border border-[#1a1a1e] rounded-lg px-4 py-3 text-sm text-[#fafafa] placeholder-[#52525b] focus:border-[#3b3b45] outline-none transition-colors resize-none"
+            className="flex-1 bg-white border border-slate-300 rounded-lg px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-500 outline-none transition-colors resize-none"
           />
           <button
             onClick={sendMessage}
             disabled={!input.trim()}
-            className="bg-[#fafafa] text-[#0a0a0b] rounded-lg px-5 py-3 text-sm font-medium hover:bg-[#e3e3e6] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-indigo-600 text-white rounded-lg px-5 py-3 text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Send
           </button>

@@ -4,11 +4,9 @@ import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useTranslation } from "@/lib/useTranslation";
 
 function NewTicketForm() {
   const { data: session } = useSession();
-  const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
