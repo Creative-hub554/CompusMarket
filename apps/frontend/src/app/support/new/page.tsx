@@ -54,7 +54,7 @@ function NewTicketForm() {
         body: JSON.stringify({ subject, message, orderId, productId }),
       });
       const ticket = await res.json();
-      router.push(`/support/tickets/${ticket.id}`);
+      router.push(`/support/${ticket.id}`);
     } catch {}
     setSending(false);
   }
