@@ -71,6 +71,9 @@
     "checkout": "Proceed to Checkout",
     "checkoutFailed": "Checkout failed. Make sure you are logged in."
   },
+  "careers": {
+    "noArticles": "No articles in this category yet."
+  },
   "orders": {
     "title": "My Orders",
     "loading": "Loading...",
