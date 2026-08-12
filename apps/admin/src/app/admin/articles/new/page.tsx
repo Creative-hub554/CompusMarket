@@ -84,13 +84,13 @@ export default function NewArticlePage() {
       <button
         type="button"
         onClick={() => setShowAi(!showAi)}
-        className="mb-4 rounded-lg border border-purple-300 bg-purple-50 px-4 py-2 text-sm font-medium text-purple-700 hover:bg-purple-100 transition"
+        className="mb-4 rounded-lg border border-indigo-300 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition"
       >
         ✨ Generate with AI
       </button>
       {showAi && (
-        <div className="mb-6 p-5 border border-purple-200 rounded-xl bg-purple-50">
-          <h2 className="text-sm font-semibold text-purple-800 mb-3">✨ AI Generate Article</h2>
+        <div className="mb-6 p-5 border border-indigo-200 rounded-xl bg-indigo-50">
+          <h2 className="text-sm font-semibold text-indigo-800 mb-3">✨ AI Generate Article</h2>
           <div className="flex gap-2 items-start">
             <input
               type="text"
@@ -114,12 +114,12 @@ export default function NewArticlePage() {
               type="button"
               onClick={generateArticle}
               disabled={aiLoading || !aiTopic.trim()}
-              className="rounded bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50 transition"
+              className="rounded bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50 transition"
             >
               {aiLoading ? "Generating..." : "Generate"}
             </button>
           </div>
-          <p className="text-xs text-purple-600 mt-2">
+          <p className="text-xs text-indigo-600 mt-2">
             Fills the form below using the selected category. Review before creating.
           </p>
           {aiError && <p className="text-sm text-red-600 mt-2">{aiError}</p>}

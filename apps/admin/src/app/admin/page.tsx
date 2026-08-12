@@ -56,7 +56,7 @@ export default function AdminDashboard() {
   }, []);
 
   if (!session) {
-    return <p className="p-8 text-gray-500">Sign in required.</p>;
+    return <p className="p-8 text-slate-500">Sign in required.</p>;
   }
 
   if (error) {
@@ -64,7 +64,7 @@ export default function AdminDashboard() {
   }
 
   if (!stats) {
-    return <p className="p-8 text-gray-500">Loading...</p>;
+    return <p className="p-8 text-slate-500">Loading...</p>;
   }
 
   const statusData = stats.ordersByStatus.map((s) => ({
@@ -90,8 +90,8 @@ export default function AdminDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
         {kpis.map((kpi) => (
-          <div key={kpi.label} className="rounded-lg border p-4">
-            <p className="text-sm text-gray-500">{kpi.label}</p>
+          <div key={kpi.label} className="rounded-lg border bg-white shadow-sm p-4">
+            <p className="text-sm text-slate-500">{kpi.label}</p>
             <p className="text-2xl font-bold mt-1">{kpi.value}</p>
           </div>
         ))}
@@ -111,7 +111,7 @@ export default function AdminDashboard() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
-        <div className="rounded-lg border p-4">
+        <div className="rounded-lg border bg-white shadow-sm p-4">
           <h2 className="font-semibold mb-4">Revenue — Last 30 Days</h2>
           {stats.ordersPerDay.length > 0 ? (
             <ResponsiveContainer width="100%" height={280}>
@@ -135,13 +135,13 @@ export default function AdminDashboard() {
               </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <p className="py-16 text-center text-gray-500 text-sm">
+            <p className="py-16 text-center text-slate-500 text-sm">
               No orders in the last 30 days.
             </p>
           )}
         </div>
 
-        <div className="rounded-lg border p-4">
+        <div className="rounded-lg border bg-white shadow-sm p-4">
           <h2 className="font-semibold mb-4">Orders by Status</h2>
           {statusData.length > 0 ? (
             <ResponsiveContainer width="100%" height={280}>
@@ -168,13 +168,13 @@ export default function AdminDashboard() {
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <p className="py-16 text-center text-gray-500 text-sm">No orders yet.</p>
+            <p className="py-16 text-center text-slate-500 text-sm">No orders yet.</p>
           )}
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="rounded-lg border p-4">
+        <div className="rounded-lg border bg-white shadow-sm p-4">
           <h2 className="font-semibold mb-4">Top Products (units sold)</h2>
           {stats.topProducts.length > 0 ? (
             <ResponsiveContainer width="100%" height={280}>
@@ -187,48 +187,48 @@ export default function AdminDashboard() {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <p className="py-16 text-center text-gray-500 text-sm">
+            <p className="py-16 text-center text-slate-500 text-sm">
               No sales yet.
             </p>
           )}
         </div>
 
-        <div className="rounded-lg border p-4">
+        <div className="rounded-lg border bg-white shadow-sm p-4">
           <h2 className="font-semibold mb-4">Quick Links</h2>
           <div className="grid grid-cols-2 gap-3">
             <Link
               href="/admin/products"
-              className="rounded border px-4 py-3 text-sm font-medium hover:bg-gray-50"
+              className="rounded border px-4 py-3 text-sm font-medium hover:bg-slate-50"
             >
               Products
             </Link>
             <Link
               href="/admin/categories"
-              className="rounded border px-4 py-3 text-sm font-medium hover:bg-gray-50"
+              className="rounded border px-4 py-3 text-sm font-medium hover:bg-slate-50"
             >
               Categories
             </Link>
             <Link
               href="/admin/orders"
-              className="rounded border px-4 py-3 text-sm font-medium hover:bg-gray-50"
+              className="rounded border px-4 py-3 text-sm font-medium hover:bg-slate-50"
             >
               Orders
             </Link>
             <Link
               href="/admin/sellers"
-              className="rounded border px-4 py-3 text-sm font-medium hover:bg-gray-50"
+              className="rounded border px-4 py-3 text-sm font-medium hover:bg-slate-50"
             >
               Sellers
             </Link>
             <Link
               href="/admin/warranties"
-              className="rounded border px-4 py-3 text-sm font-medium hover:bg-gray-50"
+              className="rounded border px-4 py-3 text-sm font-medium hover:bg-slate-50"
             >
               Warranties
             </Link>
             <Link
               href="/admin/articles"
-              className="rounded border px-4 py-3 text-sm font-medium hover:bg-gray-50"
+              className="rounded border px-4 py-3 text-sm font-medium hover:bg-slate-50"
             >
               Articles
             </Link>

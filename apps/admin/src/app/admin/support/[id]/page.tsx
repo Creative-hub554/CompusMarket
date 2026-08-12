@@ -169,7 +169,7 @@ export default function AdminTicketDetailPage() {
                   <div
                     className={`max-w-[75%] ${
                       isAdmin
-                        ? "bg-khmer-blue text-white rounded-xl rounded-br-md"
+                        ? "bg-slate-900 text-white rounded-xl rounded-br-md"
                         : "bg-gray-100 text-gray-900 rounded-xl rounded-bl-md"
                     } px-4 py-2.5 text-sm`}
                   >
@@ -204,7 +204,7 @@ export default function AdminTicketDetailPage() {
             <button
               onClick={sendMessage}
               disabled={!input.trim()}
-              className="bg-khmer-blue text-white px-4 py-2 rounded-lg text-sm hover:bg-khmer-blue-light disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+              className="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
             >
               Send
             </button>
