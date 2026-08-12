@@ -6,7 +6,7 @@ type Props = { product: Product };
 
 const conditionColors: Record<string, string> = {
   A: "bg-green-100 text-green-800",
-  B: "bg-khmer-gold/20 text-khmer-gold",
+  B: "bg-amber-100 text-amber-800",
   C: "bg-orange-100 text-orange-800",
 };
 
@@ -21,7 +21,7 @@ export async function ProductCard({ product }: Props) {
   return (
     <Link
       href={`/shop/${product.id}`}
-      className="card-hover group block rounded-xl border border-gray-100 bg-white overflow-hidden shadow-sm"
+      className="card-hover group block rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm hover:border-indigo-300"
     >
       <div className="aspect-square w-full bg-gray-50 flex items-center justify-center overflow-hidden">
         {images?.[0] ? (
@@ -45,10 +45,10 @@ export async function ProductCard({ product }: Props) {
             {conditionLabels[product.condition] || product.condition}
           </span>
           {product.sellerId && (
-            <span className="text-xs text-khmer-blue">{t("seller")}</span>
+            <span className="text-xs text-slate-900">{t("seller")}</span>
           )}
         </div>
-        <p className="text-lg font-bold text-khmer-red">
+        <p className="text-lg font-bold text-slate-900">
           ${Number(product.price).toLocaleString()}
         </p>
       </div>

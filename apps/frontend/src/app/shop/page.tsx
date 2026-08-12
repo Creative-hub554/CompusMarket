@@ -2,21 +2,28 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { api } from "@/services/api";
 import { ProductCard } from "@/components/ProductCard";
+import { filterProductsByCategory } from "@/lib/shopFilter";
 
 export const dynamic = "force-dynamic";
 
-export default async function ShopPage() {
+export default async function ShopPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string }>;
+}) {
   const t = await getTranslations("shop");
-  const [products, categories] = await Promise.all([
+  const { category } = await searchParams;
+  const [allProducts, categories] = await Promise.all([
     api.products.list(),
     api.categories.list(),
   ]);
+  const products = filterProductsByCategory(allProducts, categories, category);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 animate-fade-in">
       <div className="flex items-center gap-3 mb-6">
-        <h1 className="text-3xl font-bold">{t("title")}</h1>
-        <span className="text-sm text-gray-400">{t("productsCount", { count: products.length })}</span>
+        <h1 className="page-title">{t("title")}</h1>
+        <span className="text-sm text-slate-400">{t("productsCount", { count: products.length })}</span>
       </div>
 
       <div className="flex gap-8">
@@ -24,15 +31,20 @@ export default async function ShopPage() {
           <h2 className="font-semibold mb-3">{t("categories")}</h2>
           <ul className="space-y-1 text-sm">
             <li>
-              <Link href="/shop" className="text-khmer-blue font-medium hover:underline">
-                {t("all")} ({products.length})
+              <Link
+                href="/shop"
+                className={`font-medium hover:underline ${!category ? "text-indigo-600" : "text-slate-600"}`}
+              >
+                {t("all")} ({allProducts.length})
               </Link>
             </li>
             {categories.map((cat) => (
               <li key={cat.id}>
                 <Link
                   href={`/shop?category=${cat.slug}`}
-                  className="text-gray-600 hover:text-khmer-red transition-colors"
+                  className={`transition-colors ${
+                    category === cat.slug ? "text-indigo-600 font-semibold" : "text-slate-600 hover:text-indigo-600"
+                  }`}
                 >
                   {cat.name} ({cat._count.products})
                 </Link>
@@ -48,9 +60,7 @@ export default async function ShopPage() {
             ))}
           </div>
           {products.length === 0 && (
-            <p className="text-gray-500 text-center py-12">
-              {t("noProducts")}
-            </p>
+            <p className="text-slate-500 text-center py-12">{t("noProducts")}</p>
           )}
         </div>
       </div>
