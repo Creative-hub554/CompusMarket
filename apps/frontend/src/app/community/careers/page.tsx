@@ -16,11 +16,8 @@ export default async function CareersPage({
   const allArticles = await api.articles.list();
   const articles = filterArticlesByCategory(
     allArticles.map((article) => ({
-      id: article.id,
-      title: article.title,
-      slug: article.slug,
+      ...article,
       categorySlug: article.category,
-      excerpt: article.excerpt,
     })),
     cat
   ) as unknown as ApiArticle[];
