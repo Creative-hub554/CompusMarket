@@ -35,15 +35,15 @@ export default function SellerDashboardPage() {
     return (
       <div className="max-w-xl mx-auto px-4 py-12 text-center">
         <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
-        <p className="text-gray-600 mb-4">Please sign in to view your seller dashboard.</p>
-        <Link href="/login" className="text-khmer-blue font-medium hover:underline">Go to Login</Link>
+        <p className="text-slate-600 mb-4">Please sign in to view your seller dashboard.</p>
+        <Link href="/login" className="text-indigo-600 font-medium hover:underline">Go to Login</Link>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="max-w-xl mx-auto px-4 py-12 text-center text-gray-500">
+      <div className="max-w-xl mx-auto px-4 py-12 text-center text-slate-500">
         Loading...
       </div>
     );
@@ -53,11 +53,13 @@ export default function SellerDashboardPage() {
 
   return (
     <div className="max-w-xl mx-auto px-4 py-12">
-      <h1 className="text-2xl font-bold mb-6">Seller Dashboard</h1>
+      <div className="bg-slate-900 text-white rounded-xl p-6 md:p-8 mb-8">
+        <h1 className="text-2xl font-bold">Seller Dashboard</h1>
+      </div>
 
       {!profile ? (
         <div className="text-center py-12">
-          <p className="text-gray-600 mb-4">You haven&apos;t applied to become a seller yet.</p>
+          <p className="text-slate-600 mb-4">You haven&apos;t applied to become a seller yet.</p>
           <button
             onClick={() => router.push("/seller/apply")}
             className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
@@ -97,7 +99,7 @@ export default function SellerDashboardPage() {
           <div className="bg-white border rounded-lg p-6">
             <h3 className="font-semibold mb-2">Product Limit</h3>
             <div className="flex items-center gap-2">
-              <div className="flex-1 bg-gray-200 rounded-full h-3">
+              <div className="flex-1 bg-slate-200 rounded-full h-3">
                 <div
                   className="bg-blue-600 h-3 rounded-full"
                   style={{
@@ -117,26 +119,26 @@ export default function SellerDashboardPage() {
           <div className="flex flex-wrap gap-3">
             <button
               onClick={() => router.push("/seller/products")}
-              className="border border-gray-300 px-6 py-2 rounded hover:bg-gray-50 transition-colors"
+              className="border border-slate-300 px-6 py-2 rounded hover:bg-slate-50 transition-colors"
             >
               My Products
             </button>
             <button
               onClick={() => router.push("/seller/products/new")}
               disabled={(profile._count?.products || 0) >= maxProducts}
-              className="bg-khmer-blue text-white px-6 py-2 rounded hover:bg-khmer-blue-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-slate-900 text-white px-6 py-2 rounded hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Add Product
             </button>
             <button
               onClick={() => router.push("/seller/orders")}
-              className="bg-khmer-red text-white px-6 py-2 rounded hover:bg-khmer-red-light transition-colors"
+              className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 transition-colors"
             >
               Orders
             </button>
             <button
               onClick={() => router.push("/messages")}
-              className="border border-gray-300 px-6 py-2 rounded hover:bg-gray-50 transition-colors"
+              className="border border-slate-300 px-6 py-2 rounded hover:bg-slate-50 transition-colors"
             >
               Messages
             </button>

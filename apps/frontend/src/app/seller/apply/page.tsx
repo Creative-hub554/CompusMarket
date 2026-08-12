@@ -21,8 +21,8 @@ export default function SellerApplyPage() {
     return (
       <div className="max-w-xl mx-auto px-4 py-12 text-center">
         <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
-        <p className="text-gray-600 mb-4">Please sign in to apply as a seller.</p>
-        <Link href="/login" className="text-khmer-blue font-medium hover:underline">Go to Login</Link>
+        <p className="text-slate-600 mb-4">Please sign in to apply as a seller.</p>
+        <Link href="/login" className="text-indigo-600 font-medium hover:underline">Go to Login</Link>
       </div>
     );
   }
@@ -88,12 +88,12 @@ export default function SellerApplyPage() {
           <div key={label} className="flex-1 text-center">
             <div
               className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center text-sm font-medium ${
-                i <= step ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-500"
+                i <= step ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-500"
               }`}
             >
               {i + 1}
             </div>
-            <p className="text-xs mt-1 text-gray-500">{label}</p>
+            <p className="text-xs mt-1 text-slate-500">{label}</p>
           </div>
         ))}
       </div>
@@ -114,24 +114,24 @@ export default function SellerApplyPage() {
               className={`p-6 border-2 rounded-lg text-left ${
                 accountType === "PERSONAL"
                   ? "border-blue-500 bg-blue-50"
-                  : "border-gray-200 hover:border-gray-300"
+                  : "border-slate-200 hover:border-slate-300"
               }`}
             >
               <h3 className="font-bold text-lg">Personal</h3>
-              <p className="text-sm text-gray-600 mt-1">Up to 5 products</p>
-              <p className="text-sm text-gray-500">Requires ID</p>
+              <p className="text-sm text-slate-600 mt-1">Up to 5 products</p>
+              <p className="text-sm text-slate-500">Requires ID</p>
             </button>
             <button
               onClick={() => setAccountType("BUSINESS")}
               className={`p-6 border-2 rounded-lg text-left ${
                 accountType === "BUSINESS"
                   ? "border-blue-500 bg-blue-50"
-                  : "border-gray-200 hover:border-gray-300"
+                  : "border-slate-200 hover:border-slate-300"
               }`}
             >
               <h3 className="font-bold text-lg">Business</h3>
-              <p className="text-sm text-gray-600 mt-1">Up to 10 products</p>
-              <p className="text-sm text-gray-500">Requires ID + License</p>
+              <p className="text-sm text-slate-600 mt-1">Up to 10 products</p>
+              <p className="text-sm text-slate-500">Requires ID + License</p>
             </button>
           </div>
           <button
@@ -148,25 +148,25 @@ export default function SellerApplyPage() {
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Contact Details</h2>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Phone (optional)</label>
+            <label className="block text-sm font-medium text-slate-700">Phone (optional)</label>
             <input
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+              className="mt-1 block w-full border border-slate-300 rounded px-3 py-2"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Address (optional)</label>
+            <label className="block text-sm font-medium text-slate-700">Address (optional)</label>
             <textarea
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               rows={3}
-              className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+              className="mt-1 block w-full border border-slate-300 rounded px-3 py-2"
             />
           </div>
           <div className="flex gap-3">
-            <button onClick={() => setStep(0)} className="px-6 py-2 border border-gray-300 rounded hover:bg-gray-50">
+            <button onClick={() => setStep(0)} className="px-6 py-2 border border-slate-300 rounded hover:bg-slate-50">
               Back
             </button>
             <button onClick={() => setStep(2)} className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
@@ -180,13 +180,13 @@ export default function SellerApplyPage() {
       {step === 2 && (
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Upload Documents</h2>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-slate-500">
             Documents will be reviewed within approximately 3 business days.
             Images are automatically compressed to webp format.
           </p>
           {requiredDocs.map((docType) => (
-            <div key={docType} className="border border-gray-200 rounded-lg p-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div key={docType} className="border border-slate-200 rounded-lg p-4">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
                 {docType === "ID" ? "Government ID (Passport / National ID)" : "Business License"}
               </label>
               <input
@@ -196,7 +196,7 @@ export default function SellerApplyPage() {
                   const file = e.target.files?.[0];
                   if (file) handleUpload(docType, file);
                 }}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
               />
               {documents.find((d) => d.type === docType) && (
                 <p className="text-sm text-green-600 mt-1">Uploaded</p>
@@ -204,7 +204,7 @@ export default function SellerApplyPage() {
             </div>
           ))}
           <div className="flex gap-3">
-            <button onClick={() => setStep(1)} className="px-6 py-2 border border-gray-300 rounded hover:bg-gray-50">
+            <button onClick={() => setStep(1)} className="px-6 py-2 border border-slate-300 rounded hover:bg-slate-50">
               Back
             </button>
             <button
@@ -222,7 +222,7 @@ export default function SellerApplyPage() {
       {step === 3 && (
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Review &amp; Submit</h2>
-          <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+          <div className="bg-slate-50 rounded-lg p-4 space-y-2">
             <p><strong>Account Type:</strong> {accountType}</p>
             <p><strong>Phone:</strong> {phone || "—"}</p>
             <p><strong>Address:</strong> {address || "—"}</p>
@@ -235,12 +235,12 @@ export default function SellerApplyPage() {
               ))}
             </ul>
           </div>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-slate-500">
             By submitting, you agree to the{" "}
             <a href="/terms/seller" className="text-blue-600 underline">Seller Terms &amp; Conditions</a>.
           </p>
           <div className="flex gap-3">
-            <button onClick={() => setStep(2)} className="px-6 py-2 border border-gray-300 rounded hover:bg-gray-50">
+            <button onClick={() => setStep(2)} className="px-6 py-2 border border-slate-300 rounded hover:bg-slate-50">
               Back
             </button>
             <button

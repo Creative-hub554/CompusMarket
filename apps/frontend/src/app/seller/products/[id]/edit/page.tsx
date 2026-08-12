@@ -132,7 +132,7 @@ export default function SellerEditProductPage() {
     );
   }
 
-  if (loading) return <p className="max-w-xl mx-auto px-4 py-12 text-gray-500">Loading...</p>;
+  if (loading) return <p className="max-w-xl mx-auto px-4 py-12 text-slate-500">Loading...</p>;
 
   return (
     <div className="max-w-xl mx-auto px-4 py-12">
@@ -144,68 +144,68 @@ export default function SellerEditProductPage() {
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Status</label>
+          <label className="block text-sm font-medium text-slate-700">Status</label>
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+            className="mt-1 block w-full border border-slate-300 rounded px-3 py-2"
           >
             <option value="ACTIVE">Active</option>
             <option value="DISABLED">Disabled</option>
           </select>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Disabled products are hidden from the shop but keep their product slot.
           </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Name</label>
+          <label className="block text-sm font-medium text-slate-700">Name</label>
           <input
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+            className="mt-1 block w-full border border-slate-300 rounded px-3 py-2"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Description</label>
+          <label className="block text-sm font-medium text-slate-700">Description</label>
           <textarea
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
             rows={4}
-            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+            className="mt-1 block w-full border border-slate-300 rounded px-3 py-2"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Price ($)</label>
+            <label className="block text-sm font-medium text-slate-700">Price ($)</label>
             <input
               type="number"
               step="0.01"
               value={form.price}
               onChange={(e) => setForm({ ...form, price: e.target.value })}
-              className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+              className="mt-1 block w-full border border-slate-300 rounded px-3 py-2"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Stock</label>
+            <label className="block text-sm font-medium text-slate-700">Stock</label>
             <input
               type="number"
               value={form.stock}
               onChange={(e) => setForm({ ...form, stock: e.target.value })}
-              className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+              className="mt-1 block w-full border border-slate-300 rounded px-3 py-2"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Category</label>
+            <label className="block text-sm font-medium text-slate-700">Category</label>
             <select
               value={form.categoryId}
               onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
-              className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+              className="mt-1 block w-full border border-slate-300 rounded px-3 py-2"
             >
               <option value="">Select category</option>
               {categories.map((c) => (
@@ -214,11 +214,11 @@ export default function SellerEditProductPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Condition</label>
+            <label className="block text-sm font-medium text-slate-700">Condition</label>
             <select
               value={form.condition}
               onChange={(e) => setForm({ ...form, condition: e.target.value })}
-              className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+              className="mt-1 block w-full border border-slate-300 rounded px-3 py-2"
             >
               <option value="A">A - Like New</option>
               <option value="B">B - Good</option>
@@ -229,32 +229,32 @@ export default function SellerEditProductPage() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Warranty (months)</label>
+            <label className="block text-sm font-medium text-slate-700">Warranty (months)</label>
             <input
               type="number"
               value={form.warrantyMonths}
               onChange={(e) => setForm({ ...form, warrantyMonths: e.target.value })}
-              className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+              className="mt-1 block w-full border border-slate-300 rounded px-3 py-2"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Serial Number</label>
+            <label className="block text-sm font-medium text-slate-700">Serial Number</label>
             <input
               value={form.serialNumber}
               onChange={(e) => setForm({ ...form, serialNumber: e.target.value })}
-              className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+              className="mt-1 block w-full border border-slate-300 rounded px-3 py-2"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Images (max 5)</label>
+          <label className="block text-sm font-medium text-slate-700">Images (max 5)</label>
           <input
             type="file"
             accept="image/*"
             onChange={handleImageUpload}
             disabled={uploading || images.length >= 5}
-            className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
+            className="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
           />
           {images.length > 0 && (
             <div className="flex gap-2 mt-2 flex-wrap">

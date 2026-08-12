@@ -45,7 +45,7 @@ export default function SellerProductsPage() {
     return (
       <div className="max-w-3xl mx-auto px-4 py-12 text-center">
         <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
-        <Link href="/login" className="text-khmer-blue font-medium hover:underline">Go to Login</Link>
+        <Link href="/login" className="text-indigo-600 font-medium hover:underline">Go to Login</Link>
       </div>
     );
   }
@@ -76,13 +76,13 @@ export default function SellerProductsPage() {
         <button
           onClick={() => router.push("/seller/products/new")}
           disabled={products.length >= maxProducts}
-          className="bg-khmer-blue text-white px-6 py-2 rounded hover:bg-khmer-blue-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-slate-900 text-white px-6 py-2 rounded hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Add Product
         </button>
       </div>
 
-      <p className="text-sm text-gray-500 mb-4">
+      <p className="text-sm text-slate-500 mb-4">
         {products.length} / {maxProducts} product slots used
       </p>
 
@@ -91,13 +91,13 @@ export default function SellerProductsPage() {
       )}
 
       {loading ? (
-        <p className="text-gray-500 text-center py-8">Loading...</p>
+        <p className="text-slate-500 text-center py-8">Loading...</p>
       ) : products.length === 0 ? (
-        <div className="text-center py-12 border rounded-lg bg-gray-50">
-          <p className="text-gray-600 mb-4">You have no products yet.</p>
+        <div className="text-center py-12 border rounded-lg bg-slate-50">
+          <p className="text-slate-600 mb-4">You have no products yet.</p>
           <button
             onClick={() => router.push("/seller/products/new")}
-            className="bg-khmer-blue text-white px-6 py-2 rounded hover:bg-khmer-blue-light transition-colors"
+            className="bg-slate-900 text-white px-6 py-2 rounded hover:bg-indigo-700 transition-colors"
           >
             Add Your First Product
           </button>
@@ -110,10 +110,10 @@ export default function SellerProductsPage() {
                 <img
                   src={product.images[0]}
                   alt=""
-                  className="h-16 w-16 rounded object-contain bg-gray-100"
+                  className="h-16 w-16 rounded object-contain bg-slate-100"
                 />
               ) : (
-                <div className="h-16 w-16 rounded bg-gray-100" />
+                <div className="h-16 w-16 rounded bg-slate-100" />
               )}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -123,15 +123,15 @@ export default function SellerProductsPage() {
                       product.status === "ACTIVE"
                         ? "bg-green-100 text-green-700"
                         : product.status === "DISABLED"
-                          ? "bg-gray-100 text-gray-500"
+                          ? "bg-slate-100 text-slate-500"
                           : "bg-yellow-100 text-yellow-700"
                     }`}
                   >
                     {product.status}
                   </span>
                 </div>
-                <p className="text-sm text-gray-500 truncate">{product.category.name}</p>
-                <p className="text-sm font-semibold text-khmer-blue">
+                <p className="text-sm text-slate-500 truncate">{product.category.name}</p>
+                <p className="text-sm font-semibold text-slate-900">
                   ${Number(product.price).toLocaleString()} · Stock: {product.stock}
                 </p>
               </div>

@@ -41,7 +41,7 @@ export default function SellerNewProductPage() {
     return (
       <div className="max-w-xl mx-auto px-4 py-12 text-center">
         <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
-        <Link href="/login" className="text-khmer-blue font-medium hover:underline">Go to Login</Link>
+        <Link href="/login" className="text-indigo-600 font-medium hover:underline">Go to Login</Link>
       </div>
     );
   }
@@ -51,7 +51,7 @@ export default function SellerNewProductPage() {
     return (
       <div className="max-w-xl mx-auto px-4 py-12 text-center">
         <h1 className="text-2xl font-bold mb-4">Product Limit Reached</h1>
-        <p className="text-gray-600">
+        <p className="text-slate-600">
           You have used all {maxProducts} product slots. Products can only be disabled, not deleted.
         </p>
       </div>
@@ -110,7 +110,7 @@ export default function SellerNewProductPage() {
   return (
     <div className="max-w-xl mx-auto px-4 py-12">
       <h1 className="text-2xl font-bold mb-6">New Product</h1>
-      <p className="text-sm text-gray-500 mb-4">
+      <p className="text-sm text-slate-500 mb-4">
         Slots used: {productCount} / {maxProducts}
       </p>
 
@@ -120,29 +120,29 @@ export default function SellerNewProductPage() {
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Name</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} className="mt-1 block w-full border border-gray-300 rounded px-3 py-2" />
+          <label className="block text-sm font-medium text-slate-700">Name</label>
+          <input value={name} onChange={(e) => setName(e.target.value)} className="mt-1 block w-full border border-slate-300 rounded px-3 py-2" />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Description</label>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} className="mt-1 block w-full border border-gray-300 rounded px-3 py-2" />
+          <label className="block text-sm font-medium text-slate-700">Description</label>
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} className="mt-1 block w-full border border-slate-300 rounded px-3 py-2" />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Price ($)</label>
-            <input type="number" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} className="mt-1 block w-full border border-gray-300 rounded px-3 py-2" />
+            <label className="block text-sm font-medium text-slate-700">Price ($)</label>
+            <input type="number" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} className="mt-1 block w-full border border-slate-300 rounded px-3 py-2" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Stock</label>
-            <input type="number" value={stock} onChange={(e) => setStock(e.target.value)} className="mt-1 block w-full border border-gray-300 rounded px-3 py-2" />
+            <label className="block text-sm font-medium text-slate-700">Stock</label>
+            <input type="number" value={stock} onChange={(e) => setStock(e.target.value)} className="mt-1 block w-full border border-slate-300 rounded px-3 py-2" />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Category</label>
-          <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className="mt-1 block w-full border border-gray-300 rounded px-3 py-2">
+          <label className="block text-sm font-medium text-slate-700">Category</label>
+          <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className="mt-1 block w-full border border-slate-300 rounded px-3 py-2">
             <option value="">Select category</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
@@ -151,8 +151,8 @@ export default function SellerNewProductPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Condition</label>
-          <select value={condition} onChange={(e) => setCondition(e.target.value)} className="mt-1 block w-full border border-gray-300 rounded px-3 py-2">
+          <label className="block text-sm font-medium text-slate-700">Condition</label>
+          <select value={condition} onChange={(e) => setCondition(e.target.value)} className="mt-1 block w-full border border-slate-300 rounded px-3 py-2">
             <option value="A">A - Like New</option>
             <option value="B">B - Good</option>
             <option value="C">C - Fair</option>
@@ -160,8 +160,8 @@ export default function SellerNewProductPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Images (max 5)</label>
-          <input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploading || images.length >= 5} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50" />
+          <label className="block text-sm font-medium text-slate-700">Images (max 5)</label>
+          <input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploading || images.length >= 5} className="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50" />
           {images.length > 0 && (
             <div className="flex gap-2 mt-2 flex-wrap">
               {images.map((url, i) => (

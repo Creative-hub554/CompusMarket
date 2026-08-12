@@ -31,11 +31,11 @@ type Order = {
 const statusColors: Record<string, string> = {
   PENDING: "bg-yellow-100 text-yellow-800",
   APPROVED: "bg-blue-100 text-blue-800",
-  PACKING: "bg-purple-100 text-purple-800",
+  PACKING: "bg-indigo-50 text-indigo-700",
   SHIPPED: "bg-indigo-100 text-indigo-800",
   DELIVERED: "bg-green-100 text-green-800",
   REJECTED: "bg-red-100 text-red-800",
-  CANCELLED: "bg-gray-100 text-gray-800",
+  CANCELLED: "bg-slate-100 text-slate-800",
 };
 
 type Action = "APPROVED" | "REJECTED" | "PACKING" | "SHIPPED";
@@ -46,7 +46,7 @@ const NEXT_ACTIONS: Record<string, { action: Action; label: string; color: strin
     { action: "REJECTED", label: "Reject", color: "bg-red-600 hover:bg-red-700" },
   ],
   APPROVED: [
-    { action: "PACKING", label: "Start Packing", color: "bg-purple-600 hover:bg-purple-700" },
+    { action: "PACKING", label: "Start Packing", color: "bg-indigo-600 hover:bg-indigo-700" },
   ],
   PACKING: [
     { action: "SHIPPED", label: "Mark as Shipped", color: "bg-indigo-600 hover:bg-indigo-700" },
@@ -105,7 +105,7 @@ export default function SellerOrderDetailPage() {
     return (
       <div className="max-w-3xl mx-auto px-4 py-12 text-center">
         <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
-        <Link href="/login" className="text-khmer-blue font-medium hover:underline">Go to Login</Link>
+        <Link href="/login" className="text-indigo-600 font-medium hover:underline">Go to Login</Link>
       </div>
     );
   }
@@ -115,18 +115,18 @@ export default function SellerOrderDetailPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 animate-fade-in">
-      <button onClick={() => router.push("/seller/orders")} className="text-sm text-khmer-blue hover:underline mb-4 block">
+      <button onClick={() => router.push("/seller/orders")} className="text-sm text-indigo-600 hover:underline mb-4 block">
         &larr; Back to orders
       </button>
 
       <div className="flex items-center gap-3 mb-6">
         <h1 className="text-2xl font-bold">Order #{order.id.slice(0, 8).toUpperCase()}</h1>
-        <span className="text-sm text-gray-400">
+        <span className="text-sm text-slate-400">
           {new Date(order.createdAt).toLocaleDateString()}
         </span>
       </div>
 
-      <div className="bg-gray-50 rounded-lg p-4 mb-6">
+      <div className="bg-slate-50 rounded-lg p-4 mb-6">
         <p className="text-sm font-medium">Buyer: {order.user.name || order.user.email}</p>
       </div>
 
@@ -134,25 +134,25 @@ export default function SellerOrderDetailPage() {
         {order.items.map((item) => (
           <div key={item.id} className="border rounded-lg p-4 bg-white">
             <div className="flex items-start gap-4 mb-3">
-              <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden shrink-0">
+              <div className="w-16 h-16 bg-slate-100 rounded-lg overflow-hidden shrink-0">
                 {item.product.images?.[0] ? (
                   <img src={item.product.images[0]} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">img</div>
+                  <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs">img</div>
                 )}
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{item.product.name}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[item.status] || "bg-gray-100"}`}>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[item.status] || "bg-slate-100"}`}>
                     {item.status}
                   </span>
                 </div>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-slate-500 mt-1">
                   Qty: {item.quantity} &middot; ${item.price.toFixed(2)} &middot; Total: ${(item.price * item.quantity).toFixed(2)}
                 </p>
                 {item.trackingNumber && (
-                  <p className="text-xs text-gray-400 mt-1">Tracking: {item.trackingNumber}</p>
+                  <p className="text-xs text-slate-400 mt-1">Tracking: {item.trackingNumber}</p>
                 )}
               </div>
             </div>
@@ -178,7 +178,7 @@ export default function SellerOrderDetailPage() {
                       value={trackingInputs[item.id] || ""}
                       onChange={(e) => setTrackingInputs((prev) => ({ ...prev, [item.id]: e.target.value }))}
                       placeholder="Tracking number (optional)"
-                      className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-sm"
+                      className="flex-1 border border-slate-300 rounded px-3 py-1.5 text-sm"
                     />
                   </div>
                 )}
