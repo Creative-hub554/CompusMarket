@@ -26,8 +26,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-slate-900 via-[#1e1b4b] to-[#4338ca]">
-      <div className="w-full max-w-sm rounded-2xl bg-white/95 backdrop-blur p-8 shadow-2xl animate-fade-in-up">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-slate-50">
+      <div className="w-full max-w-sm rounded-2xl bg-white shadow-lg p-8 animate-fade-in-up">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block no-underline mb-4">
             <span className="font-extrabold tracking-tight text-slate-900">
