@@ -1,0 +1,14 @@
+node_modules/
+.next/
+dist/
+.env
+.env.local
+*.log
+*.err
+.turbo/
+turbo
+apps/*/.env
+apps/*/node_modules/
+**/*.db
+
+*.tsbuildinfo

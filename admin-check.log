@@ -1,0 +1,11 @@
+
+> admin@0.1.0 dev C:\Users\theow\Desktop\Workspace\WWW.KHMERONLINESHOPBYTHEO.COM\apps\admin
+> next dev "--port" "3001"
+
+   ▲ Next.js 15.5.20
+   - Local:        http://localhost:3001
+   - Network:      http://192.168.1.101:3001
+   - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 22.7s

@@ -1,0 +1,28 @@
+
+> frontend@0.1.0 dev C:\Users\theow\Desktop\Workspace\WWW.KHMERONLINESHOPBYTHEO.COM\apps\frontend
+> next dev
+
+   ▲ Next.js 15.5.20
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.1.31:3000
+   - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 3.6s
+ ○ Compiling / ...
+ ✓ Compiled / in 9.4s (721 modules)
+ GET / 200 in 11018ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 4.3s (989 modules)
+ GET /favicon.ico 200 in 4790ms
+ GET / 200 in 856ms
+ ○ Compiling /manifest.webmanifest ...
+ GET /api/auth/session 200 in 6054ms
+ ✓ Compiled /manifest.webmanifest in 771ms (979 modules)
+ GET /manifest.webmanifest 200 in 1040ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 628ms (984 modules)
+ GET /icon-192.png 404 in 1310ms
+ GET / 200 in 283ms
+ GET /favicon.ico 200 in 124ms
+ GET /api/auth/session 200 in 365ms
