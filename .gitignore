@@ -12,3 +12,5 @@ apps/*/node_modules/
 **/*.db
 
 *.tsbuildinfo
+.aider*
+.worktrees/
