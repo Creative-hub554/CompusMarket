@@ -6,6 +6,12 @@ interface RateLimitEntry {
   resetAt: number;
 }
 
+/**
+ * Simple in-memory rate limiter keyed by client IP.
+ *
+ * NOTE: The store is per-process. For multi-instance deployments use a shared
+ * store (e.g. Redis) instead.
+ */
 @Injectable()
 export class RateLimitGuard implements CanActivate {
   private store = new Map<string, RateLimitEntry>();
@@ -22,8 +28,18 @@ export class RateLimitGuard implements CanActivate {
     const key = request.ip || "unknown";
     const now = Date.now();
 
+    // Prune expired entries to prevent unbounded memory growth.
+    if (this.store.size > 0 && this.store.size % 100 === 0) {
+      for (const [k, entry] of this.store) {
+        if (now > entry.resetAt) this.store.delete(k);
+      }
+    } else {
+      const existing = this.store.get(key);
+      if (existing && now > existing.resetAt) this.store.delete(key);
+    }
+
     let entry = this.store.get(key);
-    if (!entry || now > entry.resetAt) {
+    if (!entry) {
       entry = { count: 0, resetAt: now + this.windowMs };
       this.store.set(key, entry);
     }

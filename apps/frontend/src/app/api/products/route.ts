@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
-import { prisma } from "@theo/database";
+import { prisma, ProductCondition } from "@theo/database";
 
 export async function POST(req: NextRequest) {
   const token = await getToken({ req });
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     }
 
     const price = parseFloat(body.price);
-    const stock = parseInt(body.stock || "1");
+    const stock = parseInt(body.stock || "1", 10);
     if (!body.name || !body.name.trim()) {
       return NextResponse.json({ error: "Product name is required" }, { status: 400 });
     }
@@ -42,15 +42,36 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Valid stock is required" }, { status: 400 });
     }
 
+    const validConditions = Object.values(ProductCondition) as string[];
+    if (!body.condition || !validConditions.includes(body.condition)) {
+      return NextResponse.json({ error: "Valid condition is required" }, { status: 400 });
+    }
+
+    if (typeof body.categoryId !== "string" || !body.categoryId.trim()) {
+      return NextResponse.json({ error: "Category is required" }, { status: 400 });
+    }
+
+    if (body.description !== undefined && typeof body.description !== "string") {
+      return NextResponse.json({ error: "Description must be a string" }, { status: 400 });
+    }
+    if (typeof body.description === "string" && body.description.length > 5000) {
+      return NextResponse.json({ error: "Description is too long (max 5000 characters)" }, { status: 400 });
+    }
+
+    const images = body.images ?? [];
+    if (!Array.isArray(images) || !images.every((img: unknown) => typeof img === "string")) {
+      return NextResponse.json({ error: "Images must be an array of strings" }, { status: 400 });
+    }
+
     const product = await prisma.product.create({
       data: {
         name: body.name.trim(),
         description: body.description,
         price,
         condition: body.condition,
-        categoryId: body.categoryId,
+        categoryId: body.categoryId.trim(),
         stock,
-        images: body.images || [],
+        images,
         sellerId: profile.id,
       },
       include: { category: true },

@@ -47,6 +47,19 @@ export async function POST(req: NextRequest) {
   const { sellerId, productId, message } = body;
   const pid = productId || null;
 
+  if (typeof sellerId !== "string" || !sellerId.trim()) {
+    return NextResponse.json({ error: "Seller is required" }, { status: 400 });
+  }
+
+  if (message !== undefined && message !== null) {
+    if (typeof message !== "string") {
+      return NextResponse.json({ error: "Message must be a string" }, { status: 400 });
+    }
+    if (message.trim().length > 2000) {
+      return NextResponse.json({ error: "Message is too long (max 2000 characters)" }, { status: 400 });
+    }
+  }
+
   const sellerProfile = await prisma.sellerProfile.findUnique({ where: { id: sellerId } });
   if (!sellerProfile) {
     return NextResponse.json({ error: "Seller not found" }, { status: 404 });

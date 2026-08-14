@@ -8,9 +8,13 @@ dist/
 .turbo/
 turbo
 apps/*/.env
+docker/.env
 apps/*/node_modules/
 **/*.db
 
 *.tsbuildinfo
 .aider*
 .worktrees/
+
+# deepwork state (git-local)
+.slim/deepwork/

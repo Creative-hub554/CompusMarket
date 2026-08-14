@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+
+env:
+  DATABASE_URL: "file:./dev.db"
+  NEXTAUTH_SECRET: "ci_dummy_secret"
+  AUTH_SECRET: "ci_dummy_secret"
+  JWT_SECRET: "ci_dummy_secret"
+  OPENAI_API_KEY: ""
+  MEILI_HOST: "http://localhost:7700"
+  MEILI_API_KEY: ""
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter @theo/database exec prisma generate
+
+      - name: Build
+        run: pnpm build
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm exec turbo run test

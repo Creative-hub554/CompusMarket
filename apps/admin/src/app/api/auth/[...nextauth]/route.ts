@@ -29,7 +29,8 @@ const handler = NextAuth({
           );
 
           if (!isValid) return null;
-          if (user.role === "CUSTOMER") return null;
+          // Only ADMIN and CONTENT_EDITOR may access the admin app.
+          if (user.role !== "ADMIN" && user.role !== "CONTENT_EDITOR") return null;
 
           return {
             id: user.id,

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
-import { prisma } from "@theo/database";
+import { prisma, SupportTicketStatus } from "@theo/database";
 
 export async function GET(
   req: NextRequest,
@@ -54,6 +54,11 @@ export async function PATCH(
 
   if (!status) {
     return NextResponse.json({ error: "Status is required" }, { status: 400 });
+  }
+
+  const validStatuses = Object.values(SupportTicketStatus) as string[];
+  if (!validStatuses.includes(status)) {
+    return NextResponse.json({ error: "Invalid status" }, { status: 400 });
   }
 
   const updated = await prisma.supportTicket.update({

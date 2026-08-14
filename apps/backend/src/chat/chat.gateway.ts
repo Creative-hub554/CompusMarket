@@ -1,3 +1,4 @@
+import { Logger } from "@nestjs/common";
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -15,19 +16,28 @@ if (!JWT_SECRET) {
   throw new Error("Missing JWT secret: set AUTH_SECRET or JWT_SECRET env var");
 }
 
+const MESSAGE_RATE_LIMIT = 20;
+const MESSAGE_RATE_WINDOW_MS = 60 * 1000;
+
 type AuthenticatedSocket = Socket & { userId?: string };
 
 @WebSocketGateway({
   cors: { origin: "*", credentials: true },
 })
 export class ChatGateway implements OnGatewayConnection {
+  private readonly logger = new Logger(ChatGateway.name);
+  private messageTimestamps = new Map<string, number[]>();
+
   constructor(private prisma: PrismaService) {}
 
   @WebSocketServer()
   server!: Server;
 
   handleConnection(client: Socket) {
-    const token = client.handshake.query.token as string;
+    // Prefer the token from handshake.auth; keep the query-string fallback
+    // for backward compatibility with older clients.
+    const authToken = (client.handshake.auth as { token?: string } | undefined)?.token;
+    const token = authToken || (client.handshake.query.token as string | undefined);
     if (!token) {
       client.disconnect();
       return;
@@ -36,8 +46,23 @@ export class ChatGateway implements OnGatewayConnection {
       const payload = verify(token, JWT_SECRET!) as { sub: string };
       (client as AuthenticatedSocket).userId = payload.sub;
     } catch {
+      this.logger.warn("Rejected socket connection: invalid token");
       client.disconnect();
     }
+  }
+
+  private isRateLimited(userId: string): boolean {
+    const now = Date.now();
+    const timestamps = (this.messageTimestamps.get(userId) || []).filter(
+      (t) => now - t < MESSAGE_RATE_WINDOW_MS,
+    );
+    if (timestamps.length >= MESSAGE_RATE_LIMIT) {
+      this.messageTimestamps.set(userId, timestamps);
+      return true;
+    }
+    timestamps.push(now);
+    this.messageTimestamps.set(userId, timestamps);
+    return false;
   }
 
   @SubscribeMessage("joinConversation")
@@ -49,19 +74,17 @@ export class ChatGateway implements OnGatewayConnection {
       const userId = client.userId;
       if (!userId) return;
 
-      const conversation = await this.prisma.conversation.findUnique({
-        where: { id: data.conversationId },
-        include: { seller: { select: { id: true, userId: true } } },
+      const conversation = await this.prisma.conversation.findFirst({
+        where: {
+          id: data.conversationId,
+          OR: [{ buyerId: userId }, { seller: { userId } }],
+        },
       });
       if (!conversation) return;
 
-      const isBuyer = conversation.buyerId === userId;
-      const isSeller = conversation.seller.userId === userId;
-      if (!isBuyer && !isSeller) return;
-
       client.join(data.conversationId);
     } catch (err) {
-      console.error("ChatGateway error:", err);
+      this.logger.error("ChatGateway error:", err as Error);
     }
   }
 
@@ -74,15 +97,18 @@ export class ChatGateway implements OnGatewayConnection {
       const userId = client.userId;
       if (!userId || !data.content?.trim() || data.content.length > 5000) return;
 
-      const conversation = await this.prisma.conversation.findUnique({
-        where: { id: data.conversationId },
-        include: { seller: { select: { id: true, userId: true } } },
+      if (this.isRateLimited(userId)) {
+        client.emit("error", { message: "Message rate limit exceeded. Please slow down." });
+        return;
+      }
+
+      const conversation = await this.prisma.conversation.findFirst({
+        where: {
+          id: data.conversationId,
+          OR: [{ buyerId: userId }, { seller: { userId } }],
+        },
       });
       if (!conversation) return;
-
-      const isBuyer = conversation.buyerId === userId;
-      const isSeller = conversation.seller.userId === userId;
-      if (!isBuyer && !isSeller) return;
 
       const message = await this.prisma.message.create({
         data: {
@@ -99,7 +125,7 @@ export class ChatGateway implements OnGatewayConnection {
 
       this.server.to(data.conversationId).emit("newMessage", message);
     } catch (err) {
-      console.error("ChatGateway error:", err);
+      this.logger.error("ChatGateway error:", err as Error);
     }
   }
 
@@ -112,6 +138,15 @@ export class ChatGateway implements OnGatewayConnection {
       const userId = client.userId;
       if (!userId) return;
 
+      // Only participants of the conversation may mark its messages as read.
+      const conversation = await this.prisma.conversation.findFirst({
+        where: {
+          id: data.conversationId,
+          OR: [{ buyerId: userId }, { seller: { userId } }],
+        },
+      });
+      if (!conversation) return;
+
       await this.prisma.message.updateMany({
         where: {
           conversationId: data.conversationId,
@@ -123,7 +158,7 @@ export class ChatGateway implements OnGatewayConnection {
 
       this.server.to(data.conversationId).emit("messagesRead", { userId });
     } catch (err) {
-      console.error("ChatGateway error:", err);
+      this.logger.error("ChatGateway error:", err as Error);
     }
   }
 
@@ -149,7 +184,7 @@ export class ChatGateway implements OnGatewayConnection {
       const room = `support:${data.ticketId}`;
       client.join(room);
     } catch (err) {
-      console.error("ChatGateway error:", err);
+      this.logger.error("ChatGateway error:", err as Error);
     }
   }
 
@@ -161,6 +196,11 @@ export class ChatGateway implements OnGatewayConnection {
     try {
       const userId = client.userId;
       if (!userId || !data.content?.trim() || data.content.length > 5000) return;
+
+      if (this.isRateLimited(userId)) {
+        client.emit("error", { message: "Message rate limit exceeded. Please slow down." });
+        return;
+      }
 
       const ticket = await this.prisma.supportTicket.findUnique({
         where: { id: data.ticketId },
@@ -189,7 +229,7 @@ export class ChatGateway implements OnGatewayConnection {
       const room = `support:${data.ticketId}`;
       this.server.to(room).emit("newSupportMessage", message);
     } catch (err) {
-      console.error("ChatGateway error:", err);
+      this.logger.error("ChatGateway error:", err as Error);
     }
   }
 
@@ -201,6 +241,18 @@ export class ChatGateway implements OnGatewayConnection {
     try {
       const userId = client.userId;
       if (!userId) return;
+
+      // Only the ticket customer (or an admin) may mark its messages as read.
+      const user = await this.prisma.user.findUnique({ where: { id: userId } });
+      if (!user) return;
+
+      const ticket =
+        user.role === "ADMIN"
+          ? await this.prisma.supportTicket.findUnique({ where: { id: data.ticketId } })
+          : await this.prisma.supportTicket.findFirst({
+              where: { id: data.ticketId, customerId: userId },
+            });
+      if (!ticket) return;
 
       await this.prisma.supportMessage.updateMany({
         where: {
@@ -214,7 +266,7 @@ export class ChatGateway implements OnGatewayConnection {
       const room = `support:${data.ticketId}`;
       this.server.to(room).emit("supportMessagesRead", { userId, ticketId: data.ticketId });
     } catch (err) {
-      console.error("ChatGateway error:", err);
+      this.logger.error("ChatGateway error:", err as Error);
     }
   }
 }

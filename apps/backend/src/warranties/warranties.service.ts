@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { WarrantyStatus, WarrantyClaimStatus } from "@theo/database";
 import { CreateWarrantyDto } from "./dto/create-warranty.dto";
@@ -38,7 +38,7 @@ export class WarrantiesService {
     });
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, user?: { userId: string; role?: string }) {
     const warranty = await this.prisma.warranty.findUnique({
       where: { id },
       include: {
@@ -48,6 +48,10 @@ export class WarrantiesService {
       },
     });
     if (!warranty) throw new NotFoundException("Warranty not found");
+    // IDOR protection: non-admins may only view their own warranties.
+    if (user && user.role !== "ADMIN" && warranty.userId !== user.userId) {
+      throw new ForbiddenException("You do not have access to this warranty");
+    }
     return warranty;
   }
 
@@ -120,9 +124,12 @@ export class WarrantiesService {
     if (warranty.claimStatus !== WarrantyClaimStatus.PENDING) {
       throw new BadRequestException("Claim is not pending");
     }
+    // Revert to a claimable state so the customer can re-submit if still covered.
+    const status =
+      new Date() > warranty.endDate ? WarrantyStatus.EXPIRED : WarrantyStatus.ACTIVE;
     return this.prisma.warranty.update({
       where: { id },
-      data: { claimStatus: WarrantyClaimStatus.REJECTED },
+      data: { claimStatus: WarrantyClaimStatus.REJECTED, status },
     });
   }
 

@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { requireAdmin } from "@/lib/require-admin";
 import { prisma } from "@theo/database";
 
 export async function GET(req: NextRequest) {
-  const token = await getToken({ req });
-  if (token?.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const guard = await requireAdmin(req, ["ADMIN"]);
+  if (!guard.ok) return guard.response;
 
   const categories = await prisma.category.findMany({
     include: { _count: { select: { products: true } } },
@@ -17,10 +15,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const token = await getToken({ req });
-  if (token?.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const guard = await requireAdmin(req, ["ADMIN"]);
+  if (!guard.ok) return guard.response;
 
   let body;
   try {

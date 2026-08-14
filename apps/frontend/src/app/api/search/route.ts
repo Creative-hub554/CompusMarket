@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@theo/database";
+import { prisma, Prisma } from "@theo/database";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -8,18 +8,29 @@ export async function GET(req: NextRequest) {
   const minPrice = searchParams.get("minPrice");
   const maxPrice = searchParams.get("maxPrice");
 
-  const where: any = {
+  const where: Prisma.ProductWhereInput = {
     OR: [
-      { name: { contains: query } },
-      { description: { contains: query } },
+      { name: { contains: query, mode: "insensitive" } },
+      { description: { contains: query, mode: "insensitive" } },
     ],
   };
 
   if (categoryId) where.categoryId = categoryId;
-  if (minPrice || maxPrice) {
+
+  const min = minPrice !== null ? Number(minPrice) : NaN;
+  const max = maxPrice !== null ? Number(maxPrice) : NaN;
+
+  if (minPrice !== null && !Number.isFinite(min)) {
+    return NextResponse.json({ error: "Invalid minPrice" }, { status: 400 });
+  }
+  if (maxPrice !== null && !Number.isFinite(max)) {
+    return NextResponse.json({ error: "Invalid maxPrice" }, { status: 400 });
+  }
+
+  if (minPrice !== null || maxPrice !== null) {
     where.price = {};
-    if (minPrice) where.price.gte = Number(minPrice);
-    if (maxPrice) where.price.lte = Number(maxPrice);
+    if (minPrice !== null) where.price.gte = min;
+    if (maxPrice !== null) where.price.lte = max;
   }
 
   const products = await prisma.product.findMany({

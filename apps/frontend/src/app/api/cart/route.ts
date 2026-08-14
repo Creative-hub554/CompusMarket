@@ -29,6 +29,10 @@ export async function POST(req: NextRequest) {
   try { body = await req.json(); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
   const { productId, quantity = 1 } = body;
 
+  if (typeof quantity !== "number" || !Number.isInteger(quantity) || quantity <= 0 || quantity > 999) {
+    return NextResponse.json({ error: "Quantity must be a positive integer (1-999)" }, { status: 400 });
+  }
+
   const product = await prisma.product.findUnique({ where: { id: productId } });
   if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });
 
@@ -45,9 +49,10 @@ export async function POST(req: NextRequest) {
 
     let item;
     if (existing) {
+      const newQuantity = Math.min(existing.quantity + quantity, 999);
       item = await tx.cartItem.update({
         where: { id: existing.id },
-        data: { quantity: existing.quantity + quantity },
+        data: { quantity: newQuantity },
         include: { product: true },
       });
     } else {

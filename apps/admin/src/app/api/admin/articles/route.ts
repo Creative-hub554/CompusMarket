@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { requireAdmin } from "@/lib/require-admin";
 import { prisma } from "@theo/database";
 
 export async function GET(req: NextRequest) {
-  const token = await getToken({ req });
-  if (!token?.sub || (token.role !== "ADMIN" && token.role !== "CONTENT_EDITOR")) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const guard = await requireAdmin(req, ["ADMIN", "CONTENT_EDITOR"]);
+  if (!guard.ok) return guard.response;
 
   const articles = await prisma.article.findMany({
     orderBy: { createdAt: "desc" },
@@ -16,10 +14,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const token = await getToken({ req });
-  if (!token?.sub || (token.role !== "ADMIN" && token.role !== "CONTENT_EDITOR")) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const guard = await requireAdmin(req, ["ADMIN", "CONTENT_EDITOR"]);
+  if (!guard.ok) return guard.response;
 
   const body = await req.json();
   const article = await prisma.article.create({
@@ -30,7 +26,7 @@ export async function POST(req: NextRequest) {
       excerpt: body.excerpt || "",
       category: body.category,
       tags: body.tags || [],
-      authorId: token.sub,
+      authorId: guard.user.id,
     },
   });
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { requireAdmin } from "@/lib/require-admin";
 import OpenAI from "openai";
 
 function getClient(): OpenAI | null {
@@ -83,10 +83,8 @@ function mockArticle(topic: string, category: string, lang: string): { title: st
 }
 
 export async function POST(req: NextRequest) {
-  const token = await getToken({ req });
-  if (!token || token.role !== "ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const guard = await requireAdmin(req, ["ADMIN"]);
+  if (!guard.ok) return guard.response;
 
   const body = await req.json();
   const { action, data } = body;

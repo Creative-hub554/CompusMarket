@@ -94,13 +94,33 @@ export class QuizzesService {
 
   // ── Attempts ──
 
+  private sanitizeQuestion<T extends { correctAnswer: string }>(q: T): Omit<T, "correctAnswer"> {
+    return Object.fromEntries(
+      Object.entries(q).filter(([key]) => key !== "correctAnswer"),
+    ) as Omit<T, "correctAnswer">;
+  }
+
   async startAttempt(quizId: string, userId: string) {
     const quiz = await this.prisma.quiz.findUnique({ where: { id: quizId }, include: { questions: { orderBy: { order: "asc" } } } });
     if (!quiz) throw new NotFoundException("Quiz not found");
-    return this.prisma.quizAttempt.create({
+    // IDOR protection: only the owner may attempt a private quiz.
+    if (!quiz.public && quiz.userId !== userId) throw new ForbiddenException();
+
+    const attempt = await this.prisma.quizAttempt.create({
       data: { quizId, userId },
       include: { quiz: { include: { questions: { orderBy: { order: "asc" } } } } },
     });
+
+    // Never leak the correctAnswer to the client while the attempt is running.
+    return {
+      ...attempt,
+      quiz: attempt.quiz
+        ? {
+            ...attempt.quiz,
+            questions: attempt.quiz.questions.map((q) => this.sanitizeQuestion(q)),
+          }
+        : attempt.quiz,
+    };
   }
 
   async submitAnswer(attemptId: string, userId: string, data: { questionId: string; answer: string }) {

@@ -11,11 +11,15 @@ export async function PATCH(
   const uid = token.sub as string;
 
   const { itemId } = await params;
+  if (!/^\d+$/.test(itemId)) {
+    return NextResponse.json({ error: "Invalid item id" }, { status: 400 });
+  }
+
   let body;
   try { body = await req.json(); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
-  const quantity = parseInt(body.quantity);
+  const quantity = parseInt(body.quantity, 10);
 
-  if (isNaN(quantity) || quantity < 0) {
+  if (isNaN(quantity) || quantity < 0 || quantity > 999) {
     return NextResponse.json({ error: "Invalid quantity" }, { status: 400 });
   }
 
@@ -50,6 +54,9 @@ export async function DELETE(
   const uid = token.sub as string;
 
   const { itemId } = await params;
+  if (!/^\d+$/.test(itemId)) {
+    return NextResponse.json({ error: "Invalid item id" }, { status: 400 });
+  }
 
   const cart = await prisma.cart.findUnique({ where: { userId: uid } });
   if (!cart) return NextResponse.json({ error: "Cart not found" }, { status: 404 });

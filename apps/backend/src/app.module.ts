@@ -1,6 +1,7 @@
-import { Module } from "@nestjs/common";
-import { MulterModule } from "@nestjs/platform-express";
+import { Module, APP_FILTER } from "@nestjs/common";
+import { MulterModule, memoryStorage } from "@nestjs/platform-express";
 import { PrismaModule } from "./prisma/prisma.module";
+import { PrismaExceptionFilter } from "./common/prisma-exception.filter";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { AuthModule } from "./auth/auth.module";
@@ -24,7 +25,7 @@ import { HealthModule } from "./health/health.module";
 
 @Module({
   imports: [
-    MulterModule.register({ dest: "./uploads" }),
+    MulterModule.register({ storage: memoryStorage() }),
     PrismaModule,
     AuthModule,
     ProductsModule,
@@ -46,6 +47,9 @@ SearchModule,
     HealthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    { provide: APP_FILTER, useClass: PrismaExceptionFilter },
+  ],
 })
 export class AppModule {}

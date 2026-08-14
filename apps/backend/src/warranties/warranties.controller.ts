@@ -50,8 +50,9 @@ export class WarrantiesController {
 
   @Get(":id")
   @UseGuards(AuthGuard("jwt"))
-  findOne(@Param("id") id: string) {
-    return this.warrantiesService.findOne(id);
+  findOne(@Param("id") id: string, @Req() req: Request) {
+    const user = req.user as { userId: string; role: string };
+    return this.warrantiesService.findOne(id, user);
   }
 
   @Get("product/:productId")

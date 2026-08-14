@@ -65,13 +65,13 @@ export class QuizzesController {
     return this.quizzesService.completeAttempt(attemptId, req.user.userId);
   }
 
-  @Get(":quizId/attempts")
-  getAttempts(@Req() req: { user: { userId: string } }, @Param("quizId") quizId: string) {
-    return this.quizzesService.getAttempts(quizId, req.user.userId);
-  }
-
   @Get("my/attempts")
   getMyAttempts(@Req() req: { user: { userId: string } }) {
     return this.quizzesService.getMyAttempts(req.user.userId);
+  }
+
+  @Get(":quizId/attempts")
+  getAttempts(@Req() req: { user: { userId: string } }, @Param("quizId") quizId: string) {
+    return this.quizzesService.getAttempts(quizId, req.user.userId);
   }
 }

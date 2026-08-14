@@ -5,14 +5,13 @@ const BUCKET = process.env.MINIO_BUCKET || "khmeronlineshopbytheo";
 
 @Injectable()
 export class MinioService implements OnModuleInit {
-  private client: Minio.Client;
+  private client: Minio.Client | null = null;
+  private ready = false;
 
-  constructor() {
-    if (!process.env.MINIO_ACCESS_KEY) {
-      throw new Error("Missing required env var: MINIO_ACCESS_KEY");
-    }
-    if (!process.env.MINIO_SECRET_KEY) {
-      throw new Error("Missing required env var: MINIO_SECRET_KEY");
+  async onModuleInit() {
+    if (!process.env.MINIO_ACCESS_KEY || !process.env.MINIO_SECRET_KEY) {
+      // MinIO is optional for local dev (SQLite-only). Uploads fail with a clear error.
+      return;
     }
     this.client = new Minio.Client({
       endPoint: process.env.MINIO_ENDPOINT || "localhost",
@@ -21,16 +20,14 @@ export class MinioService implements OnModuleInit {
       accessKey: process.env.MINIO_ACCESS_KEY,
       secretKey: process.env.MINIO_SECRET_KEY,
     });
-  }
-
-  async onModuleInit() {
     try {
       const exists = await this.client.bucketExists(BUCKET);
       if (!exists) {
         await this.client.makeBucket(BUCKET);
       }
+      this.ready = true;
     } catch {
-      // MinIO not available - skip. Image upload will fail with a clear error.
+      // MinIO not reachable - uploads will fail with a clear error when attempted.
     }
   }
 
@@ -39,14 +36,14 @@ export class MinioService implements OnModuleInit {
     filename: string,
     mimeType: string
   ): Promise<string> {
+    if (!this.client || !this.ready) {
+      throw new Error("Storage service unavailable");
+    }
     try {
-      await this.client.putObject(
-        BUCKET,
-        filename,
-        buffer,
-        buffer.length,
-        { "Content-Type": mimeType }
-      );
+      await this.client.putObject(BUCKET, filename, buffer, buffer.length, {
+        "Content-Type": mimeType,
+        "Content-Disposition": "attachment",
+      });
       return filename;
     } catch {
       throw new Error("Storage service unavailable");
@@ -54,12 +51,16 @@ export class MinioService implements OnModuleInit {
   }
 
   async deleteFile(filename: string): Promise<void> {
+    if (!this.client || !this.ready) {
+      throw new Error("Storage service unavailable");
+    }
     await this.client.removeObject(BUCKET, filename);
   }
 
   getFileUrl(filename: string): string {
     const endpoint = process.env.MINIO_ENDPOINT || "localhost";
     const port = process.env.MINIO_PORT || "9000";
-    return `http://${endpoint}:${port}/${BUCKET}/${filename}`;
+    const scheme = process.env.MINIO_USE_SSL === "true" ? "https" : "http";
+    return `${scheme}://${endpoint}:${port}/${BUCKET}/${filename}`;
   }
 }

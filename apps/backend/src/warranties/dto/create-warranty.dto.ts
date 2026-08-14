@@ -1,4 +1,4 @@
-import { IsString, IsInt, Min } from "class-validator";
+import { IsString, IsInt, Min, IsISO8601 } from "class-validator";
 
 export class CreateWarrantyDto {
   @IsString()
@@ -14,6 +14,6 @@ export class CreateWarrantyDto {
   @Min(1)
   months!: number;
 
-  @IsString()
+  @IsISO8601()
   startDate!: string;
 }

@@ -1,6 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { SearchService } from "./search.service";
 import { PrismaService } from "../prisma/prisma.service";
+import { Prisma } from "@theo/database";
 
 const h = vi.hoisted(() => ({
   mockIndex: {
@@ -92,7 +93,7 @@ describe("SearchService", () => {
         id: "p-1",
         name: "Watch",
         description: "d",
-        price: 10,
+        price: new Prisma.Decimal("10.00"),
         condition: "A",
         status: "ACTIVE",
         categoryId: "c-1",
@@ -105,7 +106,12 @@ describe("SearchService", () => {
 
       expect(client().createIndex).toHaveBeenCalledWith("products", { primaryKey: "id" });
       expect(h.mockIndex.addDocuments).toHaveBeenCalledWith([
-        expect.objectContaining({ id: "p-1", name: "Watch", categoryName: "Watches" }),
+        expect.objectContaining({
+          id: "p-1",
+          name: "Watch",
+          categoryName: "Watches",
+          price: 10,
+        }),
       ]);
     });
   });
@@ -117,6 +123,28 @@ describe("SearchService", () => {
       });
       await service.removeFromIndex("p-1");
       expect(h.mockIndex.deleteDocument).toHaveBeenCalledWith("p-1");
+    });
+  });
+
+  describe("search", () => {
+    it("builds a Meilisearch filter with quoted categoryId and numeric price bounds", async () => {
+      client().getIndexes.mockResolvedValue({
+        results: [{ uid: "products", primaryKey: "id" }],
+      });
+      h.mockIndex.search.mockResolvedValue({ hits: [], estimatedTotalHits: 0 });
+
+      await service.search("watch", { categoryId: "c-1", minPrice: 5, maxPrice: 100 });
+
+      expect(h.mockIndex.search).toHaveBeenCalledWith(
+        "watch",
+        expect.objectContaining({
+          filter: [
+            'categoryId = "c-1"',
+            "price >= 5",
+            "price <= 100",
+          ],
+        })
+      );
     });
   });
 });

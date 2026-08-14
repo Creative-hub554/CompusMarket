@@ -79,7 +79,7 @@ export class SearchService implements OnModuleInit {
           id: product.id,
           name: product.name,
           description: product.description,
-          price: product.price,
+          price: Number(product.price),
           condition: product.condition,
           status: product.status,
           categoryId: product.categoryId,
@@ -116,7 +116,7 @@ export class SearchService implements OnModuleInit {
         id: p.id,
         name: p.name,
         description: p.description,
-        price: p.price,
+        price: Number(p.price),
         condition: p.condition,
         status: p.status,
         categoryId: p.categoryId,
@@ -138,9 +138,15 @@ export class SearchService implements OnModuleInit {
 
     try {
       const filterParts: string[] = [];
-      if (filters?.categoryId) filterParts.push(`categoryId = ${filters.categoryId}`);
-      if (filters?.minPrice !== undefined) filterParts.push(`price >= ${filters.minPrice}`);
-      if (filters?.maxPrice !== undefined) filterParts.push(`price <= ${filters.maxPrice}`);
+      if (filters?.categoryId) {
+        filterParts.push(`categoryId = "${filters.categoryId}"`);
+      }
+      if (filters?.minPrice !== undefined) {
+        filterParts.push(`price >= ${Number(filters.minPrice)}`);
+      }
+      if (filters?.maxPrice !== undefined) {
+        filterParts.push(`price <= ${Number(filters.maxPrice)}`);
+      }
 
       const result = await this.client!.index(INDEX_NAME).search(query, {
         limit: 20,

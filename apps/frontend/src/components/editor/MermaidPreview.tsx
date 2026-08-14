@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import mermaid from "mermaid";
 
-mermaid.initialize({ theme: "default", securityLevel: "loose" });
+mermaid.initialize({ theme: "default", securityLevel: "strict" });
 
 export function MermaidPreview({ code }: { code: string }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -13,7 +13,7 @@ export function MermaidPreview({ code }: { code: string }) {
   useEffect(() => {
     if (!ref.current || !code.trim()) return;
     setError(null);
-    mermaid.initialize({ theme: dark ? "dark" : "default", securityLevel: "loose" });
+    mermaid.initialize({ theme: dark ? "dark" : "default", securityLevel: "strict" });
     ref.current.innerHTML = "";
     const el = document.createElement("div");
     el.className = "mermaid";
