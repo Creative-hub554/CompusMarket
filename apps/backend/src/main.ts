@@ -27,7 +27,8 @@ async function bootstrap() {
 
   // Trust the first proxy hop so request.ip reflects the real client IP
   // (required for IP-based rate limiting behind a reverse proxy).
-  app.set("trust proxy", 1);
+  const httpAdapter = app.getHttpAdapter().getInstance();
+  httpAdapter.set("trust proxy", 1);
 
   app.use(helmet());
 

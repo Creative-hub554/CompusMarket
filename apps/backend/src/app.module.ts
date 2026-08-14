@@ -1,5 +1,7 @@
-import { Module, APP_FILTER } from "@nestjs/common";
-import { MulterModule, memoryStorage } from "@nestjs/platform-express";
+import { Module } from "@nestjs/common";
+import { APP_FILTER } from "@nestjs/core";
+import { MulterModule } from "@nestjs/platform-express";
+import { memoryStorage } from "multer";
 import { PrismaModule } from "./prisma/prisma.module";
 import { PrismaExceptionFilter } from "./common/prisma-exception.filter";
 import { AppController } from "./app.controller";
