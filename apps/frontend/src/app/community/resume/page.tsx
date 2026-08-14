@@ -7,6 +7,7 @@ import { sampleResume, emptyResume } from "@/components/resume/utils";
 import { getAllTemplates } from "@/components/resume/registry";
 import "@/components/resume/templates";
 import { AiResumeAssistant } from "@/components/ai/AiResumeAssistant";
+import { TranslationProvider } from "@/lib/useTranslation";
 import { useTranslations, useLocale } from "next-intl";
 import TemplateGallery from "@/components/resume/TemplateGallery";
 import DraggableList, { DragHandle } from "@/components/resume/DraggableList";
