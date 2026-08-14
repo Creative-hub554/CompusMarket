@@ -60,4 +60,14 @@ export class OrdersController {
   ) {
     return this.ordersService.updateStatus(id, dto.status);
   }
+
+  @Patch(":id/seller-status")
+  @UseGuards(AuthGuard("jwt"))
+  updateSellerStatus(
+    @Req() req: { user: { userId: string } },
+    @Param("id") id: string,
+    @Body() dto: UpdateOrderStatusDto
+  ) {
+    return this.ordersService.updateSellerStatus(id, req.user.userId, dto.status);
+  }
 }

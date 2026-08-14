@@ -1,8 +1,8 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { OrdersService } from "./orders.service";
 import { PrismaService } from "../prisma/prisma.service";
-import { BadRequestException, NotFoundException } from "@nestjs/common";
-import { OrderStatus } from "@theo/database";
+import { BadRequestException, NotFoundException, ForbiddenException } from "@nestjs/common";
+import { OrderStatus, OrderItemStatus } from "@theo/database";
 
 describe("OrdersService", () => {
   let service: OrdersService;
@@ -13,6 +13,8 @@ describe("OrdersService", () => {
       findMany: vi.fn(),
       update: vi.fn(),
     },
+    orderItem: { updateMany: vi.fn() },
+    sellerProfile: { findUnique: vi.fn() },
     cart: {
       findUnique: vi.fn(),
       deleteMany: vi.fn(),
@@ -84,6 +86,74 @@ describe("OrdersService", () => {
       await expect(service.updateStatus("o-1", OrderStatus.PROCESSING)).rejects.toBeInstanceOf(
         BadRequestException,
       );
+    });
+  });
+
+  describe("updateSellerStatus", () => {
+    it("ships an order the seller owns and marks their items SHIPPED", async () => {
+      mockPrisma.order.findUnique.mockResolvedValue({
+        id: "o-1",
+        status: OrderStatus.PROCESSING,
+        userId: "buyer-1",
+        items: [
+          { id: "oi-1", product: { sellerId: "s-1" } },
+          { id: "oi-2", product: { sellerId: "s-other" } },
+        ],
+      });
+      mockPrisma.sellerProfile.findUnique.mockResolvedValue({ id: "s-1" });
+      mockPrisma.order.update.mockResolvedValue({ id: "o-1", status: OrderStatus.SHIPPED });
+
+      const result = await service.updateSellerStatus("o-1", "seller-user-1", OrderStatus.SHIPPED);
+
+      expect(mockPrisma.orderItem.updateMany).toHaveBeenCalledWith({
+        where: { id: { in: ["oi-1"] } },
+        data: { status: OrderItemStatus.SHIPPED },
+      });
+      expect(result.status).toBe(OrderStatus.SHIPPED);
+    });
+
+    it("forbids a seller who owns no items in the order", async () => {
+      mockPrisma.order.findUnique.mockResolvedValue({
+        id: "o-1",
+        status: OrderStatus.PROCESSING,
+        userId: "buyer-1",
+        items: [{ id: "oi-1", product: { sellerId: "s-other" } }],
+      });
+      mockPrisma.sellerProfile.findUnique.mockResolvedValue({ id: "s-1" });
+
+      await expect(
+        service.updateSellerStatus("o-1", "seller-user-1", OrderStatus.SHIPPED),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+      expect(mockPrisma.order.update).not.toHaveBeenCalled();
+    });
+
+    it("forbids a user without a seller profile", async () => {
+      mockPrisma.order.findUnique.mockResolvedValue({
+        id: "o-1",
+        status: OrderStatus.PROCESSING,
+        userId: "buyer-1",
+        items: [{ id: "oi-1", product: { sellerId: "s-1" } }],
+      });
+      mockPrisma.sellerProfile.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.updateSellerStatus("o-1", "plain-user", OrderStatus.SHIPPED),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+    });
+
+    it("rejects an invalid seller transition", async () => {
+      mockPrisma.order.findUnique.mockResolvedValue({
+        id: "o-1",
+        status: OrderStatus.PENDING,
+        userId: "buyer-1",
+        items: [{ id: "oi-1", product: { sellerId: "s-1" } }],
+      });
+      mockPrisma.sellerProfile.findUnique.mockResolvedValue({ id: "s-1" });
+
+      await expect(
+        service.updateSellerStatus("o-1", "seller-user-1", OrderStatus.DELIVERED),
+      ).rejects.toBeInstanceOf(BadRequestException);
+      expect(mockPrisma.orderItem.updateMany).not.toHaveBeenCalled();
     });
   });
 });

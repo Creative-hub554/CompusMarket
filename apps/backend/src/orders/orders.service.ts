@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import { OrderStatus } from "@theo/database";
+import { OrderStatus, OrderItemStatus } from "@theo/database";
 
 const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   PENDING: [OrderStatus.PROCESSING, OrderStatus.CANCELLED],
@@ -128,6 +128,49 @@ export class OrdersService {
         `Invalid order status transition: ${order.status} -> ${status}`,
       );
     }
+    return this.prisma.order.update({
+      where: { id },
+      data: { status },
+      include: { items: { include: { product: true } } },
+    });
+  }
+
+  async updateSellerStatus(id: string, userId: string, status: OrderStatus) {
+    const order = await this.prisma.order.findUnique({
+      where: { id },
+      include: {
+        items: { include: { product: { select: { sellerId: true } } } },
+      },
+    });
+    if (!order) throw new NotFoundException("Order not found");
+
+    const profile = await this.prisma.sellerProfile.findUnique({ where: { userId } });
+    if (!profile) {
+      throw new ForbiddenException("A seller profile is required to fulfill orders");
+    }
+
+    const ownedItemIds = order.items
+      .filter((item) => item.product?.sellerId === profile.id)
+      .map((item) => item.id);
+    if (ownedItemIds.length === 0) {
+      throw new ForbiddenException("You do not sell any item in this order");
+    }
+
+    const allowed = ORDER_TRANSITIONS[order.status] ?? [];
+    if (!allowed.includes(status)) {
+      throw new BadRequestException(
+        `Invalid seller transition: ${order.status} -> ${status}`,
+      );
+    }
+
+    const itemStatus =
+      status === OrderStatus.DELIVERED ? OrderItemStatus.DELIVERED : OrderItemStatus.SHIPPED;
+
+    await this.prisma.orderItem.updateMany({
+      where: { id: { in: ownedItemIds } },
+      data: { status: itemStatus },
+    });
+
     return this.prisma.order.update({
       where: { id },
       data: { status },
