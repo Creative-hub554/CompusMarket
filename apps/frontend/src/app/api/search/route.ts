@@ -7,8 +7,10 @@ export async function GET(req: NextRequest) {
   const categoryId = searchParams.get("categoryId");
   const minPrice = searchParams.get("minPrice");
   const maxPrice = searchParams.get("maxPrice");
+  const inStock = searchParams.get("inStock") === "true";
 
   const where: Prisma.ProductWhereInput = {
+    status: "ACTIVE",
     OR: [
       { name: { contains: query, mode: "insensitive" } },
       { description: { contains: query, mode: "insensitive" } },
@@ -16,6 +18,7 @@ export async function GET(req: NextRequest) {
   };
 
   if (categoryId) where.categoryId = categoryId;
+  if (inStock) where.stock = { gt: 0 };
 
   const min = minPrice !== null ? Number(minPrice) : NaN;
   const max = maxPrice !== null ? Number(maxPrice) : NaN;

@@ -19,9 +19,9 @@ export class ProductsService {
     return this.generateQr(product.id);
   }
 
-  async findAll(): Promise<ProductWithCategory[]> {
+  async findAll(inStock?: boolean): Promise<ProductWithCategory[]> {
     return this.prisma.product.findMany({
-      where: { status: "ACTIVE" },
+      where: { status: "ACTIVE", ...(inStock ? { stock: { gt: 0 } } : {}) },
       include: { category: true },
       orderBy: { createdAt: "desc" },
     });
@@ -72,9 +72,13 @@ export class ProductsService {
     return product;
   }
 
-  async findByCategory(slug: string): Promise<ProductWithCategory[]> {
+  async findByCategory(slug: string, inStock?: boolean): Promise<ProductWithCategory[]> {
     return this.prisma.product.findMany({
-      where: { category: { slug }, status: "ACTIVE" },
+      where: {
+        category: { slug },
+        status: "ACTIVE",
+        ...(inStock ? { stock: { gt: 0 } } : {}),
+      },
       include: { category: true },
     });
   }

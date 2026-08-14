@@ -11,6 +11,8 @@ import {
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { ResumesService } from "./resumes.service";
+import { CreateResumeDto } from "./dto/create-resume.dto";
+import { UpdateResumeDto } from "./dto/update-resume.dto";
 
 @Controller("resumes")
 @UseGuards(AuthGuard("jwt"))
@@ -20,7 +22,7 @@ export class ResumesController {
   @Post()
   create(
     @Req() req: { user: { userId: string } },
-    @Body() body: { title: string; data: Record<string, unknown> }
+    @Body() body: CreateResumeDto
   ) {
     return this.resumesService.create(req.user.userId, body.title, body.data);
   }
@@ -42,7 +44,7 @@ export class ResumesController {
   update(
     @Req() req: { user: { userId: string } },
     @Param("id") id: string,
-    @Body() body: { title?: string; data?: Record<string, unknown> }
+    @Body() body: UpdateResumeDto
   ) {
     return this.resumesService.update(id, req.user.userId, body);
   }

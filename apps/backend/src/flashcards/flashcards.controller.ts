@@ -1,6 +1,11 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { FlashcardsService } from "./flashcards.service";
+import { CreateDeckDto } from "./dto/create-deck.dto";
+import { UpdateDeckDto } from "./dto/update-deck.dto";
+import { CreateCardDto } from "./dto/create-card.dto";
+import { UpdateCardDto } from "./dto/update-card.dto";
+import { ReviewCardDto } from "./dto/review-card.dto";
 
 @Controller("flashcards")
 @UseGuards(AuthGuard("jwt"))
@@ -9,7 +14,7 @@ export class FlashcardsController {
 
   // Decks
   @Post("decks")
-  createDeck(@Req() req: { user: { userId: string } }, @Body() body: { title: string; description?: string }) {
+  createDeck(@Req() req: { user: { userId: string } }, @Body() body: CreateDeckDto) {
     return this.flashcardsService.createDeck(req.user.userId, body);
   }
 
@@ -24,7 +29,7 @@ export class FlashcardsController {
   }
 
   @Patch("decks/:id")
-  updateDeck(@Req() req: { user: { userId: string } }, @Param("id") id: string, @Body() body: { title?: string; description?: string }) {
+  updateDeck(@Req() req: { user: { userId: string } }, @Param("id") id: string, @Body() body: UpdateDeckDto) {
     return this.flashcardsService.updateDeck(id, req.user.userId, body);
   }
 
@@ -35,12 +40,12 @@ export class FlashcardsController {
 
   // Cards
   @Post("decks/:deckId/cards")
-  createCard(@Req() req: { user: { userId: string } }, @Param("deckId") deckId: string, @Body() body: { front: string; back: string }) {
+  createCard(@Req() req: { user: { userId: string } }, @Param("deckId") deckId: string, @Body() body: CreateCardDto) {
     return this.flashcardsService.createCard(deckId, req.user.userId, body);
   }
 
   @Patch("cards/:id")
-  updateCard(@Req() req: { user: { userId: string } }, @Param("id") id: string, @Body() body: { front?: string; back?: string }) {
+  updateCard(@Req() req: { user: { userId: string } }, @Param("id") id: string, @Body() body: UpdateCardDto) {
     return this.flashcardsService.updateCard(id, req.user.userId, body);
   }
 
@@ -51,7 +56,7 @@ export class FlashcardsController {
 
   // Reviews
   @Post("cards/:id/review")
-  reviewCard(@Req() req: { user: { userId: string } }, @Param("id") id: string, @Body() body: { quality: number }) {
+  reviewCard(@Req() req: { user: { userId: string } }, @Param("id") id: string, @Body() body: ReviewCardDto) {
     return this.flashcardsService.reviewCard(id, req.user.userId, body.quality);
   }
 

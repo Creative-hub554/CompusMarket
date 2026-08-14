@@ -187,6 +187,8 @@ model Product {
 
   @@index([categoryId])
   @@index([sellerId])
+  @@index([status])
+  @@index([stock])
 }
 
 model Review {
@@ -218,6 +220,8 @@ model Resume {
   updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Article {
@@ -234,6 +238,8 @@ model Article {
   updatedAt DateTime @updatedAt
 
   author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([authorId])
 }
 
 model Cart {
@@ -430,6 +436,8 @@ model DocumentFolder {
 
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   documents Document[]
+
+  @@index([userId])
 }
 
 model Document {
@@ -443,6 +451,8 @@ model Document {
 
   user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   folder DocumentFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
 }
 
 // ── Diagram Creator (Mermaid) ──
@@ -457,6 +467,8 @@ model Diagram {
   updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 // ── Flashcard System (SM-2) ──

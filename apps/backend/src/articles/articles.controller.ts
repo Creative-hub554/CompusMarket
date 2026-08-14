@@ -13,6 +13,8 @@ import { RolesGuard } from "../auth/roles.guard";
 import { Roles } from "../auth/roles.decorator";
 import { ArticlesService } from "./articles.service";
 import { ArticleCategory } from "@theo/database";
+import { CreateArticleDto } from "./dto/create-article.dto";
+import { UpdateArticleDto } from "./dto/update-article.dto";
 
 @Controller("articles")
 export class ArticlesController {
@@ -23,15 +25,7 @@ export class ArticlesController {
   @Roles("ADMIN", "CONTENT_EDITOR")
   create(
     @Req() req: { user: { userId: string } },
-    @Body()
-    body: {
-      title: string;
-      slug: string;
-      content: string;
-      excerpt?: string;
-      category: ArticleCategory;
-      tags?: string[];
-    }
+    @Body() body: CreateArticleDto
   ) {
     return this.articlesService.create({
       ...body,
@@ -66,15 +60,7 @@ export class ArticlesController {
   @Roles("ADMIN", "CONTENT_EDITOR")
   update(
     @Param("id") id: string,
-    @Body()
-    body: Partial<{
-      title: string;
-      content: string;
-      excerpt: string;
-      category: ArticleCategory;
-      tags: string[];
-      published: boolean;
-    }>
+    @Body() body: UpdateArticleDto
   ) {
     return this.articlesService.update(id, body);
   }

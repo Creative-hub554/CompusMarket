@@ -5,6 +5,7 @@ import {
   Body,
   Patch,
   Param,
+  Query,
   Delete,
   UseGuards,
 } from "@nestjs/common";
@@ -27,8 +28,8 @@ export class ProductsController {
   }
 
   @Get()
-  findAll() {
-    return this.productsService.findAll();
+  findAll(@Query("inStock") inStock?: string) {
+    return this.productsService.findAll(inStock === "true");
   }
 
   @Get("admin/:id")
@@ -44,8 +45,8 @@ export class ProductsController {
   }
 
   @Get("category/:slug")
-  findByCategory(@Param("slug") slug: string) {
-    return this.productsService.findByCategory(slug);
+  findByCategory(@Param("slug") slug: string, @Query("inStock") inStock?: string) {
+    return this.productsService.findByCategory(slug, inStock === "true");
   }
 
   @Patch(":id")

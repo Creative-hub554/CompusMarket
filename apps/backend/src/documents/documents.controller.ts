@@ -1,6 +1,9 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { DocumentsService } from "./documents.service";
+import { CreateDocumentDto } from "./dto/create-document.dto";
+import { UpdateDocumentDto } from "./dto/update-document.dto";
+import { CreateFolderDto } from "./dto/create-folder.dto";
 
 @Controller("documents")
 @UseGuards(AuthGuard("jwt"))
@@ -8,7 +11,7 @@ export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
 
   @Post()
-  create(@Req() req: { user: { userId: string } }, @Body() body: { title: string; content?: string; folderId?: string }) {
+  create(@Req() req: { user: { userId: string } }, @Body() body: CreateDocumentDto) {
     return this.documentsService.create(req.user.userId, body);
   }
 
@@ -23,7 +26,7 @@ export class DocumentsController {
   }
 
   @Patch(":id")
-  update(@Req() req: { user: { userId: string } }, @Param("id") id: string, @Body() body: { title?: string; content?: string; folderId?: string | null }) {
+  update(@Req() req: { user: { userId: string } }, @Param("id") id: string, @Body() body: UpdateDocumentDto) {
     return this.documentsService.update(id, req.user.userId, body);
   }
 
@@ -34,7 +37,7 @@ export class DocumentsController {
 
   // Folders
   @Post("folders")
-  createFolder(@Req() req: { user: { userId: string } }, @Body() body: { name: string }) {
+  createFolder(@Req() req: { user: { userId: string } }, @Body() body: CreateFolderDto) {
     return this.documentsService.createFolder(req.user.userId, body.name);
   }
 

@@ -2,6 +2,14 @@ import { Injectable, NotFoundException, BadRequestException } from "@nestjs/comm
 import { PrismaService } from "../prisma/prisma.service";
 import { OrderStatus } from "@theo/database";
 
+const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+  PENDING: [OrderStatus.PROCESSING, OrderStatus.CANCELLED],
+  PROCESSING: [OrderStatus.SHIPPED, OrderStatus.CANCELLED],
+  SHIPPED: [OrderStatus.DELIVERED],
+  DELIVERED: [],
+  CANCELLED: [],
+};
+
 @Injectable()
 export class OrdersService {
   constructor(private prisma: PrismaService) {}
@@ -113,7 +121,13 @@ export class OrdersService {
   }
 
   async updateStatus(id: string, status: OrderStatus) {
-    await this.findOne(id);
+    const order = await this.findOne(id);
+    const allowed = ORDER_TRANSITIONS[order.status] ?? [];
+    if (!allowed.includes(status)) {
+      throw new BadRequestException(
+        `Invalid order status transition: ${order.status} -> ${status}`,
+      );
+    }
     return this.prisma.order.update({
       where: { id },
       data: { status },
