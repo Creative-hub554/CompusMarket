@@ -167,7 +167,7 @@ model Product {
   status         ProductStatus @default(ACTIVE)
   categoryId     String
   sellerId       String?
-  images         Json     @default("[]")
+  images         Json?
   qrCode         String?
   serialNumber   String?
   stock          Int      @default(1)
@@ -195,7 +195,7 @@ model Review {
   id          String   @id @default(uuid())
   rating      Int
   comment     String?
-  images      Json     @default("[]")
+  images      Json?
   userId      String
   productId   String
   orderItemId String   @unique
@@ -231,7 +231,7 @@ model Article {
   content   String
   excerpt   String?
   category  String
-  tags      Json     @default("[]")
+  tags      Json?
   published Boolean  @default(false)
   authorId  String
   createdAt DateTime @default(now())
@@ -541,7 +541,7 @@ model QuizQuestion {
   quizId        String
   type          QuestionType @default(MULTIPLE_CHOICE)
   question      String
-  options       Json         @default("[]")
+  options       Json?
   correctAnswer String
   points        Int          @default(1)
   order         Int          @default(0)
@@ -592,7 +592,7 @@ model Note {
   userId    String
   title     String
   content   String
-  tags      Json     @default("[]")
+  tags      Json?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

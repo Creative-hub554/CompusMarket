@@ -14,7 +14,7 @@ export class ArticlesService {
     tags?: string[];
     authorId: string;
   }) {
-    return this.prisma.article.create({ data });
+    return this.prisma.article.create({ data: { ...data, tags: data.tags ?? [] } });
   }
 
   async findAllPublished() {

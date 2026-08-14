@@ -14,7 +14,9 @@ export class ProductsService {
   constructor(private readonly searchService: SearchService, private prisma: PrismaService) {}
 
   async create(dto: CreateProductDto): Promise<Product> {
-    const product = await this.prisma.product.create({ data: dto });
+    const product = await this.prisma.product.create({
+      data: { ...dto, images: dto.images ?? [] },
+    });
     await this.searchService.indexProduct(product.id);
     return this.generateQr(product.id);
   }
