@@ -70,6 +70,17 @@ const km: Translations = {
     skillsComma: "ជំនាញ (បំបែកដោយសញ្ញាក្បៀស)",
     experiencePlaceholder: "ពិពណ៌នាសង្ខេបអំពីបទពិសោធន៍ពាក់ព័ន្ធរបស់អ្នក...",
   },
+  aiAssistant: {
+    title: "AI Assistant",
+    greeting: "How can I help you?",
+    inputPlaceholder: "Ask me anything about products or careers...",
+    welcome: "Chat with our AI assistant about products or careers.",
+    error: "Sorry, something went wrong. Please try again.",
+    en: "EN",
+    zh: "中文",
+    km: "ខ្មែរ",
+  },
 };
 
 export default km;
+export type Translations = typeof km;

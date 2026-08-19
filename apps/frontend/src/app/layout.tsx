@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { Nav } from "@/components/Nav";
 import SessionWrapper from "@/components/SessionWrapper";
+import { AiAssistant } from "@/components/ai/AiAssistant";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -44,6 +45,7 @@ export default async function RootLayout({
           <NextIntlClientProvider locale={locale} messages={messages}>
             <Nav />
             <main>{children}</main>
+            <AiAssistant />
           </NextIntlClientProvider>
         </SessionWrapper>
       </body>

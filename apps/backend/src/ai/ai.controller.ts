@@ -4,15 +4,39 @@ import { AuthGuard } from "@nestjs/passport";
 import { RolesGuard } from "../auth/roles.guard";
 import { Roles } from "../auth/roles.decorator";
 import { RateLimitGuard } from "../common/rate-limit.guard";
-import { DescribeProductDto } from "./dto/describe-product.dto";
-import { ImproveSummaryDto } from "./dto/improve-summary.dto";
-import { ImproveExperienceDto } from "./dto/improve-experience.dto";
-import { CoverLetterDto } from "./dto/cover-letter.dto";
+import { CreateAssistantProductDto } from "./dto/create-assistant-product.dto";
+import { CreateAssistantCareerDto } from "./dto/create-assistant-career.dto";
 
 @Controller("ai")
 @UseGuards(new RateLimitGuard(20, 60))
 export class AiController {
   constructor(private readonly aiService: AiService) {}
+
+  @Post("assistant/products")
+  @UseGuards(AuthGuard("jwt"))
+  async assistantProducts(
+    @Body() body: CreateAssistantProductDto
+  ) {
+    const { message, lang } = body;
+    const spec = await this.aiService.extractSearchSpec(message, lang);
+    if (spec) {
+      const reply = await this.aiService.generateAssistantResponse(message, lang);
+      return { reply, searchSpec: spec };
+    } else {
+      const reply = await this.aiService.generateAssistantResponse(message, lang);
+      return { reply };
+    }
+  }
+
+  @Post("assistant/careers")
+  @UseGuards(AuthGuard("jwt"))
+  async assistantCareers(
+    @Body() body: CreateAssistantCareerDto
+  ) {
+    const { message, lang } = body;
+    const result = await this.aiService.extractCareerMatch(message, lang);
+    return result;
+  }
 
   @Post("describe-product")
   @UseGuards(AuthGuard("jwt"), RolesGuard)

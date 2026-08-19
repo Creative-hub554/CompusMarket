@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { api } from "@/services/api";
 import type { Article as ApiArticle } from "@/services/api";
 import { filterArticlesByCategory } from "@/lib/articleFilter";
+import { JobMatcher } from "@/components/ai/JobMatcher";
 
 export const dynamic = "force-dynamic";
 
@@ -61,6 +62,8 @@ export default async function CareersPage({
         </aside>
 
         <div className="flex-1">
+          <JobMatcher />
+
           {articles.length === 0 ? (
             <p className="text-slate-500 text-center py-16">
               {t("noArticles")}
@@ -96,3 +99,4 @@ export default async function CareersPage({
     </div>
   );
 }
+

@@ -13,10 +13,23 @@ pnpm --filter frontend dev             # Next.js :3000
 pnpm --filter admin dev --port 3001    # Next.js admin :3001
 
 # Per-package (run from the package directory)
-npx vitest run                         # unit tests
+npx vitest run                         # unit tests (backend excludes *.e2e-spec.ts)
+npx vitest run --config vitest.e2e.config.ts   # backend e2e specs (separate config, 30s timeout)
 npx tsc --noEmit                       # typecheck
 npx eslint .                           # lint
 ```
+
+## Environment setup for AI services
+
+Set these in `apps/backend/.env` (copy from `.env.example`):
+
+- `OPENROUTER_API_KEY="sk-or-..."`   # Optional; falls back to OPENAI_API_KEY
+- `AI_MODEL="openai/gpt-4o-mini"`      # OpenRouter model name (e.g. "openai/gpt-4o-mini", "meta-llama/llama-3.3-70b-instruct")
+- `AI_BASE_URL="https://openrouter.ai/api/v1"`  # Only needed when using OpenRouter
+
+If OPENROUTER_API_KEY is unset or blank, the backend will use `OPENAI_API_KEY` and the default OpenAI endpoints.
+
+The AI assistant endpoints respect the language query param (`en` / `zh` / `km`) for multilingual responses.
 
 Node and pnpm are **not always in PATH** on this Windows machine. If commands fail, prepend:
 ```powershell
@@ -36,7 +49,10 @@ The user's actual dev launcher is `start.bat` (run from the repo root): **Admin 
 | `packages/ui` | Shared components, `@theo/ui`                       |
 | `packages/config` | Placeholder package (strict `tsconfig.json` only). Not referenced by any app. Each app defines its own `tsconfig.json` and `eslint.config.mjs` (ESLint 9 flat config) |
 
-Workspace import alias: `@theo/database` (from `packages/database`), `@theo/ui` (from `packages/ui`).
+Workspace import alias: `@theo/database` (from `packages/database`), `@theo/ui` (from `packages/ui`). Both Next.js apps also alias `@` → `./src` in `tsconfig.json` and vitest config.
+
+- **Frontend is internationalized** with `next-intl` (`apps/frontend/messages/*.json` + `src/i18n/`, plugin wraps `next.config.ts`). New UI text must be added to the message files. Admin has no i18n.
+- **Backend wraps the Prisma client** in its own `PrismaService` (`apps/backend/src/prisma/`) — inject that in Nest services and tests; do not import `PrismaClient` directly.
 
 Backend modules in `apps/backend/src/` cover more than commerce: `auth`, `products`, `orders`, `cart`, `categories`, `search`, `upload`, `warranties`, plus `articles`, `resumes`, `ai`, `chat`, `notes`, `flashcards`, `quizzes`, `diagrams`, `documents`, `health`. Frontend pages live in `apps/frontend/src/app/`, admin pages in `apps/admin/src/app/admin/`.
 
@@ -70,7 +86,7 @@ Backend modules in `apps/backend/src/` cover more than commerce: `auth`, `produc
 
 - Conventional Commits (`fix:`, `feat:`, etc.).
 - Branches: `feature/*`, `fix/*`, `refactor/*`.
-- PRs require build passing and lint clean.
+- CI (`.github/workflows/ci.yml`, GitHub Actions, pnpm 9 + Node 20) runs `pnpm build` → `pnpm lint` → `pnpm exec turbo run test` on PRs and pushes to `main`/`develop`. Set dummy `AUTH_SECRET`/`JWT_SECRET`/`DATABASE_URL=file:./dev.db` env when running those steps locally.
 
 ## Stale docs
 

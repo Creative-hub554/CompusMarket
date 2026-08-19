@@ -7,12 +7,18 @@ export class AiService {
   private client: OpenAI | null = null;
 
   constructor() {
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (apiKey && apiKey !== "sk-your-openai-api-key-here") {
-      this.client = new OpenAI({ apiKey });
-      this.logger.log("OpenAI client initialized");
+    const openRouterKey = process.env.OPENROUTER_API_KEY;
+    const openaiKey = process.env.OPENAI_API_KEY;
+    const baseURL = process.env.AI_BASE_URL;
+    const model = process.env.AI_MODEL;
+
+    const apiKey = openRouterKey && openRouterKey !== "sk-your-openai-api-key-here" ? openRouterKey : (openaiKey && openaiKey !== "sk-your-openai-api-key-here" ? openaiKey : null);
+
+    if (apiKey) {
+      this.client = new OpenAI({ apiKey, baseURL: baseURL || undefined });
+      this.logger.log(`AI client initialized (model: ${model || 'default'}, baseURL: ${baseURL || 'default'})`);
     } else {
-      this.logger.warn("OpenAI API key not configured. AI features will return placeholder responses.");
+      this.logger.warn("No OpenRouter or OpenAI API key configured. AI features will return placeholder responses.");
     }
   }
 
@@ -20,144 +26,120 @@ export class AiService {
     return this.client !== null;
   }
 
-  async generateProductDescription(name: string, category: string, condition: string, keywords?: string) {
+  async generateAssistantResponse(message: string, lang: string = "en") {
     if (!this.isAvailable()) {
-      return this.mockResponse(`A quality ${condition} ${name} in great condition. Perfect for everyday use.`);
+      return this.mockResponse("I'm having trouble connecting to the AI service right now. Please try again later.");
     }
 
-    const prompt = `Generate a compelling product description for a second-hand electronics marketplace in Cambodia.
-Product: ${name}
-Category: ${category}
-Condition: ${condition}
-${keywords ? `Keywords to include: ${keywords}` : ""}
+    const prompt = `You are a helpful AI assistant for Khmer Online Shop. The user is asking: "${message}". 
 
-The description should be:
-- 2-3 sentences
-- Highlight value for money
-- Mention condition honestly
-- Sound trustworthy and professional
-- In English
-- No markdown, just plain text`;
+Respond in ${lang === "en" ? "English" : lang === "km" ? "Khmer" : "Chinese"} with a friendly tone, helpful and concise.
+
+If the user's message is about product search, extract relevant details and suggest what they might be looking for.
+
+If the user's message is about careers/job matching, guide them to relevant career articles and suggest they create a resume if they don't have one.
+
+Keep your response practical and focused on Khmer Online Shop. Respond in plain text without markdown.`;
 
     try {
       const response = await this.client!.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: process.env.AI_MODEL || "openai/gpt-4o-mini",
         messages: [{ role: "user", content: prompt }],
-        max_tokens: 200,
+        max_tokens: 300,
         temperature: 0.7,
       });
       return response.choices[0]?.message?.content || "";
     } catch (e) {
       this.logger.error("OpenAI API error", e);
-      return this.mockResponse(`High-quality ${condition} ${name} available. Fully tested and working. Great value for budget-conscious buyers.`);
+      return this.mockResponse("I'm unable to provide a detailed response right now. Please try again later.");
     }
   }
 
-  async improveResumeSummary(summary: string, targetRole?: string) {
+  async extractSearchSpec(userMessage: string, lang: string = "en") {
     if (!this.isAvailable()) {
-      return this.mockResponse(summary || "Experienced professional seeking new opportunities.");
+      return null;
     }
 
-    const prompt = `Improve this resume summary for a job seeker in Cambodia${targetRole ? ` targeting a ${targetRole} role` : ""}.
+    const prompt = `You are an AI assistant that extracts search specifications from user queries for a product marketplace.
 
-Original: "${summary}"
+Given a user message in ${lang === "en" ? "English" : lang === "km" ? "Khmer" : "Chinese"}: "${userMessage}"
 
-Requirements:
-- Professional but natural tone
-- 2-3 sentences
-- Highlight key strengths
-- Keep it concise
-- Plain text only
-- Suitable for Cambodian job market`;
+Extract the following information (return as JSON):
+- query: string (main search term, optional)
+- categoryId: string (category ID if mentioned, optional)
+- minPrice: number (minimum price in USD if mentioned, optional)
+- maxPrice: number (maximum price in USD if mentioned, optional)
+- condition: string (product condition like 'A', 'B', 'C' if mentioned, optional)
+
+Only include fields that are clearly present in the user's message. If no search-related intent is detected, return null.
+
+Return only valid JSON.`;
 
     try {
       const response = await this.client!.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: process.env.AI_MODEL || "openai/gpt-4o-mini",
         messages: [{ role: "user", content: prompt }],
         max_tokens: 200,
-        temperature: 0.7,
+        temperature: 0.2,
+        response_format: { type: "json_object" },
       });
-      return response.choices[0]?.message?.content || summary;
+
+      const raw = response.choices[0]?.message?.content || "";
+      try {
+        const parsed = JSON.parse(raw);
+        return parsed;
+      } catch {
+        return null;
+      }
     } catch (e) {
-      this.logger.error("OpenAI API error", e);
-      return summary;
+      this.logger.error("Failed to extract search spec", e);
+      return null;
     }
   }
 
-  async improveExperienceDescription(description: string, position: string, company: string) {
+  async extractCareerMatch(userMessage: string, lang: string = "en") {
     if (!this.isAvailable()) {
-      return this.mockResponse(description || `Worked at ${company} as ${position}.`);
+      return { needsResume: true, message: this.mockResponse("I'm having trouble accessing the AI service right now. Please try again later.") };
     }
 
-    const prompt = `Rewrite this work experience description to be more impactful for a Cambodian job application.
+    const prompt = `You are an AI career advisor. Given a user message in ${lang === "en" ? "English" : lang === "km" ? "Khmer" : "Chinese"}: "${userMessage}"
 
-Position: ${position}
-Company: ${company}
-Current description: "${description}"
+First, determine if the user has a resume (based on content, or if they mentioned not having one).
+If they have a resume, extract keywords like skills, target roles, experience, and suggest relevant career articles from the available categories.
+If they don't have a resume, provide guidance on creating one and suggest specific articles that can help with resume building.
 
-Requirements:
-- Start with strong action verbs
-- Include measurable achievements where possible
-- Professional tone
-- 2-3 bullet points format
-- Plain text only`;
+Return a JSON with:
+- needsResume: boolean (true if user doesn't have a resume or it's not clear)
+- message: string (in the same language) with career guidance
+- articleCategories: array of strings (like "RESUME_EXAMPLES", "JOB_SEARCH") that are relevant
+
+If they have a resume and you can extract skills/target roles, return:
+- needsResume: false
+- extractedSkills: array of skills (strings)
+- extractedTargetRoles: array of target roles (strings)
+- message: string with matching guidance
+
+Return only valid JSON.`;
 
     try {
       const response = await this.client!.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: process.env.AI_MODEL || "openai/gpt-4o-mini",
         messages: [{ role: "user", content: prompt }],
         max_tokens: 250,
         temperature: 0.7,
+        response_format: { type: "json_object" },
       });
-      return response.choices[0]?.message?.content || description;
+
+      const raw = response.choices[0]?.message?.content || "";
+      try {
+        const parsed = JSON.parse(raw);
+        return parsed;
+      } catch {
+        return { needsResume: true, message: this.mockResponse("I'm having trouble analyzing your message. Please try again later.") };
+      }
     } catch (e) {
-      this.logger.error("OpenAI API error", e);
-      return description;
-    }
-  }
-
-  async generateCoverLetter(
-    fullName: string,
-    targetRole: string,
-    company: string,
-    skills: string[],
-    experience: string,
-  ) {
-    if (!this.isAvailable()) {
-      return this.mockResponse(`Dear Hiring Manager,
-
-I am writing to express my interest in the ${targetRole} position at ${company}. With my skills in ${skills.slice(0, 3).join(", ")}, I believe I would be a great addition to your team.
-
-Sincerely,
-${fullName}`);
-    }
-
-    const prompt = `Write a professional cover letter for a job application in Cambodia.
-
-Applicant: ${fullName}
-Position: ${targetRole}
-Company: ${company}
-Key skills: ${skills.join(", ")}
-Relevant experience: ${experience}
-
-Requirements:
-- Formal but warm tone
-- 3-4 short paragraphs
-- Include greeting and closing
-- Plain text only
-- Suitable for Cambodian workplace culture`;
-
-    try {
-      const response = await this.client!.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 400,
-        temperature: 0.7,
-      });
-      return response.choices[0]?.message?.content || "";
-    } catch (e) {
-      this.logger.error("OpenAI API error", e);
-      return "Unable to generate cover letter at this time.";
+      this.logger.error("Failed to extract career match", e);
+      return { needsResume: true, message: this.mockResponse("I'm having trouble analyzing your message. Please try again later.") };
     }
   }
 

@@ -1,4 +1,6 @@
-const en = {
+import { Translations } from "./km";
+
+const en: Translations = {
   resume: {
     title: "Resume Builder",
     subtitle: "Build, save, and export professional resumes for free.",
@@ -67,6 +69,16 @@ const en = {
     companyName: "Company name",
     skillsComma: "Skills (comma-separated)",
     experiencePlaceholder: "Briefly describe your relevant experience...",
+  },
+  aiAssistant: {
+    title: "AI Assistant",
+    greeting: "How can I help you?",
+    inputPlaceholder: "Ask me anything about products or careers...",
+    welcome: "Chat with our AI assistant about products or careers.",
+    error: "Sorry, something went wrong. Please try again.",
+    en: "EN",
+    zh: "中文",
+    km: "ខ្មែរ",
   },
 };
 
