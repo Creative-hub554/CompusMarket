@@ -18,3 +18,10 @@ apps/*/node_modules/
 
 # deepwork state (git-local)
 .slim/deepwork/
+
+# local dev/test output logs (not source)
+run-*.txt
+apps/backend/test*.txt
+apps/backend/version.txt
+apps/backend/*-output.txt
+apps/frontend/*-output.txt
