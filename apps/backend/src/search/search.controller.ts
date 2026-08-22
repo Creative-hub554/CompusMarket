@@ -14,11 +14,13 @@ export class SearchController {
     @Query("categoryId") categoryId?: string,
     @Query("minPrice") minPrice?: string,
     @Query("maxPrice") maxPrice?: string,
+    @Query("condition") condition?: string,
   ) {
     return this.searchService.search(query || "", {
       categoryId,
       minPrice: minPrice ? Number(minPrice) : undefined,
       maxPrice: maxPrice ? Number(maxPrice) : undefined,
+      condition,
     });
   }
 

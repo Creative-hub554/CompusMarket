@@ -155,7 +155,7 @@ export class SearchService implements OnModuleInit {
       }
 
       const result = await this.client!.index(INDEX_NAME).search(query, {
-        limit: 20,
+        limit: 50,
         filter: filterParts.length > 0 ? filterParts : undefined,
       });
 
@@ -197,7 +197,7 @@ export class SearchService implements OnModuleInit {
       where,
       include: { category: true },
       orderBy: { createdAt: "desc" },
-      take: 20,
+      take: 50,
     });
 
     return {
@@ -205,7 +205,7 @@ export class SearchService implements OnModuleInit {
         id: p.id,
         name: p.name,
         description: p.description,
-        price: p.price,
+        price: Number(p.price),
         condition: p.condition,
         status: p.status,
         categoryId: p.categoryId,

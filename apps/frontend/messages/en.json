@@ -125,14 +125,26 @@
   },
   "market": {
     "title": "Marketplace",
-    "subtitle": "Browse shops from our trusted approved sellers",
+    "subtitle": "Search and filter products across our marketplace",
     "sellersCount": "{count} shops",
     "productsCount": "{count} products",
     "visitShop": "Visit shop",
     "personal": "Personal",
     "business": "Business",
     "emptyTitle": "No shops yet",
-    "emptyText": "Be the first — apply at the Seller Center!",
-    "becomeSeller": "Become a seller"
+    "emptyText": "Be the first - apply at the Seller Center!",
+    "becomeSeller": "Become a seller",
+    "searchPlaceholder": "Search products...",
+    "filterCategory": "Category",
+    "allCategories": "All categories",
+    "filterCondition": "Condition",
+    "allConditions": "Any condition",
+    "minPrice": "Min",
+    "maxPrice": "Max",
+    "priceRange": "Price",
+    "clearFilters": "Clear filters",
+    "resultsCount": "{count} results",
+    "noResults": "No products match your filters.",
+    "loading": "Loading..."
   }
 }

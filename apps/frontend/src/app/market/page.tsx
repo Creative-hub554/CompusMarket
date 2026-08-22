@@ -1,118 +1,249 @@
-import { prisma } from "@theo/database";
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getTranslations } from "next-intl/server";
+import { useTranslations } from "next-intl";
 
-export const dynamic = "force-dynamic";
+type SearchHit = {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  condition: string;
+  status: string;
+  categoryId: string;
+  categoryName: string;
+  images: string[];
+};
 
-export default async function MarketPage() {
-  const t = await getTranslations("market");
+type SearchResponse = {
+  hits: SearchHit[];
+  total: number;
+  query: string;
+  source: string;
+};
 
-  const sellers = await prisma.sellerProfile.findMany({
-    where: { verificationStatus: "APPROVED" },
-    include: {
-      user: { select: { name: true, email: true } },
-      _count: {
-        select: { products: { where: { status: "ACTIVE" } } },
-      },
-      products: {
-        where: { status: "ACTIVE" },
-        orderBy: { createdAt: "desc" },
-        take: 3,
-        select: { images: true },
-      },
-    },
-  });
+type Category = { id: string; name: string; slug: string };
 
-  sellers.sort((a, b) => b._count.products - a._count.products);
+const CONDITIONS = ["A", "B", "C"];
+
+function ProductResultCard({ hit }: { hit: SearchHit }) {
+  const tp = useTranslations("product");
+  const conditionLabels: Record<string, string> = {
+    A: tp("conditionA"),
+    B: tp("conditionB"),
+    C: tp("conditionC"),
+  };
+  const images = hit.images || [];
+  const conditionColors: Record<string, string> = {
+    A: "bg-green-100 text-green-800",
+    B: "bg-amber-100 text-amber-800",
+    C: "bg-orange-100 text-orange-800",
+  };
+
+  return (
+    <Link
+      href={`/shop/${hit.id}`}
+      className="card-hover group block rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm hover:border-indigo-300"
+    >
+      <div className="aspect-square w-full bg-slate-50 flex items-center justify-center overflow-hidden">
+        {images[0] ? (
+          <img
+            src={images[0]}
+            alt={hit.name}
+            className="h-full w-full object-contain group-hover:scale-110 transition-transform duration-500"
+          />
+        ) : (
+          <div className="text-slate-300 text-sm">No image</div>
+        )}
+      </div>
+      <div className="p-4 space-y-2">
+        <h3 className="font-semibold truncate">{hit.name}</h3>
+        <p className="text-xs text-slate-500">{hit.categoryName}</p>
+        <div className="flex items-center gap-2">
+          <span
+            className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+              conditionColors[hit.condition] || "bg-slate-100"
+            }`}
+          >
+            {conditionLabels[hit.condition] || hit.condition}
+          </span>
+        </div>
+        <p className="text-lg font-bold text-slate-900">
+          ${Number(hit.price).toLocaleString()}
+        </p>
+      </div>
+    </Link>
+  );
+}
+
+export default function MarketPage() {
+  const t = useTranslations("market");
+
+  const [q, setQ] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [condition, setCondition] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [hits, setHits] = useState<SearchHit[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/categories")
+      .then((r) => r.json())
+      .then((data: Category[]) => setCategories(Array.isArray(data) ? data : []))
+      .catch(() => setCategories([]));
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const handle = setTimeout(() => {
+      const params = new URLSearchParams();
+      if (q) params.set("q", q);
+      if (categoryId) params.set("categoryId", categoryId);
+      if (condition) params.set("condition", condition);
+      if (minPrice) params.set("minPrice", minPrice);
+      if (maxPrice) params.set("maxPrice", maxPrice);
+
+      setLoading(true);
+      fetch(`/api/search?${params.toString()}`, { signal: controller.signal })
+        .then((r) => r.json())
+        .then((data: SearchResponse) => {
+          setHits(data.hits || []);
+          setTotal(data.total || 0);
+        })
+        .catch(() => {})
+        .finally(() => setLoading(false));
+    }, 300);
+
+    return () => {
+      clearTimeout(handle);
+      controller.abort();
+    };
+  }, [q, categoryId, condition, minPrice, maxPrice]);
+
+  function clearFilters() {
+    setQ("");
+    setCategoryId("");
+    setCondition("");
+    setMinPrice("");
+    setMaxPrice("");
+  }
+
+  const hasFilters =
+    q || categoryId || condition || minPrice || maxPrice;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 animate-fade-in">
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="page-title">{t("title")}</h1>
         <p className="text-slate-500 mt-1">{t("subtitle")}</p>
       </div>
 
-      {sellers.length === 0 ? (
-        <div className="text-center py-16 border rounded-xl bg-white">
-          <h2 className="text-xl font-semibold mb-2">{t("emptyTitle")}</h2>
-          <p className="text-slate-500 mb-6">{t("emptyText")}</p>
-          <Link
-            href="/seller/apply"
-            className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2.5 rounded-lg transition-colors"
+      {/* Filter bar */}
+      <div className="rounded-xl border border-slate-200 bg-white p-4 mb-6 space-y-4">
+        <div className="flex flex-col md:flex-row gap-3">
+          <input
+            type="search"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder={t("searchPlaceholder")}
+            className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          />
+          <select
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm md:w-48"
           >
-            {t("becomeSeller")}
-          </Link>
+            <option value="">{t("allCategories")}</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          <select
+            value={condition}
+            onChange={(e) => setCondition(e.target.value)}
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm md:w-40"
+          >
+            <option value="">{t("allConditions")}</option>
+            {CONDITIONS.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="text-xs text-slate-500 flex flex-col gap-1">
+            {t("minPrice")}
+            <input
+              type="number"
+              min={0}
+              value={minPrice}
+              onChange={(e) => setMinPrice(e.target.value)}
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm w-28"
+            />
+          </label>
+          <label className="text-xs text-slate-500 flex flex-col gap-1">
+            {t("maxPrice")}
+            <input
+              type="number"
+              min={0}
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(e.target.value)}
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm w-28"
+            />
+          </label>
+          {hasFilters && (
+            <button
+              onClick={clearFilters}
+              className="text-sm text-indigo-600 hover:underline pb-2"
+            >
+              {t("clearFilters")}
+            </button>
+          )}
+        </div>
+      </div>
+
+      <p className="text-sm text-slate-400 mb-4">
+        {loading
+          ? t("loading")
+          : t("resultsCount", { count: total })}
+      </p>
+
+      {loading ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div
+              key={i}
+              className="rounded-xl border border-slate-200 bg-white h-64 animate-pulse"
+            />
+          ))}
+        </div>
+      ) : hits.length === 0 ? (
+        <div className="text-center py-16 border rounded-xl bg-white">
+          <p className="text-slate-500">{t("noResults")}</p>
+          {hasFilters && (
+            <button
+              onClick={clearFilters}
+              className="mt-4 inline-block text-indigo-600 hover:underline"
+            >
+              {t("clearFilters")}
+            </button>
+          )}
         </div>
       ) : (
-        <>
-          <p className="text-sm text-slate-400 mb-4">
-            {t("sellersCount", { count: sellers.length })}
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {sellers.map((seller) => (
-              <Link
-                key={seller.id}
-                href={`/seller/shop/${seller.userId}`}
-                className="group block border rounded-xl overflow-hidden bg-white hover:shadow-lg transition-shadow"
-              >
-                <div className="flex items-center gap-3 p-4 border-b bg-slate-50">
-                  <div className="w-11 h-11 rounded-full bg-khmer-blue text-white flex items-center justify-center font-bold shrink-0">
-                    {(seller.user.name || seller.user.email || "?")
-                      .charAt(0)
-                      .toUpperCase()}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h2 className="font-semibold truncate group-hover:text-indigo-600 transition-colors">
-                      {seller.user.name || seller.user.email}
-                    </h2>
-                    <span
-                      className={`inline-block text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded ${
-                        seller.accountType === "BUSINESS"
-                          ? "bg-amber-100 text-amber-700"
-                          : "bg-slate-200 text-slate-600"
-                      }`}
-                    >
-                      {seller.accountType === "BUSINESS"
-                        ? t("business")
-                        : t("personal")}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="px-4 py-3">
-                  <p className="text-xs text-slate-500">
-                    {t("productsCount", { count: seller._count.products })}
-                    {seller.address ? ` · ${seller.address}` : ""}
-                  </p>
-                  {seller.products.length > 0 && (
-                    <div className="flex gap-2 mt-3">
-                      {seller.products.map((product, i) => {
-                        const images = (product.images as string[]) || [];
-                        return (
-                          <div
-                            key={i}
-                            className="w-14 h-14 rounded-lg bg-slate-100 overflow-hidden"
-                          >
-                            {images[0] ? (
-                              <img
-                                src={images[0]}
-                                alt=""
-                                className="w-full h-full object-cover"
-                              />
-                            ) : null}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                  <span className="inline-block mt-3 text-sm font-medium text-indigo-600 group-hover:text-indigo-700">
-                    {t("visitShop")} →
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {hits.map((hit) => (
+            <ProductResultCard key={hit.id} hit={hit} />
+          ))}
+        </div>
       )}
     </div>
   );
