@@ -14,7 +14,7 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   {
-    ignores: ["dist/**", "node_modules/**", "coverage/**", "*.tsbuildinfo"],
+    ignores: ["dist/**", "node_modules/**", "coverage/**", "*.tsbuildinfo", "create-user.js"],
   },
   ...compat.extends("eslint:recommended", "plugin:@typescript-eslint/recommended"),
   {
