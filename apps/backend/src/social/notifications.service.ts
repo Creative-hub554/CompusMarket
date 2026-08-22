@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { NotificationKind } from "@theo/database";
 import { PrismaService } from "../prisma/prisma.service";
+import { notificationEvents, NOTIFICATION_CREATED } from "../realtime/notification.events";
 
 const AUTHOR_SELECT = { id: true, name: true, username: true, image: true };
 
@@ -16,7 +17,7 @@ export class NotificationsService {
     message?: string;
   }): Promise<void> {
     if (input.userId === input.actorId) return;
-    await this.prisma.notification.create({
+    const created = await this.prisma.notification.create({
       data: {
         userId: input.userId,
         actorId: input.actorId,
@@ -24,7 +25,9 @@ export class NotificationsService {
         entityId: input.entityId,
         message: input.message,
       },
+      include: { actor: { select: AUTHOR_SELECT } },
     });
+    notificationEvents.emit(NOTIFICATION_CREATED, created);
   }
 
   list(userId: string, limit = 30) {

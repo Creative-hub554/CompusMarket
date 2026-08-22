@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Avatar } from "./Avatar";
-import { timeAgo } from "@/lib/social";
+import { timeAgo, useAuthSocket } from "@/lib/social";
 
 type Notification = {
   id: string;
@@ -29,6 +29,7 @@ export function NotificationsBell() {
   const [items, setItems] = useState<Notification[]>([]);
   const [unread, setUnread] = useState(0);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const socketRef = useAuthSocket(session?.user?.id);
 
   const refresh = useCallback(() => {
     if (!session?.user?.id) return;
@@ -50,6 +51,19 @@ export function NotificationsBell() {
     const timer = setInterval(refresh, 45000);
     return () => clearInterval(timer);
   }, [session?.user?.id, refresh]);
+
+  useEffect(() => {
+    const socket = socketRef.current;
+    if (!socket) return;
+    const onNotification = (n: Notification) => {
+      setUnread((u) => u + 1);
+      setItems((prev) => [n, ...prev].slice(0, 30));
+    };
+    socket.on("notification", onNotification);
+    return () => {
+      socket.off("notification", onNotification);
+    };
+  }, [socketRef.current, session?.user?.id]);
 
   useEffect(() => {
     function onClick(e: MouseEvent) {

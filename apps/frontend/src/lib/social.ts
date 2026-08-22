@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
 export function useAuthSocket(userId: string | null | undefined) {
   const socketRef = useRef<Socket | null>(null);
+  const [, forceRender] = useState(0);
 
   useEffect(() => {
     if (!userId) return;
@@ -24,6 +25,7 @@ export function useAuthSocket(userId: string | null | undefined) {
           },
         );
         socketRef.current = socket;
+        forceRender((n) => n + 1);
       })
       .catch(() => {});
     return () => {

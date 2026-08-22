@@ -1,4 +1,4 @@
-import { Logger } from "@nestjs/common";
+import { Logger, OnModuleInit } from "@nestjs/common";
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -11,6 +11,7 @@ import {
 import { Server, Socket } from "socket.io";
 import { PrismaService } from "../prisma/prisma.service";
 import { NotificationsService } from "../social/notifications.service";
+import { notificationEvents, NOTIFICATION_CREATED } from "../realtime/notification.events";
 import { verify } from "jsonwebtoken";
 
 const JWT_SECRET = process.env.AUTH_SECRET || process.env.JWT_SECRET;
@@ -44,7 +45,7 @@ function sanitizeAttachments(input: unknown): { url: string; kind: string }[] | 
 @WebSocketGateway({
   cors: { origin: "*", credentials: true },
 })
-export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit {
   private readonly logger = new Logger(ChatGateway.name);
   private messageTimestamps = new Map<string, number[]>();
   private onlineUsers = new Map<string, Set<string>>();
@@ -53,6 +54,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private prisma: PrismaService,
     private notifications: NotificationsService
   ) {}
+
+  onModuleInit() {
+    notificationEvents.on(NOTIFICATION_CREATED, (n: { userId: string }) => {
+      this.emitToUser(n.userId, "notification", n);
+    });
+  }
+
+  onModuleDestroy() {
+    notificationEvents.removeAllListeners(NOTIFICATION_CREATED);
+  }
 
   @WebSocketServer()
   server!: Server;
@@ -216,11 +227,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           kind: "MESSAGE",
           entityId: data.threadId,
           message: content || "Sent an attachment",
-        });
-        this.emitToUser(p.userId, "notification", {
-          kind: "MESSAGE",
-          threadId: data.threadId,
-          from: userId,
         });
       }
     } catch (err) {
