@@ -25,7 +25,8 @@ const eslintConfig = [
   ...compat.extends("next/core-web-vitals"),
   {
     rules: {
-      "@next/next/no-img-element": "off",
+      // One intentional <img> remains (canvas/ref-based image processor).
+      "@next/next/no-img-element": "warn",
     },
   },
 ];

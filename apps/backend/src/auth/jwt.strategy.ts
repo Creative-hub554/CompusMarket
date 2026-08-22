@@ -1,18 +1,15 @@
 import { Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
+import { getAuthSecret } from "../common/config";
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor() {
-    const secret = process.env.AUTH_SECRET || process.env.JWT_SECRET;
-    if (!secret) {
-      throw new Error("Missing JWT secret: set AUTH_SECRET or JWT_SECRET env var");
-    }
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: secret,
+      secretOrKey: getAuthSecret(),
     });
   }
 

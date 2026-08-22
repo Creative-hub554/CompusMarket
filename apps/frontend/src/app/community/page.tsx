@@ -1,4 +1,12 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Community",
+  description:
+    "Free tools for the Khmer community: resume builder, documents, diagrams, flashcards, quizzes and more.",
+  alternates: { canonical: "/community" },
+};
 
 const tools = [
   {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import Image from "next/image";
 import { TemplateConfig } from "./types";
 import { sampleResume } from "./utils";
 
@@ -156,9 +157,12 @@ export default function TemplatePdfPreview({ config, onLoad }: Props) {
           Preview unavailable
         </div>
       ) : (
-        <img
+        <Image
           src={url}
           alt={config.name}
+          width={400}
+          height={566}
+          unoptimized
           style={{
             width: "100%", height: "100%", objectFit: "contain", borderRadius: 10,
             boxShadow: "0 4px 24px rgba(0,0,0,0.1)",

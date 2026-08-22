@@ -1,9 +1,34 @@
+import type { Metadata } from "next";
 import { api } from "@/services/api";
 import { notFound } from "next/navigation";
+import { languageAlternates } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ slug: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  try {
+    const article = await api.articles.bySlug(slug);
+    return {
+      title: article.title,
+      description: article.excerpt || article.content?.slice(0, 160),
+      alternates: {
+        canonical: `/community/careers/${slug}`,
+        languages: languageAlternates(`/community/careers/${slug}`),
+      },
+      openGraph: {
+        title: article.title,
+        description: article.excerpt || article.content?.slice(0, 160),
+        type: "article",
+        publishedTime: article.createdAt,
+      },
+    };
+  } catch {
+    return { title: "Article" };
+  }
+}
 
 export default async function ArticlePage({ params }: Props) {
   const { slug } = await params;

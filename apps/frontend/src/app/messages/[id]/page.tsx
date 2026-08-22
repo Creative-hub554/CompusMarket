@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import Link from "next/link";
+import Image from "next/image";
+import { Link } from "@/i18n/navigation";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Avatar } from "@/components/social/Avatar";
@@ -194,10 +195,12 @@ export default function ChatPage() {
                   <div className={`grid gap-1 mb-1 ${attachments.length > 1 ? "grid-cols-2" : ""}`}>
                     {attachments.map((a, i) =>
                       a.kind === "IMAGE" ? (
-                        <img
+                        <Image
                           key={i}
                           src={a.url}
                           alt="attachment"
+                          width={512}
+                          height={256}
                           className="rounded-lg max-h-64 w-full object-cover"
                         />
                       ) : (
@@ -235,7 +238,7 @@ export default function ChatPage() {
           {pending.map((a, i) => (
             <span key={i} className="relative">
               {a.kind === "IMAGE" ? (
-                <img src={a.url} alt="pending" className="h-14 w-14 rounded-lg object-cover" />
+                <Image src={a.url} alt="pending" width={56} height={56} unoptimized className="h-14 w-14 rounded-lg object-cover" />
               ) : (
                 <video src={a.url} className="h-14 w-14 rounded-lg object-cover" />
               )}

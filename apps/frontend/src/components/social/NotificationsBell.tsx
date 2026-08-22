@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useSession } from "next-auth/react";
 import { Avatar } from "./Avatar";
 import { timeAgo, useAuthSocket } from "@/lib/social";

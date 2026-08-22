@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { jobsApi, type JobType } from "@/services/jobs";

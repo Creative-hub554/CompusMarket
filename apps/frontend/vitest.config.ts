@@ -10,6 +10,13 @@ export default defineConfig({
     include: ["src/**/*.test.ts", "src/**/*.test.tsx", "src/**/*.spec.ts"],
     root: ".",
     setupFiles: ["./vitest.setup.ts"],
+    server: {
+      deps: {
+        // next-intl's ESM build imports "next/navigation" unresolvable from
+        // pnpm's isolated store unless Vite processes the package itself.
+        inline: ["next-intl"],
+      },
+    },
   },
   resolve: {
     alias: {

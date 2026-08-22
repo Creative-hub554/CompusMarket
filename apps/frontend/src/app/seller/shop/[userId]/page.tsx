@@ -1,5 +1,6 @@
 import { prisma } from "@theo/database";
-import Link from "next/link";
+import Image from "next/image";
+import { Link } from "@/i18n/navigation";
 
 export default async function SellerShopPage({
   params,
@@ -55,9 +56,11 @@ export default async function SellerShopPage({
             >
               <div className="aspect-square bg-slate-100">
                 {images[0] ? (
-                  <img
+                  <Image
                     src={images[0]}
                     alt={product.name}
+                    width={500}
+                    height={500}
                     className="w-full h-full object-cover"
                   />
                 ) : (

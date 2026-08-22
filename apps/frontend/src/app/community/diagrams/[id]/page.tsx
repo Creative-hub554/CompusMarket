@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
+import { Link } from "@/i18n/navigation";
 import { MermaidPreview } from "@/components/editor/MermaidPreview";
 import { useAuthedFetch } from "@/lib/useAuthedFetch";
 

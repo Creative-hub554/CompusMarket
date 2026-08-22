@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 export function Avatar({
   user,
   size = 40,
@@ -13,9 +15,11 @@ export function Avatar({
   return (
     <span className="relative inline-block shrink-0" style={{ width: size, height: size }}>
       {user.image ? (
-        <img
+        <Image
           src={user.image}
           alt={label}
+          width={size}
+          height={size}
           className="h-full w-full rounded-full object-cover"
         />
       ) : (

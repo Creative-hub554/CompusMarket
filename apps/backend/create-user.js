@@ -15,12 +15,12 @@ async function main() {
         where: { email },
         data: { passwordHash: hash, name: "Admin User", role: "ADMIN" },
       });
-      console.log("UPDATED: " + email + " / " + password);
+      console.log("UPDATED: " + email);
     } else {
       await prisma.user.create({
         data: { email, passwordHash: hash, name: "Admin User", role: "ADMIN" },
       });
-      console.log("CREATED: " + email + " / " + password);
+      console.log("CREATED: " + email);
     }
   } catch (e) {
     console.log("ERROR: " + e.message);

@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
+import { Link } from "@/i18n/navigation";
+import { useParams } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useSession } from "next-auth/react";
 import OrderItemTimeline from "@/components/OrderItemTimeline";
 
@@ -177,9 +179,11 @@ export default function SellerOrderDetailPage() {
             <div className="flex items-start gap-4 mb-3">
               <div className="w-16 h-16 bg-slate-100 rounded-lg overflow-hidden shrink-0">
                 {item.product.images?.[0] ? (
-                  <img
+                  <Image
                     src={item.product.images[0]}
                     alt=""
+                    width={64}
+                    height={64}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -267,10 +271,12 @@ export default function SellerOrderDetailPage() {
                 {item.feedback.images?.length > 0 && (
                   <div className="flex gap-2 mt-2">
                     {item.feedback.images.map((url: string, i: number) => (
-                      <img
+                      <Image
                         key={i}
                         src={url}
                         alt=""
+                        width={64}
+                        height={64}
                         className="w-16 h-16 object-cover rounded border"
                       />
                     ))}

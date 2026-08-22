@@ -1,5 +1,6 @@
 import type { Product } from "@/services/api";
-import Link from "next/link";
+import Image from "next/image";
+import { Link } from "@/i18n/navigation";
 import { getTranslations } from "next-intl/server";
 
 type Props = { product: Product };
@@ -25,9 +26,11 @@ export async function ProductCard({ product }: Props) {
     >
       <div className="aspect-square w-full bg-slate-50 flex items-center justify-center overflow-hidden">
         {images?.[0] ? (
-          <img
+          <Image
             src={images[0]}
             alt={product.name}
+            width={500}
+            height={500}
             className="h-full w-full object-contain group-hover:scale-110 transition-transform duration-500"
           />
         ) : (

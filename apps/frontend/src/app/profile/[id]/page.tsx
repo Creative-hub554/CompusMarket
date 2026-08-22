@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
+import Image from "next/image";
+import { Link } from "@/i18n/navigation";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Avatar } from "@/components/social/Avatar";
@@ -69,7 +70,7 @@ export default function ProfilePage() {
           }`}
         >
           {profile.coverImage && (
-            <img src={profile.coverImage} alt="" className="w-full h-full object-cover" />
+            <Image src={profile.coverImage} alt="" width={1200} height={400} className="w-full h-full object-cover" />
           )}
         </div>
         <div className="absolute -bottom-10 left-6 ring-4 ring-white rounded-full">

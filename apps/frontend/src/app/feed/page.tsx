@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useSession } from "next-auth/react";
 import { Composer } from "@/components/social/Composer";
 import { PostCard, FeedPost } from "@/components/social/PostCard";

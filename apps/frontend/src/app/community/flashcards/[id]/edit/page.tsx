@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useAuthedFetch } from "@/lib/useAuthedFetch";
 
 interface CardItem {

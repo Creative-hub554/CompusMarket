@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Link from "next/link";
+import Image from "next/image";
+import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 
 type SearchHit = {
@@ -110,9 +111,11 @@ export function SearchBar() {
               >
                 <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center text-xs text-gray-400 shrink-0">
                   {hit.images?.[0] ? (
-                    <img
+                    <Image
                       src={hit.images[0]}
                       alt=""
+                      width={40}
+                      height={40}
                       className="w-full h-full object-cover rounded"
                     />
                   ) : (

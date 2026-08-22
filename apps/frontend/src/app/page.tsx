@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { getTranslations } from "next-intl/server";
 import { api } from "@/services/api";
 
@@ -27,10 +27,10 @@ export default async function Home() {
               bytheo
             </p>
             <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-[1.1] mt-3">
-              Shop Khmer products with confidence.
+              {t("heroTitle")}
             </h1>
             <p className="text-white/70 mt-4 text-base md:text-lg font-light max-w-md">
-              Trusted sellers · 30-day warranty · support in Khmer
+              {t("heroTagline")}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
@@ -51,7 +51,7 @@ export default async function Home() {
             <div className="ml-auto rounded-2xl border border-white/20 bg-white/10 backdrop-blur w-full max-w-sm p-8 flex flex-col items-center justify-center gap-4 aspect-square">
               <span className="text-6xl">🛍️</span>
               <p className="text-white/80 text-sm text-center">
-                Phones · Fashion · Home · Food — from trusted Khmer sellers
+                {t("tilesCaption")}
               </p>
             </div>
           </div>

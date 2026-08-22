@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Avatar } from "./Avatar";
 import { uploadFile, useAuthSocket } from "@/lib/social";
 import { useSession } from "next-auth/react";
@@ -77,7 +78,7 @@ export function Composer({ onPosted }: { onPosted: (post: unknown) => void }) {
           {media.map((m, i) => (
             <span key={i} className="relative">
               {m.kind === "IMAGE" ? (
-                <img src={m.url} alt="" className="h-16 w-16 rounded-lg object-cover" />
+                <Image src={m.url} alt="" width={64} height={64} unoptimized className="h-16 w-16 rounded-lg object-cover" />
               ) : (
                 <video src={m.url} className="h-16 w-16 rounded-lg object-cover bg-black" />
               )}

@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useSession } from "next-auth/react";
 import { Avatar } from "@/components/social/Avatar";
 import { timeAgo, useAuthSocket } from "@/lib/social";

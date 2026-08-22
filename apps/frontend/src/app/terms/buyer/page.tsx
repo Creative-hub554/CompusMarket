@@ -1,3 +1,11 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Buyer Terms & Conditions",
+  description: "Terms and conditions for buyers on KHMERONLINESHOP.",
+  alternates: { canonical: "/terms/buyer" },
+};
+
 export default function BuyerTermsPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-12 animate-fade-in-up">

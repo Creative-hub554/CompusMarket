@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { Link } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useSession } from "next-auth/react";
 
 type SellerProduct = {
@@ -117,9 +118,11 @@ export default function SellerProductsPage() {
               className="flex items-center gap-4 border rounded-lg p-4 bg-white"
             >
               {product.images?.[0] ? (
-                <img
+                <Image
                   src={product.images[0]}
                   alt=""
+                  width={64}
+                  height={64}
                   className="h-16 w-16 rounded object-contain bg-slate-100"
                 />
               ) : (

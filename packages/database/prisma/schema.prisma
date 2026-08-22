@@ -113,6 +113,7 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime @updatedAt
 
+  refreshTokens    RefreshToken[]
   accounts         Account[]
   sessions         Session[]
   orders           Order[]
@@ -814,4 +815,17 @@ model JobApplication {
   @@unique([jobId, applicantId])
   @@index([jobId])
   @@index([applicantId])
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique
+  userId    String
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

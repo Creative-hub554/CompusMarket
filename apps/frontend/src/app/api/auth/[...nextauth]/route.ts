@@ -57,7 +57,12 @@ const handler = NextAuth({
       }
       const secret = process.env.AUTH_SECRET || process.env.JWT_SECRET || "";
       if (secret && token.sub) {
-        session.accessToken = jwt.sign({ sub: token.sub }, secret, { expiresIn: "30d" });
+        // Claims must mirror what the backend JwtStrategy.validate() reads.
+        session.accessToken = jwt.sign(
+          { sub: token.sub, email: token.email, role: token.role },
+          secret,
+          { expiresIn: "1h" }
+        );
       }
       return session;
     },

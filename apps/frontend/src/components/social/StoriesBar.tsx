@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { Avatar } from "./Avatar";
 import { uploadFile } from "@/lib/social";
 import { useSession } from "next-auth/react";
@@ -176,7 +177,7 @@ export function StoriesBar() {
               </span>
             </div>
             {currentStory.mediaKind === "IMAGE" ? (
-              <img src={currentStory.mediaUrl} alt="" className="max-h-[70vh] w-full object-contain rounded-xl" />
+              <Image src={currentStory.mediaUrl} alt="" width={800} height={600} className="max-h-[70vh] w-full object-contain rounded-xl" />
             ) : (
               <video
                 src={currentStory.mediaUrl}

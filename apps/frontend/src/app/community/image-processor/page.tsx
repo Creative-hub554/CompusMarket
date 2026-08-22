@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { removeBackground } from '@imgly/background-removal'
+import NextImage from "next/image"
 
 type Gender = 'male' | 'female'
 type EditorStep = 'upload' | 'edit'
@@ -167,6 +167,7 @@ export default function ImageProcessorPage() {
     setProcessingMsg('Loading AI model...')
     setError(null)
     try {
+      const { removeBackground } = await import('@imgly/background-removal')
       const blob = await removeBackground(file, {
         progress: (key: string, current: number, total: number) => {
           if (key === 'load-model') setProcessingMsg('Downloading AI model (first time may take a moment)...')
@@ -524,7 +525,7 @@ export default function ImageProcessorPage() {
             </div>
             <div className="p-5 flex justify-center">
               {previewUrl ? (
-                <img src={previewUrl} alt="Preview" className="w-full max-w-[240px] rounded-lg shadow-md" />
+                <NextImage src={previewUrl} alt="Preview" width={240} height={320} unoptimized className="w-full max-w-[240px] rounded-lg shadow-md" />
               ) : (
                 <div className="w-60 h-80 bg-slate-100 rounded-lg flex items-center justify-center text-sm text-slate-400">Generating preview...</div>
               )}

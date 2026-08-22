@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { io, Socket } from "socket.io-client";

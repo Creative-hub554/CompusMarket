@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { api } from "@/services/api";
 import type { Article as ApiArticle } from "@/services/api";
@@ -6,6 +7,12 @@ import { filterArticlesByCategory } from "@/lib/articleFilter";
 import { JobMatcher } from "@/components/ai/JobMatcher";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Careers",
+  description: "Career guides and articles from the KHMERONLINESHOP community.",
+  alternates: { canonical: "/community/careers" },
+};
 
 export default async function CareersPage({
   searchParams,

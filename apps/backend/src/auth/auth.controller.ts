@@ -3,6 +3,7 @@ import { AuthService } from "./auth.service";
 import { RateLimitGuard } from "../common/rate-limit.guard";
 import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
+import { RefreshTokenDto } from "./dto/refresh-token.dto";
 
 @Controller("auth")
 @UseGuards(new RateLimitGuard(10, 60))
@@ -18,5 +19,15 @@ export class AuthController {
   @Post("register")
   async register(@Body() dto: RegisterDto) {
     return this.authService.register(dto.email, dto.password, dto.name);
+  }
+
+  @Post("refresh")
+  async refresh(@Body() dto: RefreshTokenDto) {
+    return this.authService.refresh(dto.refreshToken);
+  }
+
+  @Post("logout")
+  async logout(@Body() dto: RefreshTokenDto) {
+    return this.authService.logout(dto.refreshToken);
   }
 }

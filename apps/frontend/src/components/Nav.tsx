@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { SearchBar } from "./SearchBar";

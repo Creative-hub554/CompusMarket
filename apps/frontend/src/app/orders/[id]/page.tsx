@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
+import Image from "next/image";
+import { Link } from "@/i18n/navigation";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import OrderItemTimeline from "@/components/OrderItemTimeline";
@@ -117,9 +118,11 @@ export default function OrderDetailPage() {
             <div className="flex items-start gap-4">
               <div className="h-16 w-16 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
                 {item.product.images?.[0] ? (
-                  <img
+                  <Image
                     src={item.product.images[0]}
                     alt={item.product.name}
+                    width={64}
+                    height={64}
                     className="h-full w-full object-contain"
                   />
                 ) : (
@@ -194,10 +197,12 @@ export default function OrderDetailPage() {
                 {item.feedback.images?.length > 0 && (
                   <div className="flex gap-2 mt-2">
                     {item.feedback.images.map((url: string, i: number) => (
-                      <img
+                      <Image
                         key={i}
                         src={url}
                         alt=""
+                        width={64}
+                        height={64}
                         className="w-16 h-16 object-cover rounded border"
                       />
                     ))}
@@ -314,10 +319,12 @@ function FeedbackForm({
           {images.length > 0 && (
             <div className="flex gap-1">
               {images.map((url, i) => (
-                <img
+                <Image
                   key={i}
                   src={url}
                   alt=""
+                  width={32}
+                  height={32}
                   className="w-8 h-8 object-cover rounded border"
                 />
               ))}

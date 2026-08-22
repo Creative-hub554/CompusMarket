@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import type { Product, Review } from "@/services/api";
 import { ReviewForm } from "./ReviewForm";
@@ -126,10 +127,12 @@ export function ProductTabs({ product }: { product: Product }) {
                   {review.images?.length > 0 && (
                     <div className="flex gap-2 mt-2">
                       {review.images.map((url, i) => (
-                        <img
+                        <Image
                           key={i}
                           src={url}
                           alt=""
+                          width={56}
+                          height={56}
                           className="w-14 h-14 object-cover rounded border"
                         />
                       ))}

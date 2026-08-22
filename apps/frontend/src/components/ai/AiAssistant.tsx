@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
+import Image from "next/image";
+import { Link } from "@/i18n/navigation";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "@/lib/useTranslation";
 import { useAuthedFetch } from "@/lib/useAuthedFetch";
@@ -216,7 +217,7 @@ export function AiAssistant() {
                       >
                         <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center shrink-0 overflow-hidden">
                           {product.image ? (
-                            <img src={product.image} alt="" className="w-full h-full object-cover" />
+                            <Image src={product.image} alt="" width={40} height={40} className="w-full h-full object-cover" />
                           ) : (
                             <span className="text-gray-400 text-xs">No img</span>
                           )}

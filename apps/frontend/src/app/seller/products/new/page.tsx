@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { Link } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useSession } from "next-auth/react";
 
 export default function SellerNewProductPage() {
@@ -229,9 +230,12 @@ export default function SellerNewProductPage() {
             <div className="flex gap-2 mt-2 flex-wrap">
               {images.map((url, i) => (
                 <div key={i} className="relative">
-                  <img
+                  <Image
                     src={url}
                     alt=""
+                    width={80}
+                    height={80}
+                    unoptimized
                     className="w-20 h-20 object-cover rounded border"
                   />
                   <button

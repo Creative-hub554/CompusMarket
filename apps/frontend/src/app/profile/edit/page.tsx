@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { Link } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useSession } from "next-auth/react";
 import { Avatar } from "@/components/social/Avatar";
 import { uploadFile } from "@/lib/social";
@@ -109,7 +110,7 @@ export default function EditProfilePage() {
             onChange={(e) => pickImage("coverImage", e.target.files)}
           />
           {me?.coverImage ? (
-            <img src={me.coverImage} alt="" className="w-full h-full object-cover group-hover:opacity-90" />
+            <Image src={me.coverImage} alt="" width={1200} height={400} unoptimized className="w-full h-full object-cover group-hover:opacity-90" />
           ) : (
             <span className="flex items-center justify-center w-full h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white text-sm font-medium group-hover:opacity-90">
               Change cover photo

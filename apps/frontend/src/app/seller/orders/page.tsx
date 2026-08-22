@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { Link } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useSession } from "next-auth/react";
 
 type OrderItem = {
@@ -112,9 +113,11 @@ export default function SellerOrdersPage() {
               <div className="flex items-start gap-4">
                 <div className="w-16 h-16 bg-slate-100 rounded-lg overflow-hidden shrink-0">
                   {item.product.images?.[0] ? (
-                    <img
+                    <Image
                       src={item.product.images[0]}
                       alt=""
+                      width={64}
+                      height={64}
                       className="w-full h-full object-cover"
                     />
                   ) : (

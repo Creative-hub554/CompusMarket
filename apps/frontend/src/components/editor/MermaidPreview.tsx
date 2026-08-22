@@ -1,9 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import mermaid from "mermaid";
+import type Mermaid from "mermaid";
 
-mermaid.initialize({ theme: "default", securityLevel: "strict" });
+let mermaidPromise: Promise<typeof Mermaid> | null = null;
+
+function loadMermaid() {
+  if (!mermaidPromise) {
+    mermaidPromise = import("mermaid").then((mod) => mod.default);
+  }
+  return mermaidPromise;
+}
 
 export function MermaidPreview({ code }: { code: string }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -11,17 +18,29 @@ export function MermaidPreview({ code }: { code: string }) {
   const [dark, setDark] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     if (!ref.current || !code.trim()) return;
     setError(null);
-    mermaid.initialize({ theme: dark ? "dark" : "default", securityLevel: "strict" });
-    ref.current.innerHTML = "";
-    const el = document.createElement("div");
-    el.className = "mermaid";
-    el.textContent = code;
-    ref.current.appendChild(el);
-    mermaid.run({ nodes: [el] }).catch((e) => {
-      setError(e.message || "Invalid diagram syntax");
-    });
+    loadMermaid()
+      .then((mermaid) => {
+        if (cancelled) return;
+        mermaid.initialize({ theme: dark ? "dark" : "default", securityLevel: "strict" });
+        if (!ref.current) return;
+        ref.current.innerHTML = "";
+        const el = document.createElement("div");
+        el.className = "mermaid";
+        el.textContent = code;
+        ref.current.appendChild(el);
+        return mermaid.run({ nodes: [el] }).catch((e) => {
+          if (!cancelled) setError(e.message || "Invalid diagram syntax");
+        });
+      })
+      .catch((e) => {
+        if (!cancelled) setError(e.message || "Failed to load diagram renderer");
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [code, dark]);
 
   function getErrorHint(msg: string): string {

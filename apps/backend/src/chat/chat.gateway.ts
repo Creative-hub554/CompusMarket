@@ -13,11 +13,9 @@ import { PrismaService } from "../prisma/prisma.service";
 import { NotificationsService } from "../social/notifications.service";
 import { notificationEvents, NOTIFICATION_CREATED } from "../realtime/notification.events";
 import { verify } from "jsonwebtoken";
+import { getAuthSecret, getCorsOrigins } from "../common/config";
 
-const JWT_SECRET = process.env.AUTH_SECRET || process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  throw new Error("Missing JWT secret: set AUTH_SECRET or JWT_SECRET env var");
-}
+const JWT_SECRET = getAuthSecret();
 
 const MESSAGE_RATE_LIMIT = 20;
 const MESSAGE_RATE_WINDOW_MS = 60 * 1000;
@@ -43,7 +41,7 @@ function sanitizeAttachments(input: unknown): { url: string; kind: string }[] | 
 }
 
 @WebSocketGateway({
-  cors: { origin: "*", credentials: true },
+  cors: { origin: getCorsOrigins(), credentials: true },
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit {
   private readonly logger = new Logger(ChatGateway.name);

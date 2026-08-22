@@ -27,6 +27,12 @@ describe("AuthService", () => {
       findUnique: vi.fn(),
       create: vi.fn(),
     },
+    refreshToken: {
+      create: vi.fn().mockResolvedValue({}),
+      findUnique: vi.fn(),
+      updateMany: vi.fn(),
+      deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
+    },
   };
 
   const mockJwt = {
@@ -81,7 +87,10 @@ describe("AuthService", () => {
         email: mockUser.email,
         role: mockUser.role,
       });
+      expect(mockPrisma.refreshToken.create).toHaveBeenCalledTimes(1);
       expect(result.access_token).toBe("test-token");
+      expect(typeof result.refresh_token).toBe("string");
+      expect(result.refresh_token.length).toBeGreaterThan(32);
       expect(result.user).toEqual({ id: mockUser.id, email: mockUser.email, name: mockUser.name, role: mockUser.role });
     });
   });
@@ -112,6 +121,93 @@ describe("AuthService", () => {
         role: mockUser.role,
       });
       expect(result.access_token).toBe("test-token");
+      expect(typeof result.refresh_token).toBe("string");
+    });
+  });
+
+  describe("refresh", () => {
+    it("throws on an unknown refresh token", async () => {
+      mockPrisma.refreshToken.findUnique.mockResolvedValue(null);
+      await expect(service.refresh("no-such-token-value-aaaaaaaaaaaa")).rejects.toBeInstanceOf(
+        UnauthorizedException
+      );
+    });
+
+    it("throws when the stored token is revoked and revokes all user tokens", async () => {
+      mockPrisma.refreshToken.findUnique.mockResolvedValue({
+        id: "rt-1",
+        userId: mockUser.id,
+        revokedAt: new Date(),
+        expiresAt: new Date(Date.now() + 10000),
+        user: mockUser,
+      });
+      mockPrisma.refreshToken.updateMany.mockResolvedValue({ count: 2 });
+      await expect(service.refresh("some-revoked-token-aaaaaaaaaa")).rejects.toBeInstanceOf(
+        UnauthorizedException
+      );
+      expect(mockPrisma.refreshToken.updateMany).toHaveBeenCalledWith({
+        where: { userId: mockUser.id, revokedAt: null },
+        data: { revokedAt: expect.any(Date) },
+      });
+    });
+
+    it("throws when the stored token is expired", async () => {
+      mockPrisma.refreshToken.findUnique.mockResolvedValue({
+        id: "rt-1",
+        revokedAt: null,
+        expiresAt: new Date(Date.now() - 10000),
+        user: mockUser,
+      });
+      await expect(service.refresh("some-expired-token-aaaaaaaaaa")).rejects.toBeInstanceOf(
+        UnauthorizedException
+      );
+    });
+
+    it("rotates the token and returns a new pair", async () => {
+      const future = new Date(Date.now() + 10000);
+      mockPrisma.refreshToken.findUnique.mockResolvedValue({
+        id: "rt-1",
+        revokedAt: null,
+        expiresAt: future,
+        user: mockUser,
+      });
+      mockPrisma.refreshToken.updateMany.mockResolvedValue({ count: 1 });
+
+      const result = await service.refresh("a-valid-refresh-token-value");
+
+      expect(mockPrisma.refreshToken.updateMany).toHaveBeenCalledWith({
+        where: { id: "rt-1", revokedAt: null },
+        data: { revokedAt: expect.any(Date) },
+      });
+      expect(result.access_token).toBe("test-token");
+      expect(typeof result.refresh_token).toBe("string");
+    });
+
+    it("rejects when another request rotated the token first", async () => {
+      const future = new Date(Date.now() + 10000);
+      mockPrisma.refreshToken.findUnique.mockResolvedValue({
+        id: "rt-1",
+        revokedAt: null,
+        expiresAt: future,
+        user: mockUser,
+      });
+      mockPrisma.refreshToken.updateMany.mockResolvedValue({ count: 0 });
+
+      await expect(service.refresh("a-valid-refresh-token-value")).rejects.toBeInstanceOf(
+        UnauthorizedException
+      );
+    });
+  });
+
+  describe("logout", () => {
+    it("revokes the stored token", async () => {
+      mockPrisma.refreshToken.updateMany.mockResolvedValue({ count: 1 });
+      const result = await service.logout("a-valid-refresh-token-value");
+      expect(mockPrisma.refreshToken.updateMany).toHaveBeenCalledWith({
+        where: { tokenHash: expect.any(String), revokedAt: null },
+        data: { revokedAt: expect.any(Date) },
+      });
+      expect(result).toEqual({ ok: true });
     });
   });
 });

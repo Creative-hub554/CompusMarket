@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { Link } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { useCartStore } from "@/stores/cart";
 
@@ -70,9 +71,11 @@ export default function CartPage() {
           >
             <div className="h-20 w-20 flex-shrink-0 bg-gray-100 rounded flex items-center justify-center">
               {item.product.images?.[0] ? (
-                <img
+                <Image
                   src={item.product.images[0]}
                   alt={item.product.name}
+                  width={80}
+                  height={80}
                   className="h-full w-full object-contain"
                 />
               ) : (

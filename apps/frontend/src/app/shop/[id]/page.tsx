@@ -1,14 +1,42 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import Image from "next/image";
 import { getTranslations } from "next-intl/server";
+import type { Metadata } from "next";
 import { api } from "@/services/api";
 import { notFound } from "next/navigation";
 import { AddToCartButton } from "@/components/AddToCartButton";
 import { ChatWithSellerButton } from "@/components/ChatWithSellerButton";
 import { ProductTabs } from "./ProductTabs";
+import { languageAlternates, getSiteUrl } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ id: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  try {
+    const product = await api.products.byId(id);
+    return {
+      title: product.name,
+      description:
+        product.description?.slice(0, 160) ||
+        `Buy ${product.name} on KHMERONLINESHOP`,
+      alternates: {
+        canonical: `/shop/${id}`,
+        languages: languageAlternates(`/shop/${id}`),
+      },
+      openGraph: {
+        title: product.name,
+        description: product.description?.slice(0, 160),
+        images: product.images?.[0] ? [{ url: product.images[0] }] : undefined,
+        type: "website",
+      },
+    };
+  } catch {
+    return { title: "Product" };
+  }
+}
 
 export default async function ProductDetailPage({ params }: Props) {
   const t = await getTranslations("product");
@@ -26,8 +54,36 @@ export default async function ProductDetailPage({ params }: Props) {
     C: t("conditionC"),
   };
 
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    image: product.images,
+    category: product.category?.name,
+    sku: product.serialNumber || product.id,
+    offers: {
+      "@type": "Offer",
+      url: `${getSiteUrl()}/shop/${product.id}`,
+      priceCurrency: "USD",
+      price: Number(product.price).toFixed(2),
+      availability:
+        product.stock > 0
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+      itemCondition:
+        product.condition === "A"
+          ? "https://schema.org/NewCondition"
+          : "https://schema.org/UsedCondition",
+    },
+  };
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 animate-fade-in">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
       {/* Gradient header strip */}
       <div className="rounded-xl bg-gradient-to-br from-slate-900 via-[#1e1b4b] to-[#4338ca] text-white p-6 md:p-8 mb-8">
         <p className="text-[11px] tracking-[0.25em] text-indigo-300 uppercase font-semibold">
@@ -62,9 +118,11 @@ export default async function ProductDetailPage({ params }: Props) {
         <div>
           <div className="aspect-square rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden shadow-sm">
             {product.images?.[0] ? (
-              <img
+              <Image
                 src={product.images[0]}
                 alt={product.name}
+                width={800}
+                height={800}
                 className="h-full w-full object-contain hover:scale-105 transition-transform duration-500"
               />
             ) : (

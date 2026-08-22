@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import Image from "next/image";
+import { Link } from "@/i18n/navigation";
 import { useSession } from "next-auth/react";
 import { Avatar } from "./Avatar";
 import { timeAgo } from "@/lib/social";
@@ -35,7 +36,7 @@ function MediaGrid({ media }: { media: Media[] }) {
     <div className={`grid gap-1 mt-3 rounded-xl overflow-hidden ${media.length > 1 ? "grid-cols-2" : ""}`}>
       {media.map((m) =>
         m.kind === "IMAGE" ? (
-          <img key={m.id} src={m.url} alt="" className="w-full h-full object-cover max-h-[420px]" />
+          <Image key={m.id} src={m.url} alt="" width={800} height={420} className="w-full h-full object-cover max-h-[420px]" />
         ) : (
           <video key={m.id} src={m.url} controls className="w-full max-h-[420px] bg-black" />
         )

@@ -1,10 +1,18 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { api } from "@/services/api";
 import { ProductCard } from "@/components/ProductCard";
 import { filterProductsByCategory } from "@/lib/shopFilter";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Shop",
+  description:
+    "Browse verified products from trusted Khmer sellers — electronics, fashion, home and more.",
+  alternates: { canonical: "/shop" },
+};
 
 export default async function ShopPage({
   searchParams,

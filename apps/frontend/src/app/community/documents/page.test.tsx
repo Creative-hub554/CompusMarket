@@ -4,8 +4,15 @@ vi.mock("next-auth/react", () => ({
   useSession: vi.fn(() => ({ data: null, status: "unauthenticated" })),
 }));
 
-vi.mock("next/navigation", () => ({
-  useRouter: vi.fn(() => ({ push: vi.fn() })),
+vi.mock("next/navigation", async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  useRouter: vi.fn(() => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() })),
+}));
+
+vi.mock("@/i18n/navigation", () => ({
+  Link: ({ children, href }: { children: React.ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  ),
 }));
 
 describe("DocumentsPage", () => {

@@ -1,4 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 @source "../../../../packages/ui/src";
 @import "tailwindcss";
 
@@ -22,7 +21,7 @@
 }
 
 body {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-inter), var(--font-khmer), sans-serif;
   color: var(--color-ink);
 }
 
@@ -30,7 +29,7 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-inter), var(--font-khmer), sans-serif;
   letter-spacing: -0.02em;
 }
 
