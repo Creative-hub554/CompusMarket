@@ -24,6 +24,7 @@ import { DiagramsModule } from "./diagrams/diagrams.module";
 import { FlashcardsModule } from "./flashcards/flashcards.module";
 import { QuizzesModule } from "./quizzes/quizzes.module";
 import { NotesModule } from "./notes/notes.module";
+import { JobsModule } from "./jobs/jobs.module";
 import { HealthModule } from "./health/health.module";
 
 @Module({
@@ -48,6 +49,7 @@ SearchModule,
     FlashcardsModule,
     QuizzesModule,
     NotesModule,
+    JobsModule,
     HealthModule,
   ],
   controllers: [AppController],

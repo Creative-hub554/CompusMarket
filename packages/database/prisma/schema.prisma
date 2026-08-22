@@ -146,6 +146,8 @@ model User {
   quizzes         Quiz[]
   quizAttempts    QuizAttempt[]
   notes           Note[]
+  jobs            Job[]
+  jobApplications JobApplication[]
 }
 
 model Account {
@@ -754,4 +756,62 @@ model Notification {
   actor User @relation("NotificationActors", fields: [actorId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+  REMOTE
+}
+
+enum JobStatus {
+  OPEN
+  CLOSED
+}
+
+enum ApplicationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model Job {
+  id          String    @id @default(uuid())
+  title       String
+  company     String
+  location    String
+  type        JobType
+  description String
+  salaryMin   Int?
+  salaryMax   Int?
+  status      JobStatus @default(OPEN)
+  postedById  String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  postedBy    User              @relation(fields: [postedById], references: [id], onDelete: Cascade)
+  applications JobApplication[]
+
+  @@index([postedById])
+  @@index([status])
+  @@index([type])
+}
+
+model JobApplication {
+  id           String            @id @default(uuid())
+  jobId        String
+  applicantId  String
+  coverLetter  String?
+  resumeId     String?
+  status       ApplicationStatus @default(PENDING)
+  createdAt    DateTime          @default(now())
+
+  job       Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  applicant User @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, applicantId])
+  @@index([jobId])
+  @@index([applicantId])
 }

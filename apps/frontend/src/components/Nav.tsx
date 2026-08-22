@@ -88,6 +88,9 @@ export function Nav() {
           <Link href="/market" className="nav-link opacity-90 hover:opacity-100">
             {t("market")}
           </Link>
+          <Link href="/jobs" className="nav-link opacity-90 hover:opacity-100">
+            {t("jobs")}
+          </Link>
           <Link href="/feed" className="nav-link opacity-90 hover:opacity-100">
             {t("feed")}
           </Link>

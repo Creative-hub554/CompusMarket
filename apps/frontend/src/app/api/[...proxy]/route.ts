@@ -31,6 +31,7 @@ const ALLOWED_PREFIXES = [
   "/api/categories",
   "/api/products",
   "/api/orders",
+  "/api/jobs",
   "/api/cart",
   "/api/health",
 ];
