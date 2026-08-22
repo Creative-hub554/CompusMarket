@@ -56,6 +56,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   ) {}
 
   onModuleInit() {
+    notificationEvents.removeAllListeners(NOTIFICATION_CREATED);
     notificationEvents.on(NOTIFICATION_CREATED, (n: { userId: string }) => {
       this.emitToUser(n.userId, "notification", n);
     });

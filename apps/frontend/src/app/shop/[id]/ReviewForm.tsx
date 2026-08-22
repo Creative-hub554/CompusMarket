@@ -82,11 +82,9 @@ export function ReviewForm({
       onCreated(review);
       setComment("");
       setRating(5);
-      setEligible((prev) => {
-        const remaining = (prev ?? []).filter((i) => i.orderItemId !== orderItemId);
-        setOrderItemId(remaining[0]?.orderItemId ?? "");
-        return remaining;
-      });
+      const remaining = (eligible ?? []).filter((i) => i.orderItemId !== orderItemId);
+      setEligible(remaining);
+      setOrderItemId(remaining[0]?.orderItemId ?? "");
     } catch (err) {
       setError(err instanceof Error ? err.message : t("reviewFailed"));
     } finally {
