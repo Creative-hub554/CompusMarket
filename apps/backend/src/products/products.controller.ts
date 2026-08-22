@@ -7,14 +7,18 @@ import {
   Param,
   Query,
   Delete,
+  Req,
   UseGuards,
 } from "@nestjs/common";
 import { ProductsService } from "./products.service";
 import { CreateProductDto } from "./dto/create-product.dto";
 import { UpdateProductDto } from "./dto/update-product.dto";
+import { CreateReviewDto } from "./dto/create-review.dto";
 import { AuthGuard } from "@nestjs/passport";
 import { RolesGuard } from "../auth/roles.guard";
 import { Roles } from "../auth/roles.decorator";
+
+type AuthedReq = { user: { userId: string } };
 
 @Controller("products")
 export class ProductsController {
@@ -42,6 +46,22 @@ export class ProductsController {
   @Get(":id")
   findOne(@Param("id") id: string) {
     return this.productsService.findOne(id);
+  }
+
+  @Get(":id/reviewable")
+  @UseGuards(AuthGuard("jwt"))
+  getReviewable(@Req() req: AuthedReq, @Param("id") id: string) {
+    return this.productsService.getReviewable(id, req.user.userId);
+  }
+
+  @Post(":id/reviews")
+  @UseGuards(AuthGuard("jwt"))
+  createReview(
+    @Req() req: AuthedReq,
+    @Param("id") id: string,
+    @Body() dto: CreateReviewDto
+  ) {
+    return this.productsService.createReview(id, req.user.userId, dto);
   }
 
   @Get("category/:slug")

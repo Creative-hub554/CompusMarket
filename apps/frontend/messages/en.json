@@ -61,7 +61,15 @@
     "reviews": "Customer Reviews",
     "noReviews": "No reviews yet.",
     "customer": "Customer",
-    "seller": "Seller"
+    "seller": "Seller",
+    "loginToReview": "Sign in to write a review",
+    "noEligiblePurchase": "You can review products you've purchased.",
+    "writeReview": "Write a review",
+    "purchaseOn": "Purchase on {date}",
+    "reviewCommentPlaceholder": "Share your experience with this product...",
+    "reviewFailed": "Could not submit your review",
+    "submitting": "Submitting...",
+    "submitReview": "Submit review"
   },
   "cart": {
     "loading": "Loading...",

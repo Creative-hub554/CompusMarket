@@ -15,6 +15,13 @@ describe("ProductsService", () => {
       update: vi.fn(),
       delete: vi.fn(),
     },
+    orderItem: {
+      findMany: vi.fn(),
+      findFirst: vi.fn(),
+    },
+    review: {
+      create: vi.fn(),
+    },
   };
 
   beforeEach(async () => {
@@ -71,6 +78,73 @@ describe("ProductsService", () => {
           where: { category: { slug: "phones" }, status: "ACTIVE", stock: { gt: 0 } },
         }),
       );
+    });
+  });
+
+  describe("getReviewable", () => {
+    it("returns only purchased order items without an existing review", async () => {
+      mockPrisma.orderItem.findMany.mockResolvedValue([
+        { id: "oi1", createdAt: new Date(), feedback: null },
+        { id: "oi2", createdAt: new Date(), feedback: { id: "r1" } },
+      ]);
+
+      const result = await service.getReviewable("p1", "u1");
+
+      expect(mockPrisma.orderItem.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { productId: "p1", order: { userId: "u1" } },
+        }),
+      );
+      expect(result).toEqual([{ orderItemId: "oi1", createdAt: expect.any(Date) }]);
+    });
+  });
+
+  describe("createReview", () => {
+    it("creates a review for a valid purchased order item", async () => {
+      mockPrisma.orderItem.findFirst.mockResolvedValue({
+        id: "oi1",
+        feedback: null,
+      });
+      mockPrisma.review.create.mockResolvedValue({ id: "r1" });
+
+      const result = await service.createReview("p1", "u1", {
+        orderItemId: "oi1",
+        rating: 5,
+        comment: "great",
+      });
+
+      expect(mockPrisma.review.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            productId: "p1",
+            userId: "u1",
+            orderItemId: "oi1",
+            rating: 5,
+            comment: "great",
+            images: [],
+          },
+        }),
+      );
+      expect(result).toEqual({ id: "r1" });
+    });
+
+    it("throws when the order item is not a purchased item for this user", async () => {
+      mockPrisma.orderItem.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.createReview("p1", "u1", { orderItemId: "oiX", rating: 4 }),
+      ).rejects.toThrow();
+    });
+
+    it("throws when the purchase was already reviewed", async () => {
+      mockPrisma.orderItem.findFirst.mockResolvedValue({
+        id: "oi1",
+        feedback: { id: "r1" },
+      });
+
+      await expect(
+        service.createReview("p1", "u1", { orderItemId: "oi1", rating: 4 }),
+      ).rejects.toThrow();
     });
   });
 });

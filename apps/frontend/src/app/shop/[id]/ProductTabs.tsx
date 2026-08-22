@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import type { Product } from "@/services/api";
+import type { Product, Review } from "@/services/api";
+import { ReviewForm } from "./ReviewForm";
 
 type Tab = "description" | "specs" | "reviews" | "warranty";
 
@@ -16,6 +17,7 @@ const TABS: { id: Tab; label: string }[] = [
 export function ProductTabs({ product }: { product: Product }) {
   const t = useTranslations("product");
   const [active, setActive] = useState<Tab>("description");
+  const [reviews, setReviews] = useState<Review[]>(product.reviews || []);
 
   const conditionLabels: Record<string, string> = {
     A: t("conditionA"),
@@ -23,11 +25,14 @@ export function ProductTabs({ product }: { product: Product }) {
     C: t("conditionC"),
   };
 
-  const reviews = product.reviews || [];
   const average =
     reviews.length > 0
       ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
       : 0;
+
+  function handleCreated(review: Review) {
+    setReviews((prev) => [review, ...prev]);
+  }
 
   return (
     <div>
@@ -134,6 +139,10 @@ export function ProductTabs({ product }: { product: Product }) {
               ))}
             </div>
           )}
+
+          <div className="mt-6">
+            <ReviewForm productId={product.id} onCreated={handleCreated} />
+          </div>
         </div>
       )}
 

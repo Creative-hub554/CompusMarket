@@ -61,7 +61,15 @@
     "reviews": "ការវាយតម្លៃអតិថិជន",
     "noReviews": "មិនទាន់មានការវាយតម្លៃនៅឡើយទេ។",
     "customer": "អតិថិជន",
-    "seller": "អ្នកលក់"
+    "seller": "អ្នកលក់",
+    "loginToReview": "ចូលគណនីដើម្បីសរសេរការវាយតម្លៃ",
+    "noEligiblePurchase": "អ្នកអាចវាយតម្លៃផលិតផលដែលអ្នកបានទិញ",
+    "writeReview": "សរសេរការវាយតម្លៃ",
+    "purchaseOn": "ទិញនៅ {date}",
+    "reviewCommentPlaceholder": "ចែករំលែកបទពិសោធន៍របស់អ្នក...",
+    "reviewFailed": "មិនអាចដាក់ស្នើការវាយតម្លៃបានទេ",
+    "submitting": "កំពុងដាក់ស្នើ...",
+    "submitReview": "ដាក់ស្នើការវាយតម្លៃ"
   },
   "cart": {
     "loading": "កំពុងផ្ទុក...",

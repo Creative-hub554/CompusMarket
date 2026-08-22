@@ -1,8 +1,14 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+} from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import type { Product, Category, Review } from "@theo/database";
 import { CreateProductDto } from "./dto/create-product.dto";
 import { UpdateProductDto } from "./dto/update-product.dto";
+import { CreateReviewDto } from "./dto/create-review.dto";
 import * as qrcode from "qrcode";
 import { SearchService } from "../search/search.service";
 
@@ -90,6 +96,55 @@ export class ProductsService {
     return this.prisma.product.update({
       where: { id: productId },
       data: { qrCode: qrDataUrl },
+    });
+  }
+
+  async getReviewable(
+    productId: string,
+    userId: string
+  ): Promise<{ orderItemId: string; createdAt: Date }[]> {
+    const items = await this.prisma.orderItem.findMany({
+      where: { productId, order: { userId } },
+      orderBy: { createdAt: "desc" },
+      include: { feedback: true },
+    });
+    return items
+      .filter((item) => !item.feedback)
+      .map((item) => ({ orderItemId: item.id, createdAt: item.createdAt }));
+  }
+
+  async createReview(
+    productId: string,
+    userId: string,
+    dto: CreateReviewDto
+  ): Promise<Review> {
+    if (dto.rating < 1 || dto.rating > 5) {
+      throw new BadRequestException("Rating must be between 1 and 5");
+    }
+
+    const item = await this.prisma.orderItem.findFirst({
+      where: { id: dto.orderItemId, productId, order: { userId } },
+      include: { feedback: true },
+    });
+    if (!item) {
+      throw new NotFoundException(
+        "Order item not found for this product and user"
+      );
+    }
+    if (item.feedback) {
+      throw new ConflictException("You have already reviewed this purchase");
+    }
+
+    return this.prisma.review.create({
+      data: {
+        productId,
+        userId,
+        orderItemId: dto.orderItemId,
+        rating: dto.rating,
+        comment: dto.comment,
+        images: dto.images ?? [],
+      },
+      include: { user: { select: { name: true } } },
     });
   }
 }
