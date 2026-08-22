@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { Meilisearch } from "meilisearch";
-import type { Prisma } from "@theo/database";
+import type { Prisma, ProductCondition } from "@theo/database";
 
 const INDEX_NAME = "products";
 
@@ -131,7 +131,10 @@ export class SearchService implements OnModuleInit {
     }
   }
 
-  async search(query: string, filters?: { categoryId?: string; minPrice?: number; maxPrice?: number }) {
+  async search(
+    query: string,
+    filters?: { categoryId?: string; minPrice?: number; maxPrice?: number; condition?: string },
+  ) {
     if (!this.isAvailable()) {
       return this.fallbackSearch(query, filters);
     }
@@ -146,6 +149,9 @@ export class SearchService implements OnModuleInit {
       }
       if (filters?.maxPrice !== undefined) {
         filterParts.push(`price <= ${Number(filters.maxPrice)}`);
+      }
+      if (filters?.condition) {
+        filterParts.push(`condition = "${filters.condition}"`);
       }
 
       const result = await this.client!.index(INDEX_NAME).search(query, {
@@ -167,7 +173,7 @@ export class SearchService implements OnModuleInit {
 
   private async fallbackSearch(
     query: string,
-    filters?: { categoryId?: string; minPrice?: number; maxPrice?: number },
+    filters?: { categoryId?: string; minPrice?: number; maxPrice?: number; condition?: string },
   ) {
     const where: Prisma.ProductWhereInput = {
       status: "ACTIVE",
@@ -176,6 +182,7 @@ export class SearchService implements OnModuleInit {
         { description: { contains: query } },
       ],
       ...(filters?.categoryId ? { categoryId: filters.categoryId } : {}),
+      ...(filters?.condition ? { condition: filters.condition as ProductCondition } : {}),
       ...(filters?.minPrice !== undefined || filters?.maxPrice !== undefined
         ? {
             price: {

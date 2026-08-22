@@ -22,14 +22,14 @@ export function ChatWithSellerButton({
     }
     setLoading(true);
     try {
-      const res = await fetch("/api/conversations", {
+      const res = await fetch("/api/threads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sellerId, productId, message: "" }),
+        body: JSON.stringify({ sellerId, productId }),
       });
       if (!res.ok) throw new Error("Failed");
-      const conv = await res.json();
-      router.push(`/messages/${conv.id}`);
+      const thread = await res.json();
+      router.push(`/messages/${thread.id}`);
     } catch {
       alert("Failed to start conversation");
     }

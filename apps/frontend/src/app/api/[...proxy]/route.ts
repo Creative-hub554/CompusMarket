@@ -3,8 +3,8 @@ import { getToken } from "next-auth/jwt";
 import jwt from "jsonwebtoken";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
-const JWT_SECRET: string = process.env.JWT_SECRET || "";
-if (!JWT_SECRET) throw new Error("JWT_SECRET must be configured");
+const JWT_SECRET: string = process.env.JWT_SECRET || process.env.AUTH_SECRET || "";
+if (!JWT_SECRET) throw new Error("JWT_SECRET or AUTH_SECRET must be configured");
 
 // Paths the proxy is allowed to forward (relative to the incoming /api route).
 const ALLOWED_PREFIXES = [
@@ -16,7 +16,14 @@ const ALLOWED_PREFIXES = [
   "/api/diagrams",
   "/api/documents",
   "/api/articles",
-  "/api/conversations",
+  "/api/threads",
+  "/api/posts",
+  "/api/feed",
+  "/api/profiles",
+  "/api/users",
+  "/api/suggestions",
+  "/api/stories",
+  "/api/notifications",
   "/api/support",
   "/api/warranties",
   "/api/upload",

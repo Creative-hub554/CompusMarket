@@ -12,8 +12,8 @@ export async function GET(req: NextRequest) {
   const where: Prisma.ProductWhereInput = {
     status: "ACTIVE",
     OR: [
-      { name: { contains: query, mode: "insensitive" } },
-      { description: { contains: query, mode: "insensitive" } },
+      { name: { contains: query } },
+      { description: { contains: query } },
     ],
   };
 

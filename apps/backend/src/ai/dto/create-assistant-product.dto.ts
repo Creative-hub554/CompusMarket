@@ -1,10 +1,15 @@
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsNotEmpty, IsString, IsOptional, IsIn, IsBoolean } from "class-validator";
 
 export class CreateAssistantProductDto {
   @IsNotEmpty()
   @IsString()
-  message: string;
+  message!: string;
 
-  @IsString()
-  lang: string;
+  @IsOptional()
+  @IsIn(["en", "zh", "km"])
+  lang?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  hasResume?: boolean;
 }

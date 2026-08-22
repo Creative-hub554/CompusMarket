@@ -83,4 +83,3 @@ const km: Translations = {
 };
 
 export default km;
-export type Translations = typeof km;

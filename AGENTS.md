@@ -54,7 +54,7 @@ Workspace import alias: `@theo/database` (from `packages/database`), `@theo/ui` 
 - **Frontend is internationalized** with `next-intl` (`apps/frontend/messages/*.json` + `src/i18n/`, plugin wraps `next.config.ts`). New UI text must be added to the message files. Admin has no i18n.
 - **Backend wraps the Prisma client** in its own `PrismaService` (`apps/backend/src/prisma/`) — inject that in Nest services and tests; do not import `PrismaClient` directly.
 
-Backend modules in `apps/backend/src/` cover more than commerce: `auth`, `products`, `orders`, `cart`, `categories`, `search`, `upload`, `warranties`, plus `articles`, `resumes`, `ai`, `chat`, `notes`, `flashcards`, `quizzes`, `diagrams`, `documents`, `health`. Frontend pages live in `apps/frontend/src/app/`, admin pages in `apps/admin/src/app/admin/`.
+Backend modules in `apps/backend/src/` cover more than commerce: `auth`, `products`, `orders`, `cart`, `categories`, `search`, `upload`, `warranties`, `articles`, `resumes`, `ai`, `notes`, `flashcards`, `quizzes`, `diagrams`, `documents`, `health`, and a `social` module (posts/follows/stories/notifications). The `chat` module is thread-based: `threads.service.ts` manages `Thread`/`Message` via Prisma, and `chat.gateway.ts` is a Socket.IO `WebSocketGateway` for live messaging — there is no `Conversation` model (it was replaced by `Thread`). Frontend pages live in `apps/frontend/src/app/` (incl. `feed`, `market`, `profile`, `community`, `messages`), admin pages in `apps/admin/src/app/admin/`.
 
 ## Test conventions
 

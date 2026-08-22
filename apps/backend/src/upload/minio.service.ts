@@ -34,7 +34,8 @@ export class MinioService implements OnModuleInit {
   async uploadFile(
     buffer: Buffer,
     filename: string,
-    mimeType: string
+    mimeType: string,
+    disposition: "inline" | "attachment" = "attachment"
   ): Promise<string> {
     if (!this.client || !this.ready) {
       throw new Error("Storage service unavailable");
@@ -42,7 +43,7 @@ export class MinioService implements OnModuleInit {
     try {
       await this.client.putObject(BUCKET, filename, buffer, buffer.length, {
         "Content-Type": mimeType,
-        "Content-Disposition": "attachment",
+        "Content-Disposition": disposition,
       });
       return filename;
     } catch {

@@ -45,7 +45,7 @@ export default function QuizzesPage() {
 
   useEffect(() => {
     loadQuizzes();
-  }, []);
+  }, [loadQuizzes]);
 
   async function createQuiz() {
     if (!newTitle.trim()) return;

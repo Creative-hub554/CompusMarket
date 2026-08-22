@@ -63,7 +63,7 @@ export default function DiagramsPage() {
     setLoading(false);
   }
 
-  useEffect(() => { loadDiagrams(); }, []);
+  useEffect(() => { loadDiagrams(); }, [loadDiagrams]);
 
   async function createDiagram() {
     if (!newTitle.trim()) return;

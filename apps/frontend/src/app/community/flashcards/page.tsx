@@ -34,7 +34,7 @@ export default function FlashcardsPage() {
     setLoading(false);
   }
 
-  useEffect(() => { loadDecks(); }, []);
+  useEffect(() => { loadDecks(); }, [loadDecks]);
 
   async function createDeck() {
     if (!newTitle.trim()) return;

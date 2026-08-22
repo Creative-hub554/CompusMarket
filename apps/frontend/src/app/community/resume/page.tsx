@@ -7,8 +7,7 @@ import { sampleResume, emptyResume } from "@/components/resume/utils";
 import { getAllTemplates } from "@/components/resume/registry";
 import "@/components/resume/templates";
 import { AiResumeAssistant } from "@/components/ai/AiResumeAssistant";
-import { TranslationProvider } from "@/lib/useTranslation";
-import { useTranslations, useLocale } from "next-intl";
+import { TranslationProvider, useTranslation } from "@/lib/useTranslation";
 import TemplateGallery from "@/components/resume/TemplateGallery";
 import DraggableList, { DragHandle } from "@/components/resume/DraggableList";
 
@@ -25,8 +24,7 @@ type SavedResume = {
 };
 
 function ResumeBuilderContent() {
-  const t = useTranslations("resume");
-  const locale = useLocale();
+  const { t, locale, setLocale } = useTranslation();
   const [resume, setResume] = useState<ResumeData>({ ...sampleResume });
   const [newSkill, setNewSkill] = useState("");
   const [activeSection, setActiveSection] = useState("personal");

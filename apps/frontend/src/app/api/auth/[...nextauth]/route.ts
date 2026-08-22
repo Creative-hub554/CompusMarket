@@ -12,7 +12,7 @@ const handler = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials, req) {
-        if (!rateLimit(req.headers, 10)) return null;
+        if (!req.headers || !rateLimit(new Headers(req.headers), 10)) return null;
         if (!credentials?.email || !credentials?.password) return null;
 
         try {

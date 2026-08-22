@@ -33,7 +33,7 @@ export default function DocumentsPage() {
     setLoading(false);
   }
 
-  useEffect(() => { loadDocs(); }, []);
+  useEffect(() => { loadDocs(); }, [loadDocs]);
 
   async function createDocument() {
     if (!newTitle.trim()) return;

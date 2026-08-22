@@ -7,6 +7,8 @@ import { useSession, signOut } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { SearchBar } from "./SearchBar";
 import { LocaleSwitcher } from "./LocaleSwitcher";
+import { NotificationsBell } from "./social/NotificationsBell";
+import { Avatar } from "./social/Avatar";
 import { useCartStore } from "@/stores/cart";
 import { Button } from "@theo/ui";
 
@@ -14,6 +16,8 @@ export function Nav() {
   const t = useTranslations("nav");
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [msgUnread, setMsgUnread] = useState(0);
   const { data: session } = useSession();
   const cartItems = useCartStore((s) => s.items);
   const initialized = useCartStore((s) => s.initialized);
@@ -31,6 +35,31 @@ export function Nav() {
       useCartStore.setState({ initialized: true });
     }
   }, [initialized, sessionCookie, fetchCart]);
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    let active = true;
+    const poll = () => {
+      fetch("/api/threads")
+        .then((r) => (r.ok ? r.json() : []))
+        .then((threads: { unreadCount: number }[]) => {
+          if (active) {
+            setMsgUnread(
+              Array.isArray(threads)
+                ? threads.reduce((sum, th) => sum + (th.unreadCount || 0), 0)
+                : 0
+            );
+          }
+        })
+        .catch(() => {});
+    };
+    poll();
+    const timer = setInterval(poll, 45000);
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
+  }, [session?.user?.id]);
 
   return (
     <nav className="bg-khmer-blue text-white shadow-lg">
@@ -55,6 +84,12 @@ export function Nav() {
           </Link>
           <Link href="/shop" className="nav-link opacity-90 hover:opacity-100">
             {t("shop")}
+          </Link>
+          <Link href="/market" className="nav-link opacity-90 hover:opacity-100">
+            {t("market")}
+          </Link>
+          <Link href="/feed" className="nav-link opacity-90 hover:opacity-100">
+            {t("feed")}
           </Link>
           <Link
             href="/cart"
@@ -87,9 +122,14 @@ export function Nav() {
           </Link>
           <Link
             href="/messages"
-            className="nav-link opacity-90 hover:opacity-100"
+            className="nav-link opacity-90 hover:opacity-100 relative"
           >
             {t("messages")}
+            {msgUnread > 0 && (
+              <span className="absolute -top-2 -right-4 bg-red-600 text-white text-xs rounded-full h-4 min-w-[1rem] flex items-center justify-center px-1">
+                {msgUnread > 99 ? "99+" : msgUnread}
+              </span>
+            )}
           </Link>
           <Link
             href="/support"
@@ -124,12 +164,51 @@ export function Nav() {
           </div>
           <LocaleSwitcher />
           {session?.user ? (
-            <button
-              onClick={() => signOut()}
-              className="text-sm text-gray-300 hover:text-amber-500 transition-colors"
-            >
-              {t("signOut")}
-            </button>
+            <>
+              <NotificationsBell />
+              <div className="relative">
+                <button
+                  onClick={() => setMenuOpen((v) => !v)}
+                  className="flex items-center gap-2 opacity-90 hover:opacity-100"
+                  aria-label="Account menu"
+                >
+                  <Avatar
+                    user={{
+                      name: session.user.name,
+                      image: (session.user as { image?: string | null }).image,
+                    }}
+                    size={30}
+                  />
+                </button>
+                {menuOpen && (
+                  <div className="absolute right-0 top-full mt-2 bg-white rounded-lg shadow-xl py-1 min-w-44 z-50 border border-gray-100">
+                    <Link
+                      href={`/profile/${session.user.id}`}
+                      onClick={() => setMenuOpen(false)}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-600 hover:text-white transition-colors"
+                    >
+                      {t("myProfile")}
+                    </Link>
+                    <Link
+                      href="/profile/edit"
+                      onClick={() => setMenuOpen(false)}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-600 hover:text-white transition-colors"
+                    >
+                      {t("editProfile")}
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false);
+                        signOut();
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-600 hover:text-white transition-colors"
+                    >
+                      {t("signOut")}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
           ) : (
             <Button onClick={() => router.push("/login")}>{t("signIn")}</Button>
           )}
@@ -186,6 +265,20 @@ export function Nav() {
               {t("shop")}
             </Link>
             <Link
+              href="/market"
+              onClick={() => setOpen(false)}
+              className="rounded px-3 py-2 hover:bg-white/10 transition-colors"
+            >
+              {t("market")}
+            </Link>
+            <Link
+              href="/feed"
+              onClick={() => setOpen(false)}
+              className="rounded px-3 py-2 hover:bg-white/10 transition-colors"
+            >
+              {t("feed")}
+            </Link>
+            <Link
               href="/cart"
               onClick={() => setOpen(false)}
               className="rounded px-3 py-2 hover:bg-white/10 transition-colors flex items-center gap-1"
@@ -221,9 +314,14 @@ export function Nav() {
             <Link
               href="/messages"
               onClick={() => setOpen(false)}
-              className="rounded px-3 py-2 hover:bg-white/10 transition-colors"
+              className="rounded px-3 py-2 hover:bg-white/10 transition-colors flex items-center gap-1"
             >
               {t("messages")}
+              {msgUnread > 0 && (
+                <span className="bg-red-600 text-white text-xs rounded-full h-4 min-w-[1rem] flex items-center justify-center px-1">
+                  {msgUnread > 99 ? "99+" : msgUnread}
+                </span>
+              )}
             </Link>
             <Link
               href="/support"
@@ -257,15 +355,31 @@ export function Nav() {
               <LocaleSwitcher />
             </div>
             {session?.user ? (
-              <button
-                onClick={() => {
-                  signOut();
-                  setOpen(false);
-                }}
-                className="rounded px-3 py-2 text-left text-amber-500 hover:bg-white/10 transition-colors"
-              >
-                {t("signOut")}
-              </button>
+              <>
+                <Link
+                  href={`/profile/${session.user.id}`}
+                  onClick={() => setOpen(false)}
+                  className="rounded px-3 py-2 hover:bg-white/10 transition-colors"
+                >
+                  {t("myProfile")}
+                </Link>
+                <Link
+                  href="/profile/edit"
+                  onClick={() => setOpen(false)}
+                  className="rounded px-3 py-2 hover:bg-white/10 transition-colors"
+                >
+                  {t("editProfile")}
+                </Link>
+                <button
+                  onClick={() => {
+                    signOut();
+                    setOpen(false);
+                  }}
+                  className="rounded px-3 py-2 text-left text-amber-500 hover:bg-white/10 transition-colors"
+                >
+                  {t("signOut")}
+                </button>
+              </>
             ) : (
               <Link
                 href="/login"

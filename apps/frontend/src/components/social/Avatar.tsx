@@ -1,0 +1,39 @@
+"use client";
+
+export function Avatar({
+  user,
+  size = 40,
+  online,
+}: {
+  user: { name?: string | null; username?: string | null; image?: string | null };
+  size?: number;
+  online?: boolean;
+}) {
+  const label = user.name || user.username || "?";
+  return (
+    <span className="relative inline-block shrink-0" style={{ width: size, height: size }}>
+      {user.image ? (
+        <img
+          src={user.image}
+          alt={label}
+          className="h-full w-full rounded-full object-cover"
+        />
+      ) : (
+        <span
+          className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 font-semibold text-white"
+          style={{ fontSize: size * 0.42 }}
+        >
+          {label.charAt(0).toUpperCase()}
+        </span>
+      )}
+      {online !== undefined && (
+        <span
+          className={`absolute bottom-0 right-0 block rounded-full border-2 border-white ${
+            online ? "bg-green-500" : "bg-gray-300"
+          }`}
+          style={{ width: size * 0.28, height: size * 0.28 }}
+        />
+      )}
+    </span>
+  );
+}

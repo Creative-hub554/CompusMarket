@@ -15,7 +15,11 @@
     "signIn": "Sign In",
     "signOut": "Sign Out",
     "searchPlaceholder": "Search products...",
-    "toggleMenu": "Toggle menu"
+    "toggleMenu": "Toggle menu",
+    "market": "Market",
+    "feed": "Feed",
+    "myProfile": "My profile",
+    "editProfile": "Edit profile"
   },
   "home": {
     "heroSubtitle": "Premium second-hand electronics, verified sellers, community powered.",
@@ -110,5 +114,17 @@
     "added": "Added to Cart!",
     "add": "Add to Cart",
     "loginRequired": "Please log in to add items to cart"
+  },
+  "market": {
+    "title": "Marketplace",
+    "subtitle": "Browse shops from our trusted approved sellers",
+    "sellersCount": "{count} shops",
+    "productsCount": "{count} products",
+    "visitShop": "Visit shop",
+    "personal": "Personal",
+    "business": "Business",
+    "emptyTitle": "No shops yet",
+    "emptyText": "Be the first — apply at the Seller Center!",
+    "becomeSeller": "Become a seller"
   }
 }

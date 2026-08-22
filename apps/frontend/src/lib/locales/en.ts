@@ -1,6 +1,4 @@
-import { Translations } from "./km";
-
-const en: Translations = {
+const en = {
   resume: {
     title: "Resume Builder",
     subtitle: "Build, save, and export professional resumes for free.",
