@@ -91,6 +91,9 @@ export function Nav() {
           <Link href="/jobs" className="nav-link opacity-90 hover:opacity-100">
             {t("jobs")}
           </Link>
+          <Link href="/community/resume" className="nav-link opacity-90 hover:opacity-100">
+            {t("resume")}
+          </Link>
           <Link href="/feed" className="nav-link opacity-90 hover:opacity-100">
             {t("feed")}
           </Link>
