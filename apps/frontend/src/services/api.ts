@@ -70,12 +70,22 @@ export type Article = {
   createdAt: string;
 };
 
+export type PromoProduct = {
+  id: string;
+  name: string;
+  price: number;
+  images: string[];
+  videoUrl: string;
+  condition: string;
+};
+
 export const api = {
   products: {
     list: () => fetchApi<Product[]>("/products"),
     byId: (id: string) => fetchApi<Product>(`/products/${id}`),
     byCategory: (slug: string) =>
       fetchApi<Product[]>(`/products/category/${slug}`),
+    promos: () => fetchApi<PromoProduct[]>("/products/promos"),
   },
   categories: {
     list: () => fetchApi<Category[]>("/categories"),

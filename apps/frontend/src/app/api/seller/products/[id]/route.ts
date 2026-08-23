@@ -104,6 +104,28 @@ export async function PATCH(
 
   if (body.serialNumber !== undefined) data.serialNumber = String(body.serialNumber);
 
+  if (body.videoUrl !== undefined) {
+    const videoUrl = String(body.videoUrl).trim();
+    if (videoUrl && !/^https?:\/\/.+/i.test(videoUrl)) {
+      return NextResponse.json({ error: "Video URL must start with http(s)://" }, { status: 400 });
+    }
+    if (videoUrl.length > 2048) {
+      return NextResponse.json({ error: "Video URL is too long" }, { status: 400 });
+    }
+    data.videoUrl = videoUrl || null;
+  }
+
+  if (body.videoActive !== undefined) {
+    data.videoActive = Boolean(body.videoActive);
+    // A promo cannot be active without a video behind it.
+    if (data.videoActive && !data.videoUrl && !product.videoUrl) {
+      return NextResponse.json(
+        { error: "Upload a promo video before activating it" },
+        { status: 400 },
+      );
+    }
+  }
+
   if (body.status !== undefined) {
     if (!SELLER_EDITABLE_STATUSES.includes(String(body.status))) {
       return NextResponse.json(

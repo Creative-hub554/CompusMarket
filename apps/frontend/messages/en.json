@@ -21,7 +21,17 @@
     "jobs": "Jobs",
     "resume": "Resume",
     "myProfile": "My profile",
-    "editProfile": "Edit profile"
+    "editProfile": "Edit profile",
+    "social": "Social",
+    "buying": "Buying",
+    "selling": "Selling",
+    "jobBoard": "Job Board",
+    "postJob": "Post a Job",
+    "myApplications": "My Applications",
+    "helpSupport": "Help & Support",
+    "footerRights": "All rights reserved.",
+    "products": "Products",
+    "sellerOrders": "Seller Orders"
   },
   "home": {
     "heroSubtitle": "Premium second-hand electronics, verified sellers, community powered.",
@@ -150,7 +160,12 @@
     "clearFilters": "Clear filters",
     "resultsCount": "{count} results",
     "noResults": "No products match your filters.",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "promoBadge": "Promo",
+    "promoBuyNow": "Buy Now",
+    "promoAdded": "Added to cart",
+    "promoDismiss": "Dismiss promotion",
+    "promoAriaLabel": "Featured product video"
   },
   "jobs": {
     "title": "Jobs",

@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsEnum, IsOptional, IsArray } from "class-validator";
+import { IsString, IsNumber, IsEnum, IsOptional, IsArray, IsBoolean, MaxLength } from "class-validator";
 
 export enum ProductConditionDto {
   A = "A",
@@ -38,4 +38,13 @@ export class CreateProductDto {
   @IsOptional()
   @IsNumber()
   warrantyMonths?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2048)
+  videoUrl?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  videoActive?: boolean;
 }

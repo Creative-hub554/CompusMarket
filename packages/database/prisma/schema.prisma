@@ -196,6 +196,8 @@ model Product {
   categoryId     String
   sellerId       String?
   images         Json?
+  videoUrl       String?
+  videoActive    Boolean  @default(false)
   qrCode         String?
   serialNumber   String?
   stock          Int      @default(1)

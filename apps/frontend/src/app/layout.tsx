@@ -4,6 +4,7 @@ import "./globals.css";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { Nav } from "@/components/Nav";
+import { Footer } from "@/components/Footer";
 import SessionWrapper from "@/components/SessionWrapper";
 import { AiAssistant } from "@/components/ai/AiAssistant";
 import { OrganizationJsonLd } from "@/components/OrganizationJsonLd";
@@ -81,7 +82,8 @@ export default async function RootLayout({
         <SessionWrapper>
           <NextIntlClientProvider locale={locale} messages={messages}>
             <Nav />
-            <main>{children}</main>
+            <main className="min-h-[calc(100vh-4rem)]">{children}</main>
+            <Footer />
             <AiAssistant />
           </NextIntlClientProvider>
         </SessionWrapper>

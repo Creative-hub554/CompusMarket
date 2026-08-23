@@ -85,6 +85,17 @@ h4 {
   }
 }
 
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes templeFloat {
   0%,
   100% {
@@ -105,6 +116,9 @@ h4 {
 }
 .animate-slide-down {
   animation: slideDown 0.3s ease-out both;
+}
+.animate-slide-up {
+  animation: slideUp 0.35s ease-out both;
 }
 .animate-pulse-glow {
   animation: pulseGlow 2s ease-in-out infinite;

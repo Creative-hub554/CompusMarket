@@ -36,6 +36,11 @@ export class ProductsController {
     return this.productsService.findAll(inStock === "true");
   }
 
+  @Get("promos")
+  findPromos() {
+    return this.productsService.findPromos();
+  }
+
   @Get("admin/:id")
   @UseGuards(AuthGuard("jwt"), RolesGuard)
   @Roles("ADMIN", "INVENTORY_MANAGER")

@@ -42,6 +42,27 @@ export class ProductsService {
     });
   }
 
+  async findPromos() {
+    return this.prisma.product.findMany({
+      where: {
+        status: "ACTIVE",
+        stock: { gt: 0 },
+        videoActive: true,
+        videoUrl: { not: null },
+      },
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        images: true,
+        videoUrl: true,
+        condition: true,
+      },
+      orderBy: { updatedAt: "desc" },
+      take: 10,
+    });
+  }
+
   async findOne(id: string): Promise<ProductWithRelations> {
     const product = await this.prisma.product.findUnique({
       where: { id, status: "ACTIVE" },

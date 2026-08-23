@@ -20,6 +20,8 @@ type SellerProduct = {
   serialNumber: string | null;
   categoryId: string;
   images: string[];
+  videoUrl?: string | null;
+  videoActive?: boolean;
 };
 
 export default function SellerEditProductPage() {
@@ -35,6 +37,8 @@ export default function SellerEditProductPage() {
   const [error, setError] = useState("");
   const [images, setImages] = useState<string[]>([]);
   const [status, setStatus] = useState("ACTIVE");
+  const [videoUrl, setVideoUrl] = useState("");
+  const [videoActive, setVideoActive] = useState(false);
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -61,6 +65,8 @@ export default function SellerEditProductPage() {
         setCategories(cats);
         setImages(product.images || []);
         setStatus(product.status);
+        setVideoUrl(product.videoUrl || "");
+        setVideoActive(Boolean(product.videoActive));
         setForm({
           name: product.name,
           description: product.description,
@@ -111,6 +117,8 @@ export default function SellerEditProductPage() {
           ...form,
           images,
           status,
+          videoUrl: videoUrl.trim(),
+          videoActive: Boolean(videoUrl.trim()) && videoActive,
           price: parseFloat(form.price),
           stock: parseInt(form.stock),
           warrantyMonths: form.warrantyMonths
@@ -280,6 +288,32 @@ export default function SellerEditProductPage() {
               className="mt-1 block w-full border border-slate-300 rounded px-3 py-2"
             />
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700">
+            Promo video URL (optional)
+          </label>
+          <input
+            value={videoUrl}
+            onChange={(e) => setVideoUrl(e.target.value)}
+            placeholder="https://... (mp4, vertical 9:16 works best)"
+            className="mt-1 block w-full border border-slate-300 rounded px-3 py-2"
+          />
+          {videoUrl.trim() && (
+            <label className="mt-2 flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                checked={videoActive}
+                onChange={(e) => setVideoActive(e.target.checked)}
+              />
+              Show this product in market promo popups
+            </label>
+          )}
+          <p className="text-xs text-slate-500 mt-1">
+            Short vertical videos get featured as shoppable promos on the
+            Market page.
+          </p>
         </div>
 
         <div>

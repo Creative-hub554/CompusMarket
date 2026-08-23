@@ -6,7 +6,6 @@ export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const t = await getTranslations("home");
-  const nav = await getTranslations("nav");
   const categories = await api.categories.list();
 
   const features = [
@@ -108,25 +107,6 @@ export default async function Home() {
           </Link>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-slate-900 text-white/50 text-sm">
-        <div className="mx-auto max-w-7xl px-4 py-10">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="text-center md:text-left">
-              <p className="text-base font-bold tracking-wider text-white">
-                KHMERONLINESHOP
-              </p>
-              <p className="text-[10px] tracking-[0.3em] text-indigo-400 mt-0.5">bytheo</p>
-            </div>
-            <div className="flex gap-8 text-xs tracking-wide">
-              <Link href="/terms/buyer" className="hover:text-white transition-colors">{nav("buyerTerms")}</Link>
-              <Link href="/terms/seller" className="hover:text-white transition-colors">{nav("sellerTerms")}</Link>
-            </div>
-            <p className="text-xs">&copy; {new Date().getFullYear()} {t("allRightsReserved")}</p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
