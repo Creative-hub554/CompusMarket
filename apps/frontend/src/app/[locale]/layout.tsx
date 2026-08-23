@@ -1,14 +1,16 @@
-﻿import type { Metadata, Viewport } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Noto_Sans_Khmer } from "next/font/google";
-import "./globals.css";
-import { NextIntlClientProvider } from "next-intl";
-import { getLocale, getMessages } from "next-intl/server";
+import { notFound } from "next/navigation";
+import { hasLocale, NextIntlClientProvider } from "next-intl";
+import { getMessages } from "next-intl/server";
+import { routing } from "@/i18n/routing";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import SessionWrapper from "@/components/SessionWrapper";
 import { AiAssistant } from "@/components/ai/AiAssistant";
 import { OrganizationJsonLd } from "@/components/OrganizationJsonLd";
 import { SITE_NAME, SITE_DESCRIPTION, getSiteUrl, languageAlternates } from "@/lib/site";
+import "../globals.css";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -25,7 +27,7 @@ const notoSansKhmer = Noto_Sans_Khmer({
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0f172a",
+  themeColor: "#1e1b4b",
 };
 
 export const metadata: Metadata = {
@@ -58,7 +60,6 @@ export const metadata: Metadata = {
       { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
       { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
-    apple: [{ url: "/icon-192.png", sizes: "192x192" }],
   },
   appleWebApp: {
     capable: true,
@@ -67,12 +68,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
-  children,
-}: Readonly<{
+type Props = {
   children: React.ReactNode;
-}>) {
-  const locale = await getLocale();
+  params: Promise<{ locale: string }>;
+};
+
+export default async function LocaleLayout({ children, params }: Props) {
+  const { locale } = await params;
+  if (!hasLocale(routing.locales, locale)) {
+    notFound();
+  }
+
   const messages = await getMessages();
 
   return (
@@ -90,4 +96,8 @@ export default async function RootLayout({
       </body>
     </html>
   );
+}
+
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }));
 }

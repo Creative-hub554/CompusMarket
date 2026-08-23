@@ -282,9 +282,9 @@ export default function SellerApplyPage() {
           </div>
           <p className="text-sm text-slate-500">
             By submitting, you agree to the{" "}
-            <a href="/terms/seller" className="text-indigo-600 underline">
+            <Link href="/terms/seller" className="text-indigo-600 underline">
               Seller Terms &amp; Conditions
-            </a>
+            </Link>
             .
           </p>
           <div className="flex gap-3">
