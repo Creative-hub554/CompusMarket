@@ -5,12 +5,14 @@ import { Link } from "@/i18n/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useSession } from "next-auth/react";
 import { Avatar } from "@/components/social/Avatar";
+import { Users } from "lucide-react";
 import { timeAgo, useAuthSocket } from "@/lib/social";
 
 type Thread = {
   id: string;
   participants: { id: string; name: string | null; username: string | null; image: string | null }[];
   product: { id: string; name: string; price: unknown; images: unknown } | null;
+  group: { id: string; name: string } | null;
   lastMessage: { id: string; content: string; senderId: string; createdAt: string } | null;
   lastMessageAt: string | null;
   unreadCount: number;
@@ -121,11 +123,17 @@ export default function MessagesPage() {
                 onClick={() => router.push(`/messages/${thread.id}`)}
                 className="w-full text-left rounded-xl border border-[var(--border-subtle)] p-4 hover:bg-[var(--surface-2)] hover:border-indigo-200 transition-all flex items-center gap-3"
               >
-                <Avatar user={other ?? {}} size={48} online={isOnline} />
+                {thread.group ? (
+                  <span className="w-12 h-12 shrink-0 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
+                    <Users size={20} className="text-white" />
+                  </span>
+                ) : (
+                  <Avatar user={other ?? {}} size={48} online={isOnline} />
+                )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <p className="font-semibold truncate">
-                      {other?.name || other?.username || "Unknown"}
+                      {thread.group ? thread.group.name : other?.name || other?.username || "Unknown"}
                     </p>
                     {thread.lastMessageAt && (
                       <span className="text-xs text-gray-400 shrink-0">

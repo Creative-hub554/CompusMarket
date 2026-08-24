@@ -8,6 +8,7 @@ import { Link } from "@/i18n/navigation";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Avatar } from "@/components/social/Avatar";
+import { Users } from "lucide-react";
 import { timeAgo, uploadFile, useAuthSocket } from "@/lib/social";
 
 type Attachment = { url: string; kind: "IMAGE" | "VIDEO" };
@@ -26,6 +27,7 @@ type ThreadInfo = {
   id: string;
   participants: { id: string; name: string | null; username: string | null; image: string | null }[];
   product: { id: string; name: string; price: unknown; images: unknown } | null;
+  group: { id: string; name: string } | null;
 };
 
 export default function ChatPage() {
@@ -159,13 +161,25 @@ export default function ChatPage() {
         <Link href="/messages" className="text-gray-500 dark:text-gray-400 hover:text-slate-900 dark:text-slate-100 text-xl leading-none">
           ←
         </Link>
-        <Avatar user={other ?? {}} size={40} online={online} />
+        {thread?.group ? (
+          <span className="w-10 h-10 shrink-0 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
+            <Users size={18} className="text-white" />
+          </span>
+        ) : (
+          <Avatar user={other ?? {}} size={40} online={online} />
+        )}
         <div className="flex-1 min-w-0">
           <p className="font-semibold truncate">
-            {other?.name || other?.username || "Chat"}
+            {thread?.group
+              ? thread.group.name
+              : other?.name || other?.username || "Chat"}
           </p>
           {peerTyping ? (
             <p className="text-xs text-indigo-500">typing…</p>
+          ) : thread?.group ? (
+            <p className="text-xs text-gray-400">
+              {thread.participants.length + 1} members
+            </p>
           ) : (
             <p className="text-xs text-gray-400">{online ? "Online" : "Offline"}</p>
           )}

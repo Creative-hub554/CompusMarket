@@ -9,6 +9,6 @@ import { NotificationsService } from "./notifications.service";
 @Module({
   controllers: [SocialController],
   providers: [PostsService, FollowsService, StoriesService, ProfilesService, NotificationsService],
-  exports: [NotificationsService],
+  exports: [NotificationsService, PostsService],
 })
 export class SocialModule {}

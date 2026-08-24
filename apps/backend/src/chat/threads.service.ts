@@ -73,6 +73,7 @@ export class ThreadsService {
             participants: { include: { user: { select: { id: true, name: true, username: true, image: true } } } },
             messages: { orderBy: { createdAt: "desc" }, take: 1 },
             product: { select: { id: true, name: true, price: true, images: true } },
+            group: { select: { id: true, name: true } },
           },
         },
       },
@@ -94,6 +95,7 @@ export class ThreadsService {
         return {
           id: p.threadId,
           product: p.thread.product,
+          group: p.thread.group,
           participants: others,
           lastMessage,
           lastMessageAt: p.thread.lastMessageAt,

@@ -56,7 +56,7 @@ export class PostsService {
     private notifications: NotificationsService
   ) {}
 
-  async create(userId: string, dto: CreatePostDto): Promise<MappedPost> {
+  async create(userId: string, dto: CreatePostDto, groupId?: string): Promise<MappedPost> {
     const content = dto.content?.trim() ?? "";
     const media = dto.media ?? [];
     if (!content && media.length === 0) {
@@ -67,6 +67,7 @@ export class PostsService {
     const post = await this.prisma.post.create({
       data: {
         authorId: userId,
+        ...(groupId ? { groupId } : {}),
         content,
         media: {
           create: media.map((m, i) => ({
@@ -108,6 +109,15 @@ export class PostsService {
     limit = 10
   ): Promise<{ items: MappedPost[]; nextCursor: string | null }> {
     return this.queryFeed({ authorId }, viewerId, cursorId, limit);
+  }
+
+  async byGroup(
+    groupId: string,
+    viewerId?: string,
+    cursorId?: string,
+    limit = 10
+  ): Promise<{ items: MappedPost[]; nextCursor: string | null }> {
+    return this.queryFeed({ groupId }, viewerId, cursorId, limit);
   }
 
   private async queryFeed(

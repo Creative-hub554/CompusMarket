@@ -109,6 +109,9 @@ export function Nav() {
               <Link href="/feed" className={itemCls}>
                 {t("feed")}
               </Link>
+              <Link href="/community/groups" className={itemCls}>
+                {t("groups")}
+              </Link>
               <Link href="/community" className={itemCls}>
                 {t("community")}
               </Link>
@@ -297,6 +300,9 @@ export function Nav() {
             <div className="pl-4 flex flex-col gap-1 text-sm">
               <Link href="/feed" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-white/10 transition-colors">
                 {t("feed")}
+              </Link>
+              <Link href="/community/groups" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-white/10 transition-colors">
+                {t("groups")}
               </Link>
               <Link href="/community" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-white/10 transition-colors">
                 {t("community")}

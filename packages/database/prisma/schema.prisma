@@ -139,6 +139,8 @@ model User {
   notifications       Notification[]     @relation("Notifications")
   notificationActors  Notification[]     @relation("NotificationActors")
   threadParticipants  ThreadParticipant[]
+  groupsCreated       Group[]             @relation("GroupsCreated")
+  groupMemberships    GroupMember[]       @relation("GroupMemberships")
 
   documentFolders DocumentFolder[]
   documents       Document[]
@@ -390,11 +392,13 @@ model SellerDocument {
 model Thread {
   id            String    @id @default(uuid())
   productId     String?
+  groupId       String?   @unique
   lastMessageAt DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime @updatedAt
 
   product      Product?            @relation(fields: [productId], references: [id], onDelete: SetNull)
+  group        Group?              @relation(fields: [groupId], references: [id], onDelete: Cascade)
   participants ThreadParticipant[]
   messages     Message[]
 
@@ -646,17 +650,55 @@ model Note {
 model Post {
   id        String   @id @default(uuid())
   authorId  String
+  groupId   String?
   content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  author    User       @relation("Posts", fields: [authorId], references: [id], onDelete: Cascade)
+  author    User        @relation("Posts", fields: [authorId], references: [id], onDelete: Cascade)
+  group     Group?      @relation(fields: [groupId], references: [id], onDelete: Cascade)
   media     PostMedia[]
   reactions Reaction[]
   comments  Comment[]
 
   @@index([authorId])
+  @@index([groupId])
   @@index([createdAt])
+}
+
+enum GroupRole {
+  ADMIN
+  MEMBER
+}
+
+model Group {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  creatorId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  creator User          @relation("GroupsCreated", fields: [creatorId], references: [id], onDelete: Cascade)
+  members GroupMember[]
+  posts   Post[]
+  thread  Thread?
+
+  @@index([createdAt])
+}
+
+model GroupMember {
+  id       String    @id @default(uuid())
+  groupId  String
+  userId   String
+  role     GroupRole @default(MEMBER)
+  joinedAt DateTime  @default(now())
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation("GroupMemberships", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@index([userId])
 }
 
 model PostMedia {

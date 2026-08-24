@@ -10,7 +10,13 @@ import { useSession } from "next-auth/react";
 
 type MediaInput = { url: string; kind: "IMAGE" | "VIDEO" };
 
-export function Composer({ onPosted }: { onPosted: (post: unknown) => void }) {
+export function Composer({
+  onPosted,
+  groupId,
+}: {
+  onPosted: (post: unknown) => void;
+  groupId?: string;
+}) {
   const { data: session } = useSession();
   const socketRef = useAuthSocket(session?.user?.id);
   const [content, setContent] = useState("");
@@ -46,7 +52,9 @@ export function Composer({ onPosted }: { onPosted: (post: unknown) => void }) {
     if (!content.trim() && media.length === 0) return;
     setPosting(true);
     try {
-      const res = await fetch("/api/posts", {
+      const res = await fetch(
+        groupId ? `/api/groups/${groupId}/posts` : "/api/posts",
+        {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: content.trim(), media }),
