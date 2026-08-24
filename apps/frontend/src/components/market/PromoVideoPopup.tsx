@@ -64,7 +64,7 @@ export function PromoVideoPopup() {
     <div
       role="dialog"
       aria-label={t("promoAriaLabel")}
-      className="fixed bottom-4 right-4 z-[60] w-64 overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-gray-200 animate-slide-up"
+      className="glass-card fixed bottom-4 right-4 z-[60] w-64 overflow-hidden animate-slide-up"
     >
       <button
         onClick={dismiss}
@@ -89,10 +89,10 @@ export function PromoVideoPopup() {
           </span>
         </div>
         <div className="p-3">
-          <p className="truncate text-sm font-semibold text-gray-900">
+          <p className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">
             {promo.name}
           </p>
-          <p className="text-sm font-bold text-indigo-600">
+          <p className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
             ${Number(promo.price).toFixed(2)}
           </p>
         </div>

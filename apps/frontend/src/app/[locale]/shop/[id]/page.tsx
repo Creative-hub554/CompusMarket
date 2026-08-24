@@ -85,7 +85,7 @@ export default async function ProductDetailPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
       />
       {/* Gradient header strip */}
-      <div className="rounded-xl bg-gradient-to-br from-slate-900 via-[#1e1b4b] to-[#4338ca] text-white p-6 md:p-8 mb-8">
+      <div className="gradient-mesh text-white rounded-2xl p-6 md:p-8 mb-8">
         <p className="text-[11px] tracking-[0.25em] text-indigo-300 uppercase font-semibold">
           {product.category.name}
         </p>

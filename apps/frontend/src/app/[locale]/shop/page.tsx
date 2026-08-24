@@ -64,7 +64,16 @@ export default async function ShopPage({
         <div className="flex-1">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
             {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard
+                key={product.id}
+                id={product.id}
+                name={product.name}
+                price={product.price}
+                condition={product.condition}
+                images={(product.images as string[]) || []}
+                categoryName={product.category?.name}
+                sellerBadge={Boolean(product.sellerId)}
+              />
             ))}
           </div>
           {products.length === 0 && (

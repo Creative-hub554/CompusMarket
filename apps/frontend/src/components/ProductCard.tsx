@@ -1,41 +1,56 @@
-import type { Product } from "@/services/api";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
-import { getTranslations } from "next-intl/server";
+import { useTranslations } from "next-intl";
 
-type Props = { product: Product };
-
-const conditionColors: Record<string, string> = {
-  A: "bg-green-100 text-green-800",
-  B: "bg-amber-100 text-amber-800",
-  C: "bg-orange-100 text-orange-800",
+type ProductCardProps = {
+  id: string;
+  name: string;
+  price: number | string;
+  condition: string;
+  images: string[];
+  categoryName?: string;
+  sellerBadge?: boolean;
 };
 
-export async function ProductCard({ product }: Props) {
-  const t = await getTranslations("product");
+const conditionColors: Record<string, string> = {
+  A: "bg-green-100 text-green-800 dark:bg-green-950/60 dark:text-green-300",
+  B: "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300",
+  C: "bg-orange-100 text-orange-800 dark:bg-orange-950/60 dark:text-orange-300",
+};
+
+export function ProductCard({
+  id,
+  name,
+  price,
+  condition,
+  images,
+  categoryName,
+  sellerBadge,
+}: ProductCardProps) {
+  const t = useTranslations("product");
   const conditionLabels: Record<string, string> = {
     A: t("conditionA"),
     B: t("conditionB"),
     C: t("conditionC"),
   };
-  const images = product.images as string[];
+
   return (
     <Link
-      href={`/shop/${product.id}`}
-      className="card-hover group block rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm hover:border-indigo-300"
+      href={`/shop/${id}`}
+      className="card-hover group block rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)] overflow-hidden hover:border-indigo-400/60"
     >
-      <div className="aspect-square w-full bg-slate-50 flex items-center justify-center overflow-hidden">
+      <div className="aspect-square w-full bg-[var(--surface-2)] flex items-center justify-center overflow-hidden">
         {images?.[0] ? (
           <Image
             src={images[0]}
-            alt={product.name}
+            alt={name}
             width={500}
             height={500}
             className="h-full w-full object-contain group-hover:scale-110 transition-transform duration-500"
           />
         ) : (
           <svg
-            className="h-12 w-12 text-slate-300"
+            className="h-12 w-12 text-slate-300 dark:text-slate-600"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -51,20 +66,22 @@ export async function ProductCard({ product }: Props) {
       </div>
 
       <div className="p-4 space-y-2">
-        <h3 className="font-semibold truncate">{product.name}</h3>
-        <p className="text-xs text-slate-500">{product.category.name}</p>
+        <h3 className="font-semibold truncate text-slate-900 dark:text-slate-100">{name}</h3>
+        {categoryName && (
+          <p className="text-xs text-slate-500 dark:text-slate-400">{categoryName}</p>
+        )}
         <div className="flex items-center gap-2">
           <span
-            className={`text-xs px-2 py-0.5 rounded-full font-medium ${conditionColors[product.condition] || "bg-slate-100"}`}
+            className={`text-xs px-2 py-0.5 rounded-full font-medium ${conditionColors[condition] || "bg-slate-100 dark:bg-slate-800"}`}
           >
-            {conditionLabels[product.condition] || product.condition}
+            {conditionLabels[condition] || condition}
           </span>
-          {product.sellerId && (
-            <span className="text-xs text-slate-900">{t("seller")}</span>
+          {sellerBadge && (
+            <span className="text-xs text-slate-700 dark:text-slate-300">{t("seller")}</span>
           )}
         </div>
-        <p className="text-lg font-bold text-slate-900">
-          ${Number(product.price).toLocaleString()}
+        <p className="text-lg font-extrabold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent dark:from-indigo-400 dark:to-violet-400">
+          ${Number(price).toLocaleString()}
         </p>
       </div>
     </Link>

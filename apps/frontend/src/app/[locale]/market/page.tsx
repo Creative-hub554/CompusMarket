@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
-import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { PromoVideoPopup } from "@/components/market/PromoVideoPopup";
+import { ProductCard } from "@/components/ProductCard";
 
 type SearchHit = {
   id: string;
@@ -28,58 +27,6 @@ type SearchResponse = {
 type Category = { id: string; name: string; slug: string };
 
 const CONDITIONS = ["A", "B", "C"];
-
-function ProductResultCard({ hit }: { hit: SearchHit }) {
-  const tp = useTranslations("product");
-  const conditionLabels: Record<string, string> = {
-    A: tp("conditionA"),
-    B: tp("conditionB"),
-    C: tp("conditionC"),
-  };
-  const images = hit.images || [];
-  const conditionColors: Record<string, string> = {
-    A: "bg-green-100 text-green-800",
-    B: "bg-amber-100 text-amber-800",
-    C: "bg-orange-100 text-orange-800",
-  };
-
-  return (
-    <Link
-      href={`/shop/${hit.id}`}
-      className="card-hover group block rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm hover:border-indigo-300"
-    >
-      <div className="aspect-square w-full bg-slate-50 flex items-center justify-center overflow-hidden">
-        {images[0] ? (
-          <Image
-            src={images[0]}
-            alt={hit.name}
-            width={500}
-            height={500}
-            className="h-full w-full object-contain group-hover:scale-110 transition-transform duration-500"
-          />
-        ) : (
-          <div className="text-slate-300 text-sm">No image</div>
-        )}
-      </div>
-      <div className="p-4 space-y-2">
-        <h3 className="font-semibold truncate">{hit.name}</h3>
-        <p className="text-xs text-slate-500">{hit.categoryName}</p>
-        <div className="flex items-center gap-2">
-          <span
-            className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-              conditionColors[hit.condition] || "bg-slate-100"
-            }`}
-          >
-            {conditionLabels[hit.condition] || hit.condition}
-          </span>
-        </div>
-        <p className="text-lg font-bold text-slate-900">
-          ${Number(hit.price).toLocaleString()}
-        </p>
-      </div>
-    </Link>
-  );
-}
 
 export default function MarketPage() {
   const t = useTranslations("market");
@@ -155,12 +102,12 @@ export default function MarketPage() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder={t("searchPlaceholder")}
-            className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            className="input-field flex-1"
           />
           <select
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm md:w-48"
+            className="input-field md:w-48"
           >
             <option value="">{t("allCategories")}</option>
             {categories.map((c) => (
@@ -172,7 +119,7 @@ export default function MarketPage() {
           <select
             value={condition}
             onChange={(e) => setCondition(e.target.value)}
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm md:w-40"
+            className="input-field md:w-40"
           >
             <option value="">{t("allConditions")}</option>
             {CONDITIONS.map((c) => (
@@ -191,7 +138,7 @@ export default function MarketPage() {
               min={0}
               value={minPrice}
               onChange={(e) => setMinPrice(e.target.value)}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm w-28"
+              className="input-field w-28"
             />
           </label>
           <label className="text-xs text-slate-500 flex flex-col gap-1">
@@ -201,7 +148,7 @@ export default function MarketPage() {
               min={0}
               value={maxPrice}
               onChange={(e) => setMaxPrice(e.target.value)}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm w-28"
+              className="input-field w-28"
             />
           </label>
           {hasFilters && (
@@ -245,7 +192,15 @@ export default function MarketPage() {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {hits.map((hit) => (
-            <ProductResultCard key={hit.id} hit={hit} />
+            <ProductCard
+              key={hit.id}
+              id={hit.id}
+              name={hit.name}
+              price={hit.price}
+              condition={hit.condition}
+              images={hit.images || []}
+              categoryName={hit.categoryName}
+            />
           ))}
         </div>
       )}
