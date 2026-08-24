@@ -1,5 +1,7 @@
 "use client";
 
+
+import { toast } from "@/components/ui/toast";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
@@ -111,7 +113,7 @@ export default function SellerOrderDetailPage() {
     });
     if (!res.ok) {
       const err = await res.json();
-      alert(err.error || "Failed");
+      toast.error(err.error || "Failed");
       return;
     }
     const updated = await res.json();

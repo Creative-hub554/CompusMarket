@@ -1,5 +1,7 @@
 "use client";
 
+
+import { toast } from "@/components/ui/toast";
 import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { ResumeData } from "@/components/resume/types";
@@ -61,7 +63,7 @@ function ResumeBuilderContent() {
       a.click();
       URL.revokeObjectURL(url);
     } catch {
-      alert("Failed to generate PDF");
+      toast.error("Failed to generate PDF");
     } finally {
       setPdfExporting(false);
     }

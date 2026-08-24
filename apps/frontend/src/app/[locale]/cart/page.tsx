@@ -1,5 +1,7 @@
 "use client";
 
+
+import { toast } from "@/components/ui/toast";
 import { useEffect } from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
@@ -25,7 +27,7 @@ export default function CartPage() {
   async function checkout() {
     const res = await fetch("/api/orders", { method: "POST" });
     if (!res.ok) {
-      alert(t("checkoutFailed"));
+      toast.error(t("checkoutFailed"));
       return;
     }
     const order = await res.json();

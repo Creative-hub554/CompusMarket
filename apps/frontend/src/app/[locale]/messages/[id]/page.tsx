@@ -1,5 +1,7 @@
 "use client";
 
+
+import { toast } from "@/components/ui/toast";
 import { useEffect, useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
@@ -132,7 +134,7 @@ export default function ChatPage() {
         ]);
       }
     } catch {
-      alert("Upload failed. Is storage running?");
+      toast.error("Upload failed. Is storage running?");
     }
     setUploading(false);
   }

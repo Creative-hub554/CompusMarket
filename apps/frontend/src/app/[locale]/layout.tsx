@@ -7,6 +7,7 @@ import { routing } from "@/i18n/routing";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { Toaster } from "@/components/ui/toast";
 import SessionWrapper from "@/components/SessionWrapper";
 import { AiAssistant } from "@/components/ai/AiAssistant";
 import { OrganizationJsonLd } from "@/components/OrganizationJsonLd";
@@ -91,10 +92,12 @@ export default async function LocaleLayout({ children, params }: Props) {
         <ThemeProvider>
           <SessionWrapper>
             <NextIntlClientProvider locale={locale} messages={messages}>
-              <Nav />
-              <main className="min-h-[calc(100vh-4rem)]">{children}</main>
-              <Footer />
-              <AiAssistant />
+              <Toaster />
+                <Nav />
+                <main className="min-h-[calc(100vh-4rem)]">{children}</main>
+                <Footer />
+                <AiAssistant />
+              
             </NextIntlClientProvider>
           </SessionWrapper>
         </ThemeProvider>

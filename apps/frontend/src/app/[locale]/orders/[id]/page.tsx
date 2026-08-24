@@ -1,5 +1,7 @@
 "use client";
 
+
+import { toast } from "@/components/ui/toast";
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
@@ -80,7 +82,7 @@ export default function OrderDetailPage() {
     });
     if (!res.ok) {
       const err = await res.json();
-      alert(err.error || "Failed");
+      toast.error(err.error || "Failed");
       return;
     }
     fetchOrder();
@@ -272,7 +274,7 @@ function FeedbackForm({
       const data = await res.json();
       setImages((prev) => [...prev, data.url]);
     } catch {
-      alert("Upload failed");
+      toast.error("Upload failed");
     }
     setUploading(false);
   };

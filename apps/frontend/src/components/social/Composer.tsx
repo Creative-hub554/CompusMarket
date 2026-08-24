@@ -1,5 +1,7 @@
 "use client";
 
+
+import { toast } from "@/components/ui/toast";
 import { useState } from "react";
 import Image from "next/image";
 import { Avatar } from "./Avatar";
@@ -29,13 +31,13 @@ export function Composer({ onPosted }: { onPosted: (post: unknown) => void }) {
         const combined = [...prev, ...uploaded];
         const videos = combined.filter((m) => m.kind === "VIDEO");
         if (videos.length > 1 || (videos.length === 1 && combined.length > 1)) {
-          alert("A post can have up to 8 photos or a single video.");
+          toast.error("A post can have up to 8 photos or a single video.");
           return prev;
         }
         return combined.slice(0, 8);
       });
     } catch {
-      alert("Upload failed. Is storage running?");
+      toast.error("Upload failed. Is storage running?");
     }
     setUploading(false);
   }
@@ -55,7 +57,7 @@ export function Composer({ onPosted }: { onPosted: (post: unknown) => void }) {
       setContent("");
       setMedia([]);
     } catch {
-      alert("Could not publish your post.");
+      toast.error("Could not publish your post.");
     }
     setPosting(false);
   }

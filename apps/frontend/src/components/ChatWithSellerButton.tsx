@@ -1,5 +1,7 @@
 "use client";
 
+
+import { toast } from "@/components/ui/toast";
 import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useSession } from "next-auth/react";
@@ -31,7 +33,7 @@ export function ChatWithSellerButton({
       const thread = await res.json();
       router.push(`/messages/${thread.id}`);
     } catch {
-      alert("Failed to start conversation");
+      toast.error("Failed to start conversation");
     }
     setLoading(false);
   }

@@ -1,5 +1,7 @@
 "use client";
 
+
+import { toast } from "@/components/ui/toast";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useCartStore } from "@/stores/cart";
@@ -17,7 +19,7 @@ export function AddToCartButton({ productId }: { productId: string }) {
       setAdded(true);
       setTimeout(() => setAdded(false), 2000);
     } catch {
-      alert(t("loginRequired"));
+      toast.error(t("loginRequired"));
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,7 @@
 "use client";
 
+
+import { toast } from "@/components/ui/toast";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Avatar } from "./Avatar";
@@ -52,7 +54,7 @@ export function StoriesBar() {
       const res = await fetch("/api/stories");
       if (res.ok) setGroups(await res.json());
     } catch {
-      alert("Could not add your story.");
+      toast.error("Could not add your story.");
     }
     setUploading(false);
   }
