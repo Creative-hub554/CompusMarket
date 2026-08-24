@@ -170,61 +170,73 @@ export function AiAssistant() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="w-14 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-lg flex items-center justify-center text-xl"
+          className="w-14 h-14 rounded-full shadow-[0_8px_30px_-6px_rgba(99,102,241,0.6)] flex items-center justify-center bg-gradient-to-br from-indigo-500 to-violet-600 hover:scale-105 active:scale-95 transition-transform"
           aria-label={t.aiAssistant.title}
         >
-          💬
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/champey-mark.svg" alt="" width={30} height={30} />
         </button>
       )}
       {isOpen && (
-        <div className="w-80 sm:w-96 bg-white rounded-lg shadow-xl border border-gray-200 flex flex-col max-h-[500px]">
-          <div className="bg-indigo-600 text-white p-3 rounded-t-lg flex justify-between items-center">
-            <div className="font-semibold text-sm">{t.aiAssistant.title}</div>
+        <div className="w-80 sm:w-96 glass-card !rounded-2xl flex flex-col max-h-[520px] overflow-hidden animate-slide-up">
+          <div className="gradient-mesh text-white p-3 flex justify-between items-center">
+            <div className="flex items-center gap-2 font-semibold text-sm">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/champey-mark.svg" alt="" width={20} height={20} />
+              {t.aiAssistant.title}
+            </div>
             <div className="flex gap-1">
               {(["en", "zh", "km"] as Lang[]).map((l) => (
                 <button
                   key={l}
                   onClick={() => changeLang(l)}
-                  className={`px-2 py-0.5 text-xs rounded ${lang === l ? "bg-white text-indigo-600 font-bold" : "text-white/80 hover:bg-indigo-700"}`}
+                  aria-pressed={lang === l}
+                  className={`px-2 py-0.5 text-xs rounded-full transition-colors ${lang === l ? "bg-white text-indigo-700 font-bold" : "text-white/80 hover:bg-white/15"}`}
                 >
                   {l === "en" ? "EN" : l === "zh" ? "中文" : "ខ្មែរ"}
                 </button>
               ))}
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-white/80 hover:text-white ml-1"
+                aria-label="Close"
+              >
+                ✕
+              </button>
             </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="text-white/80 hover:text-white ml-2"
-              aria-label="Close"
-            >
-              ✕
-            </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-[200px] max-h-[320px]">
+          <div className="flex-1 overflow-y-auto p-3 space-y-2.5 min-h-[200px] max-h-[320px] bg-[var(--bg-body)]">
             {messages.map((msg, idx) => (
-              <div key={idx}>
-                <div className={`text-sm whitespace-pre-wrap ${msg.role === "assistant" ? "text-gray-800" : "text-indigo-700 font-medium text-right"}`}>
+              <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div
+                  className={`max-w-[85%] text-sm whitespace-pre-wrap px-3 py-2 ${
+                    msg.role === "assistant"
+                      ? "rounded-2xl rounded-bl-md bg-[var(--surface-2)] text-slate-800 dark:text-slate-200"
+                      : "rounded-2xl rounded-br-md bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-medium"
+                  }`}
+                >
                   {msg.content}
                 </div>
                 {msg.products && msg.products.length > 0 && (
-                  <div className="mt-2 space-y-2">
+                  <div className="mt-2 space-y-2 w-full">
                     {msg.products.map((product) => (
                       <Link
                         key={product.id}
                         href={`/shop/${product.id}`}
                         onClick={() => setIsOpen(false)}
-                        className="flex items-center gap-2 p-2 rounded border border-gray-100 hover:bg-indigo-50 transition"
+                        className="flex items-center gap-2 p-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] hover:border-indigo-400/60 transition"
                       >
-                        <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center shrink-0 overflow-hidden">
+                        <div className="w-10 h-10 bg-[var(--surface-2)] rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
                           {product.image ? (
                             <Image src={product.image} alt="" width={40} height={40} className="w-full h-full object-cover" />
                           ) : (
-                            <span className="text-gray-400 text-xs">No img</span>
+                            <span className="text-slate-400 text-xs">—</span>
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{product.name}</p>
-                          <p className="text-xs text-gray-400">
+                          <p className="text-sm font-medium truncate text-slate-900 dark:text-slate-100">{product.name}</p>
+                          <p className="text-xs text-slate-400">
                             ${product.price} · {CONDITION_LABELS[product.condition] ?? product.condition}
                           </p>
                         </div>
@@ -233,13 +245,13 @@ export function AiAssistant() {
                   </div>
                 )}
                 {msg.role === "assistant" && msg.links && msg.links.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1.5">
+                  <div className="mt-2 flex flex-wrap gap-1.5 w-full">
                     {msg.links.map((link) => (
                       <Link
                         key={link}
                         href={link}
                         onClick={() => setIsOpen(false)}
-                        className="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-100 rounded-full px-2.5 py-1 transition"
+                        className="text-xs bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-100 dark:border-indigo-900 rounded-full px-2.5 py-1 transition"
                       >
                         {PATH_LABELS[link] ?? link} →
                       </Link>
@@ -254,7 +266,7 @@ export function AiAssistant() {
                   <button
                     key={starter}
                     onClick={() => sendMessage(starter)}
-                    className="text-xs bg-gray-50 hover:bg-indigo-50 text-gray-600 hover:text-indigo-700 border border-gray-200 rounded-full px-2.5 py-1 transition"
+                    className="text-xs bg-[var(--surface-2)] hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-slate-600 dark:text-slate-300 hover:text-indigo-700 dark:hover:text-indigo-300 border border-[var(--border-subtle)] rounded-full px-2.5 py-1 transition"
                   >
                     {starter}
                   </button>
@@ -262,25 +274,34 @@ export function AiAssistant() {
               </div>
             )}
             {isLoading && (
-              <div className="text-gray-400 text-xs">AI is thinking...</div>
+              <div className="flex items-center gap-1.5 text-slate-400 dark:text-slate-500 text-xs px-1" aria-live="polite">
+                {[0, 150, 300].map((d) => (
+                  <span
+                    key={d}
+                    className="h-1.5 w-1.5 rounded-full bg-current animate-bounce"
+                    style={{ animationDelay: `${d}ms` }}
+                  />
+                ))}
+              </div>
             )}
           </div>
 
-          <div className="p-3 border-t">
+          <div className="p-3 border-t border-[var(--border-subtle)] bg-[var(--surface)]">
             <div className="flex gap-2">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={t.aiAssistant.inputPlaceholder}
-                className="flex-1 text-sm border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-300"
+                className="input-field flex-1 rounded-full px-3.5 py-1.5"
                 onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                 disabled={isLoading}
               />
               <button
                 onClick={() => sendMessage()}
                 disabled={isLoading || !input.trim()}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-3 py-1 rounded disabled:opacity-50"
+                aria-label="Send message"
+                className="bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white text-sm px-4 py-1.5 rounded-full disabled:opacity-50 transition-all active:scale-95"
               >
                 Send
               </button>

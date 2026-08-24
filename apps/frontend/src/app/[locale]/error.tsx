@@ -1,5 +1,7 @@
 "use client";
 
+import { AlertTriangle, RotateCcw } from "lucide-react";
+
 export default function ErrorBoundary({
   error,
   reset,
@@ -10,17 +12,19 @@ export default function ErrorBoundary({
   console.error("Unhandled application error:", error);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-16 text-center">
-      <h1 className="text-2xl font-bold text-red-600 mb-4">
+    <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center animate-fade-in">
+      <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50 dark:bg-red-950/50 text-red-500 mb-6">
+        <AlertTriangle size={30} />
+      </span>
+      <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">
         Something went wrong
       </h1>
-      <p className="text-gray-600 mb-6">
-        An unexpected error occurred. Please try again.
+      <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-md">
+        An unexpected error occurred. Please try again — if it keeps happening,
+        the issue will resolve itself shortly.
       </p>
-      <button
-        onClick={reset}
-        className="bg-slate-900 text-white px-6 py-2 rounded hover:bg-indigo-700 transition"
-      >
+      <button onClick={reset} className="btn-primary inline-flex items-center gap-2 px-6">
+        <RotateCcw size={16} />
         Try again
       </button>
     </div>
