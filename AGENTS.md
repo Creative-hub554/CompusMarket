@@ -16,6 +16,8 @@ pnpm --filter admin dev --port 3001    # Next.js admin :3001
 # Per-package (run from the package directory)
 npx vitest run                         # unit tests (backend excludes *.e2e-spec.ts)
 npx vitest run --config vitest.e2e.config.ts   # backend e2e specs (separate config, 30s timeout)
+npx vitest run src/auth/auth.service.spec.ts   # backend: single test file (from apps/backend)
+npx vitest run src/components/Button.test.tsx  # frontend: single test file (from apps/frontend)
 npx tsc --noEmit                       # typecheck
 npx eslint .                           # lint
 ```
@@ -84,7 +86,7 @@ Backend modules cover more than commerce: `auth`, `products`, `orders`, `cart`, 
 ## Environment
 
 - `.env` files are per-app (`apps/backend/.env`, `apps/frontend/.env`, `apps/admin/.env`), gitignored; root `.env.example` has the full list.
-- **Database**: SQLite local (`file:./prisma/dev.db`), PostgreSQL in production (`DATABASE_URL`).
+- **Database**: `DATABASE_URL` (per-app `.env`) selects the engine; local default `file:./prisma/dev.db`, CI uses `file:./dev.db`. PostgreSQL in production.
 - **Meilisearch**: `http://localhost:7700`, master key `masterKey` (`meilisearch.exe --master-key masterKey` or `docker compose -f docker/compose.yml up -d`; copy `docker/.env.example` to `docker/.env` first — compose reads secrets from it; ports bound to `127.0.0.1`).
 - **MinIO**: :9000 (console :9001). **Redis**: `redis://localhost:6379`.
 - **Docker services are optional for dev**: the node apps run on SQLite alone; search falls back to Prisma when Meilisearch is down, but MinIO uploads fail without `MINIO_ACCESS_KEY`.

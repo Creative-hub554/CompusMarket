@@ -57,6 +57,10 @@ export class AuthService {
       throw new UnauthorizedException("Invalid credentials");
     }
 
+    if (user.role === "BANNED") {
+      throw new UnauthorizedException("Account suspended");
+    }
+
     return this.issueTokenPair(user);
   }
 
@@ -96,6 +100,14 @@ export class AuthService {
 
     if (stored.expiresAt < new Date()) {
       throw new UnauthorizedException("Invalid refresh token");
+    }
+
+    if (stored.user.role === "BANNED") {
+      await this.prisma.refreshToken.updateMany({
+        where: { userId: stored.userId, revokedAt: null },
+        data: { revokedAt: new Date() },
+      });
+      throw new UnauthorizedException("Account suspended");
     }
 
     // Rotate atomically: only the first concurrent request wins the conditional

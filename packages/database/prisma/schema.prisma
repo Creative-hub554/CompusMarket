@@ -13,6 +13,7 @@ enum Role {
   INVENTORY_MANAGER
   ADMIN
   SELLER
+  BANNED
 }
 
 enum ProductCondition {

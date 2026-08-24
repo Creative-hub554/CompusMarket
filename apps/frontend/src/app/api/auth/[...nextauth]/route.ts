@@ -25,6 +25,8 @@ const handler = NextAuth({
 
           if (!user || !user.passwordHash) return null;
 
+          if (user.role === "BANNED") return null;
+
           const isValid = await bcrypt.compare(
             credentials.password as string,
             user.passwordHash
