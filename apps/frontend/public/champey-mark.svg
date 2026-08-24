@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="petal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#818cf8"/>
+      <stop offset="0.55" stop-color="#6366f1"/>
+      <stop offset="1" stop-color="#8b5cf6"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#8b5cf6" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="core" cx="0.35" cy="0.35" r="0.9">
+      <stop offset="0" stop-color="#fde68a"/>
+      <stop offset="0.6" stop-color="#f0c040"/>
+      <stop offset="1" stop-color="#d4a027"/>
+    </radialGradient>
+  </defs>
+
+  <g transform="translate(64 64)">
+    <circle r="62" fill="url(#glow)"/>
+
+    <g id="flower">
+      <g transform="rotate(0)">
+        <path d="M0 -16 C 13 -30 15 -56 0 -74 C -15 -56 -13 -30 0 -16 Z" fill="url(#petal)"/>
+      </g>
+      <g transform="rotate(72)">
+        <path d="M0 -16 C 13 -30 15 -56 0 -74 C -15 -56 -13 -30 0 -16 Z" fill="url(#petal)"/>
+      </g>
+      <g transform="rotate(144)">
+        <path d="M0 -16 C 13 -30 15 -56 0 -74 C -15 -56 -13 -30 0 -16 Z" fill="url(#petal)"/>
+      </g>
+      <g transform="rotate(216)">
+        <path d="M0 -16 C 13 -30 15 -56 0 -74 C -15 -56 -13 -30 0 -16 Z" fill="url(#petal)"/>
+      </g>
+      <g transform="rotate(288)">
+        <path d="M0 -16 C 13 -30 15 -56 0 -74 C -15 -56 -13 -30 0 -16 Z" fill="url(#petal)"/>
+      </g>
+      <circle r="8.5" fill="url(#core)"/>
+    </g>
+  </g>
+</svg>

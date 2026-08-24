@@ -10,9 +10,9 @@ export function Footer() {
     <footer className="border-t border-slate-200 bg-slate-900 text-white">
       <div className="mx-auto max-w-7xl px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="text-center sm:text-left">
-          <p className="font-bold tracking-[0.15em]">KHMERONLINESHOP</p>
+          <p className="font-bold tracking-[0.15em]">Champey</p>
           <p className="text-xs text-slate-400">
-            © {new Date().getFullYear()} KHMERONLINESHOP. {t("footerRights")}
+            © {new Date().getFullYear()} Champey. {t("footerRights")}
           </p>
         </div>
         <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm">

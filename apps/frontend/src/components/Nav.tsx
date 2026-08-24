@@ -80,12 +80,16 @@ export function Nav() {
   return (
     <nav className="bg-khmer-blue text-white shadow-lg sticky top-0 z-40">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 gap-2">
-        <Link href="/" className="shrink-0 animate-fade-in no-underline">
-          <div className="text-lg sm:text-xl font-bold tracking-[0.15em] leading-none text-white">
-            KHMERONLINESHOP
-          </div>
-          <div className="text-[10px] sm:text-xs tracking-[0.3em] text-amber-500 font-medium mt-0.5 text-right">
-            bytheo
+        <Link href="/" className="shrink-0 animate-fade-in no-underline flex items-center gap-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/champey-mark.svg" alt="" width={34} height={34} className="drop-shadow-[0_0_10px_rgba(139,92,246,0.45)]" />
+          <div>
+            <div className="text-lg sm:text-xl font-bold tracking-[0.12em] leading-none text-white">
+              champey
+            </div>
+            <div className="text-[10px] sm:text-[11px] tracking-[0.28em] text-indigo-300 font-medium mt-0.5 text-right">
+              bytheo
+            </div>
           </div>
         </Link>
 

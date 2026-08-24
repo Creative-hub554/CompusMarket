@@ -49,11 +49,13 @@ export const metadata: Metadata = {
     description: SITE_DESCRIPTION,
     locale: "km_KH",
     alternateLocale: ["en_US"],
+    images: [{ url: "/champey-og.png", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
+    images: ["/champey-og.png"],
   },
   icons: {
     icon: [

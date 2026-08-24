@@ -1,8 +1,8 @@
 import { routing } from "@/i18n/routing";
 
-export const SITE_NAME = "KHMERONLINESHOP";
+export const SITE_NAME = "Champey";
 export const SITE_DESCRIPTION =
-  "Smart Commerce & Community Platform for Cambodia";
+  "Social · Market · Careers — Cambodia's all-in-one platform";
 
 export function getSiteUrl(): string {
   return (

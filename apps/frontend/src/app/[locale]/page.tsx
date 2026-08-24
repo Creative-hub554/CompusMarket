@@ -81,7 +81,7 @@ export default async function Home() {
       <section className="py-14">
         <div className="mx-auto max-w-7xl px-4">
           <h2 className="text-3xl font-extrabold tracking-tight text-center">
-            {t("whyTitle")} <span className="text-indigo-600">KHMERONLINESHOP</span>
+            {t("whyTitle")} <span className="text-indigo-600">Champey</span>
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12 stagger-children">
             {features.map((f) => (

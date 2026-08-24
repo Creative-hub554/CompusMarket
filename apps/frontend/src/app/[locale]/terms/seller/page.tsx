@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Seller Terms & Conditions",
-  description: "Terms and conditions for sellers on KHMERONLINESHOP.",
+  description: "Terms and conditions for sellers on Champey.",
   alternates: { canonical: "/terms/seller" },
 };
 
@@ -11,7 +11,7 @@ export default function SellerTermsPage() {
     <div className="max-w-3xl mx-auto px-4 py-12 animate-fade-in-up">
       <div className="text-center mb-8">
         <p className="text-2xl font-bold tracking-[0.12em] text-slate-900 mb-1">
-          KHMERONLINESHOP
+          Champey
         </p>
         <p className="text-[10px] tracking-[0.3em] text-amber-500 uppercase">
           bytheo

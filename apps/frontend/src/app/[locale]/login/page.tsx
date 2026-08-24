@@ -34,7 +34,7 @@ export default function LoginPage() {
       <div className="text-center mb-8">
         <Link href="/" className="inline-block no-underline mb-4">
           <p className="text-xl font-bold tracking-[0.12em] text-slate-900">
-            KHMERONLINESHOP
+            Champey
           </p>
           <p className="text-[9px] tracking-[0.3em] text-amber-500 mt-0.5">
             bytheo

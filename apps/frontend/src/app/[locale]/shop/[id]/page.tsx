@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: product.name,
       description:
         product.description?.slice(0, 160) ||
-        `Buy ${product.name} on KHMERONLINESHOP`,
+        `Buy ${product.name} on Champey`,
       alternates: {
         canonical: `/shop/${id}`,
         languages: languageAlternates(`/shop/${id}`),

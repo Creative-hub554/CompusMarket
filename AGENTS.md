@@ -7,6 +7,7 @@ Pnpm + Turborepo monorepo. Three apps (`apps/frontend`, `apps/admin`, `apps/back
 ```bash
 pnpm install                           # install all deps
 pnpm --filter @theo/database exec prisma generate   # regenerate client after schema changes
+pnpm --filter @theo/database exec prisma db push    # apply schema to local SQLite
 pnpm dev                               # turbo dev (all apps)
 pnpm --filter backend dev              # NestJS API :4000
 pnpm --filter frontend dev             # Next.js :3000
@@ -19,78 +20,90 @@ npx tsc --noEmit                       # typecheck
 npx eslint .                           # lint
 ```
 
-## Environment setup for AI services
-
-Set these in `apps/backend/.env` (copy from `.env.example`):
-
-- `OPENROUTER_API_KEY="sk-or-..."`   # Optional; falls back to OPENAI_API_KEY
-- `AI_MODEL="openai/gpt-4o-mini"`      # OpenRouter model name (e.g. "openai/gpt-4o-mini", "meta-llama/llama-3.3-70b-instruct")
-- `AI_BASE_URL="https://openrouter.ai/api/v1"`  # Only needed when using OpenRouter
-
-If OPENROUTER_API_KEY is unset or blank, the backend will use `OPENAI_API_KEY` and the default OpenAI endpoints.
-
-The AI assistant endpoints respect the language query param (`en` / `zh` / `km`) for multilingual responses.
+Order matters after Prisma schema edits: **stop running dev servers first** (they hold the query-engine DLL and `prisma generate` fails with EPERM), then `generate`, then `db push`.
 
 Node and pnpm are **not always in PATH** on this Windows machine. If commands fail, prepend:
 ```powershell
 $env:PATH = "C:\Program Files\nodejs;C:\Users\theow\AppData\Roaming\npm" + ";$env:PATH"
 ```
 
-The user's actual dev launcher is `start.bat` (run from the repo root): **Admin Mode** = frontend `:3000`, admin `:3001`, backend `:4000`; **Normal Mode** = `:3002`/`:3003`/`:4001`; custom ports available. Ports can also be overridden via `config.bat` (e.g. `STATIC_IP`). If a running app isn't on the default port, check `config.bat` first.
+The user's actual dev launcher is `start.bat` (repo root): **Admin Mode** = frontend `:3000`, admin `:3001`, backend `:4000`; **Normal Mode** = `:3002`/`:3003`/`:4001`; custom ports available. Ports can also be overridden via `config.bat`. If a running app isn't on the default port, check `config.bat` first.
+
+## Zombie dev processes (Windows gotcha)
+
+Repeated launches leave orphaned `nest --watch` / Next watchers alive; a stale watcher re-grabs `:4000` on recompile causing `EADDRINUSE` even when the port looked free. Killing the port owner is not enough (parents respawn children). Kill by command line instead:
+
+```powershell
+Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match "nest start|pnpm.*dev" -and $_.CommandLine -notmatch "\.opencode" } | ForEach-Object { taskkill /PID $_.ProcessId /T /F }
+```
+
+Never blanket-kill `node.exe` — `.opencode/` tooling runs on node.
 
 ## Monorepo layout
 
 | Directory     | Purpose                                             |
 |---------------|-----------------------------------------------------|
 | `apps/backend`| NestJS API. Source in `src/`, tests `*.spec.ts`     |
-| `apps/frontend`| Next.js 15 public site + dashboard. Tests `*.test.{ts,tsx}` |
-| `apps/admin`  | Next.js 15 admin dashboard                          |
+| `apps/frontend`| Next.js 15 public site. Tests `*.test.{ts,tsx}`    |
+| `apps/admin`  | Next.js 15 admin dashboard (no i18n)                |
 | `packages/database` | Prisma schema, `@theo/database` client + shared enums/constants |
-| `packages/ui` | Shared components, `@theo/ui`                       |
-| `packages/config` | Placeholder package (strict `tsconfig.json` only). Not referenced by any app. Each app defines its own `tsconfig.json` and `eslint.config.mjs` (ESLint 9 flat config) |
+| `packages/ui` | Shared components (`Button`, `Card`, `Badge`, `Input`), `@theo/ui` — source-exported, no build step |
+| `packages/config` | Placeholder (strict `tsconfig.json` only), referenced by nothing |
 
-Workspace import alias: `@theo/database` (from `packages/database`), `@theo/ui` (from `packages/ui`). Both Next.js apps also alias `@` → `./src` in `tsconfig.json` and vitest config.
+Workspace aliases: `@theo/database`, `@theo/ui`; both Next apps also alias `@` → `./src`.
 
-- **Frontend is internationalized** with `next-intl` (`apps/frontend/messages/*.json` + `src/i18n/`, plugin wraps `next.config.ts`). New UI text must be added to the message files. Admin has no i18n.
-- **Backend wraps the Prisma client** in its own `PrismaService` (`apps/backend/src/prisma/`) — inject that in Nest services and tests; do not import `PrismaClient` directly.
+Backend modules cover more than commerce: `auth`, `products`, `orders`, `cart`, `categories`, `search`, `upload`, `warranties`, `articles`, `resumes`, `jobs`, `ai`, `notes`, `flashcards`, `quizzes`, `diagrams`, `documents`, `health`, `social` (posts/follows/stories/notifications). Chat is thread-based (`threads.service.ts` + Socket.IO `chat.gateway.ts`) — there is no `Conversation` model.
 
-Backend modules in `apps/backend/src/` cover more than commerce: `auth`, `products`, `orders`, `cart`, `categories`, `search`, `upload`, `warranties`, `articles`, `resumes`, `ai`, `notes`, `flashcards`, `quizzes`, `diagrams`, `documents`, `health`, and a `social` module (posts/follows/stories/notifications). The `chat` module is thread-based: `threads.service.ts` manages `Thread`/`Message` via Prisma, and `chat.gateway.ts` is a Socket.IO `WebSocketGateway` for live messaging — there is no `Conversation` model (it was replaced by `Thread`). Frontend pages live in `apps/frontend/src/app/` (incl. `feed`, `market`, `profile`, `community`, `messages`), admin pages in `apps/admin/src/app/admin/`.
+## Frontend i18n (critical conventions)
+
+- **All pages live under `apps/frontend/src/app/[locale]/`** (plus root-level `api/`, `robots.ts`, `sitemap.ts`, `manifest.ts`). `routing.ts`: locales `en`/`km`, default `km`, `localePrefix: "always"` — every URL is prefixed (`/km/...`, `/en/...`).
+- **Client components must import `Link`, `useRouter` from `@/i18n/navigation`** (NOT `next/link` / `next/navigation`), otherwise navigation bypasses locale prefixes and bounces through middleware redirects.
+- New UI text goes in **both** `apps/frontend/messages/en.json` and `km.json`.
+- **Vitest**: `next-intl` must stay in `server.deps.inline` (`vitest.config.ts`) or its ESM import of `next/navigation` fails to resolve under pnpm. Tests rendering pages that use the i18n `Link` should `vi.mock("@/i18n/navigation")` with an anchor stub.
+- Brand strings are single-sourced in `apps/frontend/src/lib/site.ts` (`SITE_NAME`, `getSiteUrl()` from `NEXT_PUBLIC_SITE_URL`) — used by metadata, JSON-LD, sitemap.
+- Tailwind v4 is CSS-first: no `tailwind.config`; tokens live in `@theme` in `src/app/globals.css`, which also `@source`s `packages/ui/src`. Shared primitives (`.btn-primary`, `.card-hover`, `.page-title`, `.input-field`, …) are hand-written utilities in that file — restyling them propagates site-wide.
+
+## Auth architecture
+
+- Frontend NextAuth (credentials → Prisma bcrypt) mints backend-compatible JWTs (`sub`/`email`/`role`, 1h) signed with the shared `AUTH_SECRET`; backend `JwtStrategy` reads those claims. `useAuthedFetch` silently re-mints via `session.update()` on a 401.
+- Refresh tokens: hashed in the `RefreshToken` table, rotated on `/auth/refresh` with reuse detection (presenting a revoked token revokes the user's whole token family).
+- Shared env helpers live in `apps/backend/src/common/config.ts` (`getAuthSecret`, `getCorsOrigins`) — use them instead of reading env directly.
+- Rate limiting is a fixed-window guard backed by Redis (`REDIS_URL`) with in-memory fallback (`common/rate-limit.guard.ts`).
+
+## Seller vs admin write paths
+
+- **Sellers never call NestJS mutations directly.** They go through Next.js route handlers `apps/frontend/src/app/api/seller/*`, which check `getToken`, require an APPROVED `SellerProfile`, and enforce product ownership before touching Prisma.
+- NestJS `PATCH /products/:id` is `ADMIN`/`INVENTORY_MANAGER` only. `GET /products/promos` is public (shoppable-video promos: `Product.videoUrl`/`videoActive`).
 
 ## Test conventions
 
-- **Backend**: `vitest`, `*.spec.ts` in `src/`, run with `npx vitest run`. Exclude `*.e2e-spec.ts`.
-- **Frontend**: `vitest` + `@testing-library/react`, jsdom env, `*.test.{ts,tsx}`.
-- Shared package: `packages/database/src/index.spec.ts` tests exported constants.
-
-**Mock pattern (backend services):** use `vi.mock("module", () => ({...}))` before imports, mock Prisma via `{ provide: PrismaService, useValue: mockObject }` in the testing module, and call `vi.clearAllMocks()` in `beforeEach`.
+- **Backend**: `vitest`, `*.spec.ts` in `src/`, `npx vitest run`. Exclude `*.e2e-spec.ts` (separate config, 30s timeout).
+- **Frontend**: `vitest` + `@testing-library/react`, jsdom, `*.test.{ts,tsx}`.
+- Mock pattern (backend): `vi.mock("module", () => ({...}))` before imports, Prisma via `{ provide: PrismaService, useValue: mockObject }`, `vi.clearAllMocks()` in `beforeEach`.
 
 ## Environment
 
-- `.env` files live per-app (`apps/backend/.env`, `apps/frontend/.env`, `apps/admin/.env`) and are gitignored.
-- Root `.env.example` has the full list. Copy to `apps/<app>/.env.local` or `apps/<app>/.env`.
-- **Database**: SQLite local (`file:./prisma/dev.db`), PostgreSQL in production (set `DATABASE_URL`).
-- **Meilisearch**: `http://localhost:7700`, master key `masterKey`. Start locally: `meilisearch.exe --master-key masterKey` or `docker compose -f docker/compose.yml up -d` (copy `docker/.env.example` to `docker/.env` first — compose reads secrets from it; all ports are bound to `127.0.0.1`).
-- **MinIO**: port 9000 (console :9001).
-- **Redis**: `REDIS_URL=redis://localhost:6379` (runs via `docker/compose.yml`, which also provides PostgreSQL, MinIO, and Meilisearch).
-- **Docker services are optional for dev**: the three node apps run on SQLite alone. If Docker is down, search auto-falls back to Prisma (`search.service.ts`), but uploads via MinIO will fail if `MINIO_ACCESS_KEY` is unset (`minio.service.ts`).
-- Prisma schema lives at `packages/database/prisma/schema.prisma`. After editing it, run `pnpm --filter @theo/database exec prisma generate` then `pnpm --filter @theo/database db:push` for local dev.
+- `.env` files are per-app (`apps/backend/.env`, `apps/frontend/.env`, `apps/admin/.env`), gitignored; root `.env.example` has the full list.
+- **Database**: SQLite local (`file:./prisma/dev.db`), PostgreSQL in production (`DATABASE_URL`).
+- **Meilisearch**: `http://localhost:7700`, master key `masterKey` (`meilisearch.exe --master-key masterKey` or `docker compose -f docker/compose.yml up -d`; copy `docker/.env.example` to `docker/.env` first — compose reads secrets from it; ports bound to `127.0.0.1`).
+- **MinIO**: :9000 (console :9001). **Redis**: `redis://localhost:6379`.
+- **Docker services are optional for dev**: the node apps run on SQLite alone; search falls back to Prisma when Meilisearch is down, but MinIO uploads fail without `MINIO_ACCESS_KEY`.
 
 ## Code style
 
-- Double quotes for imports and strings.
-- Semicolons required.
-- 2-space indent.
-- TypeScript strict mode in every package (per-package `tsconfig.json`; no shared base config).
+- Double quotes, semicolons, 2-space indent, TypeScript strict everywhere (per-package tsconfig, no shared base).
+- PowerShell gotcha: bracket route paths (`app/[locale]`, `[id]`) need `-LiteralPath` with `Get-Content`/`Set-Content`.
 
 ## Git workflow
 
-- Conventional Commits (`fix:`, `feat:`, etc.).
-- Branches: `feature/*`, `fix/*`, `refactor/*`.
-- CI (`.github/workflows/ci.yml`, GitHub Actions, pnpm 9 + Node 20) runs `pnpm build` → `pnpm lint` → `pnpm exec turbo run test` on PRs and pushes to `main`/`develop`. Set dummy `AUTH_SECRET`/`JWT_SECRET`/`DATABASE_URL=file:./dev.db` env when running those steps locally.
+- Conventional Commits (`fix:`, `feat:`); branches `feature/*`, `fix/*`, `refactor/*`.
+- CI (`.github/workflows/ci.yml`, pnpm 9 + Node 20): `prisma generate` → `pnpm build` → lint → `turbo run test` on PRs and pushes to `main`/`develop`. Set dummy `AUTH_SECRET`/`JWT_SECRET`/`DATABASE_URL=file:./dev.db` when running locally.
+- Remote: `github.com/Creative-hub554/CompusMarket`. On this machine plain `git push` fails (blank `credential.helper` in `~/.gitconfig` disables the system credential manager) — use `git -c credential.helper=manager push`.
+- Never force-push without explicit user confirmation; `origin/main` has history that was rewritten once already.
 
-## Stale docs
+## Docs
 
-- `README.md` and `CLAUDE.md` are **outdated/corrupted** (UTF-16 encoded; README still says "ComputMarket", CLAUDE.md is an HTTP-response dump). Do not trust them. The source of truth is this file and `project-guideline.md`.
+- `README.md` (rewritten) and `project-guideline.md` are the prose references; this file wins on conflicts. `CLAUDE.md` was deleted — don't look for it.
 
 ## Do not modify
 

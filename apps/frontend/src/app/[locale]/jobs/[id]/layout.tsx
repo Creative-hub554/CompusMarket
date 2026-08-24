@@ -70,7 +70,7 @@ export default async function JobLayout({ children, params }: Props) {
           employmentType: job.employmentType || undefined,
           hiringOrganization: {
             "@type": "Organization",
-            name: job.company || "KHMERONLINESHOP",
+            name: job.company || "Champey",
           },
           jobLocation: job.location
             ? {

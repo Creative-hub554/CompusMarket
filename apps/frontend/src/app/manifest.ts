@@ -2,10 +2,10 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "KHMERONLINESHOP",
-    short_name: "khmeronlineshop",
+    name: "Champey",
+    short_name: "Champey",
     description:
-      "Second-hand electronics marketplace & community platform for Cambodia",
+      "Social, marketplace and careers platform for Cambodia",
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",

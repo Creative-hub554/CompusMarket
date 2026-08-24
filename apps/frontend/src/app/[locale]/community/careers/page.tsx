@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Careers",
-  description: "Career guides and articles from the KHMERONLINESHOP community.",
+  description: "Career guides and articles from the Champey community.",
   alternates: { canonical: "/community/careers" },
 };
 
