@@ -49,10 +49,10 @@ export default function ProfilePage() {
   if (loading || !profile) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-10">
-        <div className="h-40 rounded-2xl bg-gray-100 animate-pulse mb-16" />
+        <div className="h-40 rounded-2xl bg-[var(--surface-2)] animate-pulse mb-16" />
         <div className="space-y-4">
           {[...Array(2)].map((_, i) => (
-            <div key={i} className="h-24 rounded-2xl bg-gray-100 animate-pulse" />
+            <div key={i} className="h-24 rounded-2xl bg-[var(--surface-2)] animate-pulse" />
           ))}
         </div>
       </div>
@@ -80,7 +80,7 @@ export default function ProfilePage() {
           {isMe ? (
             <Link
               href="/profile/edit"
-              className="rounded-full border border-gray-300 bg-white px-5 py-2 text-sm font-semibold hover:bg-gray-50"
+              className="rounded-full border border-[var(--border-subtle)] bg-[var(--surface)] px-5 py-2 text-sm font-semibold hover:bg-[var(--surface-2)]"
             >
               Edit profile
             </Link>
@@ -93,18 +93,18 @@ export default function ProfilePage() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold">{profile.name || profile.username}</h1>
         {profile.username && <p className="text-gray-400">@{profile.username}</p>}
-        {profile.bio && <p className="mt-2 text-slate-700 whitespace-pre-wrap">{profile.bio}</p>}
+        {profile.bio && <p className="mt-2 text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{profile.bio}</p>}
         <div className="flex gap-5 mt-3 text-sm">
           <span>
-            <strong>{profile._count.posts}</strong> <span className="text-gray-500">posts</span>
+            <strong>{profile._count.posts}</strong> <span className="text-gray-500 dark:text-gray-400">posts</span>
           </span>
           <span>
             <strong>{profile._count.followers}</strong>{" "}
-            <span className="text-gray-500">followers</span>
+            <span className="text-gray-500 dark:text-gray-400">followers</span>
           </span>
           <span>
             <strong>{profile._count.following}</strong>{" "}
-            <span className="text-gray-500">following</span>
+            <span className="text-gray-500 dark:text-gray-400">following</span>
           </span>
           <span className="text-gray-400">Joined {new Date(profile.createdAt).toLocaleDateString()}</span>
         </div>

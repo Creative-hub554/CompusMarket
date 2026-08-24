@@ -361,27 +361,27 @@ export default function ImageProcessorPage() {
 
   return (
     <div className="min-h-screen">
-      <h1 className="text-2xl font-bold text-slate-900 mb-1">Smart Image Processor</h1>
-      <p className="text-sm text-slate-500 mb-6">Remove background, add a suit overlay, and set your background — all in your browser. Your image never leaves your device.</p>
+      <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-1">Smart Image Processor</h1>
+      <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Remove background, add a suit overlay, and set your background — all in your browser. Your image never leaves your device.</p>
 
       {step === 'upload' && (
         <div
           onDrop={handleDrop}
           onDragOver={handleDragOver}
-          className="border-2 border-dashed border-slate-300 rounded-2xl p-16 text-center cursor-pointer hover:border-indigo-600 transition-colors bg-white/50"
+          className="border-2 border-dashed border-[var(--border-subtle)] rounded-2xl p-16 text-center cursor-pointer hover:border-indigo-600 transition-colors bg-white/50 dark:bg-slate-900/50"
           onClick={() => document.getElementById('file-input')?.click()}
         >
           <svg className="w-16 h-16 mx-auto mb-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
-          <p className="text-lg font-medium text-slate-700 mb-2">Drop your photo here or click to browse</p>
+          <p className="text-lg font-medium text-slate-700 dark:text-slate-300 mb-2">Drop your photo here or click to browse</p>
           <p className="text-sm text-slate-400">Supports JPG, PNG • Max 20 MB</p>
           <input id="file-input" type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }} />
 
           {isProcessing && (
             <div className="mt-6 flex flex-col items-center gap-3">
               <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-              <p className="text-sm text-slate-500">{processingMsg}</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">{processingMsg}</p>
             </div>
           )}
 
@@ -440,13 +440,13 @@ export default function ImageProcessorPage() {
                       __html: currentSuit.svg.replace('<svg', '<svg style="width:100%;height:100%"')
                     }}
                   />
-                  <div data-rotate className="absolute -top-8 left-1/2 -translate-x-1/2 w-6 h-6 bg-white rounded-full border-2 border-indigo-600 cursor-grab active:cursor-grabbing flex items-center justify-center shadow-sm">
+                  <div data-rotate className="absolute -top-8 left-1/2 -translate-x-1/2 w-6 h-6 bg-[var(--surface)] rounded-full border-2 border-indigo-600 cursor-grab active:cursor-grabbing flex items-center justify-center shadow-sm">
                     <svg className="w-3 h-3 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                   </div>
-                  <div data-resize="tl" className="absolute -top-2 -left-2 w-4 h-4 bg-white border-2 border-indigo-600 rounded-sm cursor-nw-resize shadow-sm" />
-                  <div data-resize="tr" className="absolute -top-2 -right-2 w-4 h-4 bg-white border-2 border-indigo-600 rounded-sm cursor-ne-resize shadow-sm" />
-                  <div data-resize="bl" className="absolute -bottom-2 -left-2 w-4 h-4 bg-white border-2 border-indigo-600 rounded-sm cursor-sw-resize shadow-sm" />
-                  <div data-resize="br" className="absolute -bottom-2 -right-2 w-4 h-4 bg-white border-2 border-indigo-600 rounded-sm cursor-se-resize shadow-sm" />
+                  <div data-resize="tl" className="absolute -top-2 -left-2 w-4 h-4 bg-[var(--surface)] border-2 border-indigo-600 rounded-sm cursor-nw-resize shadow-sm" />
+                  <div data-resize="tr" className="absolute -top-2 -right-2 w-4 h-4 bg-[var(--surface)] border-2 border-indigo-600 rounded-sm cursor-ne-resize shadow-sm" />
+                  <div data-resize="bl" className="absolute -bottom-2 -left-2 w-4 h-4 bg-[var(--surface)] border-2 border-indigo-600 rounded-sm cursor-sw-resize shadow-sm" />
+                  <div data-resize="br" className="absolute -bottom-2 -right-2 w-4 h-4 bg-[var(--surface)] border-2 border-indigo-600 rounded-sm cursor-se-resize shadow-sm" />
                 </div>
               )}
             </div>
@@ -454,7 +454,7 @@ export default function ImageProcessorPage() {
             <div className="flex items-center justify-between mt-3">
               <div className="flex items-center gap-2">
                 <button onClick={() => setZoom(z => Math.max(0.25, z - 0.2))} className="btn-ghost btn-sm" title="Zoom out">−</button>
-                <span className="text-sm text-slate-500 w-12 text-center font-mono">{Math.round(zoom * 100)}%</span>
+                <span className="text-sm text-slate-500 dark:text-slate-400 w-12 text-center font-mono">{Math.round(zoom * 100)}%</span>
                 <button onClick={() => setZoom(z => Math.min(4, z + 0.2))} className="btn-ghost btn-sm" title="Zoom in">+</button>
                 <button onClick={resetView} className="btn-ghost btn-sm text-xs ml-2">Reset</button>
               </div>
@@ -464,30 +464,30 @@ export default function ImageProcessorPage() {
 
           <div className="w-full lg:w-72 space-y-5">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Gender</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Gender</label>
               <div className="flex gap-2">
-                <button onClick={() => handleGenderChange('male')} className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border transition-colors ${gender === 'male' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'}`}>Male</button>
-                <button onClick={() => handleGenderChange('female')} className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border transition-colors ${gender === 'female' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'}`}>Female</button>
+                <button onClick={() => handleGenderChange('male')} className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border transition-colors ${gender === 'male' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-[var(--surface)] text-slate-700 dark:text-slate-300 border-[var(--border-subtle)] hover:border-indigo-400/60'}`}>Male</button>
+                <button onClick={() => handleGenderChange('female')} className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border transition-colors ${gender === 'female' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-[var(--surface)] text-slate-700 dark:text-slate-300 border-[var(--border-subtle)] hover:border-indigo-400/60'}`}>Female</button>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Suit</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Suit</label>
               <div className="grid grid-cols-2 gap-3">
                 {SUITS.filter(s => s.gender === gender).map(s => (
-                  <button key={s.id} onClick={() => setSuitId(s.id)} className={`relative aspect-[3/4] rounded-xl border-2 overflow-hidden transition-all ${suitId === s.id ? 'border-indigo-600 ring-2 ring-indigo-600/30 shadow-md' : 'border-slate-200 hover:border-slate-300 hover:shadow-sm'}`}>
-                    <div className="w-full h-full bg-white" dangerouslySetInnerHTML={{ __html: s.svg.replace('<svg', '<svg style="width:100%;height:100%"') }} />
-                    <span className="absolute bottom-0 inset-x-0 text-xs font-semibold text-center py-1.5 bg-gradient-to-t from-white via-white/95 to-transparent text-slate-800">{s.name}</span>
+                  <button key={s.id} onClick={() => setSuitId(s.id)} className={`relative aspect-[3/4] rounded-xl border-2 overflow-hidden transition-all ${suitId === s.id ? 'border-indigo-600 ring-2 ring-indigo-600/30 shadow-md' : 'border-[var(--border-subtle)] hover:border-indigo-400/60 hover:shadow-sm'}`}>
+                    <div className="w-full h-full bg-[var(--surface)]" dangerouslySetInnerHTML={{ __html: s.svg.replace('<svg', '<svg style="width:100%;height:100%"') }} />
+                    <span className="absolute bottom-0 inset-x-0 text-xs font-semibold text-center py-1.5 bg-gradient-to-t from-white via-white/95 to-transparent text-slate-800 dark:text-slate-200">{s.name}</span>
                   </button>
                 ))}
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Background</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Background</label>
               <div className="grid grid-cols-4 gap-2">
                 {BG_OPTIONS.map(b => (
-                  <button key={b.id} onClick={() => setBgId(b.id)} className={`aspect-square rounded-lg border-2 overflow-hidden transition-all ${bgId === b.id ? 'border-indigo-600 ring-2 ring-indigo-600/20' : 'border-slate-100 hover:border-slate-200'}`} title={b.name}>
+                  <button key={b.id} onClick={() => setBgId(b.id)} className={`aspect-square rounded-lg border-2 overflow-hidden transition-all ${bgId === b.id ? 'border-indigo-600 ring-2 ring-indigo-600/20' : 'border-[var(--border-subtle)] hover:border-[var(--border-subtle)]'}`} title={b.name}>
                     <div className="w-full h-full" style={b.type === 'gradient' ? { background: `linear-gradient(135deg, ${b.colors[0]}, ${b.colors[1]})` } : { backgroundColor: b.colors[0] }} />
                   </button>
                 ))}
@@ -507,7 +507,7 @@ export default function ImageProcessorPage() {
               )}
             </button>
 
-            <button onClick={() => { setStep('upload'); setCleanUrl(null); resetView() }} className="w-full text-sm text-slate-400 hover:text-slate-600 transition-colors">
+            <button onClick={() => { setStep('upload'); setCleanUrl(null); resetView() }} className="w-full text-sm text-slate-400 hover:text-slate-600 dark:text-slate-300 transition-colors">
               Start over
             </button>
           </div>
@@ -516,10 +516,10 @@ export default function ImageProcessorPage() {
 
       {showPreview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => { setShowPreview(false); if (previewUrl) URL.revokeObjectURL(previewUrl) }}>
-          <div className="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-lg w-full" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
-              <h3 className="font-semibold text-slate-900">Final Preview</h3>
-              <button onClick={() => { setShowPreview(false); if (previewUrl) URL.revokeObjectURL(previewUrl) }} className="text-slate-400 hover:text-slate-600 transition-colors">
+          <div className="bg-[var(--surface)] rounded-2xl shadow-2xl overflow-hidden max-w-lg w-full" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--border-subtle)]">
+              <h3 className="font-semibold text-slate-900 dark:text-slate-100">Final Preview</h3>
+              <button onClick={() => { setShowPreview(false); if (previewUrl) URL.revokeObjectURL(previewUrl) }} className="text-slate-400 hover:text-slate-600 dark:text-slate-300 transition-colors">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
@@ -527,7 +527,7 @@ export default function ImageProcessorPage() {
               {previewUrl ? (
                 <NextImage src={previewUrl} alt="Preview" width={240} height={320} unoptimized className="w-full max-w-[240px] rounded-lg shadow-md" />
               ) : (
-                <div className="w-60 h-80 bg-slate-100 rounded-lg flex items-center justify-center text-sm text-slate-400">Generating preview...</div>
+                <div className="w-60 h-80 bg-[var(--surface-2)] rounded-lg flex items-center justify-center text-sm text-slate-400">Generating preview...</div>
               )}
             </div>
             <div className="px-5 pb-5 flex gap-2">
@@ -535,7 +535,7 @@ export default function ImageProcessorPage() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                 Download Full Resolution
               </button>
-              <button onClick={() => { setShowPreview(false); if (previewUrl) URL.revokeObjectURL(previewUrl) }} className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+              <button onClick={() => { setShowPreview(false); if (previewUrl) URL.revokeObjectURL(previewUrl) }} className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-[var(--surface-2)] transition-colors">
                 Close
               </button>
             </div>

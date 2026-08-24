@@ -37,7 +37,7 @@ export function ProductTabs({ product }: { product: Product }) {
 
   return (
     <div>
-      <div className="flex gap-1 border-b border-slate-200 mb-6">
+      <div className="flex gap-1 border-b border-[var(--border-subtle)] mb-6">
         {TABS.map((tab) => (
           <button
             key={tab.id}
@@ -45,7 +45,7 @@ export function ProductTabs({ product }: { product: Product }) {
             className={`rounded-t-lg px-4 py-2 text-sm font-semibold transition-colors ${
               active === tab.id
                 ? "border-b-2 border-indigo-600 text-indigo-600"
-                : "text-slate-500 hover:text-slate-900"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-slate-100"
             }`}
           >
             {tab.label}
@@ -56,7 +56,7 @@ export function ProductTabs({ product }: { product: Product }) {
       {active === "description" && (
         <div className="max-w-3xl">
           <h2 className="text-lg font-bold mb-2">{t("description")}</h2>
-          <p className="text-slate-600 text-sm whitespace-pre-wrap leading-relaxed">
+          <p className="text-slate-600 dark:text-slate-300 text-sm whitespace-pre-wrap leading-relaxed">
             {product.description}
           </p>
         </div>
@@ -65,16 +65,16 @@ export function ProductTabs({ product }: { product: Product }) {
       {active === "specs" && (
         <div className="max-w-3xl space-y-3 text-sm">
           {product.serialNumber && (
-            <p className="text-slate-600">
+            <p className="text-slate-600 dark:text-slate-300">
               {t("serial", { serial: product.serialNumber })}
             </p>
           )}
-          <p className="text-slate-600">
-            <span className="font-semibold text-slate-900">Category:</span>{" "}
+          <p className="text-slate-600 dark:text-slate-300">
+            <span className="font-semibold text-slate-900 dark:text-slate-100">Category:</span>{" "}
             {product.category.name}
           </p>
-          <p className="text-slate-600">
-            <span className="font-semibold text-slate-900">Condition:</span>{" "}
+          <p className="text-slate-600 dark:text-slate-300">
+            <span className="font-semibold text-slate-900 dark:text-slate-100">Condition:</span>{" "}
             {conditionLabels[product.condition] || product.condition}
           </p>
         </div>
@@ -90,7 +90,7 @@ export function ProductTabs({ product }: { product: Product }) {
                   {"★".repeat(Math.round(average))}
                   {"☆".repeat(5 - Math.round(average))}
                 </span>
-                <span className="text-slate-600 font-medium">
+                <span className="text-slate-600 dark:text-slate-300 font-medium">
                   {average.toFixed(1)}
                 </span>
                 <span className="text-slate-400">({reviews.length})</span>
@@ -99,13 +99,13 @@ export function ProductTabs({ product }: { product: Product }) {
           </div>
 
           {reviews.length === 0 ? (
-            <p className="text-slate-500 text-sm">{t("noReviews")}</p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">{t("noReviews")}</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {reviews.map((review) => (
                 <div
                   key={review.id}
-                  className="rounded-xl border border-slate-200 p-4"
+                  className="rounded-xl border border-[var(--border-subtle)] p-4"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
@@ -122,7 +122,7 @@ export function ProductTabs({ product }: { product: Product }) {
                     </span>
                   </div>
                   {review.comment && (
-                    <p className="text-sm text-slate-700">{review.comment}</p>
+                    <p className="text-sm text-slate-700 dark:text-slate-300">{review.comment}</p>
                   )}
                   {review.images?.length > 0 && (
                     <div className="flex gap-2 mt-2">
@@ -152,11 +152,11 @@ export function ProductTabs({ product }: { product: Product }) {
       {active === "warranty" && (
         <div className="max-w-3xl text-sm">
           {product.warrantyMonths ? (
-            <p className="text-slate-600">
+            <p className="text-slate-600 dark:text-slate-300">
               {t("warrantyMonths", { months: product.warrantyMonths })}
             </p>
           ) : (
-            <p className="text-slate-600">No warranty included</p>
+            <p className="text-slate-600 dark:text-slate-300">No warranty included</p>
           )}
         </div>
       )}

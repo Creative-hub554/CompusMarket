@@ -33,11 +33,11 @@ type Order = {
 const statusColors: Record<string, string> = {
   PENDING: "bg-yellow-100 text-yellow-800",
   APPROVED: "bg-indigo-100 text-indigo-800",
-  PACKING: "bg-indigo-50 text-indigo-700",
+  PACKING: "bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700",
   SHIPPED: "bg-indigo-100 text-indigo-800",
   DELIVERED: "bg-green-100 text-green-800",
   REJECTED: "bg-red-100 text-red-800",
-  CANCELLED: "bg-slate-100 text-slate-800",
+  CANCELLED: "bg-[var(--surface-2)] text-slate-800 dark:text-slate-200",
 };
 
 type Action = "APPROVED" | "REJECTED" | "PACKING" | "SHIPPED";
@@ -167,7 +167,7 @@ export default function SellerOrderDetailPage() {
         </span>
       </div>
 
-      <div className="bg-slate-50 rounded-lg p-4 mb-6">
+      <div className="bg-[var(--surface-2)] rounded-lg p-4 mb-6">
         <p className="text-sm font-medium">
           Buyer: {order.user.name || order.user.email}
         </p>
@@ -175,9 +175,9 @@ export default function SellerOrderDetailPage() {
 
       <div className="space-y-4">
         {order.items.map((item) => (
-          <div key={item.id} className="border rounded-lg p-4 bg-white">
+          <div key={item.id} className="border rounded-lg p-4 bg-[var(--surface)]">
             <div className="flex items-start gap-4 mb-3">
-              <div className="w-16 h-16 bg-slate-100 rounded-lg overflow-hidden shrink-0">
+              <div className="w-16 h-16 bg-[var(--surface-2)] rounded-lg overflow-hidden shrink-0">
                 {item.product.images?.[0] ? (
                   <Image
                     src={item.product.images[0]}
@@ -196,12 +196,12 @@ export default function SellerOrderDetailPage() {
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{item.product.name}</span>
                   <span
-                    className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[item.status] || "bg-slate-100"}`}
+                    className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[item.status] || "bg-[var(--surface-2)]"}`}
                   >
                     {item.status}
                   </span>
                 </div>
-                <p className="text-sm text-slate-500 mt-1">
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                   Qty: {item.quantity} &middot; ${item.price.toFixed(2)}{" "}
                   &middot; Total: ${(item.price * item.quantity).toFixed(2)}
                 </p>
@@ -239,7 +239,7 @@ export default function SellerOrderDetailPage() {
                         }))
                       }
                       placeholder="Tracking number (optional)"
-                      className="flex-1 border border-slate-300 rounded px-3 py-1.5 text-sm"
+                      className="flex-1 border border-[var(--border-subtle)] rounded px-3 py-1.5 text-sm"
                     />
                   </div>
                 )}

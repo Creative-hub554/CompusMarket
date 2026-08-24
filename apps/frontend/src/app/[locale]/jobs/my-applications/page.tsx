@@ -34,7 +34,7 @@ export default function MyApplicationsPage() {
   if (!session?.user) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-8">
-        <p className="text-slate-500">{t("loginToApply")}</p>
+        <p className="text-slate-500 dark:text-slate-400">{t("loginToApply")}</p>
       </div>
     );
   }
@@ -46,8 +46,8 @@ export default function MyApplicationsPage() {
       {loading ? (
         <p className="text-slate-400">{t("loading")}</p>
       ) : apps.length === 0 ? (
-        <div className="text-center py-16 border rounded-xl bg-white">
-          <p className="text-slate-500">{t("noApplications")}</p>
+        <div className="text-center py-16 border rounded-xl bg-[var(--surface)]">
+          <p className="text-slate-500 dark:text-slate-400">{t("noApplications")}</p>
           <Link href="/jobs" className="text-indigo-600 hover:underline">
             {t("backToJobs")}
           </Link>
@@ -58,18 +58,18 @@ export default function MyApplicationsPage() {
             <Link
               key={app.id}
               href={`/jobs/${app.jobId}`}
-              className="block rounded-xl border border-slate-200 bg-white p-4 hover:border-indigo-300"
+              className="block rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] p-4 hover:border-indigo-300"
             >
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold">
                   {app.job?.title || "Job"}
                 </h3>
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-slate-500 dark:text-slate-400">
                   {STATUS_LABELS[app.status]}
                 </span>
               </div>
               {app.job?.company && (
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-slate-500 dark:text-slate-400">
                   {app.job.company} · {app.job.location}
                 </p>
               )}

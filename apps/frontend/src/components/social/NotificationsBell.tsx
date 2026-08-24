@@ -118,9 +118,9 @@ export function NotificationsBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 min-w-80 max-w-sm z-50 overflow-hidden">
+        <div className="absolute right-0 top-full mt-2 bg-[var(--surface)] rounded-xl shadow-xl border border-gray-100 min-w-80 max-w-sm z-50 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-100">
-            <span className="font-semibold text-slate-800 text-sm">Notifications</span>
+            <span className="font-semibold text-slate-800 dark:text-slate-200 text-sm">Notifications</span>
             {unread > 0 && (
               <button onClick={markAllRead} className="text-xs text-indigo-600 hover:underline">
                 Mark all read
@@ -136,13 +136,13 @@ export function NotificationsBell() {
                   key={n.id}
                   href={href(n)}
                   onClick={() => setOpen(false)}
-                  className={`flex items-start gap-2.5 px-4 py-3 hover:bg-gray-50 transition-colors ${
-                    n.readAt ? "" : "bg-indigo-50/60"
+                  className={`flex items-start gap-2.5 px-4 py-3 hover:bg-[var(--surface-2)] transition-colors ${
+                    n.readAt ? "" : "bg-indigo-50 dark:bg-indigo-950/40/60"
                   }`}
                 >
                   <Avatar user={n.actor} size={32} />
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm text-slate-700 truncate">
+                    <p className="text-sm text-slate-700 dark:text-slate-300 truncate">
                       {KIND_ICON[n.kind]}{" "}
                       <strong>{n.actor.name || n.actor.username || "Someone"}</strong>{" "}
                       {n.kind === "REACTION" && `reacted ${n.message ?? ""} to your post`}

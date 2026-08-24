@@ -90,7 +90,7 @@ export default function EditProfilePage() {
     return (
       <div className="max-w-xl mx-auto px-4 py-12 text-center">
         <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
-        <Link href="/login" className="text-slate-900 font-medium hover:underline">
+        <Link href="/login" className="text-slate-900 dark:text-slate-100 font-medium hover:underline">
           Go to Login
         </Link>
       </div>
@@ -133,16 +133,16 @@ export default function EditProfilePage() {
 
       <div className="space-y-4 mt-6">
         <div>
-          <label className="text-sm font-medium text-slate-700 block mb-1">Name</label>
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Name</label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full border border-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+            className="w-full border border-[var(--border-subtle)] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300"
           />
         </div>
         <div>
-          <label className="text-sm font-medium text-slate-700 block mb-1">Username</label>
-          <div className="flex items-center border border-gray-300 rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-indigo-300">
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Username</label>
+          <div className="flex items-center border border-[var(--border-subtle)] rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-indigo-300">
             <span className="text-gray-400 mr-1">@</span>
             <input
               value={username}
@@ -154,14 +154,14 @@ export default function EditProfilePage() {
           </div>
         </div>
         <div>
-          <label className="text-sm font-medium text-slate-700 block mb-1">Bio</label>
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Bio</label>
           <textarea
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             rows={3}
             maxLength={500}
             placeholder="Tell the community about yourself…"
-            className="w-full border border-gray-300 rounded-xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300"
+            className="w-full border border-[var(--border-subtle)] rounded-xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300"
           />
         </div>
 

@@ -91,13 +91,13 @@ export function SearchBar() {
         />
         {loading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            <div className="h-4 w-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+            <div className="h-4 w-4 border-2 border-[var(--border-subtle)] border-t-gray-600 rounded-full animate-spin" />
           </div>
         )}
       </div>
 
       {open && results.length > 0 && (
-        <div className="absolute top-full mt-2 w-full min-w-[300px] bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
+        <div className="absolute top-full mt-2 w-full min-w-[300px] bg-[var(--surface)] border border-[var(--border-subtle)] rounded-lg shadow-lg z-50 overflow-hidden">
           <div className="max-h-80 overflow-y-auto">
             {results.map((hit) => (
               <Link
@@ -107,9 +107,9 @@ export function SearchBar() {
                   setOpen(false);
                   setQuery("");
                 }}
-                className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition border-b border-gray-100 last:border-0"
+                className="flex items-center gap-3 px-4 py-3 hover:bg-[var(--surface-2)] transition border-b border-gray-100 last:border-0"
               >
-                <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center text-xs text-gray-400 shrink-0">
+                <div className="w-10 h-10 bg-[var(--surface-2)] rounded flex items-center justify-center text-xs text-gray-400 shrink-0">
                   {hit.images?.[0] ? (
                     <Image
                       src={hit.images[0]}
@@ -149,7 +149,7 @@ export function SearchBar() {
               setOpen(false);
               setQuery("");
             }}
-            className="block px-4 py-2 text-center text-sm text-indigo-600 hover:bg-indigo-50 border-t border-gray-100"
+            className="block px-4 py-2 text-center text-sm text-indigo-600 hover:bg-indigo-50 dark:bg-indigo-950/40 border-t border-gray-100"
           >
             {t("viewAllResults")}
           </Link>
@@ -157,7 +157,7 @@ export function SearchBar() {
       )}
 
       {open && query.trim().length >= 2 && results.length === 0 && !loading && (
-        <div className="absolute top-full mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4 text-center text-sm text-gray-400">
+        <div className="absolute top-full mt-2 w-full bg-[var(--surface)] border border-[var(--border-subtle)] rounded-lg shadow-lg z-50 p-4 text-center text-sm text-gray-400">
           {t("noResults")} &ldquo;{query}&rdquo;
         </div>
       )}

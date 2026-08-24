@@ -63,8 +63,8 @@ export default function FeedPage() {
     return (
       <div className="max-w-xl mx-auto px-4 py-12 text-center">
         <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
-        <p className="text-gray-600 mb-4">Please sign in to see your feed.</p>
-        <Link href="/login" className="text-slate-900 font-medium hover:underline">
+        <p className="text-gray-600 dark:text-gray-300 mb-4">Please sign in to see your feed.</p>
+        <Link href="/login" className="text-slate-900 dark:text-slate-100 font-medium hover:underline">
           Go to Login
         </Link>
       </div>
@@ -84,24 +84,24 @@ export default function FeedPage() {
           {loading ? (
             <div className="space-y-5">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="bg-white rounded-2xl border border-gray-200 p-4 animate-pulse">
+                <div key={i} className="bg-[var(--surface)] rounded-2xl border border-[var(--border-subtle)] p-4 animate-pulse">
                   <div className="flex gap-3 items-center mb-4">
                     <div className="w-11 h-11 rounded-full bg-gray-200" />
                     <div className="space-y-2">
                       <div className="w-32 h-3 bg-gray-200 rounded" />
-                      <div className="w-20 h-2 bg-gray-100 rounded" />
+                      <div className="w-20 h-2 bg-[var(--surface-2)] rounded" />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <div className="w-full h-3 bg-gray-100 rounded" />
-                    <div className="w-2/3 h-3 bg-gray-100 rounded" />
+                    <div className="w-full h-3 bg-[var(--surface-2)] rounded" />
+                    <div className="w-2/3 h-3 bg-[var(--surface-2)] rounded" />
                   </div>
                 </div>
               ))}
             </div>
           ) : posts.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-gray-200 p-10 text-center text-gray-500">
-              <p className="font-medium text-slate-800 mb-1">Your feed is empty</p>
+            <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border-subtle)] p-10 text-center text-gray-500 dark:text-gray-400">
+              <p className="font-medium text-slate-800 dark:text-slate-200 mb-1">Your feed is empty</p>
               <p className="text-sm">Follow people from the suggestions to fill it up.</p>
             </div>
           ) : (
@@ -123,7 +123,7 @@ export default function FeedPage() {
 
         <aside className="hidden lg:block">
           <div className="sticky top-20 space-y-4">
-            <h2 className="font-semibold text-slate-800">Suggested for you</h2>
+            <h2 className="font-semibold text-slate-800 dark:text-slate-200">Suggested for you</h2>
             {suggestions.length === 0 ? (
               <p className="text-sm text-gray-400">No suggestions right now.</p>
             ) : (

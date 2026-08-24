@@ -18,7 +18,7 @@ const diagramTypes = [
 ];
 
 function getTypeStyle(type: string) {
-  return diagramTypes.find((t) => t.value === type)?.color || "badge bg-slate-100 text-slate-700";
+  return diagramTypes.find((t) => t.value === type)?.color || "badge bg-[var(--surface-2)] text-slate-700 dark:text-slate-300";
 }
 
 function getTemplate(type: string): string {
@@ -93,7 +93,7 @@ export default function DiagramsPage() {
           <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" /></svg>
         </div>
         <h1 className="text-2xl font-bold mb-2">Diagrams</h1>
-        <p className="text-slate-500 mb-4">Sign in to create diagrams flowcharts and mind maps.</p>
+        <p className="text-slate-500 dark:text-slate-400 mb-4">Sign in to create diagrams flowcharts and mind maps.</p>
         <Link href="/login" className="btn-primary">Sign In</Link>
       </div>
     );
@@ -115,7 +115,7 @@ export default function DiagramsPage() {
       </div>
 
       {showNew && (
-        <div className="mb-6 p-5 border rounded-xl bg-slate-50 flex gap-2 flex-wrap items-start">
+        <div className="mb-6 p-5 border rounded-xl bg-[var(--surface-2)] flex gap-2 flex-wrap items-start">
           <input
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
@@ -146,7 +146,7 @@ export default function DiagramsPage() {
           <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-emerald-400">
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" /></svg>
           </div>
-          <p className="text-xl font-medium text-slate-500 mb-1">No diagrams yet</p>
+          <p className="text-xl font-medium text-slate-500 dark:text-slate-400 mb-1">No diagrams yet</p>
           <p className="text-sm text-slate-400">Click &quot;+ New Diagram&quot; to create your first flowchart or mind map.</p>
         </div>
       ) : (
@@ -154,7 +154,7 @@ export default function DiagramsPage() {
           {diagrams.map((d) => (
             <div key={d.id} className="card relative group">
               <Link href={`/community/diagrams/${d.id}`} className="block p-5">
-                <h3 className="font-semibold truncate text-slate-900 group-hover:text-indigo-600 transition-colors">{d.title}</h3>
+                <h3 className="font-semibold truncate text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 transition-colors">{d.title}</h3>
                 <span className={`${getTypeStyle(d.type)} mt-2`}>{d.type}</span>
                 <p className="text-xs text-slate-400 mt-4">{new Date(d.updatedAt).toLocaleDateString()}</p>
               </Link>

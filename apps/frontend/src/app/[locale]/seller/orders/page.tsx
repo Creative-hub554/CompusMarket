@@ -23,11 +23,11 @@ type OrderItem = {
 const statusColors: Record<string, string> = {
   PENDING: "bg-yellow-100 text-yellow-800",
   APPROVED: "bg-indigo-100 text-indigo-800",
-  PACKING: "bg-indigo-50 text-indigo-700",
+  PACKING: "bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700",
   SHIPPED: "bg-indigo-100 text-indigo-800",
   DELIVERED: "bg-green-100 text-green-800",
   REJECTED: "bg-red-100 text-red-800",
-  CANCELLED: "bg-slate-100 text-slate-800",
+  CANCELLED: "bg-[var(--surface-2)] text-slate-800 dark:text-slate-200",
 };
 
 export default function SellerOrdersPage() {
@@ -69,7 +69,7 @@ export default function SellerOrdersPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 animate-fade-in">
       <h1 className="text-2xl font-bold mb-2 gold-underline">Seller Orders</h1>
-      <p className="text-sm text-slate-500 mt-3 mb-6">
+      <p className="text-sm text-slate-500 dark:text-slate-400 mt-3 mb-6">
         {items.length} total &middot; {pendingCount} pending approval
       </p>
 
@@ -90,7 +90,7 @@ export default function SellerOrdersPage() {
             className={`px-3 py-1 text-sm rounded-full border transition-colors ${
               filter === f
                 ? "bg-slate-900 text-white border-slate-900"
-                : "bg-white text-slate-600 border-slate-200 hover:border-slate-400"
+                : "bg-[var(--surface)] text-slate-600 dark:text-slate-300 border-[var(--border-subtle)] hover:border-slate-400"
             }`}
           >
             {f === "all" ? "All" : f.charAt(0) + f.slice(1).toLowerCase()}
@@ -99,19 +99,19 @@ export default function SellerOrdersPage() {
       </div>
 
       {loading ? (
-        <p className="text-slate-500 text-center py-8">Loading...</p>
+        <p className="text-slate-500 dark:text-slate-400 text-center py-8">Loading...</p>
       ) : filtered.length === 0 ? (
-        <p className="text-slate-500 text-center py-8">No orders found.</p>
+        <p className="text-slate-500 dark:text-slate-400 text-center py-8">No orders found.</p>
       ) : (
         <div className="space-y-3 stagger-children">
           {filtered.map((item) => (
             <div
               key={item.id}
-              className="card-hover border rounded-lg p-4 bg-white cursor-pointer"
+              className="card-hover border rounded-lg p-4 bg-[var(--surface)] cursor-pointer"
               onClick={() => router.push(`/seller/orders/${item.order.id}`)}
             >
               <div className="flex items-start gap-4">
-                <div className="w-16 h-16 bg-slate-100 rounded-lg overflow-hidden shrink-0">
+                <div className="w-16 h-16 bg-[var(--surface-2)] rounded-lg overflow-hidden shrink-0">
                   {item.product.images?.[0] ? (
                     <Image
                       src={item.product.images[0]}
@@ -132,12 +132,12 @@ export default function SellerOrdersPage() {
                       {item.product.name}
                     </span>
                     <span
-                      className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[item.status] || "bg-slate-100"}`}
+                      className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[item.status] || "bg-[var(--surface-2)]"}`}
                     >
                       {item.status}
                     </span>
                   </div>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
                     Qty: {item.quantity} &middot; ${item.price.toFixed(2)}
                   </p>
                   <p className="text-xs text-slate-400">

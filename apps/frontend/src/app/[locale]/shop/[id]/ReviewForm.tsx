@@ -48,7 +48,7 @@ export function ReviewForm({
 
   if (!session) {
     return (
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-slate-500 dark:text-slate-400">
         {t("loginToReview")}
       </p>
     );
@@ -58,7 +58,7 @@ export function ReviewForm({
 
   if (eligible.length === 0) {
     return (
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-slate-500 dark:text-slate-400">
         {t("noEligiblePurchase")}
       </p>
     );
@@ -95,9 +95,9 @@ export function ReviewForm({
   return (
     <form
       onSubmit={submit}
-      className="rounded-xl border border-slate-200 p-4 space-y-3"
+      className="rounded-xl border border-[var(--border-subtle)] p-4 space-y-3"
     >
-      <h3 className="text-sm font-semibold text-slate-900">
+      <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
         {t("writeReview")}
       </h3>
 
@@ -105,7 +105,7 @@ export function ReviewForm({
         <select
           value={orderItemId}
           onChange={(e) => setOrderItemId(e.target.value)}
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          className="w-full rounded-lg border border-[var(--border-subtle)] px-3 py-2 text-sm"
         >
           {eligible.map((item) => (
             <option key={item.orderItemId} value={item.orderItemId}>
@@ -134,7 +134,7 @@ export function ReviewForm({
         onChange={(e) => setComment(e.target.value)}
         rows={3}
         placeholder={t("reviewCommentPlaceholder")}
-        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+        className="w-full rounded-lg border border-[var(--border-subtle)] px-3 py-2 text-sm"
       />
 
       {error && <p className="text-sm text-red-600">{error}</p>}

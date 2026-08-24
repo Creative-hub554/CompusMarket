@@ -107,7 +107,7 @@ export function PostCard({
   const totalReactions = reactions.reduce((sum, r) => sum + r.count, 0);
 
   return (
-    <article className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+    <article className="bg-[var(--surface)] rounded-2xl border border-[var(--border-subtle)] shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-center gap-3 p-4 pb-2">
         <Link href={`/profile/${post.author.id}`}>
           <Avatar user={post.author} size={44} />
@@ -129,7 +129,7 @@ export function PostCard({
       </div>
 
       {post.content && (
-        <p className="px-4 pb-1 whitespace-pre-wrap break-words text-slate-800">{post.content}</p>
+        <p className="px-4 pb-1 whitespace-pre-wrap break-words text-slate-800 dark:text-slate-200">{post.content}</p>
       )}
 
       <div className="px-4">
@@ -142,13 +142,13 @@ export function PostCard({
             onClick={() => (myReaction ? react(myReaction) : setShowPicker((v) => !v))}
             onDoubleClick={() => setShowPicker(true)}
             className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-              myReaction ? "bg-indigo-50 text-indigo-600" : "text-gray-500 hover:bg-gray-100"
+              myReaction ? "bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600" : "text-gray-500 dark:text-gray-400 hover:bg-[var(--surface-2)]"
             }`}
           >
             {myReaction || "👍"} React
           </button>
           {showPicker && (
-            <div className="absolute bottom-full mb-2 left-0 bg-white rounded-full shadow-lg border border-gray-100 px-2 py-1.5 flex gap-1 z-10">
+            <div className="absolute bottom-full mb-2 left-0 bg-[var(--surface)] rounded-full shadow-lg border border-gray-100 px-2 py-1.5 flex gap-1 z-10">
               {EMOJIS.map((emoji) => (
                 <button
                   key={emoji}
@@ -161,7 +161,7 @@ export function PostCard({
             </div>
           )}
         </div>
-        <button onClick={loadComments} className="rounded-full px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100">
+        <button onClick={loadComments} className="rounded-full px-3 py-1.5 text-sm text-gray-500 dark:text-gray-400 hover:bg-[var(--surface-2)]">
           💬 Comment{commentCount > 0 ? ` · ${commentCount}` : ""}
         </button>
         {totalReactions > 0 && (
@@ -172,14 +172,14 @@ export function PostCard({
       </div>
 
       {showComments && (
-        <div className="border-t border-gray-100 px-4 py-3 space-y-3 bg-gray-50 rounded-b-2xl">
+        <div className="border-t border-gray-100 px-4 py-3 space-y-3 bg-[var(--surface-2)] rounded-b-2xl">
           {comments === null ? (
             <p className="text-sm text-gray-400">Loading…</p>
           ) : (
             comments.map((c) => (
               <div key={c.id} className="flex gap-2 items-start">
                 <Avatar user={c.author} size={28} />
-                <div className="bg-white rounded-xl px-3 py-2 flex-1 border border-gray-100">
+                <div className="bg-[var(--surface)] rounded-xl px-3 py-2 flex-1 border border-gray-100">
                   <p className="text-xs font-semibold">
                     {c.author.name || c.author.username || "Anonymous"}
                     <span className="ml-2 font-normal text-gray-400">{timeAgo(c.createdAt)}</span>
@@ -209,7 +209,7 @@ export function PostCard({
               onChange={(e) => setCommentInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && submitComment()}
               placeholder="Write a comment…"
-              className="flex-1 rounded-full border border-gray-200 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              className="flex-1 rounded-full border border-[var(--border-subtle)] px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
             />
             <button
               onClick={submitComment}

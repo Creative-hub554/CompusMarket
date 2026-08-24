@@ -43,7 +43,7 @@ const itemStatusColors: Record<string, string> = {
   SHIPPED: "bg-indigo-100 text-indigo-800",
   DELIVERED: "bg-green-100 text-green-800",
   REJECTED: "bg-red-100 text-red-800",
-  CANCELLED: "bg-gray-100 text-gray-800",
+  CANCELLED: "bg-[var(--surface-2)] text-gray-800 dark:text-gray-200",
 };
 
 export default function OrderDetailPage() {
@@ -106,7 +106,7 @@ export default function OrderDetailPage() {
         <h1 className="text-2xl font-bold gold-underline">
           {t("orderConfirmed")}
         </h1>
-        <p className="text-gray-500 text-sm mt-3">
+        <p className="text-gray-500 dark:text-gray-400 text-sm mt-3">
           {t("orderNumber", { id: order.id.slice(0, 8).toUpperCase() })}{" "}
           &middot; {new Date(order.createdAt).toLocaleDateString()}
         </p>
@@ -116,7 +116,7 @@ export default function OrderDetailPage() {
         {order.items.map((item) => (
           <div key={item.id} className="rounded-lg border p-4">
             <div className="flex items-start gap-4">
-              <div className="h-16 w-16 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
+              <div className="h-16 w-16 flex-shrink-0 bg-[var(--surface-2)] rounded-lg overflow-hidden">
                 {item.product.images?.[0] ? (
                   <Image
                     src={item.product.images[0]}
@@ -140,12 +140,12 @@ export default function OrderDetailPage() {
                     {item.product.name}
                   </Link>
                   <span
-                    className={`text-xs px-2 py-0.5 rounded-full font-medium ${itemStatusColors[item.status] || "bg-gray-100"}`}
+                    className={`text-xs px-2 py-0.5 rounded-full font-medium ${itemStatusColors[item.status] || "bg-[var(--surface-2)]"}`}
                   >
                     {item.status}
                   </span>
                 </div>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   {item.quantity} x ${Number(item.price).toLocaleString()}
                 </p>
                 {item.trackingNumber && (
@@ -216,7 +216,7 @@ export default function OrderDetailPage() {
 
       <div className="mt-6 border-t pt-4 flex items-center justify-between text-lg font-bold">
         <span>{t("total")}</span>
-        <span className="text-slate-900">
+        <span className="text-slate-900 dark:text-slate-100">
           ${Number(order.total).toLocaleString()}
         </span>
       </div>
@@ -224,7 +224,7 @@ export default function OrderDetailPage() {
       <div className="mt-6 flex gap-4">
         <Link
           href="/orders"
-          className="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50 transition-colors"
+          className="rounded-lg border border-[var(--border-subtle)] px-4 py-2 text-sm hover:bg-[var(--surface-2)] transition-colors"
         >
           {t("viewAllOrders")}
         </Link>
@@ -306,7 +306,7 @@ function FeedbackForm({
           onChange={(e) => setComment(e.target.value)}
           placeholder={t("feedbackPlaceholder")}
           rows={2}
-          className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+          className="w-full border border-[var(--border-subtle)] rounded px-3 py-2 text-sm"
         />
         <div className="flex items-center gap-2">
           <input
@@ -314,7 +314,7 @@ function FeedbackForm({
             accept="image/*"
             onChange={handleUpload}
             disabled={uploading || images.length >= 3}
-            className="text-xs text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-indigo-50 file:text-indigo-700"
+            className="text-xs text-gray-500 dark:text-gray-400 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-indigo-50 dark:bg-indigo-950/40 file:text-indigo-700"
           />
           {images.length > 0 && (
             <div className="flex gap-1">

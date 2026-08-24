@@ -137,7 +137,7 @@ export default function DiagramEditorPage() {
       <div className="mb-5 flex items-center gap-3 flex-wrap">
         <Link
           href="/community/diagrams"
-          className="text-slate-400 hover:text-slate-600 transition-colors"
+          className="text-slate-400 hover:text-slate-600 dark:text-slate-300 transition-colors"
           aria-label="Back to diagrams"
         >
           <svg
@@ -207,7 +207,7 @@ export default function DiagramEditorPage() {
       </div>
 
       {showHelp && (
-        <div className="mb-5 p-5 bg-indigo-50 border border-indigo-200 rounded-xl text-sm text-indigo-900 animate-slide-down">
+        <div className="mb-5 p-5 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 rounded-xl text-sm text-indigo-900 animate-slide-down">
           <div className="flex items-center gap-2 mb-3">
             <svg
               className="w-5 h-5 text-indigo-600"
@@ -231,12 +231,12 @@ export default function DiagramEditorPage() {
               <p className="font-medium text-xs uppercase tracking-wider text-indigo-700">
                 Flowchart
               </p>
-              <code className="block text-xs bg-white/60 rounded p-2">
+              <code className="block text-xs bg-white/60 dark:bg-slate-900/60 rounded p-2">
                 graph TD;
                 <br />
                 A--&gt;B;
               </code>
-              <code className="block text-xs bg-white/60 rounded p-2">
+              <code className="block text-xs bg-white/60 dark:bg-slate-900/60 rounded p-2">
                 A[Square]
                 <br />B{"{"}Rhombus{"}"}
               </code>
@@ -245,10 +245,10 @@ export default function DiagramEditorPage() {
               <p className="font-medium text-xs uppercase tracking-wider text-indigo-700">
                 Sequence
               </p>
-              <code className="block text-xs bg-white/60 rounded p-2">
+              <code className="block text-xs bg-white/60 dark:bg-slate-900/60 rounded p-2">
                 Alice-&gt;&gt;John: Hello
               </code>
-              <code className="block text-xs bg-white/60 rounded p-2">
+              <code className="block text-xs bg-white/60 dark:bg-slate-900/60 rounded p-2">
                 Note right of John: Text
               </code>
             </div>
@@ -256,10 +256,10 @@ export default function DiagramEditorPage() {
               <p className="font-medium text-xs uppercase tracking-wider text-indigo-700">
                 General
               </p>
-              <code className="block text-xs bg-white/60 rounded p-2">
+              <code className="block text-xs bg-white/60 dark:bg-slate-900/60 rounded p-2">
                 %% Comments
               </code>
-              <code className="block text-xs bg-white/60 rounded p-2">
+              <code className="block text-xs bg-white/60 dark:bg-slate-900/60 rounded p-2">
                 subgraph Title
                 <br />
                 ...
@@ -274,13 +274,13 @@ export default function DiagramEditorPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               Diagram Code
             </label>
             <span className="text-xs text-slate-400">{lineCount} lines</span>
           </div>
           <div className="relative">
-            <div className="absolute left-0 top-0 bottom-0 w-10 bg-slate-50 border-r border-slate-200 rounded-l-xl flex flex-col items-end pr-2 pt-3 text-xs text-slate-400 font-mono select-none overflow-hidden pointer-events-none">
+            <div className="absolute left-0 top-0 bottom-0 w-10 bg-[var(--surface-2)] border-r border-[var(--border-subtle)] rounded-l-xl flex flex-col items-end pr-2 pt-3 text-xs text-slate-400 font-mono select-none overflow-hidden pointer-events-none">
               {Array.from({ length: Math.max(lineCount, 1) }, (_, i) => (
                 <span key={i} className="leading-6">
                   {i + 1}
@@ -291,7 +291,7 @@ export default function DiagramEditorPage() {
               ref={textareaRef}
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm font-mono h-[550px] resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition pl-14 leading-6"
+              className="w-full rounded-xl border border-[var(--border-subtle)] px-4 py-3 text-sm font-mono h-[550px] resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition pl-14 leading-6"
               placeholder="Enter Mermaid diagram code..."
               spellCheck={false}
             />
@@ -299,7 +299,7 @@ export default function DiagramEditorPage() {
         </div>
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               Live Preview
             </label>
           </div>

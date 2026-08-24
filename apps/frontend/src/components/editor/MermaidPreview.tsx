@@ -51,7 +51,7 @@ export function MermaidPreview({ code }: { code: string }) {
 
   if (!code.trim()) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-400 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50/50">
+      <div className="flex items-center justify-center h-64 text-gray-400 border-2 border-dashed border-[var(--border-subtle)] rounded-xl bg-[var(--surface-2)]/50">
         <div className="text-center">
           <svg className="w-10 h-10 mx-auto mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" /></svg>
           <p className="text-sm">Enter diagram code to preview</p>
@@ -61,12 +61,12 @@ export function MermaidPreview({ code }: { code: string }) {
   }
 
   return (
-    <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-      <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-b">
-        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Live Preview</span>
+    <div className="border border-[var(--border-subtle)] rounded-xl overflow-hidden shadow-sm">
+      <div className="flex items-center justify-between px-4 py-2.5 bg-[var(--surface-2)] border-b">
+        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Live Preview</span>
         <button
           onClick={() => setDark(!dark)}
-          className="text-xs px-2.5 py-1 rounded-lg font-medium hover:bg-gray-200 transition flex items-center gap-1.5"
+          className="text-xs px-2.5 py-1 rounded-lg font-medium hover:bg-[var(--surface-2)] transition flex items-center gap-1.5"
         >
           {dark ? (
             <>
@@ -81,7 +81,7 @@ export function MermaidPreview({ code }: { code: string }) {
           )}
         </button>
       </div>
-      <div className={`p-6 min-h-64 flex items-center justify-center overflow-auto transition-colors ${dark ? "bg-gray-900" : "bg-white"}`}>
+      <div className={`p-6 min-h-64 flex items-center justify-center overflow-auto transition-colors ${dark ? "bg-gray-900" : "bg-[var(--surface)]"}`}>
         {error ? (
           <div className="text-red-500 text-sm text-center max-w-md">
             <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center mx-auto mb-3">

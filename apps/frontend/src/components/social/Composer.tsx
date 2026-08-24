@@ -61,7 +61,7 @@ export function Composer({ onPosted }: { onPosted: (post: unknown) => void }) {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
+    <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border-subtle)] shadow-sm p-4">
       <div className="flex gap-3">
         <Avatar user={{ name: session?.user?.name, image: (session?.user as { image?: string })?.image }} size={44} />
         <textarea
@@ -69,7 +69,7 @@ export function Composer({ onPosted }: { onPosted: (post: unknown) => void }) {
           onChange={(e) => setContent(e.target.value)}
           placeholder="Share something with the community…"
           rows={2}
-          className="flex-1 resize-none bg-gray-50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+          className="flex-1 resize-none bg-[var(--surface-2)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
         />
       </div>
 
@@ -94,7 +94,7 @@ export function Composer({ onPosted }: { onPosted: (post: unknown) => void }) {
       )}
 
       <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-        <label className="cursor-pointer text-sm text-gray-500 hover:text-indigo-600 font-medium flex items-center gap-1.5">
+        <label className="cursor-pointer text-sm text-gray-500 dark:text-gray-400 hover:text-indigo-600 font-medium flex items-center gap-1.5">
           <input
             type="file"
             multiple

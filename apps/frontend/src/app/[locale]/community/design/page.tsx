@@ -21,11 +21,11 @@ const categories = [
         color: "bg-orange-100 text-orange-800",
       },
       { name: "Banteay Srei", count: 22, color: "bg-pink-100 text-pink-800" },
-      { name: "Preah Khan", count: 18, color: "bg-slate-100 text-slate-800" },
+      { name: "Preah Khan", count: 18, color: "bg-[var(--surface-2)] text-slate-800 dark:text-slate-200" },
       {
         name: "Other Temples",
         count: 30,
-        color: "bg-slate-100 text-slate-800",
+        color: "bg-[var(--surface-2)] text-slate-800 dark:text-slate-200",
       },
     ],
     sources: [
@@ -351,7 +351,7 @@ const categories = [
         count: 15,
         color: "bg-emerald-100 text-emerald-800",
       },
-      { name: "Elephants", count: 18, color: "bg-slate-100 text-slate-800" },
+      { name: "Elephants", count: 18, color: "bg-[var(--surface-2)] text-slate-800 dark:text-slate-200" },
       {
         name: "Birds (Mekong species)",
         count: 22,
@@ -404,12 +404,12 @@ const categories = [
       {
         name: "Colonial Architecture",
         count: 12,
-        color: "bg-slate-100 text-slate-800",
+        color: "bg-[var(--surface-2)] text-slate-800 dark:text-slate-200",
       },
       {
         name: "Modern Khmer Design",
         count: 10,
-        color: "bg-slate-100 text-slate-800",
+        color: "bg-[var(--surface-2)] text-slate-800 dark:text-slate-200",
       },
     ],
     sources: [
@@ -523,7 +523,7 @@ const categories = [
     icon: "🖌️",
     count: 200,
     color: "text-indigo-600",
-    bg: "bg-indigo-50",
+    bg: "bg-indigo-50 dark:bg-indigo-950/40",
     sites: [
       {
         name: "Khmer UI Icons",
@@ -660,29 +660,29 @@ export default function DesignPage() {
 
       {/* Stats Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-        <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
-          <span className="text-2xl font-bold text-slate-900">
+        <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] p-4 text-center">
+          <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
             {totalResources}+
           </span>
-          <p className="text-xs text-slate-500 mt-1">Free PNG Resources</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Free PNG Resources</p>
         </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
+        <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] p-4 text-center">
           <span className="text-2xl font-bold text-amber-500">
             {categories.length}
           </span>
-          <p className="text-xs text-slate-500 mt-1">Categories</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Categories</p>
         </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
+        <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] p-4 text-center">
           <span className="text-2xl font-bold text-green-600">
             {totalSources}+
           </span>
-          <p className="text-xs text-slate-500 mt-1">Source Links</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Source Links</p>
         </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
+        <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] p-4 text-center">
           <span className="text-2xl font-bold text-indigo-600">
             {colorPalettes.length}
           </span>
-          <p className="text-xs text-slate-500 mt-1">Color Palettes</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Color Palettes</p>
         </div>
       </div>
 
@@ -709,10 +709,10 @@ export default function DesignPage() {
             className="input-field pl-10"
           />
         </div>
-        <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
+        <div className="flex gap-1 bg-[var(--surface-2)] rounded-lg p-1">
           <button
             onClick={() => setViewMode("grid")}
-            className={`px-3 py-1.5 text-xs rounded-md transition font-medium ${viewMode === "grid" ? "bg-white shadow-sm text-indigo-600" : "text-slate-500 hover:text-slate-700"}`}
+            className={`px-3 py-1.5 text-xs rounded-md transition font-medium ${viewMode === "grid" ? "bg-[var(--surface)] shadow-sm text-indigo-600" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-300"}`}
           >
             <svg
               className="w-4 h-4"
@@ -730,7 +730,7 @@ export default function DesignPage() {
           </button>
           <button
             onClick={() => setViewMode("list")}
-            className={`px-3 py-1.5 text-xs rounded-md transition font-medium ${viewMode === "list" ? "bg-white shadow-sm text-indigo-600" : "text-slate-500 hover:text-slate-700"}`}
+            className={`px-3 py-1.5 text-xs rounded-md transition font-medium ${viewMode === "list" ? "bg-[var(--surface)] shadow-sm text-indigo-600" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-300"}`}
           >
             <svg
               className="w-4 h-4"
@@ -759,7 +759,7 @@ export default function DesignPage() {
           {colorPalettes.map((palette) => (
             <div
               key={palette.name}
-              className="rounded-xl border border-slate-200 bg-white p-3 hover:shadow-md transition"
+              className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] p-3 hover:shadow-md transition"
             >
               <div className="flex rounded-lg overflow-hidden h-8 mb-2">
                 {palette.colors.map((c, i) => (
@@ -771,7 +771,7 @@ export default function DesignPage() {
                   />
                 ))}
               </div>
-              <p className="text-xs font-semibold text-slate-800 truncate">
+              <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">
                 {palette.name}
               </p>
               <p className="text-[10px] text-slate-400 truncate">
@@ -782,7 +782,7 @@ export default function DesignPage() {
                   <button
                     key={i}
                     onClick={() => navigator.clipboard.writeText(c)}
-                    className="text-[10px] font-mono text-slate-500 hover:text-indigo-600 bg-slate-50 px-1.5 py-0.5 rounded hover:bg-indigo-50 transition"
+                    className="text-[10px] font-mono text-slate-500 dark:text-slate-400 hover:text-indigo-600 bg-[var(--surface-2)] px-1.5 py-0.5 rounded hover:bg-indigo-50 dark:bg-indigo-950/40 transition"
                     title={`Copy ${c}`}
                   >
                     {c}
@@ -799,7 +799,7 @@ export default function DesignPage() {
         <div className="mb-8">
           <button
             onClick={() => setActiveCategory(null)}
-            className="text-sm text-slate-500 hover:text-slate-700 mb-4 flex items-center gap-1"
+            className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-1"
           >
             <svg
               className="w-4 h-4"
@@ -824,17 +824,17 @@ export default function DesignPage() {
                   return T ? (
                     <T className="w-full h-full" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-3xl bg-white">
+                    <div className="w-full h-full flex items-center justify-center text-3xl bg-[var(--surface)]">
                       {activeData.icon}
                     </div>
                   );
                 })()}
               </div>
               <div>
-                <h2 className="text-xl font-bold text-slate-900">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
                   {activeData.name}
                 </h2>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-slate-500 dark:text-slate-400">
                   {activeData.count}+ free PNG resources
                 </p>
               </div>
@@ -854,7 +854,7 @@ export default function DesignPage() {
               ))}
             </div>
 
-            <h3 className="text-sm font-semibold text-slate-700 mb-3">
+            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
               Free Download Sources
             </h3>
             <div className="grid gap-2">
@@ -864,7 +864,7 @@ export default function DesignPage() {
                   href={src.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between bg-white rounded-xl px-4 py-3 hover:shadow-sm transition border border-slate-200 group"
+                  className="flex items-center justify-between bg-[var(--surface)] rounded-xl px-4 py-3 hover:shadow-sm transition border border-[var(--border-subtle)] group"
                 >
                   <div className="flex items-center gap-3">
                     <svg
@@ -881,7 +881,7 @@ export default function DesignPage() {
                       />
                     </svg>
                     <div>
-                      <p className="text-sm font-medium text-slate-800 group-hover:text-indigo-600 transition">
+                      <p className="text-sm font-medium text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 transition">
                         {src.name}
                       </p>
                       <span className="text-xs text-slate-400">{src.type}</span>
@@ -922,7 +922,7 @@ export default function DesignPage() {
                 <button
                   key={cat.id}
                   onClick={() => setActiveCategory(cat.id)}
-                  className="text-left rounded-xl border border-slate-200 bg-white p-5 hover:shadow-md transition group card-hover"
+                  className="text-left rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] p-5 hover:shadow-md transition group card-hover"
                 >
                   <div
                     className={`w-full h-24 rounded-lg overflow-hidden ring-1 ring-black/5 mb-3`}
@@ -932,13 +932,13 @@ export default function DesignPage() {
                       return T ? (
                         <T className="w-full h-full" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-3xl bg-white">
+                        <div className="w-full h-full flex items-center justify-center text-3xl bg-[var(--surface)]">
                           {cat.icon}
                         </div>
                       );
                     })()}
                   </div>
-                  <h3 className="font-semibold text-slate-900 mb-1 group-hover:text-indigo-600 transition-colors">
+                  <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-1 group-hover:text-indigo-600 transition-colors">
                     {cat.name}
                   </h3>
                   <p className="text-sm text-slate-400">
@@ -968,7 +968,7 @@ export default function DesignPage() {
                 <button
                   key={cat.id}
                   onClick={() => setActiveCategory(cat.id)}
-                  className="w-full text-left flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 hover:shadow-sm transition group"
+                  className="w-full text-left flex items-center gap-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] p-4 hover:shadow-sm transition group"
                 >
                   <div className="w-24 h-16 rounded-lg overflow-hidden ring-1 ring-black/5 shrink-0">
                     {(() => {
@@ -976,14 +976,14 @@ export default function DesignPage() {
                       return T ? (
                         <T className="w-full h-full" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-2xl bg-white">
+                        <div className="w-full h-full flex items-center justify-center text-2xl bg-[var(--surface)]">
                           {cat.icon}
                         </div>
                       );
                     })()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                    <h3 className="font-semibold text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 transition-colors">
                       {cat.name}
                     </h3>
                     <p className="text-xs text-slate-400">
@@ -1033,50 +1033,50 @@ export default function DesignPage() {
           Design Tips for Cambodia-Themed Projects
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-          <div className="bg-white/80 rounded-xl p-4 border border-slate-100">
+          <div className="bg-white/80 dark:bg-slate-900/80 rounded-xl p-4 border border-[var(--border-subtle)]">
             <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center mb-2">
               <span className="text-lg">🎨</span>
             </div>
-            <p className="font-medium text-slate-800 mb-1">
+            <p className="font-medium text-slate-800 dark:text-slate-200 mb-1">
               Use Authentic Colors
             </p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Reference the color palettes above — especially temple stone,
               saffron, and flag colors for authentic Khmer design.
             </p>
           </div>
-          <div className="bg-white/80 rounded-xl p-4 border border-slate-100">
+          <div className="bg-white/80 dark:bg-slate-900/80 rounded-xl p-4 border border-[var(--border-subtle)]">
             <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mb-2">
               <span className="text-lg">🖼️</span>
             </div>
-            <p className="font-medium text-slate-800 mb-1">
+            <p className="font-medium text-slate-800 dark:text-slate-200 mb-1">
               High-Resolution Assets
             </p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Use Unsplash and Pexels for print-ready photos. Freepik and
               Vecteezy are best for scalable vectors and PNGs.
             </p>
           </div>
-          <div className="bg-white/80 rounded-xl p-4 border border-slate-100">
+          <div className="bg-white/80 dark:bg-slate-900/80 rounded-xl p-4 border border-[var(--border-subtle)]">
             <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mb-2">
               <span className="text-lg">✒️</span>
             </div>
-            <p className="font-medium text-slate-800 mb-1">
+            <p className="font-medium text-slate-800 dark:text-slate-200 mb-1">
               Pair Fonts Carefully
             </p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Use Inter throughout — tight letter-spacing for headings, regular
               for body — for a clean, professional Khmer-themed layout.
             </p>
           </div>
-          <div className="bg-white/80 rounded-xl p-4 border border-slate-100">
+          <div className="bg-white/80 dark:bg-slate-900/80 rounded-xl p-4 border border-[var(--border-subtle)]">
             <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mb-2">
               <span className="text-lg">📐</span>
             </div>
-            <p className="font-medium text-slate-800 mb-1">
+            <p className="font-medium text-slate-800 dark:text-slate-200 mb-1">
               Respect the Culture
             </p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Always use images respectfully. Avoid modifying sacred symbols.
               Credit photographers when required.
             </p>

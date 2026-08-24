@@ -35,7 +35,7 @@ export default function SellerDashboardPage() {
     return (
       <div className="max-w-xl mx-auto px-4 py-12 text-center">
         <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
-        <p className="text-slate-600 mb-4">
+        <p className="text-slate-600 dark:text-slate-300 mb-4">
           Please sign in to view your seller dashboard.
         </p>
         <Link
@@ -50,7 +50,7 @@ export default function SellerDashboardPage() {
 
   if (loading) {
     return (
-      <div className="max-w-xl mx-auto px-4 py-12 text-center text-slate-500">
+      <div className="max-w-xl mx-auto px-4 py-12 text-center text-slate-500 dark:text-slate-400">
         Loading...
       </div>
     );
@@ -66,7 +66,7 @@ export default function SellerDashboardPage() {
 
       {!profile ? (
         <div className="text-center py-12">
-          <p className="text-slate-600 mb-4">
+          <p className="text-slate-600 dark:text-slate-300 mb-4">
             You haven&apos;t applied to become a seller yet.
           </p>
           <button
@@ -110,7 +110,7 @@ export default function SellerDashboardPage() {
             </p>
           </div>
 
-          <div className="bg-white border rounded-lg p-6">
+          <div className="bg-[var(--surface)] border rounded-lg p-6">
             <h3 className="font-semibold mb-2">Product Limit</h3>
             <div className="flex items-center gap-2">
               <div className="flex-1 bg-slate-200 rounded-full h-3">
@@ -133,7 +133,7 @@ export default function SellerDashboardPage() {
           <div className="flex flex-wrap gap-3">
             <button
               onClick={() => router.push("/seller/products")}
-              className="border border-slate-300 px-6 py-2 rounded hover:bg-slate-50 transition-colors"
+              className="border border-[var(--border-subtle)] px-6 py-2 rounded hover:bg-[var(--surface-2)] transition-colors"
             >
               My Products
             </button>
@@ -152,7 +152,7 @@ export default function SellerDashboardPage() {
             </button>
             <button
               onClick={() => router.push("/messages")}
-              className="border border-slate-300 px-6 py-2 rounded hover:bg-slate-50 transition-colors"
+              className="border border-[var(--border-subtle)] px-6 py-2 rounded hover:bg-[var(--surface-2)] transition-colors"
             >
               Messages
             </button>

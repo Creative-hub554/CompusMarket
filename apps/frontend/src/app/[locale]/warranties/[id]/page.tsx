@@ -102,10 +102,10 @@ export default function WarrantyDetailPage() {
         <div className="rounded-lg border p-4">
           <h2 className="font-semibold mb-2">Product</h2>
           <p className="font-medium">{warranty.product.name}</p>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             Price: ${warranty.product.price}
           </p>
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
             {warranty.product.description}
           </p>
         </div>
@@ -168,7 +168,7 @@ export default function WarrantyDetailPage() {
                 </button>
                 <button
                   onClick={() => setShowClaimForm(false)}
-                  className="px-4 py-2 border text-sm rounded hover:bg-gray-50 transition"
+                  className="px-4 py-2 border text-sm rounded hover:bg-[var(--surface-2)] transition"
                 >
                   Cancel
                 </button>
@@ -179,7 +179,7 @@ export default function WarrantyDetailPage() {
           {warranty.claimReason && (
             <div className="mt-4 border-t pt-4">
               <h3 className="text-sm font-medium mb-1">Claim Details</h3>
-              <p className="text-sm text-gray-600">{warranty.claimReason}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300">{warranty.claimReason}</p>
               {warranty.claimDate && (
                 <p className="text-xs text-gray-400 mt-1">
                   Submitted on{" "}
@@ -187,7 +187,7 @@ export default function WarrantyDetailPage() {
                 </p>
               )}
               {warranty.notes && (
-                <div className="mt-2 p-2 bg-gray-50 rounded text-sm">
+                <div className="mt-2 p-2 bg-[var(--surface-2)] rounded text-sm">
                   <span className="font-medium">Seller notes:</span>{" "}
                   {warranty.notes}
                 </div>

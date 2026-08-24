@@ -114,7 +114,7 @@ export default function NoteEditorPage() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-4 flex items-center gap-3 flex-wrap">
-        <Link href="/community/notes" className="text-slate-400 hover:text-slate-600 transition-colors" aria-label="Back to notes">
+        <Link href="/community/notes" className="text-slate-400 hover:text-slate-600 dark:text-slate-300 transition-colors" aria-label="Back to notes">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
         </Link>
         <input
@@ -128,11 +128,11 @@ export default function NoteEditorPage() {
           {statusText()}
         </span>
         <div className="flex gap-1">
-          <button onClick={() => { setSplitView(false); setPreview(false); }} className={`btn-ghost text-xs px-2 py-1 ${!preview && !splitView ? "bg-slate-100 border-slate-300" : ""}`} title="Edit" aria-label="Edit mode">✏ Edit</button>
-          <button onClick={() => { setSplitView(true); setPreview(true); }} className={`btn-ghost text-xs px-2 py-1 ${splitView ? "bg-slate-100 border-slate-300" : ""}`} title="Split View" aria-label="Split view">
+          <button onClick={() => { setSplitView(false); setPreview(false); }} className={`btn-ghost text-xs px-2 py-1 ${!preview && !splitView ? "bg-[var(--surface-2)] border-[var(--border-subtle)]" : ""}`} title="Edit" aria-label="Edit mode">✏ Edit</button>
+          <button onClick={() => { setSplitView(true); setPreview(true); }} className={`btn-ghost text-xs px-2 py-1 ${splitView ? "bg-[var(--surface-2)] border-[var(--border-subtle)]" : ""}`} title="Split View" aria-label="Split view">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7" /></svg>
           </button>
-          <button onClick={() => { setSplitView(false); setPreview(true); }} className={`btn-ghost text-xs px-2 py-1 ${preview && !splitView ? "bg-slate-100 border-slate-300" : ""}`} title="Preview" aria-label="Preview mode">👁 Preview</button>
+          <button onClick={() => { setSplitView(false); setPreview(true); }} className={`btn-ghost text-xs px-2 py-1 ${preview && !splitView ? "bg-[var(--surface-2)] border-[var(--border-subtle)]" : ""}`} title="Preview" aria-label="Preview mode">👁 Preview</button>
         </div>
         <button onClick={save} disabled={saving || !dirty} className="btn-primary text-sm px-4 py-1.5">
           {saving ? "Saving..." : "Save"}
@@ -173,32 +173,32 @@ export default function NoteEditorPage() {
       {splitView ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Markdown</p>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Markdown</p>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm font-mono h-[600px] resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition leading-relaxed"
+              className="w-full rounded-xl border border-[var(--border-subtle)] px-4 py-3 text-sm font-mono h-[600px] resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition leading-relaxed"
               placeholder="Write your note in Markdown..."
             />
           </div>
           <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Preview</p>
-            <div className="prose prose-sm max-w-none p-6 border border-slate-200 rounded-xl min-h-[600px] bg-white overflow-auto">
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Preview</p>
+            <div className="prose prose-sm max-w-none p-6 border border-[var(--border-subtle)] rounded-xl min-h-[600px] bg-[var(--surface)] overflow-auto">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{content || "*Nothing to preview*"}</ReactMarkdown>
             </div>
           </div>
         </div>
       ) : preview ? (
-        <div className="prose prose-sm max-w-none p-8 border border-slate-200 rounded-xl min-h-[500px] bg-white">
+        <div className="prose prose-sm max-w-none p-8 border border-[var(--border-subtle)] rounded-xl min-h-[500px] bg-[var(--surface)]">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{content || "*Nothing to preview*"}</ReactMarkdown>
         </div>
       ) : (
         <div>
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Markdown</p>
+          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Markdown</p>
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm font-mono h-[550px] resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition leading-relaxed"
+            className="w-full rounded-xl border border-[var(--border-subtle)] px-4 py-3 text-sm font-mono h-[550px] resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition leading-relaxed"
             placeholder="Write your note in Markdown... Use **bold**, *italic*, # headings, - lists, etc."
           />
         </div>

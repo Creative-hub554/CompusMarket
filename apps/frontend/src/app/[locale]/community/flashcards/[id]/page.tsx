@@ -121,7 +121,7 @@ export default function StudyPage() {
             />
           </svg>
         </div>
-        <p className="text-slate-500 mb-3">No cards in this deck</p>
+        <p className="text-slate-500 dark:text-slate-400 mb-3">No cards in this deck</p>
         <Link href={`/community/flashcards/${id}/edit`} className="btn-primary">
           Add Cards
         </Link>
@@ -147,7 +147,7 @@ export default function StudyPage() {
           </svg>
         </div>
         <h2 className="text-2xl font-bold mb-2">Session Complete!</h2>
-        <p className="text-slate-500 mb-6">
+        <p className="text-slate-500 dark:text-slate-400 mb-6">
           You reviewed all {cards.length} cards.
         </p>
         <div className="flex gap-3 justify-center flex-wrap">
@@ -180,7 +180,7 @@ export default function StudyPage() {
       <div className="flex items-center justify-between mb-4">
         <Link
           href="/community/flashcards"
-          className="text-slate-400 hover:text-slate-600 transition-colors"
+          className="text-slate-400 hover:text-slate-600 dark:text-slate-300 transition-colors"
           aria-label="Back to flashcards"
         >
           <svg
@@ -197,7 +197,7 @@ export default function StudyPage() {
             />
           </svg>
         </Link>
-        <span className="text-sm font-medium text-slate-500">
+        <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
           {currentIndex + 1} / {cards.length}
         </span>
       </div>
@@ -217,12 +217,12 @@ export default function StudyPage() {
           className={`flip-card-inner relative w-full ${flipped ? "flipped" : ""}`}
           style={{ minHeight: 320 }}
         >
-          <div className="flip-card-front cursor-pointer rounded-xl border-2 border-slate-200 p-10 flex items-center justify-center text-center hover:shadow-lg transition select-none bg-white min-h-[320px]">
+          <div className="flip-card-front cursor-pointer rounded-xl border-2 border-[var(--border-subtle)] p-10 flex items-center justify-center text-center hover:shadow-lg transition select-none bg-[var(--surface)] min-h-[320px]">
             <div>
               <p className="text-xs text-slate-400 mb-4 uppercase tracking-wider font-semibold">
                 Question — Click or press Space
               </p>
-              <p className="text-xl whitespace-pre-wrap leading-relaxed font-medium text-slate-900">
+              <p className="text-xl whitespace-pre-wrap leading-relaxed font-medium text-slate-900 dark:text-slate-100">
                 {card.front}
               </p>
             </div>
@@ -232,7 +232,7 @@ export default function StudyPage() {
               <p className="text-xs text-indigo-600 mb-4 uppercase tracking-wider font-semibold">
                 Answer
               </p>
-              <p className="text-lg whitespace-pre-wrap leading-relaxed text-slate-800">
+              <p className="text-lg whitespace-pre-wrap leading-relaxed text-slate-800 dark:text-slate-200">
                 {card.back}
               </p>
             </div>
@@ -242,7 +242,7 @@ export default function StudyPage() {
 
       {flipped && (
         <div className="mt-8 animate-fade-in">
-          <p className="text-sm text-slate-500 mb-4 text-center font-medium">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 text-center font-medium">
             How well did you know this?
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -262,7 +262,7 @@ export default function StudyPage() {
             </button>
             <button
               onClick={() => review(4)}
-              className="rounded-xl bg-indigo-50 px-4 py-3 text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition border border-indigo-200 hover:border-indigo-300"
+              className="rounded-xl bg-indigo-50 dark:bg-indigo-950/40 px-4 py-3 text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition border border-indigo-200 hover:border-indigo-300"
             >
               <span className="block">Good</span>
               <span className="text-xs opacity-60">3 — Correct</span>
@@ -277,15 +277,15 @@ export default function StudyPage() {
           </div>
           <p className="text-center text-xs text-slate-400 mt-4">
             Or press{" "}
-            <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-xs font-mono border">
+            <kbd className="px-1.5 py-0.5 bg-[var(--surface-2)] rounded text-xs font-mono border">
               Space
             </kbd>{" "}
             to flip,{" "}
-            <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-xs font-mono border">
+            <kbd className="px-1.5 py-0.5 bg-[var(--surface-2)] rounded text-xs font-mono border">
               1
             </kbd>
             -
-            <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-xs font-mono border">
+            <kbd className="px-1.5 py-0.5 bg-[var(--surface-2)] rounded text-xs font-mono border">
               4
             </kbd>{" "}
             to rate

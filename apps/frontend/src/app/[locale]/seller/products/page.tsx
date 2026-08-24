@@ -88,7 +88,7 @@ export default function SellerProductsPage() {
         </button>
       </div>
 
-      <p className="text-sm text-slate-500 mb-4">
+      <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
         {products.length} / {maxProducts} product slots used
       </p>
 
@@ -99,10 +99,10 @@ export default function SellerProductsPage() {
       )}
 
       {loading ? (
-        <p className="text-slate-500 text-center py-8">Loading...</p>
+        <p className="text-slate-500 dark:text-slate-400 text-center py-8">Loading...</p>
       ) : products.length === 0 ? (
-        <div className="text-center py-12 border rounded-lg bg-slate-50">
-          <p className="text-slate-600 mb-4">You have no products yet.</p>
+        <div className="text-center py-12 border rounded-lg bg-[var(--surface-2)]">
+          <p className="text-slate-600 dark:text-slate-300 mb-4">You have no products yet.</p>
           <button
             onClick={() => router.push("/seller/products/new")}
             className="bg-slate-900 text-white px-6 py-2 rounded hover:bg-indigo-700 transition-colors"
@@ -115,7 +115,7 @@ export default function SellerProductsPage() {
           {products.map((product) => (
             <div
               key={product.id}
-              className="flex items-center gap-4 border rounded-lg p-4 bg-white"
+              className="flex items-center gap-4 border rounded-lg p-4 bg-[var(--surface)]"
             >
               {product.images?.[0] ? (
                 <Image
@@ -123,10 +123,10 @@ export default function SellerProductsPage() {
                   alt=""
                   width={64}
                   height={64}
-                  className="h-16 w-16 rounded object-contain bg-slate-100"
+                  className="h-16 w-16 rounded object-contain bg-[var(--surface-2)]"
                 />
               ) : (
-                <div className="h-16 w-16 rounded bg-slate-100" />
+                <div className="h-16 w-16 rounded bg-[var(--surface-2)]" />
               )}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -136,17 +136,17 @@ export default function SellerProductsPage() {
                       product.status === "ACTIVE"
                         ? "bg-green-100 text-green-700"
                         : product.status === "DISABLED"
-                          ? "bg-slate-100 text-slate-500"
+                          ? "bg-[var(--surface-2)] text-slate-500 dark:text-slate-400"
                           : "bg-yellow-100 text-yellow-700"
                     }`}
                   >
                     {product.status}
                   </span>
                 </div>
-                <p className="text-sm text-slate-500 truncate">
+                <p className="text-sm text-slate-500 dark:text-slate-400 truncate">
                   {product.category.name}
                 </p>
-                <p className="text-sm font-semibold text-slate-900">
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                   ${Number(product.price).toLocaleString()} · Stock:{" "}
                   {product.stock}
                 </p>

@@ -29,8 +29,8 @@ type Ticket = {
 const statusStyles: Record<Ticket["status"], string> = {
   OPEN: "bg-green-100 text-green-800",
   IN_PROGRESS: "bg-indigo-100 text-indigo-800",
-  RESOLVED: "bg-slate-100 text-slate-700",
-  CLOSED: "bg-slate-100 text-slate-700",
+  RESOLVED: "bg-[var(--surface-2)] text-slate-700 dark:text-slate-300",
+  CLOSED: "bg-[var(--surface-2)] text-slate-700 dark:text-slate-300",
 };
 
 const statusLabels: Record<Ticket["status"], string> = {
@@ -96,10 +96,10 @@ export default function TicketDetailPage() {
 
   if (!session) {
     return (
-      <div className="min-h-[calc(100vh-64px)] bg-white flex items-center justify-center">
+      <div className="min-h-[calc(100vh-64px)] bg-[var(--surface)] flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-slate-900 mb-4">Sign In Required</h1>
-          <p className="text-slate-500 mb-4">Please sign in to view this ticket.</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">Sign In Required</h1>
+          <p className="text-slate-500 dark:text-slate-400 mb-4">Please sign in to view this ticket.</p>
           <Link href="/login" className="text-indigo-600 font-medium hover:underline">Go to Login</Link>
         </div>
       </div>
@@ -108,7 +108,7 @@ export default function TicketDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-[calc(100vh-64px)] bg-white flex items-center justify-center">
+      <div className="min-h-[calc(100vh-64px)] bg-[var(--surface)] flex items-center justify-center">
         <div className="h-8 w-48 bg-slate-200 rounded animate-pulse" />
       </div>
     );
@@ -116,9 +116,9 @@ export default function TicketDetailPage() {
 
   if (!ticket) {
     return (
-      <div className="min-h-[calc(100vh-64px)] bg-white flex items-center justify-center">
+      <div className="min-h-[calc(100vh-64px)] bg-[var(--surface)] flex items-center justify-center">
         <div className="text-center">
-          <p className="text-slate-600 mb-4">Ticket not found</p>
+          <p className="text-slate-600 dark:text-slate-300 mb-4">Ticket not found</p>
           <Link href="/support" className="text-indigo-600 font-medium hover:underline">Back to Support</Link>
         </div>
       </div>
@@ -135,14 +135,14 @@ export default function TicketDetailPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-white flex flex-col">
-      <div className="border-b border-slate-200 px-6 py-4">
-        <Link href="/support" className="text-slate-500 text-sm hover:text-slate-900 transition-colors mb-2 inline-block">
+    <div className="min-h-[calc(100vh-64px)] bg-[var(--surface)] flex flex-col">
+      <div className="border-b border-[var(--border-subtle)] px-6 py-4">
+        <Link href="/support" className="text-slate-500 dark:text-slate-400 text-sm hover:text-slate-900 dark:text-slate-100 transition-colors mb-2 inline-block">
           &larr; Back to Support
         </Link>
-        <h1 className="text-lg font-bold text-slate-900">{ticket.subject}</h1>
+        <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100">{ticket.subject}</h1>
         <div className="flex items-center gap-3 mt-1">
-          <span className="text-slate-500 text-sm">{ticket.customer.name || ticket.customer.email}</span>
+          <span className="text-slate-500 dark:text-slate-400 text-sm">{ticket.customer.name || ticket.customer.email}</span>
           <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${statusStyles[ticket.status]}`}>
             {statusLabels[ticket.status]}
           </span>
@@ -150,13 +150,13 @@ export default function TicketDetailPage() {
       </div>
 
       {(ticket.orderId || ticket.productId) && (
-        <div className="mx-6 mt-4 bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center gap-3">
+        <div className="mx-6 mt-4 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl p-4 flex items-center gap-3">
           {ticket.order ? (
             <>
               <span className="text-indigo-600 text-lg">&#x1F4E6;</span>
               <div className="flex-1">
-                <p className="text-slate-900 text-sm font-medium">Regarding Order</p>
-                <p className="text-slate-500 text-xs">#{ticket.order.orderNumber}</p>
+                <p className="text-slate-900 dark:text-slate-100 text-sm font-medium">Regarding Order</p>
+                <p className="text-slate-500 dark:text-slate-400 text-xs">#{ticket.order.orderNumber}</p>
               </div>
               <Link href={`/orders/${ticket.order.id}`} className="text-indigo-600 text-sm hover:underline">
                 View Order
@@ -166,8 +166,8 @@ export default function TicketDetailPage() {
             <>
               <span className="text-indigo-600 text-lg">&#x1F50D;</span>
               <div className="flex-1">
-                <p className="text-slate-900 text-sm font-medium">Regarding Product</p>
-                <p className="text-slate-500 text-xs">{ticket.product?.name}</p>
+                <p className="text-slate-900 dark:text-slate-100 text-sm font-medium">Regarding Product</p>
+                <p className="text-slate-500 dark:text-slate-400 text-xs">{ticket.product?.name}</p>
               </div>
             </>
           )}
@@ -177,7 +177,7 @@ export default function TicketDetailPage() {
       <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
         {messages.length === 0 && (
           <div className="flex items-center justify-center h-full">
-            <p className="text-slate-500 text-sm">No messages yet</p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">No messages yet</p>
           </div>
         )}
         {messages.map((msg) => {
@@ -188,12 +188,12 @@ export default function TicketDetailPage() {
                 className={`max-w-[75%] ${
                   isMe
                     ? "bg-indigo-600 text-white rounded-2xl rounded-br-md"
-                    : "bg-slate-100 text-slate-900 rounded-2xl rounded-bl-md"
+                    : "bg-[var(--surface-2)] text-slate-900 dark:text-slate-100 rounded-2xl rounded-bl-md"
                 } px-4 py-2.5 text-sm`}
               >
                 <p>{msg.content}</p>
                 <div className={`flex items-center gap-1 mt-1 ${isMe ? "justify-end" : "justify-start"}`}>
-                  <span className={`text-[11px] ${isMe ? "text-indigo-200" : "text-slate-500"}`}>
+                  <span className={`text-[11px] ${isMe ? "text-indigo-200" : "text-slate-500 dark:text-slate-400"}`}>
                     {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </span>
                   {isMe && (
@@ -209,7 +209,7 @@ export default function TicketDetailPage() {
         <div ref={bottomRef} />
       </div>
 
-      <div className="border-t border-slate-200 px-6 py-4">
+      <div className="border-t border-[var(--border-subtle)] px-6 py-4">
         <div className="flex gap-2 items-end">
           <textarea
             value={input}
@@ -222,7 +222,7 @@ export default function TicketDetailPage() {
             }}
             placeholder="Type your message..."
             rows={1}
-            className="flex-1 bg-white border border-slate-300 rounded-lg px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-500 outline-none transition-colors resize-none"
+            className="flex-1 bg-[var(--surface)] border border-[var(--border-subtle)] rounded-lg px-4 py-3 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:border-indigo-500 outline-none transition-colors resize-none"
           />
           <button
             onClick={sendMessage}

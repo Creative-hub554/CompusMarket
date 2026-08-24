@@ -102,10 +102,10 @@ export function StoriesBar() {
           disabled={uploading}
           className="flex flex-col items-center gap-1 shrink-0 w-16"
         >
-          <span className="w-14 h-14 rounded-full border-2 border-dashed border-indigo-300 flex items-center justify-center text-indigo-500 text-xl bg-white">
+          <span className="w-14 h-14 rounded-full border-2 border-dashed border-indigo-300 flex items-center justify-center text-indigo-500 text-xl bg-[var(--surface)]">
             {uploading ? "…" : "＋"}
           </span>
-          <span className="text-[10px] text-gray-500 truncate w-full text-center">Your story</span>
+          <span className="text-[10px] text-gray-500 dark:text-gray-400 truncate w-full text-center">Your story</span>
         </button>
         <input
           ref={fileRef}
@@ -127,11 +127,11 @@ export function StoriesBar() {
                   : "bg-gradient-to-tr from-yellow-400 via-pink-500 to-indigo-500"
               }`}
             >
-              <span className="block p-[2px] bg-white rounded-full">
+              <span className="block p-[2px] bg-[var(--surface)] rounded-full">
                 <Avatar user={group.author} size={48} />
               </span>
             </span>
-            <span className="text-[10px] text-gray-600 truncate w-full text-center">
+            <span className="text-[10px] text-gray-600 dark:text-gray-300 truncate w-full text-center">
               {group.author.id === session?.user?.id
                 ? "You"
                 : group.author.name || group.author.username}
@@ -166,7 +166,7 @@ export function StoriesBar() {
               {current.stories.map((_, i) => (
                 <span
                   key={i}
-                  className={`h-0.5 flex-1 rounded ${i <= viewing!.story ? "bg-white" : "bg-white/30"}`}
+                  className={`h-0.5 flex-1 rounded ${i <= viewing!.story ? "bg-[var(--surface)]" : "bg-white/30"}`}
                 />
               ))}
             </div>

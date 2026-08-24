@@ -16,7 +16,7 @@ type Warranty = {
 
 const statusColors: Record<string, string> = {
   ACTIVE: "bg-green-100 text-green-800",
-  EXPIRED: "bg-gray-100 text-gray-800",
+  EXPIRED: "bg-[var(--surface-2)] text-gray-800 dark:text-gray-200",
   CLAIMED: "bg-orange-100 text-orange-800",
   VOID: "bg-red-100 text-red-800",
 };
@@ -39,7 +39,13 @@ export default function MyWarrantiesPage() {
   }, []);
 
   if (loading)
-    return <div className="mx-auto max-w-4xl px-4 py-8">Loading...</div>;
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-8 space-y-4">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="h-28 rounded-2xl animate-shimmer" />
+        ))}
+      </div>
+    );
 
   if (error) {
     return (
@@ -47,7 +53,7 @@ export default function MyWarrantiesPage() {
         <h1 className="text-2xl font-bold mb-4 text-red-600">
           Something went wrong
         </h1>
-        <p className="text-gray-600 mb-4">
+        <p className="text-gray-600 dark:text-gray-300 mb-4">
           Unable to load your warranties. You may need to sign in.
         </p>
         <Link href="/login" className="text-indigo-600 hover:underline">
@@ -63,7 +69,7 @@ export default function MyWarrantiesPage() {
 
       {warranties.length === 0 ? (
         <div className="text-center py-16">
-          <p className="text-gray-500 mb-4">No warranties yet</p>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">No warranties yet</p>
           <Link href="/shop" className="text-indigo-600 hover:underline">
             Browse Products
           </Link>
@@ -84,7 +90,7 @@ export default function MyWarrantiesPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">{w.product.name}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       {w.months} month warranty &middot;{" "}
                       {new Date(w.startDate).toLocaleDateString()} →{" "}
                       {new Date(w.endDate).toLocaleDateString()}
@@ -98,7 +104,7 @@ export default function MyWarrantiesPage() {
                   <div className="text-right">
                     <span
                       className={`rounded px-2 py-1 text-xs font-medium ${
-                        statusColors[w.status] || "bg-gray-100"
+                        statusColors[w.status] || "bg-[var(--surface-2)]"
                       }`}
                     >
                       {w.status}

@@ -264,9 +264,9 @@ export default function QuizDetailPage() {
           {questions.map((q, i) => (
             <div
               key={q.id}
-              className={`border rounded-xl p-5 transition ${answers[q.id] ? "border-indigo-600/20 bg-indigo-50/30" : "border-slate-200"}`}
+              className={`border rounded-xl p-5 transition ${answers[q.id] ? "border-indigo-600/20 bg-indigo-50 dark:bg-indigo-950/40/30" : "border-[var(--border-subtle)]"}`}
             >
-              <p className="font-medium mb-3 text-slate-900">
+              <p className="font-medium mb-3 text-slate-900 dark:text-slate-100">
                 {i + 1}. {q.question}{" "}
                 <span className="text-xs text-slate-400 font-normal">
                   ({q.points} pt)
@@ -277,7 +277,7 @@ export default function QuizDetailPage() {
                   {["True", "False"].map((opt) => (
                     <label
                       key={opt}
-                      className={`flex items-center gap-2 cursor-pointer p-3 rounded-xl border-2 transition ${answers[q.id] === opt ? "border-indigo-600 bg-indigo-50 text-indigo-600 font-medium" : "border-slate-200 hover:border-slate-300"}`}
+                      className={`flex items-center gap-2 cursor-pointer p-3 rounded-xl border-2 transition ${answers[q.id] === opt ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 font-medium" : "border-[var(--border-subtle)] hover:border-indigo-400/60"}`}
                     >
                       <input
                         type="radio"
@@ -307,10 +307,10 @@ export default function QuizDetailPage() {
                   {(q.options || []).map((opt: string) => (
                     <label
                       key={opt}
-                      className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl border-2 transition ${answers[q.id] === opt ? "border-indigo-600 bg-indigo-50" : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"}`}
+                      className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl border-2 transition ${answers[q.id] === opt ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-950/40" : "border-[var(--border-subtle)] hover:border-indigo-400/60 hover:bg-[var(--surface-2)]"}`}
                     >
                       <div
-                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${answers[q.id] === opt ? "border-indigo-600" : "border-slate-300"}`}
+                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${answers[q.id] === opt ? "border-indigo-600" : "border-[var(--border-subtle)]"}`}
                       >
                         {answers[q.id] === opt && (
                           <div className="w-2.5 h-2.5 rounded-full bg-indigo-600" />
@@ -348,7 +348,7 @@ export default function QuizDetailPage() {
             </span>
           </div>
           <h1 className="text-2xl font-bold mb-1">{quiz?.title} — Results</h1>
-          <p className="text-slate-500">
+          <p className="text-slate-500 dark:text-slate-400">
             {result.answers.filter((a: any) => a.isCorrect).length} /{" "}
             {questions.length} correct
           </p>
@@ -397,13 +397,13 @@ export default function QuizDetailPage() {
                     )}
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium text-slate-900">{q.question}</p>
+                    <p className="font-medium text-slate-900 dark:text-slate-100">{q.question}</p>
                     <p className="text-sm mt-1">
                       Your answer:{" "}
                       <span className="font-medium">{answer.answer}</span>
                     </p>
                     {!answer.isCorrect && (
-                      <p className="text-sm text-slate-500 mt-0.5">
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
                         Correct answer:{" "}
                         <span className="font-medium text-green-600">
                           {q.correctAnswer}
@@ -441,7 +441,7 @@ export default function QuizDetailPage() {
         <div className="flex-1">
           <Link
             href="/community/quizzes"
-            className="text-slate-400 hover:text-slate-600 transition-colors inline-flex items-center gap-1 text-sm"
+            className="text-slate-400 hover:text-slate-600 dark:text-slate-300 transition-colors inline-flex items-center gap-1 text-sm"
           >
             <svg
               className="w-4 h-4"
@@ -471,12 +471,12 @@ export default function QuizDetailPage() {
                 placeholder="Description"
                 className="input-field"
               />
-              <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+              <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={isPublic}
                   onChange={(e) => setIsPublic(e.target.checked)}
-                  className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                  className="rounded border-[var(--border-subtle)] text-indigo-600 focus:ring-indigo-500"
                 />
                 Public (anyone can take this quiz)
               </label>
@@ -496,7 +496,7 @@ export default function QuizDetailPage() {
             <>
               <h1 className="text-2xl font-bold mt-1">{quiz.title}</h1>
               {quiz.description && (
-                <p className="text-slate-500 mt-1">{quiz.description}</p>
+                <p className="text-slate-500 dark:text-slate-400 mt-1">{quiz.description}</p>
               )}
               <div className="flex items-center gap-3 mt-2 text-xs text-slate-400 flex-wrap">
                 <span className="flex items-center gap-1">
@@ -523,7 +523,7 @@ export default function QuizDetailPage() {
                     Public
                   </span>
                 ) : (
-                  <span className="badge bg-slate-100 text-slate-600">
+                  <span className="badge bg-[var(--surface-2)] text-slate-600 dark:text-slate-300">
                     Private
                   </span>
                 )}
@@ -598,8 +598,8 @@ export default function QuizDetailPage() {
         </div>
 
         {showAttempts && (
-          <div className="border border-slate-200 rounded-xl p-5 space-y-3 bg-slate-50/50 animate-slide-down">
-            <h3 className="text-sm font-semibold text-slate-700">
+          <div className="border border-[var(--border-subtle)] rounded-xl p-5 space-y-3 bg-[var(--surface-2)]/50 animate-slide-down">
+            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
               Attempt History
             </h3>
             {attempts.length === 0 ? (
@@ -608,9 +608,9 @@ export default function QuizDetailPage() {
               attempts.map((a) => (
                 <div
                   key={a.id}
-                  className="flex items-center justify-between text-sm border-b border-slate-200 pb-2 last:border-0"
+                  className="flex items-center justify-between text-sm border-b border-[var(--border-subtle)] pb-2 last:border-0"
                 >
-                  <span className="text-slate-600">
+                  <span className="text-slate-600 dark:text-slate-300">
                     {a.user?.name || a.user?.email}
                   </span>
                   <span className="font-medium">
@@ -630,7 +630,7 @@ export default function QuizDetailPage() {
         )}
 
         {showAddQuestion && (
-          <div className="border border-slate-200 rounded-xl p-5 bg-slate-50/50 space-y-3 animate-slide-down">
+          <div className="border border-[var(--border-subtle)] rounded-xl p-5 bg-[var(--surface-2)]/50 space-y-3 animate-slide-down">
             <h3 className="section-title">New Question</h3>
             <select
               value={qType}
@@ -678,15 +678,15 @@ export default function QuizDetailPage() {
           {questions.map((q, i) => (
             <div
               key={q.id}
-              className="group border border-slate-200 rounded-xl p-5 hover:shadow-sm transition"
+              className="group border border-[var(--border-subtle)] rounded-xl p-5 hover:shadow-sm transition"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <p className="font-medium text-slate-900">
+                  <p className="font-medium text-slate-900 dark:text-slate-100">
                     {i + 1}. {q.question}
                   </p>
                   <div className="flex items-center gap-2 mt-2 flex-wrap">
-                    <span className="badge bg-slate-100 text-slate-600 capitalize">
+                    <span className="badge bg-[var(--surface-2)] text-slate-600 dark:text-slate-300 capitalize">
                       {q.type.replace(/_/g, " ").toLowerCase()}
                     </span>
                     <span className="text-xs text-slate-400">
@@ -694,7 +694,7 @@ export default function QuizDetailPage() {
                     </span>
                     <span className="text-xs text-slate-400">
                       Answer:{" "}
-                      <span className="font-medium text-slate-600">
+                      <span className="font-medium text-slate-600 dark:text-slate-300">
                         {q.correctAnswer}
                       </span>
                     </span>

@@ -10,7 +10,7 @@ const Btn = ({ onClick, active, children, title }: { onClick: () => void; active
     onClick={onClick}
     title={title}
     aria-label={title}
-    className={`p-1.5 rounded transition ${active ? "bg-khmer-blue text-white shadow-sm" : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"}`}
+    className={`p-1.5 rounded transition ${active ? "bg-khmer-blue text-white shadow-sm" : "text-gray-500 dark:text-gray-400 hover:bg-[var(--surface-2)] hover:text-gray-700 dark:text-gray-300"}`}
   >
     {children}
   </button>
@@ -28,8 +28,8 @@ export function TipTapEditor({ content, onChange }: { content: string; onChange:
   if (!editor) return null;
 
   return (
-    <div className="border rounded-xl overflow-hidden shadow-sm bg-white">
-      <div className="flex gap-0.5 p-2 border-b bg-gray-50/80 sticky top-0 z-10 flex-wrap items-center">
+    <div className="border rounded-xl overflow-hidden shadow-sm bg-[var(--surface)]">
+      <div className="flex gap-0.5 p-2 border-b bg-[var(--surface-2)]/80 sticky top-0 z-10 flex-wrap items-center">
         <Btn onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive("bold")} title="Bold (Ctrl+B)">
           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M15.6 10.79c.97-.67 1.65-1.77 1.65-2.79 0-2.26-1.75-4-4-4H7v14h7.04c2.09 0 3.71-1.7 3.71-3.79 0-1.52-.86-2.82-2.15-3.42zM10 6.5h3c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-3v-3zm3.5 9H10v-3h3.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z" /></svg>
         </Btn>

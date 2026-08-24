@@ -32,8 +32,8 @@ export function Avatar({
       )}
       {online !== undefined && (
         <span
-          className={`absolute bottom-0 right-0 block rounded-full border-2 border-white ${
-            online ? "bg-green-500" : "bg-gray-300"
+          className={`absolute bottom-0 right-0 block rounded-full border-2 border-white dark:border-slate-900 ${
+            online ? "bg-green-500" : "bg-gray-300 dark:bg-slate-600"
           }`}
           style={{ width: size * 0.28, height: size * 0.28 }}
         />

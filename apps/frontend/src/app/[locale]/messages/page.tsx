@@ -77,8 +77,8 @@ export default function MessagesPage() {
     return (
       <div className="max-w-xl mx-auto px-4 py-12 text-center">
         <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
-        <p className="text-gray-600 mb-4">Please sign in to view your messages.</p>
-        <Link href="/login" className="text-slate-900 font-medium hover:underline">
+        <p className="text-gray-600 dark:text-gray-300 mb-4">Please sign in to view your messages.</p>
+        <Link href="/login" className="text-slate-900 dark:text-slate-100 font-medium hover:underline">
           Go to Login
         </Link>
       </div>
@@ -92,11 +92,11 @@ export default function MessagesPage() {
       {loading ? (
         <div className="space-y-3">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-16 rounded-xl bg-gray-100 animate-pulse" />
+            <div key={i} className="h-16 rounded-xl bg-[var(--surface-2)] animate-pulse" />
           ))}
         </div>
       ) : threads.length === 0 ? (
-        <div className="text-center py-16 text-gray-500">
+        <div className="text-center py-16 text-gray-500 dark:text-gray-400">
           <p className="mb-2">No conversations yet.</p>
           <p className="text-sm">
             Start one from a{" "}
@@ -119,7 +119,7 @@ export default function MessagesPage() {
               <button
                 key={thread.id}
                 onClick={() => router.push(`/messages/${thread.id}`)}
-                className="w-full text-left rounded-xl border border-gray-200 p-4 hover:bg-gray-50 hover:border-indigo-200 transition-all flex items-center gap-3"
+                className="w-full text-left rounded-xl border border-[var(--border-subtle)] p-4 hover:bg-[var(--surface-2)] hover:border-indigo-200 transition-all flex items-center gap-3"
               >
                 <Avatar user={other ?? {}} size={48} online={isOnline} />
                 <div className="flex-1 min-w-0">
@@ -134,11 +134,11 @@ export default function MessagesPage() {
                     )}
                   </div>
                   {thread.product && (
-                    <span className="inline-block mt-0.5 text-xs bg-indigo-50 text-indigo-600 rounded-full px-2 py-0.5 truncate max-w-full">
+                    <span className="inline-block mt-0.5 text-xs bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 rounded-full px-2 py-0.5 truncate max-w-full">
                       {thread.product.name}
                     </span>
                   )}
-                  <p className={`text-sm truncate mt-1 ${thread.unreadCount > 0 ? "font-semibold text-slate-900" : "text-gray-500"}`}>
+                  <p className={`text-sm truncate mt-1 ${thread.unreadCount > 0 ? "font-semibold text-slate-900 dark:text-slate-100" : "text-gray-500 dark:text-gray-400"}`}>
                     {thread.lastMessage?.content || "No messages yet"}
                   </p>
                 </div>

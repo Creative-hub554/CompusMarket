@@ -141,8 +141,8 @@ export default function ChatPage() {
     return (
       <div className="max-w-xl mx-auto px-4 py-12 text-center">
         <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
-        <p className="text-gray-600 mb-4">Please sign in to view messages.</p>
-        <Link href="/login" className="text-slate-900 font-medium hover:underline">
+        <p className="text-gray-600 dark:text-gray-300 mb-4">Please sign in to view messages.</p>
+        <Link href="/login" className="text-slate-900 dark:text-slate-100 font-medium hover:underline">
           Go to Login
         </Link>
       </div>
@@ -154,7 +154,7 @@ export default function ChatPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 flex flex-col h-[calc(100vh-4rem)]">
       <div className="flex items-center gap-3 pb-4 border-b">
-        <Link href="/messages" className="text-gray-500 hover:text-slate-900 text-xl leading-none">
+        <Link href="/messages" className="text-gray-500 dark:text-gray-400 hover:text-slate-900 dark:text-slate-100 text-xl leading-none">
           ←
         </Link>
         <Avatar user={other ?? {}} size={40} online={online} />
@@ -169,7 +169,7 @@ export default function ChatPage() {
           )}
         </div>
         {thread?.product && (
-          <span className="hidden sm:inline-block text-xs bg-indigo-50 text-indigo-600 rounded-full px-3 py-1 truncate max-w-[180px]">
+          <span className="hidden sm:inline-block text-xs bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 rounded-full px-3 py-1 truncate max-w-[180px]">
             {thread.product.name}
           </span>
         )}
@@ -188,7 +188,7 @@ export default function ChatPage() {
                 className={`max-w-[75%] rounded-2xl px-4 py-2 ${
                   isMe
                     ? "bg-indigo-600 text-white rounded-br-sm"
-                    : "bg-white border border-gray-200 rounded-bl-sm"
+                    : "bg-[var(--surface)] border border-[var(--border-subtle)] rounded-bl-sm"
                 }`}
               >
                 {attachments.length > 0 && (
@@ -219,7 +219,7 @@ export default function ChatPage() {
         })}
         {peerTyping && (
           <div className="flex justify-start">
-            <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-3 flex gap-1">
+            <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl rounded-bl-sm px-4 py-3 flex gap-1">
               {[0, 150, 300].map((delay) => (
                 <span
                   key={delay}
@@ -254,7 +254,7 @@ export default function ChatPage() {
       )}
 
       <div className="flex items-end gap-2 pt-2 border-t">
-        <label className="cursor-pointer p-2 text-gray-500 hover:text-indigo-600" title="Attach photo or video">
+        <label className="cursor-pointer p-2 text-gray-500 dark:text-gray-400 hover:text-indigo-600" title="Attach photo or video">
           <input
             type="file"
             multiple
@@ -277,7 +277,7 @@ export default function ChatPage() {
             handleTyping();
           }}
           placeholder="Type a message..."
-          className="flex-1 resize-none border border-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 max-h-32"
+          className="flex-1 resize-none border border-[var(--border-subtle)] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 max-h-32"
         />
         <button
           onClick={sendMessage}

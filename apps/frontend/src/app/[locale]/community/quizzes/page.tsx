@@ -145,7 +145,7 @@ export default function QuizzesPage() {
           </svg>
         </div>
         <h1 className="text-2xl font-bold mb-2">Quizzes</h1>
-        <p className="text-slate-500 mb-4">
+        <p className="text-slate-500 dark:text-slate-400 mb-4">
           Sign in to create and take quizzes.
         </p>
         <Link href="/login" className="btn-primary">
@@ -167,7 +167,7 @@ export default function QuizzesPage() {
         <div className="flex gap-2">
           <button
             onClick={() => setShowAi(!showAi)}
-            className="rounded-lg border border-indigo-300 bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition"
+            className="rounded-lg border border-indigo-300 bg-indigo-50 dark:bg-indigo-950/40 px-3 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition"
           >
             ✨ AI Generate
           </button>
@@ -193,7 +193,7 @@ export default function QuizzesPage() {
       </div>
 
       {showAi && (
-        <div className="mb-6 p-5 border border-indigo-200 rounded-xl bg-indigo-50">
+        <div className="mb-6 p-5 border border-indigo-200 rounded-xl bg-indigo-50 dark:bg-indigo-950/40">
           <h2 className="text-sm font-semibold text-indigo-800 mb-3">
             ✨ AI Generate Quiz
           </h2>
@@ -212,14 +212,14 @@ export default function QuizzesPage() {
               min={3}
               max={10}
               onChange={(e) => setAiCount(Number(e.target.value))}
-              className="w-20 rounded border px-2 py-2 text-sm bg-white"
+              className="w-20 rounded border px-2 py-2 text-sm bg-[var(--surface)]"
               disabled={aiLoading}
               title="Number of questions (3-10)"
             />
             <select
               value={aiLang}
               onChange={(e) => setAiLang(e.target.value as "km" | "en")}
-              className="rounded border px-2 py-2 text-sm bg-white"
+              className="rounded border px-2 py-2 text-sm bg-[var(--surface)]"
               disabled={aiLoading}
             >
               <option value="km">ខ្មែរ</option>
@@ -260,7 +260,7 @@ export default function QuizzesPage() {
       </div>
 
       {showNew && (
-        <div className="mb-6 p-5 border rounded-xl bg-slate-50 flex gap-2 items-start">
+        <div className="mb-6 p-5 border rounded-xl bg-[var(--surface-2)] flex gap-2 items-start">
           <input
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
@@ -310,7 +310,7 @@ export default function QuizzesPage() {
               />
             </svg>
           </div>
-          <p className="text-xl font-medium text-slate-500 mb-1">
+          <p className="text-xl font-medium text-slate-500 dark:text-slate-400 mb-1">
             {search ? "No quizzes match your search" : "No quizzes yet"}
           </p>
           <p className="text-sm text-slate-400">
@@ -327,11 +327,11 @@ export default function QuizzesPage() {
                 href={`/community/quizzes/${quiz.id}`}
                 className="block p-5"
               >
-                <h3 className="font-semibold truncate text-slate-900 group-hover:text-indigo-600 transition-colors">
+                <h3 className="font-semibold truncate text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 transition-colors">
                   {quiz.title}
                 </h3>
                 {quiz.description && (
-                  <p className="text-sm text-slate-500 mt-1.5 line-clamp-2 leading-relaxed">
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2 leading-relaxed">
                     {quiz.description}
                   </p>
                 )}
