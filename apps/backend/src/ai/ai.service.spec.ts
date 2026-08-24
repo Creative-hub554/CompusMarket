@@ -64,6 +64,21 @@ describe("AiService", () => {
     expect(service).toBeDefined();
   });
 
+  describe("status", () => {
+    it("reports unavailable when no API key is configured", () => {
+      expect(service.status()).toEqual({
+        available: false,
+        model: "openai/gpt-4o-mini",
+      });
+    });
+
+    it("reports available when a client is configured", () => {
+      const restore = withAvailableClient({});
+      expect(service.status().available).toBe(true);
+      restore();
+    });
+  });
+
   describe("generateAssistantResponse", () => {
     it("returns a mock response when AI is not available", async () => {
       const result = await service.generateAssistantResponse("hello", "en");
@@ -104,6 +119,46 @@ describe("AiService", () => {
         query: "laptop",
         maxPrice: 300,
       });
+
+      restore();
+    });
+
+    it("returns null when the model outputs unparseable JSON", async () => {
+      const restore = withAvailableClient({
+        choices: [{ message: { content: "not json at all" } }],
+      });
+
+      const result = await service.extractSearchSpec("laptop", "en");
+      expect(result).toBeNull();
+
+      restore();
+    });
+
+    it("drops wrong-typed fields and coerces numeric strings", async () => {
+      const restore = withAvailableClient({
+        choices: [
+          {
+            message: {
+              content:
+                '{"query": 42, "minPrice": "150", "condition": "X", "categoryId": "cat-1"}',
+            },
+          },
+        ],
+      });
+
+      const result = await service.extractSearchSpec("used laptop", "en");
+      expect(result).toEqual({ categoryId: "cat-1", minPrice: 150 });
+
+      restore();
+    });
+
+    it("returns null when nothing usable remains", async () => {
+      const restore = withAvailableClient({
+        choices: [{ message: { content: '{"query": "", "condition": "Z"}' } }],
+      });
+
+      const result = await service.extractSearchSpec("hello", "en");
+      expect(result).toBeNull();
 
       restore();
     });
@@ -238,6 +293,55 @@ describe("AiService", () => {
         extractedTargetRoles: ["backend developer"],
         message: "I found some tech roles for you.",
       });
+
+      restore();
+    });
+
+    it("falls back when the model returns invalid JSON", async () => {
+      const restore = withAvailableClient({
+        choices: [{ message: { content: "{{{" } }],
+      });
+
+      const result = await service.extractCareerMatch("I want a job", "en");
+      expect(result).toEqual({
+        needsResume: true,
+        message: "I'm having trouble analyzing your message. Please try again later.",
+      });
+
+      restore();
+    });
+
+    it("falls back when needsResume or message are missing or mistyped", async () => {
+      const restore = withAvailableClient({
+        choices: [{ message: { content: '{"needsResume": "yes", "message": ""}' } }],
+      });
+
+      const result = await service.extractCareerMatch("I want a job", "en");
+      expect(result.needsResume).toBe(true);
+
+      restore();
+    });
+  });
+
+  describe("generation methods validate output", () => {
+    it("generateProductDescription falls back when the model returns empty content", async () => {
+      const restore = withAvailableClient({
+        choices: [{ message: { content: "   " } }],
+      });
+
+      const result = await service.generateProductDescription("iPhone", "phones", "B");
+      expect(result).toContain("iPhone");
+
+      restore();
+    });
+
+    it("improveResumeSummary falls back to the original summary on empty content", async () => {
+      const restore = withAvailableClient({
+        choices: [{ message: { content: "" } }],
+      });
+
+      const result = await service.improveResumeSummary("My original summary");
+      expect(result).toBe("My original summary");
 
       restore();
     });

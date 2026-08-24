@@ -41,6 +41,19 @@ export class ProductsController {
     return this.productsService.findPromos();
   }
 
+  @Get("browse")
+  browse(
+    @Query("category") category?: string,
+    @Query("page") page?: string,
+    @Query("limit") limit?: string
+  ) {
+    return this.productsService.browse({
+      category: category || undefined,
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+    });
+  }
+
   @Get("admin/:id")
   @UseGuards(AuthGuard("jwt"), RolesGuard)
   @Roles("ADMIN", "INVENTORY_MANAGER")

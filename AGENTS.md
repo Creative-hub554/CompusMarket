@@ -64,6 +64,7 @@ Backend modules cover more than commerce: `auth`, `products`, `orders`, `cart`, 
 - **Vitest**: `next-intl` must stay in `server.deps.inline` (`vitest.config.ts`) or its ESM import of `next/navigation` fails to resolve under pnpm. Tests rendering pages that use the i18n `Link` should `vi.mock("@/i18n/navigation")` with an anchor stub.
 - Brand strings are single-sourced in `apps/frontend/src/lib/site.ts` (`SITE_NAME`, `getSiteUrl()` from `NEXT_PUBLIC_SITE_URL`) — used by metadata, JSON-LD, sitemap.
 - Tailwind v4 is CSS-first: no `tailwind.config`; tokens live in `@theme` in `src/app/globals.css`, which also `@source`s `packages/ui/src`. Shared primitives (`.btn-primary`, `.card-hover`, `.page-title`, `.input-field`, …) are hand-written utilities in that file — restyling them propagates site-wide.
+- **km.json fallback**: some new keys (market, jobs, nav) were NOT added to `km.json` to avoid garbling Khmer. They fall back to `en` via `next-intl`. This is a known follow-up — add Khmer translations when ready.
 
 ## Auth architecture
 
@@ -76,6 +77,22 @@ Backend modules cover more than commerce: `auth`, `products`, `orders`, `cart`, 
 
 - **Sellers never call NestJS mutations directly.** They go through Next.js route handlers `apps/frontend/src/app/api/seller/*`, which check `getToken`, require an APPROVED `SellerProfile`, and enforce product ownership before touching Prisma.
 - NestJS `PATCH /products/:id` is `ADMIN`/`INVENTORY_MANAGER` only. `GET /products/promos` is public (shoppable-video promos: `Product.videoUrl`/`videoActive`).
+
+## Frontend auth proxy
+
+Writes go through `apps/frontend/src/app/api/[...proxy]/route.ts` which re-signs the JWT from the NextAuth session. `ALLOWED_PREFIXES` includes: `/api/ai`, `/api/resumes`, `/api/notes`, `/api/flashcards`, `/api/quizzes`, `/api/diagrams`, `/api/documents`, `/api/articles`, `/api/threads`, `/api/posts`, `/api/feed`, `/api/profiles`, `/api/users`, `/api/suggestions`, `/api/stories`, `/api/notifications`, `/api/support`, `/api/warranties`, `/api/upload`, `/api/search`, `/api/categories`, `/api/products`, `/api/orders`, `/api/jobs`, `/api/cart`, `/api/health`. When adding a new NestJS module, add its prefix here too.
+
+## Real-time notifications
+
+Shared `EventEmitter` singleton at `apps/backend/src/realtime/notification.events.ts` decouples social module notification creation from WebSocket delivery. Event constant: `NOTIFICATION_CREATED = "created"`. The `ChatGateway.onModuleInit` subscribes to this emitter and broadcasts to connected clients. **Critical**: call `notificationEvents.removeAllListeners(NOTIFICATION_CREATED)` before `.on(...)` in `onModuleInit` to avoid stacking duplicate listeners under HMR hot-reload.
+
+## Frontend auth proxy
+
+Writes go through `apps/frontend/src/app/api/[...proxy]/route.ts` which re-signs the JWT from the NextAuth session. `ALLOWED_PREFIXES` includes: `/api/ai`, `/api/resumes`, `/api/notes`, `/api/flashcards`, `/api/quizzes`, `/api/diagrams`, `/api/documents`, `/api/articles`, `/api/threads`, `/api/posts`, `/api/feed`, `/api/profiles`, `/api/users`, `/api/suggestions`, `/api/stories`, `/api/notifications`, `/api/support`, `/api/warranties`, `/api/upload`, `/api/search`, `/api/categories`, `/api/products`, `/api/orders`, `/api/jobs`, `/api/cart`, `/api/health`. When adding a new NestJS module, add its prefix here too.
+
+## Real-time notifications
+
+Shared `EventEmitter` singleton at `apps/backend/src/realtime/notification.events.ts` decouples social module notification creation from WebSocket delivery. Event constant: `NOTIFICATION_CREATED = "created"`. The `ChatGateway.onModuleInit` subscribes to this emitter and broadcasts to connected clients. **Critical**: call `notificationEvents.removeAllListeners(NOTIFICATION_CREATED)` before `.on(...)` in `onModuleInit` to avoid stacking duplicate listeners under HMR hot-reload.
 
 ## Test conventions
 

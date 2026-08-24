@@ -82,6 +82,19 @@ export type PromoProduct = {
 export const api = {
   products: {
     list: () => fetchApi<Product[]>("/products"),
+    browse: (params: { category?: string; page?: number; limit?: number }) => {
+      const q = new URLSearchParams();
+      if (params.category) q.set("category", params.category);
+      if (params.page) q.set("page", String(params.page));
+      if (params.limit) q.set("limit", String(params.limit));
+      const qs = q.toString();
+      return fetchApi<{
+        items: Product[];
+        total: number;
+        page: number;
+        limit: number;
+      }>(`/products/browse${qs ? `?${qs}` : ""}`);
+    },
     byId: (id: string) => fetchApi<Product>(`/products/${id}`),
     byCategory: (slug: string) =>
       fetchApi<Product[]>(`/products/category/${slug}`),

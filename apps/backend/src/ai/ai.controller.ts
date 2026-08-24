@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards } from "@nestjs/common";
+import { Controller, Get, Post, Body, UseGuards } from "@nestjs/common";
 import { AiService, AssistantProduct } from "./ai.service";
 import { AuthGuard } from "@nestjs/passport";
 import { RolesGuard } from "../auth/roles.guard";
@@ -16,6 +16,11 @@ import { CreateAssistantChatDto } from "./dto/create-assistant-chat.dto";
 @UseGuards(new RateLimitGuard(20, 60))
 export class AiController {
   constructor(private readonly aiService: AiService) {}
+
+  @Get("status")
+  status() {
+    return this.aiService.status();
+  }
 
   @Post("assistant/chat")
   async assistantChat(@Body() body: CreateAssistantChatDto) {

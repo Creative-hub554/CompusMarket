@@ -35,6 +35,37 @@ export class ProductsService {
     });
   }
 
+  /**
+   * Paginated shop browsing. Unlike findAll (legacy, unbounded), this caps
+   * the page size and returns the total count so clients can paginate
+   * without fetching every product.
+   */
+  async browse(opts: {
+    category?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<{ items: ProductWithCategory[]; total: number; page: number; limit: number }> {
+    const limit = Math.min(Math.max(opts.limit ?? 12, 1), 48);
+    const page = Math.max(opts.page ?? 1, 1);
+    const where = {
+      status: "ACTIVE" as const,
+      ...(opts.category ? { category: { slug: opts.category } } : {}),
+    };
+
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.product.findMany({
+        where,
+        include: { category: true },
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.product.count({ where }),
+    ]);
+
+    return { items, total, page, limit };
+  }
+
   async findAllAdmin(): Promise<ProductWithCategory[]> {
     return this.prisma.product.findMany({
       include: { category: true },

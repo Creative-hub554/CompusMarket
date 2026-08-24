@@ -18,6 +18,14 @@ export interface GuideReply {
   links: string[];
 }
 
+export interface SearchSpec {
+  query?: string;
+  categoryId?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  condition?: "A" | "B" | "C";
+}
+
 const KNOWN_SECTIONS = [
   "/market",
   "/feed",
@@ -113,6 +121,11 @@ export class AiService {
 
   private isAvailable(): boolean {
     return this.client !== null;
+  }
+
+  /** Lets clients (and the frontend) know whether real generation is active. */
+  status(): { available: boolean; model: string } {
+    return { available: this.isAvailable(), model: this.model };
   }
 
   private modelChain(): string[] {
@@ -278,7 +291,7 @@ Rules:
     }
   }
 
-  async extractSearchSpec(userMessage: string, lang: string = "en") {
+  async extractSearchSpec(userMessage: string, lang: string = "en"): Promise<SearchSpec | null> {
     if (!this.isAvailable()) {
       return null;
     }
@@ -311,16 +324,45 @@ Return only valid JSON.`;
       });
 
       const raw = response.choices[0]?.message?.content || "";
-      try {
-        const parsed = JSON.parse(raw);
-        return parsed;
-      } catch {
-        return null;
-      }
+      return this.normalizeSearchSpec(this.parseJsonOrNull(raw));
     } catch (e) {
       this.logger.error("Failed to extract search spec", e);
       return null;
     }
+  }
+
+  private parseJsonOrNull(raw: string): unknown {
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Model output is untrusted: drop wrong-typed fields, coerce numeric
+   * strings, and ignore the spec entirely when nothing usable remains.
+   */
+  private normalizeSearchSpec(parsed: unknown): SearchSpec | null {
+    if (typeof parsed !== "object" || parsed === null) return null;
+    const raw = parsed as Record<string, unknown>;
+    const spec: SearchSpec = {};
+
+    if (typeof raw.query === "string" && raw.query.trim()) spec.query = raw.query.trim();
+    if (typeof raw.categoryId === "string" && raw.categoryId.trim()) {
+      spec.categoryId = raw.categoryId.trim();
+    }
+    for (const key of ["minPrice", "maxPrice"] as const) {
+      const n = Number(raw[key]);
+      if (raw[key] !== null && raw[key] !== undefined && raw[key] !== "" && Number.isFinite(n)) {
+        spec[key] = n;
+      }
+    }
+    if (raw.condition === "A" || raw.condition === "B" || raw.condition === "C") {
+      spec.condition = raw.condition;
+    }
+
+    return Object.keys(spec).length > 0 ? spec : null;
   }
 
   async findProducts(spec: {
@@ -403,12 +445,16 @@ Return only valid JSON.`;
       });
 
       const raw = response.choices[0]?.message?.content || "";
-      try {
-        const parsed = JSON.parse(raw);
+      const parsed = this.parseJsonOrNull(raw) as Record<string, unknown> | null;
+      if (
+        parsed &&
+        typeof parsed.needsResume === "boolean" &&
+        typeof parsed.message === "string" &&
+        parsed.message.trim()
+      ) {
         return parsed;
-      } catch {
-        return { needsResume: true, message: this.mockResponse("I'm having trouble analyzing your message. Please try again later.") };
       }
+      return { needsResume: true, message: this.mockResponse("I'm having trouble analyzing your message. Please try again later.") };
     } catch (e) {
       this.logger.error("Failed to extract career match", e);
       return { needsResume: true, message: this.mockResponse("I'm having trouble analyzing your message. Please try again later.") };
@@ -435,12 +481,15 @@ The description should be:
 - No markdown, just plain text`;
 
     try {
-      const response = await this.chatWithRetry({
-        model: this.model,
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 800,
-        temperature: 0.7,
-      });
+      const response = await this.chatWithRetry(
+        {
+          model: this.model,
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: 800,
+          temperature: 0.7,
+        },
+        (r) => !!r.choices[0]?.message?.content?.trim(),
+      );
       return response.choices[0]?.message?.content || "";
     } catch (e) {
       this.logger.error("OpenAI API error", e);
@@ -466,12 +515,15 @@ Requirements:
 - Suitable for Cambodian job market`;
 
     try {
-      const response = await this.chatWithRetry({
-        model: this.model,
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 800,
-        temperature: 0.7,
-      });
+      const response = await this.chatWithRetry(
+        {
+          model: this.model,
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: 800,
+          temperature: 0.7,
+        },
+        (r) => !!r.choices[0]?.message?.content?.trim(),
+      );
       return response.choices[0]?.message?.content || summary;
     } catch (e) {
       this.logger.error("OpenAI API error", e);
@@ -498,12 +550,15 @@ Requirements:
 - Plain text only`;
 
     try {
-      const response = await this.chatWithRetry({
-        model: this.model,
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 800,
-        temperature: 0.7,
-      });
+      const response = await this.chatWithRetry(
+        {
+          model: this.model,
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: 800,
+          temperature: 0.7,
+        },
+        (r) => !!r.choices[0]?.message?.content?.trim(),
+      );
       return response.choices[0]?.message?.content || description;
     } catch (e) {
       this.logger.error("OpenAI API error", e);
@@ -543,12 +598,15 @@ Requirements:
 - Suitable for Cambodian workplace culture`;
 
     try {
-      const response = await this.chatWithRetry({
-        model: this.model,
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 400,
-        temperature: 0.7,
-      });
+      const response = await this.chatWithRetry(
+        {
+          model: this.model,
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: 400,
+          temperature: 0.7,
+        },
+        (r) => !!r.choices[0]?.message?.content?.trim(),
+      );
       return response.choices[0]?.message?.content || "";
     } catch (e) {
       this.logger.error("OpenAI API error", e);

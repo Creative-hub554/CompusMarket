@@ -14,7 +14,9 @@ describe("ProductsService", () => {
       create: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
+      count: vi.fn(),
     },
+    $transaction: vi.fn(),
     orderItem: {
       findMany: vi.fn(),
       findFirst: vi.fn(),
@@ -64,6 +66,59 @@ describe("ProductsService", () => {
         }),
       );
       expect(mockPrisma.product.findMany.mock.calls[0][0].where.stock).toBeUndefined();
+    });
+  });
+
+  describe("browse", () => {
+    it("paginates with defaults and returns the total count", async () => {
+      mockPrisma.product.findMany.mockResolvedValue([{ id: "p1" }]);
+      mockPrisma.product.count.mockResolvedValue(25);
+      mockPrisma.$transaction.mockResolvedValue([[{ id: "p1" }], 25]);
+
+      const result = await service.browse({});
+
+      expect(mockPrisma.product.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { status: "ACTIVE" },
+          skip: 0,
+          take: 12,
+          orderBy: { createdAt: "desc" },
+        }),
+      );
+      expect(mockPrisma.product.count).toHaveBeenCalledWith({ where: { status: "ACTIVE" } });
+      expect(result).toEqual({ items: [{ id: "p1" }], total: 25, page: 1, limit: 12 });
+    });
+
+    it("filters by category slug and skips to the requested page", async () => {
+      mockPrisma.product.findMany.mockResolvedValue([]);
+      mockPrisma.product.count.mockResolvedValue(0);
+      mockPrisma.$transaction.mockResolvedValue([[], 0]);
+
+      const result = await service.browse({ category: "phones", page: 3, limit: 24 });
+
+      expect(mockPrisma.product.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { status: "ACTIVE", category: { slug: "phones" } },
+          skip: 48,
+          take: 24,
+        }),
+      );
+      expect(mockPrisma.product.count).toHaveBeenCalledWith({
+        where: { status: "ACTIVE", category: { slug: "phones" } },
+      });
+      expect(result.page).toBe(3);
+    });
+
+    it("clamps out-of-range page and limit values", async () => {
+      mockPrisma.product.findMany.mockResolvedValue([]);
+      mockPrisma.product.count.mockResolvedValue(0);
+      mockPrisma.$transaction.mockResolvedValue([[], 0]);
+
+      await service.browse({ page: -5, limit: 5000 });
+
+      expect(mockPrisma.product.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ skip: 0, take: 48 }),
+      );
     });
   });
 
