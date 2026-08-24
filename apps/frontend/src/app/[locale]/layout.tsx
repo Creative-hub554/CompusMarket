@@ -6,6 +6,7 @@ import { getMessages } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import SessionWrapper from "@/components/SessionWrapper";
 import { AiAssistant } from "@/components/ai/AiAssistant";
 import { OrganizationJsonLd } from "@/components/OrganizationJsonLd";
@@ -84,17 +85,19 @@ export default async function LocaleLayout({ children, params }: Props) {
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className={`${inter.variable} ${notoSansKhmer.variable}`}>
-      <body className="min-h-screen bg-white text-gray-900 antialiased">
+    <html lang={locale} className={`${inter.variable} ${notoSansKhmer.variable}`} suppressHydrationWarning>
+      <body className="min-h-screen text-gray-900 dark:text-slate-200 antialiased">
         <OrganizationJsonLd />
-        <SessionWrapper>
-          <NextIntlClientProvider locale={locale} messages={messages}>
-            <Nav />
-            <main className="min-h-[calc(100vh-4rem)]">{children}</main>
-            <Footer />
-            <AiAssistant />
-          </NextIntlClientProvider>
-        </SessionWrapper>
+        <ThemeProvider>
+          <SessionWrapper>
+            <NextIntlClientProvider locale={locale} messages={messages}>
+              <Nav />
+              <main className="min-h-[calc(100vh-4rem)]">{children}</main>
+              <Footer />
+              <AiAssistant />
+            </NextIntlClientProvider>
+          </SessionWrapper>
+        </ThemeProvider>
       </body>
     </html>
   );

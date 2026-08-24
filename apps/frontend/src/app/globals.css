@@ -1,10 +1,22 @@
 @source "../../../../packages/ui/src";
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-ink: #0f172a;
   --color-accent: #6366f1;
   --color-accent-dark: #4338ca;
+  --color-accent2: #8b5cf6;
+  --color-accent2-dark: #7c3aed;
+
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+
+  --shadow-soft: 0 2px 12px -2px rgb(15 23 42 / 0.08);
+  --shadow-lift: 0 16px 32px -12px rgb(15 23 42 / 0.22);
+  --shadow-glow: 0 8px 30px -6px rgb(99 102 241 / 0.45);
 
   /* Legacy aliases — keep existing pages compiling during migration */
   --color-khmer-blue: #0f172a;
@@ -15,14 +27,40 @@
   --color-khmer-gold-light: #f0c040;
 }
 
+/* ---- Semantic surface tokens (flip in dark mode) ---- */
+
+:root {
+  --bg-body: #f8fafc;
+  --text-body: #111827;
+  --surface: #ffffff;
+  --surface-2: #f1f5f9;
+  --border-subtle: #e2e8f0;
+  --text-muted: #64748b;
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.55);
+}
+
+.dark {
+  --bg-body: #0b1120;
+  --text-body: #e2e8f0;
+  --surface: #111a2e;
+  --surface-2: #1a2439;
+  --border-subtle: #26334d;
+  --text-muted: #94a3b8;
+  --glass-bg: rgba(17, 26, 46, 0.72);
+  --glass-border: rgba(148, 163, 184, 0.16);
+}
+
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-ink) transparent;
+  scrollbar-color: var(--border-subtle) transparent;
 }
 
 body {
   font-family: var(--font-inter), var(--font-khmer), sans-serif;
-  color: var(--color-ink);
+  background-color: var(--bg-body);
+  color: var(--text-body);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 h1,
@@ -106,6 +144,19 @@ h4 {
   }
 }
 
+@keyframes meshDrift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(4%, -6%) scale(1.08);
+  }
+  66% {
+    transform: translate(-5%, 4%) scale(0.95);
+  }
+}
+
 /* ---- Utility classes ---- */
 
 .animate-fade-in-up {
@@ -123,15 +174,19 @@ h4 {
 .animate-pulse-glow {
   animation: pulseGlow 2s ease-in-out infinite;
 }
-
-.animate-shimmer {
-  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
-
 .animate-temple-float {
   animation: templeFloat 3s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--surface-2) 25%,
+    var(--border-subtle) 50%,
+    var(--surface-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
 }
 
 .stagger-children > * {
@@ -171,10 +226,89 @@ h4 {
   animation-delay: 0.55s;
 }
 
+/* ---- Modern surfaces ---- */
+
+/* Animated indigo/violet mesh backdrop for heroes */
+.gradient-mesh {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0f172a 0%, #171335 55%, #2e1065 130%);
+}
+.gradient-mesh::before,
+.gradient-mesh::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.55;
+  pointer-events: none;
+}
+.gradient-mesh::before {
+  width: 480px;
+  height: 480px;
+  left: -120px;
+  top: -160px;
+  background: radial-gradient(circle, #6366f1 0%, transparent 65%);
+  animation: meshDrift 14s ease-in-out infinite;
+}
+.gradient-mesh::after {
+  width: 520px;
+  height: 520px;
+  right: -140px;
+  bottom: -200px;
+  background: radial-gradient(circle, #8b5cf6 0%, transparent 65%);
+  animation: meshDrift 18s ease-in-out infinite reverse;
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-soft);
+}
+
+.glass-nav {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.bento-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-3xl);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.bento-card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
+  box-shadow: var(--shadow-glow);
+}
+
+.text-gradient {
+  background: linear-gradient(90deg, #818cf8, #a78bfa, #818cf8);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
 /* ---- UI primitives ---- */
 
 .btn-primary {
-  @apply rounded-lg bg-slate-900 px-4 py-2 text-sm text-white font-medium hover:bg-indigo-700 transition disabled:opacity-40;
+  @apply rounded-lg px-4 py-2 text-sm text-white font-medium transition disabled:opacity-40;
+  background: linear-gradient(135deg, #6366f1, #7c3aed);
+  box-shadow: 0 4px 14px -4px rgb(99 102 241 / 0.5);
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, #4f46e5, #6d28d9);
+  box-shadow: 0 6px 20px -4px rgb(99 102 241 / 0.6);
+  transform: translateY(-1px);
 }
 
 .btn-success {
@@ -182,30 +316,48 @@ h4 {
 }
 
 .btn-ghost {
-  @apply rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 transition;
+  @apply rounded-lg border px-3 py-1.5 text-xs font-medium transition;
+  border-color: var(--border-subtle);
+  color: var(--text-muted);
+}
+.btn-ghost:hover {
+  background: var(--surface-2);
+  color: var(--text-body);
 }
 
 .btn-danger {
-  @apply rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 transition;
+  @apply rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 transition dark:border-red-900 dark:hover:bg-red-950;
 }
 
 .input-field {
-  @apply rounded-lg border border-slate-300 px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition;
+  @apply rounded-lg border px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition;
+  background: var(--surface);
+  border-color: var(--border-subtle);
+  color: var(--text-body);
+}
+.input-field::placeholder {
+  color: var(--text-muted);
 }
 
 .card {
-  @apply rounded-xl border border-slate-200 bg-white;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
   transition:
     transform 0.25s ease,
-    box-shadow 0.25s ease;
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
 }
 .card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 24px -8px rgba(15, 23, 42, 0.15);
+  border-color: color-mix(in srgb, var(--color-accent) 35%, transparent);
+  box-shadow: var(--shadow-lift);
 }
 
 .tag {
-  @apply inline-flex items-center text-xs bg-slate-100 text-slate-600 rounded px-2 py-0.5 font-medium;
+  @apply inline-flex items-center text-xs rounded px-2 py-0.5 font-medium;
+  background: var(--surface-2);
+  color: var(--text-muted);
 }
 
 .badge {
@@ -213,7 +365,8 @@ h4 {
 }
 
 .progress-bar {
-  @apply w-full bg-slate-200 rounded-full h-2 overflow-hidden;
+  @apply w-full rounded-full h-2 overflow-hidden;
+  background: var(--surface-2);
 }
 
 .progress-fill {
@@ -221,7 +374,8 @@ h4 {
 }
 
 .section-title {
-  @apply text-lg font-semibold text-slate-900;
+  @apply text-lg font-semibold;
+  color: var(--text-body);
 }
 
 .page-header {
@@ -230,6 +384,7 @@ h4 {
 
 .page-title {
   @apply text-3xl font-bold inline-block tracking-tight;
+  color: var(--text-body);
   position: relative;
 }
 .page-title::after {
@@ -239,12 +394,13 @@ h4 {
   left: 0;
   width: 48px;
   height: 3px;
-  background: linear-gradient(90deg, #6366f1, #a5b4fc);
+  background: linear-gradient(90deg, #6366f1, #a78bfa);
   border-radius: 2px;
 }
 
 .page-subtitle {
-  @apply text-sm text-slate-500 mt-2;
+  @apply text-sm mt-2;
+  color: var(--text-muted);
 }
 
 .status-dot {
@@ -299,11 +455,12 @@ img {
 .card-hover {
   transition:
     transform 0.25s ease,
-    box-shadow 0.25s ease;
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
 }
 .card-hover:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 24px -8px rgba(15, 23, 42, 0.15);
+  box-shadow: var(--shadow-lift);
 }
 
 /* Navy hero gradient (was the Khmer flag banner) */
@@ -322,7 +479,7 @@ img {
   left: 0;
   width: 48px;
   height: 3px;
-  background: linear-gradient(90deg, #6366f1, #a5b4fc);
+  background: linear-gradient(90deg, #6366f1, #a78bfa);
   border-radius: 2px;
 }
 
@@ -337,9 +494,17 @@ img {
   left: 0;
   width: 0;
   height: 2px;
-  background: #6366f1;
+  background: linear-gradient(90deg, #6366f1, #a78bfa);
   transition: width 0.3s ease;
 }
 .nav-link:hover::after {
   width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gradient-mesh::before,
+  .gradient-mesh::after,
+  .animate-temple-float {
+    animation: none;
+  }
 }

@@ -6,6 +6,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { SearchBar } from "./SearchBar";
 import { LocaleSwitcher } from "./LocaleSwitcher";
+import { ThemeToggle } from "./ThemeToggle";
 import { NotificationsBell } from "./social/NotificationsBell";
 import { Avatar } from "./social/Avatar";
 import { useCartStore } from "@/stores/cart";
@@ -73,12 +74,12 @@ export function Nav() {
   const panelCls =
     "absolute left-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200 z-50";
   const itemCls =
-    "block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-600 hover:text-white transition-colors whitespace-nowrap";
+    "block px-4 py-2 text-sm text-gray-700 dark:text-slate-200 hover:bg-indigo-600 hover:text-white transition-colors whitespace-nowrap dark:text-slate-200";
   const groupLabelCls =
     "px-4 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400";
 
   return (
-    <nav className="bg-khmer-blue text-white shadow-lg sticky top-0 z-40">
+    <nav className="bg-slate-900/85 backdrop-blur-xl text-white border-b border-white/10 shadow-lg sticky top-0 z-40">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 gap-2">
         <Link href="/" className="shrink-0 animate-fade-in no-underline flex items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -104,7 +105,7 @@ export function Nav() {
             <button className="nav-link opacity-90 hover:opacity-100">
               {t("social")}
             </button>
-            <div className={`${panelCls} bg-white rounded-lg shadow-xl py-1 min-w-44 border border-gray-100`}>
+            <div className={`${panelCls} bg-white dark:bg-slate-900 rounded-lg shadow-xl py-1 min-w-44 border border-gray-100 dark:border-slate-700`}>
               <Link href="/feed" className={itemCls}>
                 {t("feed")}
               </Link>
@@ -127,7 +128,7 @@ export function Nav() {
             <button className="nav-link opacity-90 hover:opacity-100">
               {t("market")}
             </button>
-            <div className={`${panelCls} grid grid-cols-2 gap-x-2 bg-white rounded-lg shadow-xl pb-2 min-w-72 border border-gray-100`}>
+            <div className={`${panelCls} grid grid-cols-2 gap-x-2 bg-white dark:bg-slate-900 rounded-lg shadow-xl pb-2 min-w-72 border border-gray-100 dark:border-slate-700`}>
               <div>
                 <p className={groupLabelCls}>{t("buying")}</p>
                 <Link href="/shop" className={itemCls}>
@@ -163,7 +164,7 @@ export function Nav() {
             <button className="nav-link opacity-90 hover:opacity-100">
               {t("jobs")}
             </button>
-            <div className={`${panelCls} right-auto bg-white rounded-lg shadow-xl py-1 min-w-48 border border-gray-100`}>
+            <div className={`${panelCls} right-auto bg-white dark:bg-slate-900 rounded-lg shadow-xl py-1 min-w-48 border border-gray-100 dark:border-slate-700`}>
               <Link href="/jobs" className={itemCls}>
                 {t("jobBoard")}
               </Link>
@@ -191,6 +192,7 @@ export function Nav() {
             <CartBadge count={itemCount} />
           </Link>
 
+          <ThemeToggle />
           <LocaleSwitcher />
           {session?.user ? (
             <>
@@ -210,7 +212,7 @@ export function Nav() {
                   />
                 </button>
                 {menuOpen && (
-                  <div className="absolute right-0 top-full mt-2 bg-white rounded-lg shadow-xl py-1 min-w-44 z-50 border border-gray-100">
+                  <div className="absolute right-0 top-full mt-2 bg-white dark:bg-slate-900 rounded-lg shadow-xl py-1 min-w-44 z-50 border border-gray-100 dark:border-slate-700">
                     <Link
                       href={`/profile/${session.user.id}`}
                       onClick={() => setMenuOpen(false)}
@@ -419,7 +421,8 @@ export function Nav() {
               </Link>
             )}
             <div className="px-3 py-2">
-              <LocaleSwitcher />
+              <ThemeToggle />
+          <LocaleSwitcher />
             </div>
           </div>
         </div>
