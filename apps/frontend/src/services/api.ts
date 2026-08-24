@@ -21,6 +21,7 @@ export type Product = {
   status: string;
   sellerId?: string;
   images: string[];
+  videoUrl?: string | null;
   qrCode?: string;
   serialNumber?: string;
   stock: number;

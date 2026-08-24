@@ -166,7 +166,9 @@
     "promoBuyNow": "Buy Now",
     "promoAdded": "Added to cart",
     "promoDismiss": "Dismiss promotion",
-    "promoAriaLabel": "Featured product video"
+    "promoAriaLabel": "Featured product video",
+    "reelsTitle": "Watch & Shop",
+    "close": "Close"
   },
   "jobs": {
     "title": "Jobs",

@@ -166,7 +166,9 @@
     "promoBuyNow": "ទិញឥឡូវនេះ",
     "promoAdded": "បានបន្ថែមទៅកន្ត្រក",
     "promoDismiss": "បិទការផ្សព្វផ្សាយ",
-    "promoAriaLabel": "វីដេអូផលិតផលពិសេស"
+    "promoAriaLabel": "វីដេអូផលិតផលពិសេស",
+    "reelsTitle": "មើល និងទិញ",
+    "close": "បិទ"
   },
   "jobs": {
     "title": "ការងារ",

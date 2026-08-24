@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { PromoVideoPopup } from "@/components/market/PromoVideoPopup";
+import { ReelsStrip } from "@/components/market/ReelsStrip";
 import { ProductCard } from "@/components/ProductCard";
 
 type SearchHit = {
@@ -91,11 +92,13 @@ export default function MarketPage() {
     <div className="mx-auto max-w-7xl px-4 py-8 animate-fade-in">
       <div className="mb-6">
         <h1 className="page-title">{t("title")}</h1>
-        <p className="text-slate-500 mt-1">{t("subtitle")}</p>
+        <p className="text-slate-500 dark:text-slate-400 mt-1">{t("subtitle")}</p>
       </div>
 
+      <ReelsStrip />
+
       {/* Filter bar */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 mb-6 space-y-4">
+      <div className="card rounded-xl p-4 mb-6 space-y-4">
         <div className="flex flex-col md:flex-row gap-3">
           <input
             type="search"

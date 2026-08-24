@@ -115,8 +115,8 @@ export default async function ProductDetailPage({ params }: Props) {
 
       {/* Gallery + buying box */}
       <div className="grid md:grid-cols-2 gap-8 mb-10">
-        <div>
-          <div className="aspect-square rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden shadow-sm">
+        <div className="space-y-4">
+          <div className="aspect-square rounded-2xl bg-[var(--surface-2)] flex items-center justify-center overflow-hidden shadow-sm ring-1 ring-[var(--border-subtle)]">
             {product.images?.[0] ? (
               <Image
                 src={product.images[0]}
@@ -129,6 +129,18 @@ export default async function ProductDetailPage({ params }: Props) {
               <div className="text-slate-400">{t("noImage")}</div>
             )}
           </div>
+          {product.videoUrl && (
+            <div className="rounded-2xl overflow-hidden shadow-sm ring-1 ring-[var(--border-subtle)] bg-black">
+              <video
+                src={product.videoUrl}
+                controls
+                playsInline
+                preload="metadata"
+                poster={product.images?.[0]}
+                className="w-full max-h-80 object-contain"
+              />
+            </div>
+          )}
         </div>
 
         <div className="space-y-5 animate-fade-in-up">
