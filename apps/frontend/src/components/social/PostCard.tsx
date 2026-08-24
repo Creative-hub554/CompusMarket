@@ -122,7 +122,7 @@ export function PostCard({
           </p>
         </div>
         {meId === post.author.id && (
-          <button onClick={removePost} className="text-gray-300 hover:text-red-500 px-2 text-lg" title="Delete post">
+          <button onClick={removePost} aria-label="Delete post" className="text-gray-300 hover:text-red-500 px-2 text-lg" title="Delete post">
             ×
           </button>
         )}
@@ -153,6 +153,7 @@ export function PostCard({
                 <button
                   key={emoji}
                   onClick={() => react(emoji)}
+                  aria-label={`React with ${emoji}`}
                   className="text-xl hover:scale-125 transition-transform"
                 >
                   {emoji}
@@ -195,6 +196,7 @@ export function PostCard({
                         setCommentCount((n) => n - 1);
                       }
                     }}
+                    aria-label="Delete comment"
                     className="text-gray-300 hover:text-red-500 text-sm"
                   >
                     ×

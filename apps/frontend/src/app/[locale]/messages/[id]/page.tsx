@@ -246,6 +246,7 @@ export default function ChatPage() {
               )}
               <button
                 onClick={() => setPending((prev) => prev.filter((_, j) => j !== i))}
+                aria-label="Remove attachment"
                 className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs leading-none"
               >
                 ×

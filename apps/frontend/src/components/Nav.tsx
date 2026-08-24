@@ -102,7 +102,7 @@ export function Nav() {
         <div className="hidden md:flex gap-5 lg:gap-7 text-sm font-medium items-center">
           {/* Social */}
           <div className="relative group">
-            <button className="nav-link opacity-90 hover:opacity-100">
+            <button aria-haspopup="true" className="nav-link opacity-90 hover:opacity-100">
               {t("social")}
             </button>
             <div className={`${panelCls} bg-white dark:bg-slate-900 rounded-lg shadow-xl py-1 min-w-44 border border-gray-100 dark:border-slate-700`}>
@@ -125,7 +125,7 @@ export function Nav() {
 
           {/* Market */}
           <div className="relative group">
-            <button className="nav-link opacity-90 hover:opacity-100">
+            <button aria-haspopup="true" className="nav-link opacity-90 hover:opacity-100">
               {t("market")}
             </button>
             <div className={`${panelCls} grid grid-cols-2 gap-x-2 bg-white dark:bg-slate-900 rounded-lg shadow-xl pb-2 min-w-72 border border-gray-100 dark:border-slate-700`}>
@@ -161,7 +161,7 @@ export function Nav() {
 
           {/* Jobs */}
           <div className="relative group">
-            <button className="nav-link opacity-90 hover:opacity-100">
+            <button aria-haspopup="true" className="nav-link opacity-90 hover:opacity-100">
               {t("jobs")}
             </button>
             <div className={`${panelCls} right-auto bg-white dark:bg-slate-900 rounded-lg shadow-xl py-1 min-w-48 border border-gray-100 dark:border-slate-700`}>
