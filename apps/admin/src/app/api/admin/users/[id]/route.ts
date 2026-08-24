@@ -44,19 +44,20 @@ export async function PATCH(
   }
 
   const body = (await req.json().catch(() => null)) as { role?: string } | null;
-  if (!body || !ROLES.includes(body.role as (typeof ROLES)[number])) {
+  const role = body?.role;
+  if (!role || !ROLES.includes(role as (typeof ROLES)[number])) {
     return NextResponse.json({ error: "Invalid role" }, { status: 400 });
   }
 
   const user = await prisma.user.update({
     where: { id },
-    data: { role: body.role },
+    data: { role: role as (typeof ROLES)[number] },
     select: { id: true, email: true, role: true },
   });
 
   // Banning kills every active session: revoke all refresh tokens so the
   // banned user cannot mint new access tokens.
-  if (body.role === "BANNED") {
+  if (role === "BANNED") {
     await prisma.refreshToken.updateMany({
       where: { userId: id, revokedAt: null },
       data: { revokedAt: new Date() },

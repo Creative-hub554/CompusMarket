@@ -165,7 +165,7 @@ export default function AdminUsersPage() {
                     <td className="px-6 py-3.5">
                       <div className="flex items-center gap-3.5">
                         {u.image ? (
-                          // eslint-disable-next-line @next/next/no-img-element
+                           
                           <img src={u.image} alt="" className="h-9 w-9 rounded-full object-cover" />
                         ) : (
                           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-black/5 text-[12px] font-bold text-[#6e6e73]">

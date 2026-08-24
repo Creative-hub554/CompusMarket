@@ -75,6 +75,15 @@ describe("AuthService", () => {
       );
     });
 
+    it("throws when the user is banned, even with valid credentials", async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({ ...mockUser, role: "BANNED" });
+      (bcrypt.compare as ReturnType<typeof vi.fn>).mockResolvedValue(true);
+      await expect(service.login(mockUser.email, "password")).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
+      expect(mockPrisma.refreshToken.create).not.toHaveBeenCalled();
+    });
+
     it("returns a token and user on valid credentials", async () => {
       mockPrisma.user.findUnique.mockResolvedValue(mockUser);
       (bcrypt.compare as ReturnType<typeof vi.fn>).mockResolvedValue(true);
@@ -161,6 +170,25 @@ describe("AuthService", () => {
       await expect(service.refresh("some-expired-token-aaaaaaaaaa")).rejects.toBeInstanceOf(
         UnauthorizedException
       );
+    });
+
+    it("throws and revokes the token family when the user is banned", async () => {
+      mockPrisma.refreshToken.findUnique.mockResolvedValue({
+        id: "rt-1",
+        userId: mockUser.id,
+        revokedAt: null,
+        expiresAt: new Date(Date.now() + 10000),
+        user: { ...mockUser, role: "BANNED" },
+      });
+      mockPrisma.refreshToken.updateMany.mockResolvedValue({ count: 3 });
+
+      await expect(service.refresh("a-banned-users-token-aaaaaaaa")).rejects.toBeInstanceOf(
+        UnauthorizedException
+      );
+      expect(mockPrisma.refreshToken.updateMany).toHaveBeenCalledWith({
+        where: { userId: mockUser.id, revokedAt: null },
+        data: { revokedAt: expect.any(Date) },
+      });
     });
 
     it("rotates the token and returns a new pair", async () => {
