@@ -336,15 +336,6 @@ importers:
         specifier: ^5.0.0
         version: 5.9.3
 
-  packages/config:
-    devDependencies:
-      '@types/node':
-        specifier: ^26.1.2
-        version: 26.1.2
-      typescript:
-        specifier: ^5.0.0
-        version: 5.9.3
-
   packages/database:
     dependencies:
       '@prisma/client':

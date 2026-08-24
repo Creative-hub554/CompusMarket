@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Pnpm + Turborepo monorepo. Three apps (`apps/frontend`, `apps/admin`, `apps/backend`) and three packages (`packages/config`, `packages/database`, `packages/ui`).
+Pnpm + Turborepo monorepo. Three apps (`apps/frontend`, `apps/admin`, `apps/backend`) and two packages (`packages/database`, `packages/ui`).
 
 ## Commands
 
@@ -50,7 +50,6 @@ Never blanket-kill `node.exe` — `.opencode/` tooling runs on node.
 | `apps/admin`  | Next.js 15 admin dashboard (no i18n)                |
 | `packages/database` | Prisma schema, `@theo/database` client + shared enums/constants |
 | `packages/ui` | Shared components (`Button`, `Card`, `Badge`, `Input`), `@theo/ui` — source-exported, no build step |
-| `packages/config` | Placeholder (strict `tsconfig.json` only), referenced by nothing |
 
 Workspace aliases: `@theo/database`, `@theo/ui`; both Next apps also alias `@` → `./src`.
 
