@@ -86,7 +86,8 @@
     "reviewCommentPlaceholder": "ចែករំលែកបទពិសោធន៍របស់អ្នក...",
     "reviewFailed": "មិនអាចដាក់ស្នើការវាយតម្លៃបានទេ",
     "submitting": "កំពុងដាក់ស្នើ...",
-    "submitReview": "ដាក់ស្នើការវាយតម្លៃ"
+    "submitReview": "ដាក់ស្នើការវាយតម្លៃ",
+    "related": "អ្នកក៏អាចចូលចិត្ត"
   },
   "cart": {
     "loading": "កំពុងផ្ទុក...",
@@ -265,6 +266,10 @@
     "declinedToast": "បានបដិសេធសំណើ",
     "privateGroup": "ក្រុមនេះជាឯកជន",
     "privateGroupText": "ចូលរួមក្រុមដើម្បីមើលផ្ទាំងប្រកាស។",
-    "searchPlaceholder": "ស្វែងរកក្រុម…"
+    "searchPlaceholder": "ស្វែងរកក្រុម…",
+    "pin": "ភ្ជាប់ប្រកាស",
+    "unpin": "ដកភ្ជាប់",
+    "pinnedToast": "បានភ្ជាប់ប្រកាស",
+    "unpinnedToast": "បានដកភ្ជាប់"
   }
 }

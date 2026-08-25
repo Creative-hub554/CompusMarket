@@ -41,6 +41,11 @@ export class ProductsController {
     return this.productsService.findPromos();
   }
 
+  @Get(":id/related")
+  findRelated(@Param("id") id: string) {
+    return this.productsService.findRelated(id);
+  }
+
   @Get("browse")
   browse(
     @Query("category") category?: string,

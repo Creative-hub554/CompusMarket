@@ -86,7 +86,8 @@
     "reviewCommentPlaceholder": "Share your experience with this product...",
     "reviewFailed": "Could not submit your review",
     "submitting": "Submitting...",
-    "submitReview": "Submit review"
+    "submitReview": "Submit review",
+    "related": "You may also like"
   },
   "cart": {
     "loading": "Loading...",
@@ -265,6 +266,10 @@
     "declinedToast": "Request declined",
     "privateGroup": "This group is private",
     "privateGroupText": "Join the group to see the feed.",
-    "searchPlaceholder": "Search groups…"
+    "searchPlaceholder": "Search groups…",
+    "pin": "Pin post",
+    "unpin": "Unpin post",
+    "pinnedToast": "Post pinned",
+    "unpinnedToast": "Post unpinned"
   }
 }

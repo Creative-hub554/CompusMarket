@@ -657,12 +657,13 @@ model Note {
 // ── Social Platform ──
 
 model Post {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   authorId  String
   groupId   String?
+  pinnedAt  DateTime?
   content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   author    User        @relation("Posts", fields: [authorId], references: [id], onDelete: Cascade)
   group     Group?      @relation(fields: [groupId], references: [id], onDelete: Cascade)

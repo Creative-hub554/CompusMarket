@@ -422,6 +422,26 @@ export class GroupsService {
     return this.posts.byGroup(groupId, viewerId, cursorId, limit);
   }
 
+  /** Admin-only pin/unpin. Pinned posts sort first in the group feed. */
+  async setPostPinned(
+    groupId: string,
+    postId: string,
+    userId: string,
+    pinned: boolean
+  ) {
+    await this.requireRole(groupId, userId, "ADMIN");
+    const post = await this.prisma.post.findFirst({
+      where: { id: postId, groupId },
+      select: { id: true },
+    });
+    if (!post) throw new NotFoundException("Post not found in this group");
+    await this.prisma.post.update({
+      where: { id: postId },
+      data: { pinnedAt: pinned ? new Date() : null },
+    });
+    return { pinned };
+  }
+
   async createGroupPost(
     groupId: string,
     userId: string,

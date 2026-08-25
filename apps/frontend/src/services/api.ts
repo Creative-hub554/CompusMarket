@@ -100,6 +100,7 @@ export const api = {
     byCategory: (slug: string) =>
       fetchApi<Product[]>(`/products/category/${slug}`),
     promos: () => fetchApi<PromoProduct[]>("/products/promos"),
+    related: (id: string) => fetchApi<Product[]>(`/products/${id}/related`),
   },
   categories: {
     list: () => fetchApi<Category[]>("/categories"),

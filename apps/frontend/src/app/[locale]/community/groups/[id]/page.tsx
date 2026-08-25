@@ -191,6 +191,23 @@ export default function GroupDetailPage() {
     }
   }
 
+  async function togglePin(post: FeedPost) {
+    const res = await fetch(`/api/groups/${id}/posts/${post.id}/pin`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pinned: !post.pinned }),
+    });
+    if (res.ok) {
+      setPosts((prev) =>
+        prev.map((p) => (p.id === post.id ? { ...p, pinned: !post.pinned } : p))
+      );
+      toast.success(!post.pinned ? t("pinnedToast") : t("unpinnedToast"));
+    } else {
+      const err = await res.json().catch(() => ({}));
+      toast.error(err.error || t("actionFailed"));
+    }
+  }
+
   async function handleCover(files: FileList | null) {
     if (!files?.[0] || !group) return;
     setCoverUploading(true);
@@ -461,7 +478,11 @@ export default function GroupDetailPage() {
 
           <div className="space-y-4">
             {posts.map((post) => (
-              <PostCard key={post.id} post={post} />
+              <PostCard
+                key={post.id}
+                post={post}
+                onTogglePin={isAdmin ? (pinned) => togglePin(post) : undefined}
+              />
             ))}
             {posts.length === 0 && (
               <div className="text-center py-12 card rounded-2xl">

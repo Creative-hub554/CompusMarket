@@ -35,6 +35,7 @@ function renderContent(content: string) {
 }
 
 export type FeedPost = {
+  pinned?: boolean;
   id: string;
   content: string;
   createdAt: string;
@@ -73,9 +74,11 @@ function MediaGrid({ media }: { media: Media[] }) {
 export function PostCard({
   post,
   onDeleted,
+  onTogglePin,
 }: {
   post: FeedPost;
   onDeleted?: (id: string) => void;
+  onTogglePin?: (pinned: boolean) => void;
 }) {
   const { data: session } = useSession();
   const meId = session?.user?.id;
@@ -133,6 +136,11 @@ export function PostCard({
 
   return (
     <article className="bg-[var(--surface)] rounded-2xl border border-[var(--border-subtle)] shadow-sm hover:shadow-md transition-shadow">
+      {post.pinned && (
+        <p className="px-4 pt-3 text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+          📌 Pinned
+        </p>
+      )}
       <div className="flex items-center gap-3 p-4 pb-2">
         <Link href={`/profile/${post.author.id}`}>
           <Avatar user={post.author} size={44} />
@@ -146,9 +154,22 @@ export function PostCard({
             {post.author.username ? ` · @${post.author.username}` : ""}
           </p>
         </div>
+        {onTogglePin && (
+          <button
+            onClick={() => onTogglePin(!post.pinned)}
+            aria-label={post.pinned ? "Unpin post" : "Pin post"}
+            title={post.pinned ? "Unpin post" : "Pin post"}
+            className={`px-2 transition-colors ${
+              post.pinned
+                ? "text-indigo-500"
+                : "text-gray-300 hover:text-indigo-500"
+            }`}
+          >
+            📌
+          </button>
+        )}
         {meId === post.author.id && (
-          <button onClick={removePost} aria-label="Delete post" className="text-gray-300 hover:text-red-500 px-2 text-lg" title="Delete post">
-            ×
+          <button onClick={removePost} aria-label="Delete post" className="text-gray-300 hover:text-red-500 px-2 text-lg" title="Delete post">            ×
           </button>
         )}
       </div>

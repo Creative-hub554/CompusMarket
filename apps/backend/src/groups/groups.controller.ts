@@ -156,6 +156,22 @@ export class GroupsController {
     return this.groups.createGroupPost(id, req.user.userId, dto);
   }
 
+  @Patch(":id/posts/:postId/pin")
+  @UseGuards(AuthGuard("jwt"))
+  setPostPinned(
+    @Req() req: AuthUser,
+    @Param("id") id: string,
+    @Param("postId") postId: string,
+    @Body() body: { pinned: boolean }
+  ) {
+    return this.groups.setPostPinned(
+      id,
+      postId,
+      req.user.userId,
+      Boolean(body?.pinned)
+    );
+  }
+
   @Get(":id/thread")
   @UseGuards(AuthGuard("jwt"))
   thread(@Req() req: AuthUser, @Param("id") id: string) {

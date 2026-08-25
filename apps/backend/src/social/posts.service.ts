@@ -11,7 +11,9 @@ const POST_INCLUDE = {
   _count: { select: { comments: true } },
 } satisfies Prisma.PostInclude;
 
-type PostWithRelations = Prisma.PostGetPayload<{ include: typeof POST_INCLUDE }>;
+type PostWithRelations = Prisma.PostGetPayload<{ include: typeof POST_INCLUDE }> & {
+  pinnedAt?: Date | null;
+};
 
 export interface MappedPost {
   id: string;
@@ -22,6 +24,7 @@ export interface MappedPost {
   reactions: { emoji: string; count: number }[];
   commentCount: number;
   viewerReaction: string | null;
+  pinned: boolean;
 }
 
 export function mapPost(post: PostWithRelations, viewerId?: string): MappedPost {
@@ -46,6 +49,7 @@ export function mapPost(post: PostWithRelations, viewerId?: string): MappedPost 
       .sort((a, b) => b.count - a.count),
     commentCount: post._count.comments,
     viewerReaction: viewerId ? post.reactions.find((r) => r.userId === viewerId)?.emoji ?? null : null,
+    pinned: Boolean(post.pinnedAt),
   };
 }
 
@@ -154,18 +158,25 @@ export class PostsService {
     cursorId?: string,
     limit = 10
   ): Promise<{ items: MappedPost[]; nextCursor: string | null }> {
-    return this.queryFeed({ groupId }, viewerId, cursorId, limit);
+    return this.queryFeed(
+      { groupId },
+      viewerId,
+      cursorId,
+      limit,
+      [{ pinnedAt: { sort: "desc", nulls: "last" } }, { createdAt: "desc" }]
+    );
   }
 
   private async queryFeed(
     where: Prisma.PostWhereInput,
     viewerId: string | undefined,
     cursorId: string | undefined,
-    limit: number
+    limit: number,
+    orderBy: Prisma.PostOrderByWithRelationInput[] = [{ createdAt: "desc" }]
   ) {
     const posts = await this.prisma.post.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy,
       take: limit + 1,
       ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
       include: POST_INCLUDE,

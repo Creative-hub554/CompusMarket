@@ -73,8 +73,26 @@ export class ProductsService {
     });
   }
 
-  async findPromos() {
+  /** Same-category products, excluding the current one, for "you may also like". */
+  async findRelated(productId: string, limit = 4) {
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId },
+      select: { categoryId: true },
+    });
+    if (!product) return [];
     return this.prisma.product.findMany({
+      where: {
+        categoryId: product.categoryId,
+        status: "ACTIVE",
+        id: { not: productId },
+      },
+      include: { category: true },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    });
+  }
+
+  async findPromos() {    return this.prisma.product.findMany({
       where: {
         status: "ACTIVE",
         stock: { gt: 0 },

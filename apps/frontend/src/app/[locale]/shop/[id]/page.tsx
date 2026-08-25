@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { AddToCartButton } from "@/components/AddToCartButton";
 import { ChatWithSellerButton } from "@/components/ChatWithSellerButton";
 import { ProductTabs } from "./ProductTabs";
+import { ProductCard } from "@/components/ProductCard";
 import { languageAlternates, getSiteUrl } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -47,6 +48,11 @@ export default async function ProductDetailPage({ params }: Props) {
   } catch {
     notFound();
   }
+
+  let related: Awaited<ReturnType<typeof api.products.related>> = [];
+  try {
+    related = await api.products.related(id);
+  } catch {}
 
   const conditionLabels: Record<string, string> = {
     A: t("conditionA"),
@@ -184,6 +190,27 @@ export default async function ProductDetailPage({ params }: Props) {
 
       {/* Tabs */}
       <ProductTabs product={product} />
+
+      {related.length > 0 && (
+        <section className="mt-12">
+          <h2 className="text-xl font-bold tracking-tight mb-4 text-slate-900 dark:text-slate-100">
+            {t("related")}
+          </h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {related.map((p) => (
+              <ProductCard
+                key={p.id}
+                id={p.id}
+                name={p.name}
+                price={p.price}
+                condition={p.condition}
+                images={(p.images as string[]) || []}
+                categoryName={p.category?.name}
+              />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
