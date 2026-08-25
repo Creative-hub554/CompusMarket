@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link } from "@/i18n/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
 import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
+import { Bookmark, Store, Briefcase } from "lucide-react";
 import { Composer } from "@/components/social/Composer";
 import { PostCard, FeedPost } from "@/components/social/PostCard";
 import { StoriesBar } from "@/components/social/StoriesBar";
@@ -19,6 +21,8 @@ type Suggestion = {
 };
 
 export default function FeedPage() {
+  const nav = useTranslations("nav");
+  const pathname = usePathname();
   const { data: session } = useSession();
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -72,9 +76,51 @@ export default function FeedPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Feed</h1>
-      <div className="grid lg:grid-cols-[1fr_300px] gap-8">
+    <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="grid xl:grid-cols-[220px_minmax(0,1fr)_300px] gap-6">
+        {/* Left rail: shortcuts (Facebook-style) */}
+        <aside className="hidden xl:block">
+          <div className="sticky top-20 space-y-1">
+            <Link
+              href={`/profile/${session.user.id}`}
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-[var(--surface-2)] transition-colors font-medium text-slate-800 dark:text-slate-200"
+            >
+              <Avatar user={{ name: session.user.name, image: (session.user as { image?: string | null }).image }} size={32} />
+              <span className="truncate">{session.user.name || nav("feed")}</span>
+            </Link>
+            {[
+              { href: "/community/groups", label: nav("groups"), img: "/champey-mark.svg" },
+              { href: "/saved", label: nav("savedPosts"), Icon: Bookmark },
+              { href: "/market", label: nav("market"), Icon: Store },
+              { href: "/jobs", label: nav("jobs"), Icon: Briefcase },
+            ].map(({ href, label, Icon, img }) => {
+              const active = pathname === href || pathname.startsWith(href + "/");
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors text-sm font-medium ${
+                    active
+                      ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-300"
+                      : "hover:bg-[var(--surface-2)] text-slate-700 dark:text-slate-300"
+                  }`}
+                >
+                  {img ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={img} alt="" width={26} height={26} className="rounded-lg" />
+                  ) : Icon ? (
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500/15 to-violet-500/15 text-indigo-500 dark:text-indigo-300">
+                      <Icon size={16} />
+                    </span>
+                  ) : null}
+                  <span className="truncate">{label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </aside>
+
+        {/* Center: stories, composer, posts */}
         <div className="space-y-5 min-w-0">
           <StoriesBar />
           <Composer

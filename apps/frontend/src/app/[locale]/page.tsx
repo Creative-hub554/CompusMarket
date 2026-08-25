@@ -1,5 +1,7 @@
 import { Link } from "@/i18n/navigation";
 import { getTranslations } from "next-intl/server";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import {
   ShieldCheck,
   Handshake,
@@ -15,6 +17,13 @@ import { categoryThumbs } from "@/components/community/CategoryThumbs";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
+  // Social-first: signed-in users land on their feed, guests see the landing.
+  const jar = await cookies();
+  const hasSession =
+    jar.has("next-auth.session-token") ||
+    jar.has("__Secure-next-auth.session-token");
+  if (hasSession) redirect("/feed");
+
   const t = await getTranslations("home");
   const nav = await getTranslations("nav");
   const categories = await api.categories.list();
@@ -38,6 +47,10 @@ export default async function Home() {
         <div className="mx-auto max-w-7xl px-4 py-20 md:py-28 grid md:grid-cols-2 gap-12 items-center relative">
           <div className="animate-fade-in-up relative z-10">
             <div className="flex items-center gap-2">
+              <span className="relative flex h-2.5 w-2.5" aria-hidden>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500" />
+              </span>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/champey-mark.svg" alt="" width={28} height={28} />
               <p className="text-xs md:text-sm tracking-[0.3em] text-indigo-300 font-semibold uppercase">
