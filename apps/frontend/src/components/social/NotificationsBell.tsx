@@ -8,7 +8,8 @@ import { timeAgo, useAuthSocket } from "@/lib/social";
 
 type Notification = {
   id: string;
-  kind: "REACTION" | "COMMENT" | "FOLLOW" | "MESSAGE" | "GROUP_POST" | "JOIN_REQUEST" | "MENTION";
+  kind: "REACTION" | "COMMENT" | "FOLLOW" | "MESSAGE" |
+  "GROUP_POST" | "JOIN_REQUEST" | "MENTION" | "JOB_ALERT";
   entityId: string | null;
   message: string | null;
   readAt: string | null;
@@ -24,6 +25,7 @@ const KIND_ICON: Record<Notification["kind"], string> = {
   GROUP_POST: "👥",
   JOIN_REQUEST: "🙋",
   MENTION: "@",
+  JOB_ALERT: "💼",
 };
 
 export function NotificationsBell() {
@@ -95,6 +97,8 @@ export function NotificationsBell() {
         return n.entityId ? `/community/groups/${n.entityId}` : "/community/groups";
       case "MENTION":
         return "/feed";
+      case "JOB_ALERT":
+        return n.entityId ? `/jobs/${n.entityId}` : "/jobs";
       default:
         return n.entityId ? `/feed` : "/feed";
     }
@@ -160,6 +164,7 @@ export function NotificationsBell() {
                       {n.kind === "GROUP_POST" && `posted in ${n.message ?? "a group"}`}
                       {n.kind === "JOIN_REQUEST" && "wants to join your group"}
                       {n.kind === "MENTION" && "mentioned you in a post"}
+                      {n.kind === "JOB_ALERT" && `New job matching your history: ${n.message ?? ""}`}
                     </p>
                     <p className="text-xs text-gray-400">{timeAgo(n.createdAt)}</p>
                   </div>

@@ -101,6 +101,7 @@ enum NotificationKind {
   GROUP_POST
   JOIN_REQUEST
   MENTION
+  JOB_ALERT
 }
 
 enum GroupPrivacy {

@@ -1,6 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { JobsService } from "./jobs.service";
 import { PrismaService } from "../prisma/prisma.service";
+import { NotificationsService } from "../social/notifications.service";
 import { ForbiddenException, ConflictException, BadRequestException } from "@nestjs/common";
 
 describe("JobsService", () => {
@@ -21,12 +22,18 @@ describe("JobsService", () => {
     },
   };
 
+  const mockNotifications = {
+    notify: vi.fn().mockResolvedValue({}),
+  };
+
   beforeEach(async () => {
     vi.clearAllMocks();
+    mockNotifications.notify.mockResolvedValue({});
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         JobsService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: NotificationsService, useValue: mockNotifications },
       ],
     }).compile();
     service = module.get<JobsService>(JobsService);
@@ -39,6 +46,7 @@ describe("JobsService", () => {
   describe("create", () => {
     it("sets the poster as postedById", async () => {
       mockPrisma.job.create.mockResolvedValue({ id: "j1" });
+      mockPrisma.jobApplication.findMany.mockResolvedValue([]);
       await service.create(
         { title: "Dev", company: "Acme", location: "PP", type: "FULL_TIME", description: "d" },
         "u1"
@@ -46,6 +54,38 @@ describe("JobsService", () => {
       expect(mockPrisma.job.create).toHaveBeenCalledWith({
         data: expect.objectContaining({ postedById: "u1" }),
       });
+    });
+
+    it("alerts past applicants of the same job type (excluding the poster)", async () => {
+      mockPrisma.job.create.mockResolvedValue({
+        id: "j2",
+        title: "Barista",
+        company: "Coffee KH",
+      });
+      mockPrisma.jobApplication.findMany.mockResolvedValue([
+        { applicantId: "u1" },
+        { applicantId: "u2" },
+      ]);
+
+      await service.create(
+        { title: "Barista", company: "Coffee KH", location: "PP", type: "PART_TIME", description: "d" },
+        "u1"
+      );
+
+      expect(mockPrisma.jobApplication.findMany).toHaveBeenCalledWith({
+        where: { job: { type: "PART_TIME" } },
+        select: { applicantId: true },
+        distinct: ["applicantId"],
+      });
+      expect(mockNotifications.notify).toHaveBeenCalledTimes(1);
+      expect(mockNotifications.notify).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: "u2",
+          kind: "JOB_ALERT",
+          entityId: "j2",
+          message: "Barista · Coffee KH",
+        })
+      );
     });
   });
 

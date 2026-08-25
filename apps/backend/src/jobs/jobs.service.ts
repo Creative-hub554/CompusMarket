@@ -6,6 +6,7 @@ import {
   ConflictException,
 } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { NotificationsService } from "../social/notifications.service";
 import type { Job, JobType, JobStatus } from "@theo/database";
 import { CreateJobDto } from "./dto/create-job.dto";
 import { UpdateJobDto } from "./dto/update-job.dto";
@@ -20,12 +21,40 @@ type JobFilters = {
 
 @Injectable()
 export class JobsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService
+  ) {}
 
-  create(dto: CreateJobDto, userId: string): Promise<Job> {
-    return this.prisma.job.create({
+  async create(dto: CreateJobDto, userId: string): Promise<Job> {
+    const job = await this.prisma.job.create({
       data: { ...dto, postedById: userId },
     });
+
+    // Job alert: notify users who previously applied to jobs of the same type.
+    if (dto.type) {
+      const pastApps = await this.prisma.jobApplication.findMany({
+        where: { job: { type: dto.type } },
+        select: { applicantId: true },
+        distinct: ["applicantId"],
+      });
+      const recipients = pastApps
+        .map((a) => a.applicantId)
+        .filter((id) => id !== userId);
+      await Promise.all(
+        recipients.map((id) =>
+          this.notifications.notify({
+            userId: id,
+            actorId: userId,
+            kind: "JOB_ALERT",
+            entityId: job.id,
+            message: `${job.title} · ${job.company}`,
+          })
+        )
+      );
+    }
+
+    return job;
   }
 
   async findAll(filters: JobFilters): Promise<Job[]> {
