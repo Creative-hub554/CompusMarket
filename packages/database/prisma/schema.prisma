@@ -100,6 +100,7 @@ enum NotificationKind {
   MESSAGE
   GROUP_POST
   JOIN_REQUEST
+  MENTION
 }
 
 enum GroupPrivacy {

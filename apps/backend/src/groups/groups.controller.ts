@@ -33,12 +33,14 @@ export class GroupsController {
   list(
     @Req() req: AuthUser,
     @Query("cursor") cursor?: string,
-    @Query("limit") limit?: string
+    @Query("limit") limit?: string,
+    @Query("q") q?: string
   ) {
     return this.groups.list(
       req.user?.userId,
       cursor || undefined,
-      limit ? parseInt(limit, 10) : undefined
+      limit ? parseInt(limit, 10) : undefined,
+      q?.trim() || undefined
     );
   }
 

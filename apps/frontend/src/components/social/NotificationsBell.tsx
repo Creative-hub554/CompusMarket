@@ -8,7 +8,7 @@ import { timeAgo, useAuthSocket } from "@/lib/social";
 
 type Notification = {
   id: string;
-  kind: "REACTION" | "COMMENT" | "FOLLOW" | "MESSAGE" | "GROUP_POST" | "JOIN_REQUEST";
+  kind: "REACTION" | "COMMENT" | "FOLLOW" | "MESSAGE" | "GROUP_POST" | "JOIN_REQUEST" | "MENTION";
   entityId: string | null;
   message: string | null;
   readAt: string | null;
@@ -23,6 +23,7 @@ const KIND_ICON: Record<Notification["kind"], string> = {
   MESSAGE: "✉️",
   GROUP_POST: "👥",
   JOIN_REQUEST: "🙋",
+  MENTION: "@",
 };
 
 export function NotificationsBell() {
@@ -92,6 +93,8 @@ export function NotificationsBell() {
       case "GROUP_POST":
       case "JOIN_REQUEST":
         return n.entityId ? `/community/groups/${n.entityId}` : "/community/groups";
+      case "MENTION":
+        return "/feed";
       default:
         return n.entityId ? `/feed` : "/feed";
     }
@@ -156,6 +159,7 @@ export function NotificationsBell() {
                       {n.kind === "MESSAGE" && "sent you a message"}
                       {n.kind === "GROUP_POST" && `posted in ${n.message ?? "a group"}`}
                       {n.kind === "JOIN_REQUEST" && "wants to join your group"}
+                      {n.kind === "MENTION" && "mentioned you in a post"}
                     </p>
                     <p className="text-xs text-gray-400">{timeAgo(n.createdAt)}</p>
                   </div>

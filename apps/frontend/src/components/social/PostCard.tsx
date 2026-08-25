@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { useSession } from "next-auth/react";
@@ -8,6 +8,31 @@ import { Avatar } from "./Avatar";
 import { timeAgo } from "@/lib/social";
 
 type Media = { id: string; kind: "IMAGE" | "VIDEO"; url: string; thumbUrl?: string | null };
+
+const MENTION_RE = /@([a-zA-Z0-9_.]{2,20})/g;
+
+/** Linkify @username tokens to profile pages. */
+function renderContent(content: string) {
+  const parts: ReactNode[] = [];
+  let last = 0;
+  for (const match of content.matchAll(MENTION_RE)) {
+    const at = match.index ?? 0;
+    if (at > last) parts.push(content.slice(last, at));
+    parts.push(
+      <Link
+        key={`${match[1]}-${at}`}
+        href={`/profile/${match[1]}`}
+        className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline"
+        onClick={(e) => e.stopPropagation()}
+      >
+        @{match[1]}
+      </Link>
+    );
+    last = at + match[0].length;
+  }
+  if (last < content.length) parts.push(content.slice(last));
+  return parts;
+}
 
 export type FeedPost = {
   id: string;
@@ -129,7 +154,9 @@ export function PostCard({
       </div>
 
       {post.content && (
-        <p className="px-4 pb-1 whitespace-pre-wrap break-words text-slate-800 dark:text-slate-200">{post.content}</p>
+        <p className="px-4 pb-1 whitespace-pre-wrap break-words text-slate-800 dark:text-slate-200">
+          {renderContent(post.content)}
+        </p>
       )}
 
       <div className="px-4">

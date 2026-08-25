@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
-import { Users, Plus, MessageSquare, Lock } from "lucide-react";
+import { Users, Plus, MessageSquare, Lock, Search } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 
 type GroupSummary = {
@@ -31,9 +31,13 @@ export default function GroupsPage() {
   const [description, setDescription] = useState("");
   const [privacy, setPrivacy] = useState<"PUBLIC" | "PRIVATE">("PUBLIC");
   const [creating, setCreating] = useState(false);
+  const [search, setSearch] = useState("");
 
-  const load = useCallback(async (cursor?: string) => {
-    const res = await fetch(`/api/groups${cursor ? `?cursor=${cursor}` : ""}`);
+  const load = useCallback(async (cursor?: string, q?: string) => {
+    const params = new URLSearchParams();
+    if (cursor) params.set("cursor", cursor);
+    if (q) params.set("q", q);
+    const res = await fetch(`/api/groups?${params.toString()}`);
     if (res.ok) {
       const data = await res.json();
       setGroups((prev) => (cursor ? [...prev, ...data.items] : data.items));
@@ -45,6 +49,12 @@ export default function GroupsPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (!search) return;
+    const handle = setTimeout(() => load(undefined, search.trim()), 300);
+    return () => clearTimeout(handle);
+  }, [search, load]);
 
   async function toggleMembership(group: GroupSummary) {
     setBusyId(group.id);
@@ -120,7 +130,7 @@ export default function GroupsPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 animate-fade-in">
-      <div className="flex items-start justify-between gap-4 mb-8">
+      <div className="flex items-start justify-between gap-4 mb-4">
         <div>
           <h1 className="page-title">{t("title")}</h1>
           <p className="page-subtitle">{t("subtitle")}</p>
@@ -134,6 +144,18 @@ export default function GroupsPage() {
             {t("create")}
           </button>
         )}
+      </div>
+
+      <div className="relative mb-6">
+        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder={t("searchPlaceholder")}
+          aria-label={t("searchPlaceholder")}
+          className="input-field !rounded-full pl-10"
+        />
       </div>
 
       {showCreate && (
@@ -273,7 +295,7 @@ export default function GroupsPage() {
           ))}
           {nextCursor && (
             <div className="text-center pt-2">
-              <button onClick={() => load(nextCursor)} className="btn-ghost">
+              <button onClick={() => load(nextCursor, search.trim() || undefined)} className="btn-ghost">
                 {t("loadMore")}
               </button>
             </div>

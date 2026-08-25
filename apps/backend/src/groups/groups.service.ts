@@ -55,12 +55,13 @@ export class GroupsService {
   async list(
     viewerId?: string,
     cursorId?: string,
-    limit = GROUP_LIST_TAKE
+    limit = GROUP_LIST_TAKE,
+    query?: string
   ): Promise<{ items: MappedGroupSummary[]; nextCursor: string | null }> {
     const groups = await this.prisma.group.findMany({
       orderBy: { createdAt: "desc" },
-      take: limit + 1,
-      ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
+      take: query ? 200 : limit + 1,
+      ...(cursorId && !query ? { cursor: { id: cursorId }, skip: 1 } : {}),
       include: {
         _count: { select: { members: true, posts: true } },
         ...(viewerId
@@ -74,8 +75,14 @@ export class GroupsService {
           : {}),
       },
     });
-    const hasMore = groups.length > limit;
-    const items = groups.slice(0, limit).map((g) => this.mapSummary(g, viewerId));
+    // SQLite has no case-insensitive contains — filter in JS (group count is small).
+    const filtered = query
+      ? groups.filter((g) =>
+          g.name.toLowerCase().includes(query.toLowerCase())
+        )
+      : groups;
+    const hasMore = !query && filtered.length > limit;
+    const items = filtered.slice(0, limit).map((g) => this.mapSummary(g, viewerId));
     return { items, nextCursor: hasMore ? items[items.length - 1].id : null };
   }
 

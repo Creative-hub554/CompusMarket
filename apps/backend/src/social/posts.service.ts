@@ -80,7 +80,44 @@ export class PostsService {
       },
       include: POST_INCLUDE,
     });
+
+    await this.notifyMentions(post.id, content, userId);
+
     return mapPost(post, userId);
+  }
+
+  /**
+   * Resolve @username tokens in the content to real users and notify them.
+   * Unknown usernames are ignored; the author never notifies themselves.
+   */
+  private async notifyMentions(
+    postId: string,
+    content: string,
+    authorId: string
+  ): Promise<void> {
+    const usernames = [
+      ...new Set(
+        [...content.matchAll(/@([a-zA-Z0-9_.]{2,20})/g)].map((m) => m[1])
+      ),
+    ];
+    if (usernames.length === 0) return;
+
+    const users = await this.prisma.user.findMany({
+      where: { username: { in: usernames } },
+      select: { id: true },
+    });
+    const recipients = users.filter((u) => u.id !== authorId);
+
+    await Promise.all(
+      recipients.map((u) =>
+        this.notifications.notify({
+          userId: u.id,
+          actorId: authorId,
+          kind: "MENTION",
+          entityId: postId,
+        })
+      )
+    );
   }
 
   async findOne(id: string, viewerId?: string): Promise<MappedPost> {

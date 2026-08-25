@@ -264,6 +264,7 @@
     "acceptedToast": "Member approved",
     "declinedToast": "Request declined",
     "privateGroup": "This group is private",
-    "privateGroupText": "Join the group to see the feed."
+    "privateGroupText": "Join the group to see the feed.",
+    "searchPlaceholder": "Search groups…"
   }
 }

@@ -264,6 +264,7 @@
     "acceptedToast": "អ្នកបានអនុម័តសមាជិក",
     "declinedToast": "បានបដិសេធសំណើ",
     "privateGroup": "ក្រុមនេះជាឯកជន",
-    "privateGroupText": "ចូលរួមក្រុមដើម្បីមើលផ្ទាំងប្រកាស។"
+    "privateGroupText": "ចូលរួមក្រុមដើម្បីមើលផ្ទាំងប្រកាស។",
+    "searchPlaceholder": "ស្វែងរកក្រុម…"
   }
 }
