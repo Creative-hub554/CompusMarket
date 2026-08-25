@@ -8,7 +8,8 @@ import { Link } from "@/i18n/navigation";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Avatar } from "@/components/social/Avatar";
-import { Users } from "lucide-react";
+import { Users, Smile, Sticker as StickerIcon } from "lucide-react";
+import { ChatPicker } from "@/components/chat/ChatPicker";
 import { timeAgo, uploadFile, useAuthSocket } from "@/lib/social";
 
 type Attachment = { url: string; kind: "IMAGE" | "VIDEO" };
@@ -30,6 +31,45 @@ type ThreadInfo = {
   group: { id: string; name: string } | null;
 };
 
+const CHAT_COMMANDS = [
+  { cmd: "/shrug", out: "¯\\_(ツ)_/¯", hint: "Shrug it off" },
+  { cmd: "/tableflip", out: "(╯°□°）╯︵ ┻━┻", hint: "Flip the table" },
+  { cmd: "/unflip", out: "┬─┬ ノ( ゜-゜ノ)", hint: "Put it back" },
+  { cmd: "/me", out: "", hint: "Send an action — /me is cooking" },
+] as const;
+
+/** Returns the transformed content, "" to silently abort, or null for an unknown command. */
+function applyCommand(raw: string): string | null {
+  const [cmd, ...rest] = raw.split(" ");
+  const text = rest.join(" ").trim();
+  switch (cmd) {
+    case "/shrug":
+      return "¯\\_(ツ)_/¯";
+    case "/tableflip":
+      return "(╯°□°）╯︵ ┻━┻";
+    case "/unflip":
+      return "┬─┬ ノ( ゜-゜ノ)";
+    case "/me":
+      return text ? `_${text}_` : "";
+    default:
+      return null;
+  }
+}
+
+function MessageContent({ content }: { content: string; isMe: boolean }) {
+  if (content.startsWith("sticker:")) {
+    return <p className="text-6xl leading-none py-1">{content.slice(8)}</p>;
+  }
+  if (content.length > 2 && content.startsWith("_") && content.endsWith("_")) {
+    return (
+      <p className="text-sm italic whitespace-pre-wrap break-words">
+        {content.slice(1, -1)}
+      </p>
+    );
+  }
+  return <p className="text-sm whitespace-pre-wrap break-words">{content}</p>;
+}
+
 export default function ChatPage() {
   const { id } = useParams<{ id: string }>();
   const { data: session } = useSession();
@@ -40,6 +80,8 @@ export default function ChatPage() {
   const [uploading, setUploading] = useState(false);
   const [peerTyping, setPeerTyping] = useState(false);
   const [online, setOnline] = useState(false);
+  const [picker, setPicker] = useState<"emoji" | "sticker" | null>(null);
+  const [commandIndex, setCommandIndex] = useState(0);
   const socketRef = useAuthSocket(session?.user?.id);
   const bottomRef = useRef<HTMLDivElement>(null);
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -109,16 +151,39 @@ export default function ChatPage() {
   }, [messages.length, peerTyping]);
 
   const sendMessage = useCallback(() => {
-    const content = input.trim();
-    if ((!content && pending.length === 0) || !socketRef.current) return;
+    const raw = input.trim();
+    if ((!raw && pending.length === 0) || !socketRef.current) return;
+    let content = raw;
+    if (raw.startsWith("/")) {
+      const transformed = applyCommand(raw);
+      if (transformed === null) {
+        toast.error("Unknown command");
+        return;
+      }
+      if (!transformed) return;
+      content = transformed;
+    }
     socketRef.current.emit("sendMessage", {
       threadId: id,
       content,
       attachments: pending.length > 0 ? pending : undefined,
     });
     setInput("");
+    setCommandIndex(0);
     setPending([]);
   }, [input, pending, id, socketRef.current]);
+
+  const sendSticker = useCallback(
+    (emoji: string) => {
+      if (!socketRef.current) return;
+      socketRef.current.emit("sendMessage", {
+        threadId: id,
+        content: `sticker:${emoji}`,
+      });
+      setPicker(null);
+    },
+    [id, socketRef.current]
+  );
 
   const handleTyping = () => {
     socketRef.current?.emit("typing", { threadId: id, typing: true });
@@ -152,6 +217,11 @@ export default function ChatPage() {
       </div>
     );
   }
+
+  const commandMenu =
+    input.startsWith("/") && !input.includes(" ")
+      ? CHAT_COMMANDS.filter((c) => c.cmd.startsWith(input.toLowerCase()))
+      : [];
 
   const other = thread?.participants[0];
 
@@ -225,7 +295,7 @@ export default function ChatPage() {
                     )}
                   </div>
                 )}
-                {msg.content && <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>}
+                {msg.content && <MessageContent content={msg.content} isMe={isMe} />}
                 <p className={`text-[10px] mt-1 ${isMe ? "text-indigo-200" : "text-gray-400"}`}>
                   {timeAgo(msg.createdAt)}
                 </p>
@@ -270,7 +340,17 @@ export default function ChatPage() {
         </div>
       )}
 
-      <div className="flex items-end gap-2 pt-2 border-t">
+      <div className="relative flex items-end gap-1.5 pt-2 border-t">
+        {picker && (
+          <ChatPicker
+            mode={picker}
+            onSelect={(emoji) => {
+              if (picker === "sticker") sendSticker(emoji);
+              else setInput((prev) => prev + emoji);
+            }}
+            onClose={() => setPicker(null)}
+          />
+        )}
         <label className="cursor-pointer p-2 text-gray-500 dark:text-gray-400 hover:text-indigo-600" title="Attach photo or video">
           <input
             type="file"
@@ -282,24 +362,94 @@ export default function ChatPage() {
           />
           {uploading ? "…" : "＋"}
         </label>
-        <textarea
-          value={input}
-          rows={1}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              sendMessage();
-            }
-            handleTyping();
-          }}
-          placeholder="Type a message..."
-          className="flex-1 resize-none border border-[var(--border-subtle)] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 max-h-32"
-        />
+        <button
+          onClick={() => setPicker(picker === "emoji" ? null : "emoji")}
+          aria-label="Insert emoji"
+          aria-expanded={picker === "emoji"}
+          className={`p-2 rounded-lg transition-colors ${
+            picker === "emoji"
+              ? "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40"
+              : "text-gray-500 dark:text-gray-400 hover:text-indigo-600"
+          }`}
+        >
+          <Smile size={20} />
+        </button>
+        <button
+          onClick={() => setPicker(picker === "sticker" ? null : "sticker")}
+          aria-label="Send sticker"
+          aria-expanded={picker === "sticker"}
+          className={`p-2 rounded-lg transition-colors ${
+            picker === "sticker"
+              ? "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40"
+              : "text-gray-500 dark:text-gray-400 hover:text-indigo-600"
+          }`}
+        >
+          <StickerIcon size={20} />
+        </button>
+        <div className="flex-1 relative">
+          {commandMenu.length > 0 && (
+            <div className="absolute bottom-full mb-2 left-0 right-0 glass-card !rounded-xl overflow-hidden z-20" role="listbox" aria-label="Commands">
+              {commandMenu.map((c, i) => (
+                <button
+                  key={c.cmd}
+                  onClick={() => {
+                    setInput(c.cmd + " ");
+                    setCommandIndex(0);
+                  }}
+                  role="option"
+                  aria-selected={i === commandIndex}
+                  className={`w-full text-left px-3.5 py-2 text-sm transition-colors ${
+                    i === commandIndex
+                      ? "bg-indigo-500/10"
+                      : "hover:bg-[var(--surface-2)]"
+                  }`}
+                >
+                  <span className="font-mono font-semibold text-indigo-600 dark:text-indigo-400">{c.cmd}</span>
+                  <span className="ml-2 text-slate-500 dark:text-slate-400 text-xs">{c.hint}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          <textarea
+            value={input}
+            rows={1}
+            onChange={(e) => {
+              setInput(e.target.value);
+              setCommandIndex(0);
+            }}
+            onKeyDown={(e) => {
+              if (commandMenu.length > 0 && !input.includes(" ")) {
+                if (e.key === "ArrowDown") {
+                  e.preventDefault();
+                  setCommandIndex((i) => (i + 1) % commandMenu.length);
+                  return;
+                }
+                if (e.key === "ArrowUp") {
+                  e.preventDefault();
+                  setCommandIndex((i) => (i - 1 + commandMenu.length) % commandMenu.length);
+                  return;
+                }
+                if (e.key === "Tab") {
+                  e.preventDefault();
+                  setInput(commandMenu[Math.min(commandIndex, commandMenu.length - 1)].cmd + " ");
+                  setCommandIndex(0);
+                  return;
+                }
+              }
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+              }
+              handleTyping();
+            }}
+            placeholder="Type a message — try / for commands"
+            className="w-full resize-none border border-[var(--border-subtle)] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 max-h-32"
+          />
+        </div>
         <button
           onClick={sendMessage}
           disabled={(!input.trim() && pending.length === 0) || uploading}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+          className="bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-4 py-2 rounded-xl hover:opacity-90 disabled:opacity-50 transition-all active:scale-95"
         >
           Send
         </button>
