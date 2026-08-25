@@ -8,6 +8,7 @@ Pnpm + Turborepo monorepo. Three apps (`apps/frontend`, `apps/admin`, `apps/back
 pnpm install                           # install all deps
 pnpm --filter @theo/database exec prisma generate   # regenerate client after schema changes
 pnpm --filter @theo/database exec prisma db push    # apply schema to local SQLite
+pnpm --filter @theo/database exec prisma db seed    # idempotent demo data (admin/categories/products/group/job)
 pnpm dev                               # turbo dev (all apps)
 pnpm --filter backend dev              # NestJS API :4000
 pnpm --filter frontend dev             # Next.js :3000
