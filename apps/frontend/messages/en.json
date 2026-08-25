@@ -248,6 +248,22 @@
     "demote": "Remove admin",
     "changeCover": "Change cover",
     "addCover": "Add a cover image",
-    "coverUpdated": "Cover updated"
+    "coverUpdated": "Cover updated",
+    "privacy": "Privacy",
+    "privacyPublic": "Public",
+    "privacyPrivate": "Private",
+    "privacyPublicHint": "Anyone can find and join this group.",
+    "privacyPrivateHint": "People must request to join — only members see posts.",
+    "requestToJoin": "Request to join",
+    "requested": "Requested",
+    "requestSentToast": "Request sent — an admin will review it",
+    "requestCancelledToast": "Request cancelled",
+    "joinRequests": "Join requests",
+    "accept": "Accept",
+    "decline": "Decline",
+    "acceptedToast": "Member approved",
+    "declinedToast": "Request declined",
+    "privateGroup": "This group is private",
+    "privateGroupText": "Join the group to see the feed."
   }
 }

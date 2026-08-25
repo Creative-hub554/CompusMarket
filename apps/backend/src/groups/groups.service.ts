@@ -24,6 +24,8 @@ export interface MappedGroupSummary {
   postCount: number;
   isMember: boolean;
   isCreator: boolean;
+  privacy: "PUBLIC" | "PRIVATE";
+  hasPendingRequest?: boolean;
 }
 
 @Injectable()
@@ -39,6 +41,7 @@ export class GroupsService {
       data: {
         name: dto.name.trim(),
         description: dto.description?.trim() || null,
+        privacy: dto.privacy === "PRIVATE" ? "PRIVATE" : "PUBLIC",
         creatorId: userId,
         members: { create: { userId, role: "ADMIN" } },
       },
@@ -61,7 +64,13 @@ export class GroupsService {
       include: {
         _count: { select: { members: true, posts: true } },
         ...(viewerId
-          ? { members: { where: { userId: viewerId }, select: { userId: true } } }
+          ? {
+              members: { where: { userId: viewerId }, select: { userId: true } },
+              requests: {
+                where: { userId: viewerId, status: "PENDING" },
+                select: { id: true },
+              },
+            }
           : {}),
       },
     });
@@ -92,25 +101,42 @@ export class GroupsService {
         })
       : null;
 
+    const pendingRequest =
+      viewerId && !membership
+        ? await this.prisma.groupJoinRequest.findFirst({
+            where: { groupId: id, userId: viewerId, status: "PENDING" },
+            select: { id: true },
+          })
+        : null;
+
+    const isMember = Boolean(membership);
+    const isPrivate = group.privacy === "PRIVATE";
+
     return {
       id: group.id,
       name: group.name,
       description: group.description,
       coverUrl: group.coverUrl,
+      privacy: group.privacy,
       createdAt: group.createdAt,
       creator: group.creator,
       creatorId: group.creatorId,
       memberCount: group._count.members,
       postCount: group._count.posts,
-      isMember: Boolean(membership),
+      isMember,
       isCreator: group.creatorId === viewerId,
       myRole: membership?.role ?? null,
-      members: group.members.map((m) => ({
-        userId: m.userId,
-        role: m.role,
-        joinedAt: m.joinedAt,
-        user: m.user,
-      })),
+      hasPendingRequest: Boolean(pendingRequest),
+      // Private groups only expose the roster to their own members.
+      members:
+        isPrivate && !isMember
+          ? []
+          : group.members.map((m) => ({
+              userId: m.userId,
+              role: m.role,
+              joinedAt: m.joinedAt,
+              user: m.user,
+            })),
     };
   }
 
@@ -221,9 +247,47 @@ export class GroupsService {
   async join(groupId: string, userId: string) {
     const group = await this.prisma.group.findUnique({
       where: { id: groupId },
-      select: { id: true },
+      select: { id: true, privacy: true },
     });
     if (!group) throw new NotFoundException("Group not found");
+
+    // Private groups require an admin-approved join request.
+    if (group.privacy === "PRIVATE") {
+      const existing = await this.prisma.groupJoinRequest.findUnique({
+        where: { groupId_userId: { groupId, userId } },
+      });
+      if (existing?.status === "PENDING") {
+        return { requested: true };
+      }
+      if (existing?.status === "DECLINED") {
+        // Declined users may ask again — reopen the request.
+        await this.prisma.groupJoinRequest.update({
+          where: { id: existing.id },
+          data: { status: "PENDING" },
+        });
+      } else {
+        await this.prisma.groupJoinRequest.create({
+          data: { groupId, userId },
+        });
+        // Notify every group admin so someone can approve.
+        const admins = await this.prisma.groupMember.findMany({
+          where: { groupId, role: "ADMIN" },
+          select: { userId: true },
+        });
+        await Promise.all(
+          admins.map((a) =>
+            this.notifications.notify({
+              userId: a.userId,
+              actorId: userId,
+              kind: "JOIN_REQUEST",
+              entityId: groupId,
+              message: group.id,
+            })
+          )
+        );
+      }
+      return { requested: true };
+    }
 
     await this.prisma.groupMember.upsert({
       where: { groupId_userId: { groupId, userId } },
@@ -232,17 +296,7 @@ export class GroupsService {
     });
 
     // Make sure the member is on the group chat thread if it exists.
-    const thread = await this.prisma.thread.findUnique({
-      where: { groupId },
-      select: { id: true },
-    });
-    if (thread) {
-      await this.prisma.threadParticipant.upsert({
-        where: { threadId_userId: { threadId: thread.id, userId } },
-        create: { threadId: thread.id, userId },
-        update: {},
-      });
-    }
+    await this.syncThreadMembership(groupId, userId);
     return { joined: true };
   }
 
@@ -257,8 +311,90 @@ export class GroupsService {
         "The group creator cannot leave — delete the group instead"
       );
     }
-    await this.prisma.groupMember.deleteMany({ where: { groupId, userId } });
+    const deleted = await this.prisma.groupMember.deleteMany({
+      where: { groupId, userId },
+    });
+    if (deleted.count === 0) {
+      // No membership — maybe they had a pending request: cancel it.
+      await this.prisma.groupJoinRequest.deleteMany({
+        where: { groupId, userId, status: "PENDING" },
+      });
+      return { joined: false, cancelled: true };
+    }
     return { joined: false };
+  }
+
+  /** Pending join requests with requester info. Admin-only (enforced in controller via service). */
+  async listJoinRequests(groupId: string, requesterId: string) {
+    await this.requireRole(groupId, requesterId, "ADMIN");
+    return this.prisma.groupJoinRequest.findMany({
+      where: { groupId, status: "PENDING" },
+      orderBy: { createdAt: "asc" },
+      include: {
+        user: { select: { id: true, name: true, username: true, image: true } },
+      },
+    });
+  }
+
+  async respondToJoinRequest(
+    groupId: string,
+    responderId: string,
+    requestUserId: string,
+    accept: boolean
+  ) {
+    await this.requireRole(groupId, responderId, "ADMIN");
+
+    const request = await this.prisma.groupJoinRequest.findUnique({
+      where: { groupId_userId: { groupId, userId: requestUserId } },
+    });
+    if (!request || request.status !== "PENDING") {
+      throw new NotFoundException("No pending request from that user");
+    }
+
+    if (accept) {
+      await this.prisma.groupJoinRequest.update({
+        where: { id: request.id },
+        data: { status: "ACCEPTED" },
+      });
+      await this.prisma.groupMember.upsert({
+        where: { groupId_userId: { groupId, userId: requestUserId } },
+        create: { groupId, userId: requestUserId },
+        update: {},
+      });
+      await this.syncThreadMembership(groupId, requestUserId);
+    } else {
+      await this.prisma.groupJoinRequest.update({
+        where: { id: request.id },
+        data: { status: "DECLINED" },
+      });
+    }
+    return { accepted: accept };
+  }
+
+  private async syncThreadMembership(groupId: string, userId: string) {
+    const thread = await this.prisma.thread.findUnique({
+      where: { groupId },
+      select: { id: true },
+    });
+    if (thread) {
+      await this.prisma.threadParticipant.upsert({
+        where: { threadId_userId: { threadId: thread.id, userId } },
+        create: { threadId: thread.id, userId },
+        update: {},
+      });
+    }
+  }
+
+  private async requireRole(
+    groupId: string,
+    userId: string,
+    role: "ADMIN"
+  ) {
+    const membership = await this.requireMembership(groupId, userId);
+    if (membership.role !== role) {
+      throw new ForbiddenException(`Only group admins can do that`);
+    }
+    return membership;
   }
 
   async groupPosts(
@@ -267,11 +403,15 @@ export class GroupsService {
     cursorId?: string,
     limit = 10
   ) {
-    const exists = await this.prisma.group.findUnique({
+    const group = await this.prisma.group.findUnique({
       where: { id: groupId },
-      select: { id: true },
+      select: { id: true, privacy: true },
     });
-    if (!exists) throw new NotFoundException("Group not found");
+    if (!group) throw new NotFoundException("Group not found");
+    if (group.privacy === "PRIVATE") {
+      if (!viewerId) throw new ForbiddenException("This group is private");
+      await this.requireMembership(groupId, viewerId);
+    }
     return this.posts.byGroup(groupId, viewerId, cursorId, limit);
   }
 
@@ -353,7 +493,10 @@ export class GroupsService {
   private mapSummary(
     group: Prisma.GroupGetPayload<{
       include: { _count: { select: { members: true; posts: true } } };
-    }> & { members?: { userId: string }[] },
+    }> & {
+      members?: { userId: string }[];
+      requests?: { id: string }[];
+    },
     viewerId?: string
   ): MappedGroupSummary {
     const membership = group.members?.[0];
@@ -367,6 +510,8 @@ export class GroupsService {
       postCount: group._count.posts,
       isMember: membership ? membership.userId === viewerId : false,
       isCreator: group.creatorId === viewerId,
+      privacy: (group as { privacy?: "PUBLIC" | "PRIVATE" }).privacy ?? "PUBLIC",
+      hasPendingRequest: group.requests ? group.requests.length > 0 : undefined,
     };
   }
 }

@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
-import { Users, MessageSquare, ArrowLeft, X, Crown, ImagePlus } from "lucide-react";
+import { Users, MessageSquare, ArrowLeft, X, Crown, ImagePlus, Lock } from "lucide-react";
 import { Composer } from "@/components/social/Composer";
 import { PostCard, type FeedPost } from "@/components/social/PostCard";
 import { Avatar } from "@/components/social/Avatar";
@@ -17,6 +17,7 @@ type GroupDetail = {
   name: string;
   description: string | null;
   coverUrl: string | null;
+  privacy: "PUBLIC" | "PRIVATE";
   creatorId: string;
   creator: { id: string; name: string | null; username: string | null; image: string | null };
   memberCount: number;
@@ -24,11 +25,18 @@ type GroupDetail = {
   isMember: boolean;
   isCreator: boolean;
   myRole: string | null;
+  hasPendingRequest?: boolean;
   members: {
     userId: string;
     role: string;
     user: { id: string; name: string | null; username: string | null; image: string | null };
   }[];
+};
+
+type JoinRequest = {
+  userId: string;
+  user: { id: string; name: string | null; username: string | null; image: string | null };
+  createdAt: string;
 };
 
 export default function GroupDetailPage() {
@@ -45,6 +53,7 @@ export default function GroupDetailPage() {
   const [busy, setBusy] = useState(false);
   const [openingChat, setOpeningChat] = useState(false);
   const [coverUploading, setCoverUploading] = useState(false);
+  const [requests, setRequests] = useState<JoinRequest[]>([]);
 
   const isAdmin = group?.isMember && (group.myRole === "ADMIN" || group.isCreator);
 
@@ -73,19 +82,56 @@ export default function GroupDetailPage() {
       .finally(() => setLoading(false));
   }, [id, loadPosts]);
 
+  const loadRequests = useCallback(async () => {
+    const res = await fetch(`/api/groups/${id}/requests`);
+    if (res.ok) setRequests(await res.json());
+  }, [id]);
+
+  useEffect(() => {
+    if (isAdmin) loadRequests();
+    else setRequests([]);
+  }, [isAdmin, loadRequests]);
+
+  async function respond(requestUserId: string, accept: boolean) {
+    const res = await fetch(
+      `/api/groups/${id}/requests/${requestUserId}/${accept ? "accept" : "decline"}`,
+      { method: "POST" }
+    );
+    if (res.ok) {
+      setRequests((prev) => prev.filter((r) => r.userId !== requestUserId));
+      if (accept) {
+        setGroup((g) => (g ? { ...g, memberCount: g.memberCount + 1 } : g));
+      }
+      toast.success(accept ? t("acceptedToast") : t("declinedToast"));
+    } else {
+      const err = await res.json().catch(() => ({}));
+      toast.error(err.error || t("actionFailed"));
+    }
+  }
+
   async function toggleMembership() {
     if (!group) return;
     setBusy(true);
-    const action = group.isMember ? "leave" : "join";
+    const action =
+      !group.isMember && group.hasPendingRequest ? "leave" : group.isMember ? "leave" : "join";
     const res = await fetch(`/api/groups/${id}/${action}`, { method: "POST" });
     if (res.ok) {
-      const { joined } = await res.json();
-      setGroup({
-        ...group,
-        isMember: joined,
-        memberCount: group.memberCount + (joined ? 1 : -1),
-      });
-      toast.success(joined ? t("joinedToast") : t("leftToast"));
+      const data = await res.json();
+      if (data.requested) {
+        setGroup({ ...group, hasPendingRequest: true });
+        toast.success(t("requestSentToast"));
+      } else if (data.cancelled) {
+        setGroup({ ...group, hasPendingRequest: false });
+        toast.success(t("requestCancelledToast"));
+      } else {
+        const joined = data.joined as boolean;
+        setGroup({
+          ...group,
+          isMember: joined,
+          memberCount: group.memberCount + (joined ? 1 : -1),
+        });
+        toast.success(joined ? t("joinedToast") : t("leftToast"));
+      }
     } else {
       const err = await res.json().catch(() => ({}));
       toast.error(err.error || t("actionFailed"));
@@ -241,8 +287,13 @@ export default function GroupDetailPage() {
         ) : null}
 
         <div className="p-6">
-        <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+        <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 inline-flex items-center gap-2">
           {group.name}
+          {group.privacy === "PRIVATE" && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5">
+              <Lock size={11} /> {t("privacyPrivate")}
+            </span>
+          )}
         </h1>
         {group.description && (
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5">
@@ -263,9 +314,23 @@ export default function GroupDetailPage() {
             <button
               onClick={toggleMembership}
               disabled={busy}
-              className={group.isMember ? "btn-ghost" : "btn-primary"}
+              className={
+                group.isMember
+                  ? "btn-ghost"
+                  : group.hasPendingRequest
+                    ? "btn-ghost !text-indigo-600 dark:!text-indigo-400"
+                    : "btn-primary"
+              }
             >
-              {busy ? "…" : group.isMember ? t("leave") : t("join")}
+              {busy
+                ? "…"
+                : group.isMember
+                  ? t("leave")
+                  : group.hasPendingRequest
+                    ? t("requested")
+                    : group.privacy === "PRIVATE"
+                      ? t("requestToJoin")
+                      : t("join")}
             </button>
           )}
           {session?.user && group.isMember && (
@@ -340,39 +405,83 @@ export default function GroupDetailPage() {
             </div>
           </div>
         )}
+        {isAdmin && requests.length > 0 && (
+          <div className="mt-5 pt-4 border-t border-[var(--border-subtle)]">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2.5">
+              {t("joinRequests")}
+            </p>
+            <div className="space-y-2">
+              {requests.map((r) => (
+                <div
+                  key={r.userId}
+                  className="flex items-center gap-2.5 rounded-xl bg-[var(--surface-2)] px-3 py-2"
+                >
+                  <Link href={`/profile/${r.userId}`} className="flex items-center gap-2 flex-1 min-w-0 no-underline">
+                    <Avatar user={r.user} size={30} />
+                    <span className="text-sm text-slate-700 dark:text-slate-300 truncate">
+                      {r.user.name || r.user.username}
+                    </span>
+                  </Link>
+                  <button
+                    onClick={() => respond(r.userId, true)}
+                    className="btn-primary !py-1 !px-3 text-xs"
+                  >
+                    {t("accept")}
+                  </button>
+                  <button
+                    onClick={() => respond(r.userId, false)}
+                    className="btn-ghost"
+                  >
+                    {t("decline")}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         </div>
       </div>
 
-      {group.isMember && (
-        <div className="mb-5">
-          <Composer
-            groupId={group.id}
-            onPosted={(post) => setPosts((prev) => [post as FeedPost, ...prev])}
-          />
+      {group.privacy === "PRIVATE" && !group.isMember ? (
+        <div className="text-center py-12 card rounded-2xl">
+          <Lock size={36} className="mx-auto text-slate-300 dark:text-slate-600 mb-3" />
+          <p className="font-semibold text-slate-900 dark:text-slate-100">{t("privateGroup")}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t("privateGroupText")}</p>
         </div>
+      ) : (
+        <>
+          {group.isMember && (
+            <div className="mb-5">
+              <Composer
+                groupId={group.id}
+                onPosted={(post) => setPosts((prev) => [post as FeedPost, ...prev])}
+              />
+            </div>
+          )}
+
+          <div className="space-y-4">
+            {posts.map((post) => (
+              <PostCard key={post.id} post={post} />
+            ))}
+            {posts.length === 0 && (
+              <div className="text-center py-12 card rounded-2xl">
+                <p className="font-semibold text-slate-900 dark:text-slate-100">{t("noPosts")}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t("noPostsText")}</p>
+              </div>
+            )}
+            {nextCursor && (
+              <div className="text-center pt-1">
+                <button
+                  onClick={() => loadPosts(nextCursor)}
+                  className="btn-ghost"
+                >
+                  {t("loadMore")}
+                </button>
+              </div>
+            )}
+          </div>
+        </>
       )}
-
-      <div className="space-y-4">
-        {posts.map((post) => (
-          <PostCard key={post.id} post={post} />
-        ))}
-        {posts.length === 0 && (
-          <div className="text-center py-12 card rounded-2xl">
-            <p className="font-semibold text-slate-900 dark:text-slate-100">{t("noPosts")}</p>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t("noPostsText")}</p>
-          </div>
-        )}
-        {nextCursor && (
-          <div className="text-center pt-1">
-            <button
-              onClick={() => loadPosts(nextCursor)}
-              className="btn-ghost"
-            >
-              {t("loadMore")}
-            </button>
-          </div>
-        )}
-      </div>
     </div>
   );
 }

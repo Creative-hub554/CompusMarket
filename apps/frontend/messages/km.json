@@ -248,6 +248,22 @@
     "demote": "លុបតំណែងអ្នកគ្រប់គ្រង",
     "changeCover": "ផ្លាស់ប្តូររូបគម្រប",
     "addCover": "បន្ថែមរូបគម្រប",
-    "coverUpdated": "បានធ្វើបច្ចុប្បន្នភាពរូបគម្រប"
+    "coverUpdated": "បានធ្វើបច្ចុប្បន្នភាពរូបគម្រប",
+    "privacy": "ភាពឯកជន",
+    "privacyPublic": "សាធារណៈ",
+    "privacyPrivate": "ឯកជន",
+    "privacyPublicHint": "អ្នកណាក៏អាចរកឃើញ និងចូលរួមក្រុមនេះបាន។",
+    "privacyPrivateHint": "អ្នកត្រូវស្នើសុំចូល — តែសមាជិកប៉ុណ្ណោះដែលឃើញប្រកាស។",
+    "requestToJoin": "ស្នើសុំចូលរួម",
+    "requested": "បានស្នើសុំ",
+    "requestSentToast": "បានផ្ញើសំណើ — អ្នកគ្រប់គ្រងនឹងពិនិត្យ",
+    "requestCancelledToast": "បានបោះបង់សំណើ",
+    "joinRequests": "សំណើចូលរួម",
+    "accept": "ព្រមទទួល",
+    "decline": "បដិសេធ",
+    "acceptedToast": "អ្នកបានអនុម័តសមាជិក",
+    "declinedToast": "បានបដិសេធសំណើ",
+    "privateGroup": "ក្រុមនេះជាឯកជន",
+    "privateGroupText": "ចូលរួមក្រុមដើម្បីមើលផ្ទាំងប្រកាស។"
   }
 }

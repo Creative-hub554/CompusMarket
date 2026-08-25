@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
-import { Users, Plus, MessageSquare } from "lucide-react";
+import { Users, Plus, MessageSquare, Lock } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 
 type GroupSummary = {
@@ -15,6 +15,8 @@ type GroupSummary = {
   postCount: number;
   isMember: boolean;
   isCreator: boolean;
+  privacy: "PUBLIC" | "PRIVATE";
+  hasPendingRequest?: boolean;
 };
 
 export default function GroupsPage() {
@@ -27,6 +29,7 @@ export default function GroupsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [privacy, setPrivacy] = useState<"PUBLIC" | "PRIVATE">("PUBLIC");
   const [creating, setCreating] = useState(false);
 
   const load = useCallback(async (cursor?: string) => {
@@ -45,20 +48,43 @@ export default function GroupsPage() {
 
   async function toggleMembership(group: GroupSummary) {
     setBusyId(group.id);
-    const action = group.isMember ? "leave" : "join";
+    // Leaving a private group with a pending request cancels the request.
+    const action =
+      !group.isMember && group.hasPendingRequest ? "leave" : group.isMember ? "leave" : "join";
     const res = await fetch(`/api/groups/${group.id}/${action}`, {
       method: "POST",
     });
     if (res.ok) {
-      const { joined } = await res.json();
-      setGroups((prev) =>
-        prev.map((g) =>
-          g.id === group.id
-            ? { ...g, isMember: joined, memberCount: g.memberCount + (joined ? 1 : -1) }
-            : g
-        )
-      );
-      toast.success(joined ? t("joinedToast") : t("leftToast"));
+      const data = await res.json();
+      if (data.requested) {
+        setGroups((prev) =>
+          prev.map((g) =>
+            g.id === group.id ? { ...g, hasPendingRequest: true } : g
+          )
+        );
+        toast.success(t("requestSentToast"));
+      } else if (data.cancelled) {
+        setGroups((prev) =>
+          prev.map((g) =>
+            g.id === group.id ? { ...g, hasPendingRequest: false } : g
+          )
+        );
+        toast.success(t("requestCancelledToast"));
+      } else {
+        const joined = data.joined as boolean;
+        setGroups((prev) =>
+          prev.map((g) =>
+            g.id === group.id
+              ? {
+                  ...g,
+                  isMember: joined,
+                  memberCount: g.memberCount + (joined ? 1 : -1),
+                }
+              : g
+          )
+        );
+        toast.success(joined ? t("joinedToast") : t("leftToast"));
+      }
     } else {
       const err = await res.json().catch(() => ({}));
       toast.error(err.error || t("actionFailed"));
@@ -73,7 +99,11 @@ export default function GroupsPage() {
     const res = await fetch("/api/groups", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name.trim(), description: description.trim() || undefined }),
+      body: JSON.stringify({
+        name: name.trim(),
+        description: description.trim() || undefined,
+        privacy,
+      }),
     });
     if (res.ok) {
       const group = await res.json();
@@ -140,6 +170,23 @@ export default function GroupsPage() {
               placeholder={t("descriptionPlaceholder")}
             />
           </div>
+          <div>
+            <label htmlFor="group-privacy" className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">
+              {t("privacy")}
+            </label>
+            <select
+              id="group-privacy"
+              value={privacy}
+              onChange={(e) => setPrivacy(e.target.value as "PUBLIC" | "PRIVATE")}
+              className="input-field"
+            >
+              <option value="PUBLIC">{t("privacyPublic")}</option>
+              <option value="PRIVATE">{t("privacyPrivate")}</option>
+            </select>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              {privacy === "PRIVATE" ? t("privacyPrivateHint") : t("privacyPublicHint")}
+            </p>
+          </div>
           <div className="flex justify-end gap-2">
             <button type="button" onClick={() => setShowCreate(false)} className="btn-ghost">
               {t("cancel")}
@@ -171,8 +218,11 @@ export default function GroupsPage() {
               className="card rounded-2xl p-5 flex items-center gap-4"
             >
               <Link href={`/community/groups/${group.id}`} className="flex-1 min-w-0 no-underline">
-                <h2 className="font-bold text-slate-900 dark:text-slate-100 group-hover:text-indigo-600">
+                <h2 className="font-bold text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 inline-flex items-center gap-1.5">
                   {group.name}
+                  {group.privacy === "PRIVATE" && (
+                    <Lock size={13} className="text-slate-400" aria-label={t("privacyPrivate")} />
+                  )}
                 </h2>
                 {group.description && (
                   <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">
@@ -199,9 +249,23 @@ export default function GroupsPage() {
                   <button
                     onClick={() => toggleMembership(group)}
                     disabled={busyId === group.id}
-                    className={group.isMember ? "btn-ghost" : "btn-primary !py-1.5"}
+                    className={
+                      group.isMember
+                        ? "btn-ghost"
+                        : group.hasPendingRequest
+                          ? "btn-ghost !text-indigo-600 dark:!text-indigo-400"
+                          : "btn-primary !py-1.5"
+                    }
                   >
-                    {busyId === group.id ? "…" : group.isMember ? t("leave") : t("join")}
+                    {busyId === group.id
+                      ? "…"
+                      : group.isMember
+                        ? t("leave")
+                        : group.hasPendingRequest
+                          ? t("requested")
+                          : group.privacy === "PRIVATE"
+                            ? t("requestToJoin")
+                            : t("join")}
                   </button>
                 )}
               </div>

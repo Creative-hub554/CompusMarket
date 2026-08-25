@@ -102,6 +102,32 @@ export class GroupsController {
     return this.groups.leave(id, req.user.userId);
   }
 
+  @Get(":id/requests")
+  @UseGuards(AuthGuard("jwt"))
+  joinRequests(@Req() req: AuthUser, @Param("id") id: string) {
+    return this.groups.listJoinRequests(id, req.user.userId);
+  }
+
+  @Post(":id/requests/:userId/accept")
+  @UseGuards(AuthGuard("jwt"))
+  acceptRequest(
+    @Req() req: AuthUser,
+    @Param("id") id: string,
+    @Param("userId") userId: string
+  ) {
+    return this.groups.respondToJoinRequest(id, req.user.userId, userId, true);
+  }
+
+  @Post(":id/requests/:userId/decline")
+  @UseGuards(AuthGuard("jwt"))
+  declineRequest(
+    @Req() req: AuthUser,
+    @Param("id") id: string,
+    @Param("userId") userId: string
+  ) {
+    return this.groups.respondToJoinRequest(id, req.user.userId, userId, false);
+  }
+
   @Get(":id/posts")
   @UseGuards(OptionalJwtGuard)
   posts(

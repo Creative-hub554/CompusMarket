@@ -221,4 +221,63 @@ describe("GroupsService", () => {
       service.setMemberRole("g1", "u2", "u3", "ADMIN")
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
+
+  it("creates a join request instead of joining a private group", async () => {
+    mockPrisma.group.findUnique.mockResolvedValue({
+      id: "g1",
+      privacy: "PRIVATE",
+    });
+    mockPrisma.groupJoinRequest = {
+      findUnique: vi.fn().mockResolvedValue(null),
+      create: vi.fn().mockResolvedValue({ id: "r1" }),
+      update: vi.fn(),
+      findFirst: vi.fn(),
+      deleteMany: vi.fn(),
+    };
+    mockPrisma.groupMember.findMany.mockResolvedValue([{ userId: "u1" }]);
+
+    const result = await service.join("g1", "u2");
+
+    expect(mockPrisma.groupJoinRequest.create).toHaveBeenCalledWith({
+      data: { groupId: "g1", userId: "u2" },
+    });
+    expect(mockNotifications.notify).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: "u1", kind: "JOIN_REQUEST" })
+    );
+    expect(result).toEqual({ requested: true });
+  });
+
+  it("hides group posts from non-members of a private group", async () => {
+    mockPrisma.group.findUnique.mockResolvedValue({
+      id: "g1",
+      privacy: "PRIVATE",
+    });
+
+    await expect(
+      service.groupPosts("g1", "u-outsider")
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it("accepts a pending request and adds the requester as a member", async () => {
+    mockPrisma.group.findUnique.mockResolvedValue({ creatorId: "u1" });
+    mockPrisma.groupMember.findUnique.mockResolvedValue({ role: "ADMIN" });
+    mockPrisma.groupJoinRequest = {
+      findUnique: vi.fn().mockResolvedValue({ id: "r1", status: "PENDING" }),
+      update: vi.fn().mockResolvedValue({}),
+      create: vi.fn(),
+      findFirst: vi.fn(),
+      deleteMany: vi.fn(),
+    };
+    mockPrisma.groupMember.upsert.mockResolvedValue({});
+    mockPrisma.thread.findUnique.mockResolvedValue(null);
+
+    const result = await service.respondToJoinRequest("g1", "u1", "u2", true);
+
+    expect(mockPrisma.groupMember.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { groupId_userId: { groupId: "g1", userId: "u2" } },
+      })
+    );
+    expect(result).toEqual({ accepted: true });
+  });
 });

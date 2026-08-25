@@ -1,4 +1,4 @@
-import { IsOptional, IsString, MaxLength, MinLength } from "class-validator";
+import { IsEnum, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 
 export class CreateGroupDto {
   @IsString()
@@ -10,6 +10,10 @@ export class CreateGroupDto {
   @IsString()
   @MaxLength(500)
   description?: string;
+
+  @IsOptional()
+  @IsEnum(["PUBLIC", "PRIVATE"])
+  privacy?: "PUBLIC" | "PRIVATE";
 }
 
 export class UpdateGroupDto {

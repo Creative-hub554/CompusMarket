@@ -99,6 +99,12 @@ enum NotificationKind {
   FOLLOW
   MESSAGE
   GROUP_POST
+  JOIN_REQUEST
+}
+
+enum GroupPrivacy {
+  PUBLIC
+  PRIVATE
 }
 
 model User {
@@ -142,6 +148,7 @@ model User {
   threadParticipants  ThreadParticipant[]
   groupsCreated       Group[]             @relation("GroupsCreated")
   groupMemberships    GroupMember[]       @relation("GroupMemberships")
+  groupJoinRequests   GroupJoinRequest[]  @relation("GroupJoinRequests")
 
   documentFolders DocumentFolder[]
   documents       Document[]
@@ -673,20 +680,42 @@ enum GroupRole {
 }
 
 model Group {
-  id          String   @id @default(uuid())
+  id          String       @id @default(uuid())
   name        String
   description String?
   coverUrl    String?
+  privacy     GroupPrivacy @default(PUBLIC)
   creatorId   String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
-  creator User          @relation("GroupsCreated", fields: [creatorId], references: [id], onDelete: Cascade)
-  members GroupMember[]
-  posts   Post[]
-  thread  Thread?
+  creator  User               @relation("GroupsCreated", fields: [creatorId], references: [id], onDelete: Cascade)
+  members  GroupMember[]
+  posts    Post[]
+  thread   Thread?
+  requests GroupJoinRequest[]
 
   @@index([createdAt])
+}
+
+model GroupJoinRequest {
+  id        String   @id @default(uuid())
+  groupId   String
+  userId    String
+  status    JoinRequestStatus @default(PENDING)
+  createdAt DateTime @default(now())
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation("GroupJoinRequests", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@index([userId])
+}
+
+enum JoinRequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
 }
 
 model GroupMember {
