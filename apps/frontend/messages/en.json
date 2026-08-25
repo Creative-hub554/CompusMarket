@@ -33,7 +33,8 @@
     "products": "Products",
     "sellerOrders": "Seller Orders",
     "toggleTheme": "Toggle dark mode",
-    "groups": "Groups"
+    "groups": "Groups",
+    "savedPosts": "Saved posts"
   },
   "home": {
     "heroSubtitle": "Premium second-hand electronics, verified sellers, community powered.",
@@ -272,5 +273,15 @@
     "unpin": "Unpin post",
     "pinnedToast": "Post pinned",
     "unpinnedToast": "Post unpinned"
+  },
+  "saved": {
+    "title": "Saved posts",
+    "subtitle": "Posts you bookmarked from the feed and groups",
+    "signInRequired": "Sign in to see your saved posts.",
+    "signIn": "Sign In",
+    "empty": "Nothing saved yet",
+    "emptyText": "Tap the bookmark on any post to save it for later.",
+    "browseFeed": "Browse the feed",
+    "loadMore": "Load more"
   }
 }

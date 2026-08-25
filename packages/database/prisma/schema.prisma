@@ -108,6 +108,19 @@ enum GroupPrivacy {
   PRIVATE
 }
 
+model Bookmark {
+  id        String   @id @default(uuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation("Bookmarks", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([userId])
+}
+
 model User {
   id            String    @id @default(uuid())
   email         String    @unique
@@ -140,6 +153,7 @@ model User {
   posts               Post[]             @relation("Posts")
   comments            Comment[]          @relation("Comments")
   reactions           Reaction[]         @relation("Reactions")
+  bookmarks           Bookmark[]         @relation("Bookmarks")
   stories             Story[]            @relation("Stories")
   storyViews          StoryView[]        @relation("StoryViews")
   following           Follow[]           @relation("Following")
@@ -670,6 +684,7 @@ model Post {
   media     PostMedia[]
   reactions Reaction[]
   comments  Comment[]
+  bookmarks Bookmark[]
 
   @@index([authorId])
   @@index([groupId])

@@ -8,6 +8,7 @@ const POST_INCLUDE = {
   author: { select: { id: true, name: true, username: true, image: true } },
   media: { orderBy: { position: Prisma.SortOrder.asc } },
   reactions: { select: { emoji: true, userId: true } },
+  bookmarks: { select: { userId: true } },
   _count: { select: { comments: true } },
 } satisfies Prisma.PostInclude;
 
@@ -25,6 +26,7 @@ export interface MappedPost {
   commentCount: number;
   viewerReaction: string | null;
   pinned: boolean;
+  bookmarked: boolean;
 }
 
 export function mapPost(post: PostWithRelations, viewerId?: string): MappedPost {
@@ -50,6 +52,9 @@ export function mapPost(post: PostWithRelations, viewerId?: string): MappedPost 
     commentCount: post._count.comments,
     viewerReaction: viewerId ? post.reactions.find((r) => r.userId === viewerId)?.emoji ?? null : null,
     pinned: Boolean(post.pinnedAt),
+    bookmarked: viewerId
+      ? post.bookmarks.some((b) => b.userId === viewerId)
+      : false,
   };
 }
 
@@ -150,6 +155,41 @@ export class PostsService {
     limit = 10
   ): Promise<{ items: MappedPost[]; nextCursor: string | null }> {
     return this.queryFeed({ authorId }, viewerId, cursorId, limit);
+  }
+
+  /** Posts the viewer has bookmarked, newest bookmark first. */
+  async bookmarksFor(userId: string, cursorId?: string, limit = 10) {
+    const bookmarks = await this.prisma.bookmark.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      take: limit + 1,
+      ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
+      include: { post: { include: POST_INCLUDE } },
+    });
+    const hasMore = bookmarks.length > limit;
+    const items = bookmarks
+      .slice(0, limit)
+      .map((b) => mapPost(b.post, userId));
+    return { items, nextCursor: hasMore ? items[items.length - 1].id : null };
+  }
+
+  /** Toggle the viewer's bookmark on a post. */
+  async toggleBookmark(userId: string, postId: string) {
+    const post = await this.prisma.post.findUnique({
+      where: { id: postId },
+      select: { id: true },
+    });
+    if (!post) throw new NotFoundException("Post not found");
+
+    const existing = await this.prisma.bookmark.findUnique({
+      where: { postId_userId: { postId, userId } },
+    });
+    if (existing) {
+      await this.prisma.bookmark.delete({ where: { id: existing.id } });
+      return { bookmarked: false };
+    }
+    await this.prisma.bookmark.create({ data: { postId, userId } });
+    return { bookmarked: true };
   }
 
   async byGroup(

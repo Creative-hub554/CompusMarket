@@ -52,6 +52,13 @@ export class SocialController {
     return this.posts.feed(req.user.userId, cursor, limit ? parseInt(limit) : undefined);
   }
 
+  /** Declared before posts/:id so "bookmarks" isn't captured as an id. */
+  @Get("posts/bookmarks")
+  @UseGuards(AuthGuard("jwt"))
+  bookmarks(@Req() req: AuthUser, @Query("cursor") cursor?: string, @Query("limit") limit?: string) {
+    return this.posts.bookmarksFor(req.user.userId, cursor, limit ? parseInt(limit) : undefined);
+  }
+
   @Get("posts/:id")
   @UseGuards(OptionalJwtGuard)
   getPost(@Req() req: AuthUser, @Param("id") id: string) {
@@ -78,6 +85,12 @@ export class SocialController {
   @UseGuards(AuthGuard("jwt"))
   react(@Req() req: AuthUser, @Param("id") id: string, @Body() dto: ReactDto) {
     return this.posts.react(req.user.userId, id, dto.emoji);
+  }
+
+  @Post("posts/:id/bookmark")
+  @UseGuards(AuthGuard("jwt"))
+  toggleBookmark(@Req() req: AuthUser, @Param("id") id: string) {
+    return this.posts.toggleBookmark(req.user.userId, id);
   }
 
   @Get("posts/:id/comments")

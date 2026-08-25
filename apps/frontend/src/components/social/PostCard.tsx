@@ -36,6 +36,7 @@ function renderContent(content: string) {
 
 export type FeedPost = {
   pinned?: boolean;
+  bookmarked?: boolean;
   id: string;
   content: string;
   createdAt: string;
@@ -83,6 +84,7 @@ export function PostCard({
   const { data: session } = useSession();
   const meId = session?.user?.id;
   const [reactions, setReactions] = useState(post.reactions);
+  const [bookmarked, setBookmarked] = useState(Boolean(post.bookmarked));
   const [myReaction, setMyReaction] = useState<string | null>(post.viewerReaction);
   const [showPicker, setShowPicker] = useState(false);
   const [showComments, setShowComments] = useState(false);
@@ -134,6 +136,14 @@ export function PostCard({
 
   const totalReactions = reactions.reduce((sum, r) => sum + r.count, 0);
 
+  async function toggleBookmark() {
+    const res = await fetch(`/api/posts/${post.id}/bookmark`, { method: "POST" });
+    if (res.ok) {
+      const { bookmarked: saved } = await res.json();
+      setBookmarked(saved);
+    }
+  }
+
   return (
     <article className="bg-[var(--surface)] rounded-2xl border border-[var(--border-subtle)] shadow-sm hover:shadow-md transition-shadow">
       {post.pinned && (
@@ -166,6 +176,20 @@ export function PostCard({
             }`}
           >
             📌
+          </button>
+        )}
+        {meId && (
+          <button
+            onClick={toggleBookmark}
+            aria-label={bookmarked ? "Remove bookmark" : "Save post"}
+            title={bookmarked ? "Remove bookmark" : "Save post"}
+            className={`px-2 text-lg transition-colors ${
+              bookmarked
+                ? "text-indigo-500"
+                : "text-gray-300 hover:text-indigo-500"
+            }`}
+          >
+            {bookmarked ? "🔖" : "📑"}
           </button>
         )}
         {meId === post.author.id && (

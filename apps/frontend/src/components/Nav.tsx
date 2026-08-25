@@ -231,6 +231,13 @@ export function Nav() {
                       {t("editProfile")}
                     </Link>
                     <Link
+                      href="/saved"
+                      onClick={() => setMenuOpen(false)}
+                      className={itemCls}
+                    >
+                      {t("savedPosts")}
+                    </Link>
+                    <Link
                       href="/support"
                       onClick={() => setMenuOpen(false)}
                       className={itemCls}
