@@ -32,8 +32,11 @@ export class ProductsController {
   }
 
   @Get()
-  findAll(@Query("inStock") inStock?: string) {
-    return this.productsService.findAll(inStock === "true");
+  findAll(@Query("inStock") inStock?: string, @Query("ids") ids?: string) {
+    const idList = ids
+      ? ids.split(",").map((s) => s.trim()).filter(Boolean)
+      : undefined;
+    return this.productsService.findAll(inStock === "true", idList);
   }
 
   @Get("promos")

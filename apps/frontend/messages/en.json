@@ -87,7 +87,8 @@
     "reviewFailed": "Could not submit your review",
     "submitting": "Submitting...",
     "submitReview": "Submit review",
-    "related": "You may also like"
+    "related": "You may also like",
+    "recentlyViewed": "Recently viewed"
   },
   "cart": {
     "loading": "Loading...",

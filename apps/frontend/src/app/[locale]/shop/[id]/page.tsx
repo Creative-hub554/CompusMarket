@@ -8,6 +8,7 @@ import { AddToCartButton } from "@/components/AddToCartButton";
 import { ChatWithSellerButton } from "@/components/ChatWithSellerButton";
 import { ProductTabs } from "./ProductTabs";
 import { ProductCard } from "@/components/ProductCard";
+import { RecentlyViewed } from "@/components/shop/RecentlyViewed";
 import { languageAlternates, getSiteUrl } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -190,6 +191,8 @@ export default async function ProductDetailPage({ params }: Props) {
 
       {/* Tabs */}
       <ProductTabs product={product} />
+
+      <RecentlyViewed currentId={product.id} />
 
       {related.length > 0 && (
         <section className="mt-12">

@@ -27,9 +27,13 @@ export class ProductsService {
     return this.generateQr(product.id);
   }
 
-  async findAll(inStock?: boolean): Promise<ProductWithCategory[]> {
+  async findAll(inStock?: boolean, ids?: string[]): Promise<ProductWithCategory[]> {
     return this.prisma.product.findMany({
-      where: { status: "ACTIVE", ...(inStock ? { stock: { gt: 0 } } : {}) },
+      where: {
+        status: "ACTIVE",
+        ...(inStock ? { stock: { gt: 0 } } : {}),
+        ...(ids && ids.length > 0 ? { id: { in: ids.slice(0, 24) } } : {}),
+      },
       include: { category: true },
       orderBy: { createdAt: "desc" },
     });
