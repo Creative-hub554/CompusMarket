@@ -18,6 +18,7 @@ const ALLOWED_PREFIXES = [
   "/api/articles",
   "/api/threads",
   "/api/posts",
+  "/api/groups",
   "/api/feed",
   "/api/profiles",
   "/api/users",

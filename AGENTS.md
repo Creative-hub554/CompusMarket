@@ -79,7 +79,7 @@ Backend modules cover more than commerce: `auth`, `products`, `orders`, `cart`, 
 
 ## Frontend auth proxy
 
-Writes go through `apps/frontend/src/app/api/[...proxy]/route.ts` which re-signs the JWT from the NextAuth session. `ALLOWED_PREFIXES` includes: `/api/ai`, `/api/resumes`, `/api/notes`, `/api/flashcards`, `/api/quizzes`, `/api/diagrams`, `/api/documents`, `/api/articles`, `/api/threads`, `/api/posts`, `/api/feed`, `/api/profiles`, `/api/users`, `/api/suggestions`, `/api/stories`, `/api/notifications`, `/api/support`, `/api/warranties`, `/api/upload`, `/api/search`, `/api/categories`, `/api/products`, `/api/orders`, `/api/jobs`, `/api/cart`, `/api/health`. When adding a new NestJS module, add its prefix here too.
+Writes go through `apps/frontend/src/app/api/[...proxy]/route.ts` which re-signs the JWT from the NextAuth session. `ALLOWED_PREFIXES` includes: `/api/ai`, `/api/resumes`, `/api/notes`, `/api/flashcards`, `/api/quizzes`, `/api/diagrams`, `/api/documents`, `/api/articles`, `/api/threads`, `/api/posts`, `/api/groups`, `/api/feed`, `/api/profiles`, `/api/users`, `/api/suggestions`, `/api/stories`, `/api/notifications`, `/api/support`, `/api/warranties`, `/api/upload`, `/api/search`, `/api/categories`, `/api/products`, `/api/orders`, `/api/jobs`, `/api/cart`, `/api/health`. When adding a new NestJS module, add its prefix here too.
 
 ## Real-time notifications
 
@@ -87,7 +87,7 @@ Shared `EventEmitter` singleton at `apps/backend/src/realtime/notification.event
 
 ## Frontend auth proxy
 
-Writes go through `apps/frontend/src/app/api/[...proxy]/route.ts` which re-signs the JWT from the NextAuth session. `ALLOWED_PREFIXES` includes: `/api/ai`, `/api/resumes`, `/api/notes`, `/api/flashcards`, `/api/quizzes`, `/api/diagrams`, `/api/documents`, `/api/articles`, `/api/threads`, `/api/posts`, `/api/feed`, `/api/profiles`, `/api/users`, `/api/suggestions`, `/api/stories`, `/api/notifications`, `/api/support`, `/api/warranties`, `/api/upload`, `/api/search`, `/api/categories`, `/api/products`, `/api/orders`, `/api/jobs`, `/api/cart`, `/api/health`. When adding a new NestJS module, add its prefix here too.
+Writes go through `apps/frontend/src/app/api/[...proxy]/route.ts` which re-signs the JWT from the NextAuth session. `ALLOWED_PREFIXES` includes: `/api/ai`, `/api/resumes`, `/api/notes`, `/api/flashcards`, `/api/quizzes`, `/api/diagrams`, `/api/documents`, `/api/articles`, `/api/threads`, `/api/posts`, `/api/groups`, `/api/feed`, `/api/profiles`, `/api/users`, `/api/suggestions`, `/api/stories`, `/api/notifications`, `/api/support`, `/api/warranties`, `/api/upload`, `/api/search`, `/api/categories`, `/api/products`, `/api/orders`, `/api/jobs`, `/api/cart`, `/api/health`. When adding a new NestJS module, add its prefix here too.
 
 ## Real-time notifications
 
