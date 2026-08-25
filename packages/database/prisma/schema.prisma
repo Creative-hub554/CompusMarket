@@ -98,6 +98,7 @@ enum NotificationKind {
   COMMENT
   FOLLOW
   MESSAGE
+  GROUP_POST
 }
 
 model User {

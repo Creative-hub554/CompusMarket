@@ -53,7 +53,7 @@ Never blanket-kill `node.exe` — `.opencode/` tooling runs on node.
 
 Workspace aliases: `@theo/database`, `@theo/ui`; both Next apps also alias `@` → `./src`.
 
-Backend modules cover more than commerce: `auth`, `products`, `orders`, `cart`, `categories`, `search`, `upload`, `warranties`, `articles`, `resumes`, `jobs`, `ai`, `notes`, `flashcards`, `quizzes`, `diagrams`, `documents`, `health`, `social` (posts/follows/stories/notifications). Chat is thread-based (`threads.service.ts` + Socket.IO `chat.gateway.ts`) — there is no `Conversation` model.
+Backend modules cover more than commerce: `auth`, `products`, `orders`, `cart`, `categories`, `search`, `upload`, `warranties`, `articles`, `resumes`, `jobs`, `groups`, `ai`, `notes`, `flashcards`, `quizzes`, `diagrams`, `documents`, `health`, `social` (posts/follows/stories/notifications). Chat is thread-based (`threads.service.ts` + Socket.IO `chat.gateway.ts`) — there is no `Conversation` model. Group chat = one `Thread` per group (`Thread.groupId @unique`, participants mirror membership); group posts fan out `GROUP_POST` notifications from `groups.service`. Chat stickers (`sticker:emoji` content prefix) and slash commands (`/shrug`, `/me`, …) are client-side conventions in `messages/[id]` — the backend stores them as plain content.
 
 ## Frontend i18n (critical conventions)
 

@@ -7,6 +7,7 @@ import {
 import { Prisma } from "@theo/database";
 import { PrismaService } from "../prisma/prisma.service";
 import { PostsService } from "../social/posts.service";
+import { NotificationsService } from "../social/notifications.service";
 import { CreatePostDto } from "../social/dto/social.dto";
 import { CreateGroupDto, UpdateGroupDto } from "./dto/groups.dto";
 
@@ -29,7 +30,8 @@ export interface MappedGroupSummary {
 export class GroupsService {
   constructor(
     private prisma: PrismaService,
-    private posts: PostsService
+    private posts: PostsService,
+    private notifications: NotificationsService
   ) {}
 
   async create(userId: string, dto: CreateGroupDto): Promise<MappedGroupSummary> {
@@ -203,7 +205,35 @@ export class GroupsService {
     dto: CreatePostDto
   ) {
     await this.requireMembership(groupId, userId);
-    return this.posts.create(userId, dto, groupId);
+    const post = await this.posts.create(userId, dto, groupId);
+
+    // Fan out a GROUP_POST notification to every other member.
+    const [group, members] = await Promise.all([
+      this.prisma.group.findUnique({
+        where: { id: groupId },
+        select: { name: true },
+      }),
+      this.prisma.groupMember.findMany({
+        where: { groupId, userId: { not: userId } },
+        select: { userId: true },
+      }),
+    ]);
+    const recipients = members.filter((m) => m.userId !== userId);
+    if (group) {
+      await Promise.all(
+        recipients.map((m) =>
+          this.notifications.notify({
+            userId: m.userId,
+            actorId: userId,
+            kind: "GROUP_POST",
+            entityId: groupId,
+            message: group.name,
+          })
+        )
+      );
+    }
+
+    return post;
   }
 
   /**

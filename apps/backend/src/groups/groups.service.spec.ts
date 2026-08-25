@@ -3,6 +3,7 @@ import { BadRequestException, ForbiddenException } from "@nestjs/common";
 import { GroupsService } from "./groups.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { PostsService } from "../social/posts.service";
+import { NotificationsService } from "../social/notifications.service";
 
 describe("GroupsService", () => {
   let service: GroupsService;
@@ -36,6 +37,10 @@ describe("GroupsService", () => {
     byGroup: vi.fn(),
   };
 
+  const mockNotifications = {
+    notify: vi.fn().mockResolvedValue({}),
+  };
+
   beforeEach(async () => {
     vi.clearAllMocks();
     const module: TestingModule = await Test.createTestingModule({
@@ -43,6 +48,7 @@ describe("GroupsService", () => {
         GroupsService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: PostsService, useValue: mockPosts },
+        { provide: NotificationsService, useValue: mockNotifications },
       ],
     }).compile();
     service = module.get(GroupsService);
@@ -101,6 +107,8 @@ describe("GroupsService", () => {
   it("creates group posts through the posts service for members", async () => {
     mockPrisma.groupMember.findUnique.mockResolvedValue({ role: "MEMBER" });
     mockPosts.create.mockResolvedValue({ id: "p1" });
+    mockPrisma.group.findUnique.mockResolvedValue({ name: "G" });
+    mockPrisma.groupMember.findMany.mockResolvedValue([]);
 
     await service.createGroupPost("g1", "u1", { content: "hello" });
 
@@ -108,6 +116,30 @@ describe("GroupsService", () => {
       "u1",
       { content: "hello" },
       "g1"
+    );
+  });
+
+  it("notifies other members — but not the author — on a group post", async () => {
+    mockPrisma.groupMember.findUnique.mockResolvedValue({ role: "MEMBER" });
+    mockPosts.create.mockResolvedValue({ id: "p1" });
+    mockPrisma.group.findUnique.mockResolvedValue({ name: "Cambodia Tech" });
+    mockPrisma.groupMember.findMany.mockResolvedValue([
+      { userId: "u1" },
+      { userId: "u2" },
+      { userId: "u3" },
+    ]);
+
+    await service.createGroupPost("g1", "u1", { content: "hello" });
+
+    expect(mockNotifications.notify).toHaveBeenCalledTimes(2);
+    expect(mockNotifications.notify).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: "u2", kind: "GROUP_POST" })
+    );
+    expect(mockNotifications.notify).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: "u3", kind: "GROUP_POST" })
+    );
+    expect(mockNotifications.notify).not.toHaveBeenCalledWith(
+      expect.objectContaining({ userId: "u1" })
     );
   });
 
