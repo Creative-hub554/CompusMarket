@@ -104,6 +104,19 @@ enum NotificationKind {
   JOB_ALERT
 }
 
+model JobAlert {
+  id       String   @id @default(uuid())
+  userId   String
+  type     JobType?
+  location String?
+  q        String?
+  createdAt DateTime @default(now())
+
+  user User @relation("JobAlerts", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
 enum GroupPrivacy {
   PUBLIC
   PRIVATE
@@ -165,6 +178,7 @@ model User {
   groupsCreated       Group[]             @relation("GroupsCreated")
   groupMemberships    GroupMember[]       @relation("GroupMemberships")
   groupJoinRequests   GroupJoinRequest[]  @relation("GroupJoinRequests")
+  jobAlerts           JobAlert[]          @relation("JobAlerts")
 
   documentFolders DocumentFolder[]
   documents       Document[]

@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
+import { useSession } from "next-auth/react";
+import { toast } from "@/components/ui/toast";
 import { jobsApi, type Job, type JobType } from "@/services/jobs";
 
 const JOB_TYPES: JobType[] = [
@@ -25,6 +27,7 @@ function salaryLabel(job: Job): string | null {
 
 export default function JobsPage() {
   const t = useTranslations("jobs");
+  const { data: session } = useSession();
 
   const [q, setQ] = useState("");
   const [location, setLocation] = useState("");
@@ -61,7 +64,47 @@ export default function JobsPage() {
     setType("");
   }
 
+  const alertsLabel = (a: { type: string | null; location: string | null; q: string | null }) =>
+    [a.q, a.location, a.type].filter(Boolean).join(" · ") || t("alert");
+
   const hasFilters = q || location || type;
+
+  // Saved search alerts
+  const [alerts, setAlerts] = useState<{ id: string; type: string | null; location: string | null; q: string | null }[]>([]);
+  const [alertBusy, setAlertBusy] = useState(false);
+
+  useEffect(() => {
+    if (!session?.user) return;
+    fetch("/api/jobs/alerts")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data) => setAlerts(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, [session?.user]);
+
+  async function saveSearch() {
+    setAlertBusy(true);
+    const res = await fetch("/api/jobs/alerts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ q: q.trim() || undefined, location: location.trim() || undefined, type: type || undefined }),
+    });
+    if (res.ok) {
+      const alert = await res.json();
+      setAlerts((prev) => [alert, ...prev]);
+      toast.success(t("alertSaved"));
+    } else {
+      toast.error(t("alertFailed"));
+    }
+    setAlertBusy(false);
+  }
+
+  async function removeAlert(alertId: string) {
+    const res = await fetch(`/api/jobs/alerts/${alertId}`, { method: "DELETE" });
+    if (res.ok) {
+      setAlerts((prev) => prev.filter((a) => a.id !== alertId));
+      toast.success(t("alertRemoved"));
+    }
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 animate-fade-in">
@@ -107,13 +150,50 @@ export default function JobsPage() {
             ))}
           </select>
         </div>
-        {hasFilters && (
-          <button
-            onClick={clearFilters}
-            className="text-sm text-indigo-600 hover:underline"
-          >
-            {t("clearFilters")}
-          </button>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          {hasFilters ? (
+            <button
+              onClick={clearFilters}
+              className="text-sm text-indigo-600 hover:underline"
+            >
+              {t("clearFilters")}
+            </button>
+          ) : (
+            <span />
+          )}
+          {session?.user && hasFilters && (
+            <button
+              onClick={saveSearch}
+              disabled={alertBusy}
+              className="btn-primary !py-1.5 !text-xs inline-flex items-center gap-1.5"
+            >
+              🔔 {alertBusy ? "…" : t("saveSearch")}
+            </button>
+          )}
+        </div>
+        {session?.user && alerts.length > 0 && (
+          <div className="pt-2 border-t border-[var(--border-subtle)]">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+              {t("myAlerts")}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {alerts.map((a) => (
+                <span
+                  key={a.id}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 text-xs font-medium pl-3 pr-1.5 py-1"
+                >
+                  🔔 {alertsLabel(a)}
+                  <button
+                    onClick={() => removeAlert(a.id)}
+                    aria-label={t("removeAlert")}
+                    className="w-4 h-4 rounded-full hover:bg-indigo-200/60 dark:hover:bg-indigo-800/60 flex items-center justify-center text-[10px] leading-none"
+                  >
+                    ✕
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
         )}
       </div>
 

@@ -4,8 +4,7 @@ import {
   ForbiddenException,
   BadRequestException,
   ConflictException,
-} from "@nestjs/common";
-import { PrismaService } from "../prisma/prisma.service";
+} from "@nestjs/common";import { PrismaService } from "../prisma/prisma.service";
 import { NotificationsService } from "../social/notifications.service";
 import type { Job, JobType, JobStatus } from "@theo/database";
 import { CreateJobDto } from "./dto/create-job.dto";
@@ -31,30 +30,92 @@ export class JobsService {
       data: { ...dto, postedById: userId },
     });
 
-    // Job alert: notify users who previously applied to jobs of the same type.
-    if (dto.type) {
-      const pastApps = await this.prisma.jobApplication.findMany({
-        where: { job: { type: dto.type } },
-        select: { applicantId: true },
-        distinct: ["applicantId"],
-      });
-      const recipients = pastApps
-        .map((a) => a.applicantId)
-        .filter((id) => id !== userId);
-      await Promise.all(
-        recipients.map((id) =>
-          this.notifications.notify({
-            userId: id,
-            actorId: userId,
-            kind: "JOB_ALERT",
-            entityId: job.id,
-            message: `${job.title} · ${job.company}`,
-          })
-        )
-      );
+    // Job alert recipients: explicit saved-search alerts + past applicants
+    // of the same job type. Deduped; the poster never notifies themselves.
+    const recipients = new Set<string>();
+
+    const alerts = await this.prisma.jobAlert.findMany({
+      where: { userId: { not: userId } },
+      select: { userId: true, type: true, location: true, q: true },
+    });
+    for (const alert of alerts) {
+      if (alert.type && alert.type !== dto.type) continue;
+      if (
+        alert.location &&
+        !(job.location || "").toLowerCase().includes(alert.location.toLowerCase())
+      )
+        continue;
+      if (alert.q) {
+        const haystack = `${job.title} ${job.company} ${job.description}`.toLowerCase();
+        if (!haystack.includes(alert.q.toLowerCase())) continue;
+      }
+      recipients.add(alert.userId);
     }
 
+    const pastApps = await this.prisma.jobApplication.findMany({
+      where: { job: { type: dto.type } },
+      select: { applicantId: true },
+      distinct: ["applicantId"],
+    });
+    for (const app of pastApps) recipients.add(app.applicantId);
+    recipients.delete(userId);
+
+    await Promise.all(
+      [...recipients].map((id) =>
+        this.notifications.notify({
+          userId: id,
+          actorId: userId,
+          kind: "JOB_ALERT",
+          entityId: job.id,
+          message: `${job.title} · ${job.company}`,
+        })
+      )
+    );
+
     return job;
+  }
+
+  listAlerts(userId: string) {
+    return this.prisma.jobAlert.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
+  async createAlert(
+    userId: string,
+    dto: { type?: JobType; location?: string; q?: string }
+  ) {
+    const type = dto.type || null;
+    const location = dto.location?.trim() || null;
+    const q = dto.q?.trim() || null;
+    if (!type && !location && !q) {
+      throw new BadRequestException(
+        "An alert needs at least one of type, location or keyword"
+      );
+    }
+    const existing = await this.prisma.jobAlert.findMany({ where: { userId } });
+    const dupe = existing.find(
+      (a) =>
+        (a.type ?? null) === type &&
+        (a.location ?? null) === location &&
+        (a.q ?? null) === q
+    );
+    if (dupe) return dupe;
+    return this.prisma.jobAlert.create({
+      data: { userId, type, location, q },
+    });
+  }
+
+  async removeAlert(userId: string, alertId: string) {
+    const alert = await this.prisma.jobAlert.findUnique({
+      where: { id: alertId },
+    });
+    if (!alert || alert.userId !== userId) {
+      throw new NotFoundException("Alert not found");
+    }
+    await this.prisma.jobAlert.delete({ where: { id: alertId } });
+    return { removed: alertId };
   }
 
   async findAll(filters: JobFilters): Promise<Job[]> {

@@ -23,6 +23,27 @@ type AuthedReq = { user: { userId: string; role?: string } };
 export class JobsController {
   constructor(private readonly jobsService: JobsService) {}
 
+  @Get("alerts")
+  @UseGuards(AuthGuard("jwt"))
+  listAlerts(@Req() req: AuthedReq) {
+    return this.jobsService.listAlerts(req.user.userId);
+  }
+
+  @Post("alerts")
+  @UseGuards(AuthGuard("jwt"))
+  createAlert(
+    @Req() req: AuthedReq,
+    @Body() dto: { type?: JobType; location?: string; q?: string }
+  ) {
+    return this.jobsService.createAlert(req.user.userId, dto);
+  }
+
+  @Delete("alerts/:alertId")
+  @UseGuards(AuthGuard("jwt"))
+  removeAlert(@Req() req: AuthedReq, @Param("alertId") alertId: string) {
+    return this.jobsService.removeAlert(req.user.userId, alertId);
+  }
+
   @Post()
   @UseGuards(AuthGuard("jwt"))
   create(@Req() req: AuthedReq, @Body() dto: CreateJobDto) {

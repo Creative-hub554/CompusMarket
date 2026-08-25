@@ -20,6 +20,9 @@ describe("JobsService", () => {
       create: vi.fn(),
       findMany: vi.fn(),
     },
+    jobAlert: {
+      findMany: vi.fn(),
+    },
   };
 
   const mockNotifications = {
@@ -46,6 +49,7 @@ describe("JobsService", () => {
   describe("create", () => {
     it("sets the poster as postedById", async () => {
       mockPrisma.job.create.mockResolvedValue({ id: "j1" });
+      mockPrisma.jobAlert.findMany.mockResolvedValue([]);
       mockPrisma.jobApplication.findMany.mockResolvedValue([]);
       await service.create(
         { title: "Dev", company: "Acme", location: "PP", type: "FULL_TIME", description: "d" },
@@ -62,6 +66,7 @@ describe("JobsService", () => {
         title: "Barista",
         company: "Coffee KH",
       });
+      mockPrisma.jobAlert.findMany.mockResolvedValue([]);
       mockPrisma.jobApplication.findMany.mockResolvedValue([
         { applicantId: "u1" },
         { applicantId: "u2" },

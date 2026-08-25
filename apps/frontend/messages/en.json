@@ -215,7 +215,14 @@
     "salaryMinLabel": "Min salary",
     "salaryMaxLabel": "Max salary",
     "posting": "Posting...",
-    "createJob": "Post job"
+    "createJob": "Post job",
+    "saveSearch": "Save this search",
+    "myAlerts": "Your job alerts",
+    "removeAlert": "Remove alert",
+    "alert": "All jobs",
+    "alertSaved": "Alert saved — we will notify you about new matches",
+    "alertRemoved": "Alert removed",
+    "alertFailed": "Could not save the alert"
   },
   "groups": {
     "title": "Groups",
