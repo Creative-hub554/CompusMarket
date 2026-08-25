@@ -240,6 +240,14 @@
     "notFound": "Group not found",
     "backToGroups": "All groups",
     "noPosts": "No posts yet",
-    "noPostsText": "Start the conversation — say something to the group!"
+    "noPostsText": "Start the conversation — say something to the group!",
+    "kick": "Remove member",
+    "kickConfirm": "Remove this member from the group?",
+    "kickDone": "Member removed",
+    "promote": "Make admin",
+    "demote": "Remove admin",
+    "changeCover": "Change cover",
+    "addCover": "Add a cover image",
+    "coverUpdated": "Cover updated"
   }
 }

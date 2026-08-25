@@ -5,22 +5,25 @@ import { useParams } from "next/navigation";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
-import { Users, MessageSquare, ArrowLeft } from "lucide-react";
+import { Users, MessageSquare, ArrowLeft, X, Crown, ImagePlus } from "lucide-react";
 import { Composer } from "@/components/social/Composer";
 import { PostCard, type FeedPost } from "@/components/social/PostCard";
 import { Avatar } from "@/components/social/Avatar";
 import { toast } from "@/components/ui/toast";
+import { uploadFile } from "@/lib/social";
 
 type GroupDetail = {
   id: string;
   name: string;
   description: string | null;
+  coverUrl: string | null;
   creatorId: string;
   creator: { id: string; name: string | null; username: string | null; image: string | null };
   memberCount: number;
   postCount: number;
   isMember: boolean;
   isCreator: boolean;
+  myRole: string | null;
   members: {
     userId: string;
     role: string;
@@ -41,6 +44,9 @@ export default function GroupDetailPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [openingChat, setOpeningChat] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
+
+  const isAdmin = group?.isMember && (group.myRole === "ADMIN" || group.isCreator);
 
   const loadPosts = useCallback(
     async (cursor?: string) => {
@@ -99,6 +105,68 @@ export default function GroupDetailPage() {
     }
   }
 
+  async function removeMember(userId: string) {
+    if (!group) return;
+    if (!window.confirm(t("kickConfirm"))) return;
+    const res = await fetch(`/api/groups/${id}/members/${userId}`, {
+      method: "DELETE",
+    });
+    if (res.ok) {
+      setGroup({
+        ...group,
+        members: group.members.filter((m) => m.userId !== userId),
+        memberCount: group.memberCount - 1,
+      });
+      toast.success(t("kickDone"));
+    } else {
+      const err = await res.json().catch(() => ({}));
+      toast.error(err.error || t("actionFailed"));
+    }
+  }
+
+  async function setRole(userId: string, role: "ADMIN" | "MEMBER") {
+    if (!group) return;
+    const res = await fetch(`/api/groups/${id}/members/${userId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role }),
+    });
+    if (res.ok) {
+      setGroup({
+        ...group,
+        members: group.members.map((m) =>
+          m.userId === userId ? { ...m, role } : m
+        ),
+      });
+      toast.success(role === "ADMIN" ? t("promoted") : t("demoted"));
+    } else {
+      const err = await res.json().catch(() => ({}));
+      toast.error(err.error || t("actionFailed"));
+    }
+  }
+
+  async function handleCover(files: FileList | null) {
+    if (!files?.[0] || !group) return;
+    setCoverUploading(true);
+    try {
+      const { url } = await uploadFile(files[0]);
+      const res = await fetch(`/api/groups/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ coverUrl: url }),
+      });
+      if (res.ok) {
+        setGroup({ ...group, coverUrl: url });
+        toast.success(t("coverUpdated"));
+      } else {
+        toast.error(t("actionFailed"));
+      }
+    } catch {
+      toast.error(t("actionFailed"));
+    }
+    setCoverUploading(false);
+  }
+
   if (loading) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-8 space-y-4">
@@ -129,7 +197,50 @@ export default function GroupDetailPage() {
         <ArrowLeft size={15} /> {t("backToGroups")}
       </Link>
 
-      <div className="card rounded-2xl p-6 mb-5">
+      <div className="card rounded-2xl overflow-hidden mb-5">
+        {group.coverUrl ? (
+          <div className="relative h-36 bg-slate-100 dark:bg-slate-800">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={group.coverUrl}
+              alt=""
+              className="h-full w-full object-cover"
+            />
+            {isAdmin && (
+              <label
+                className="absolute bottom-2 right-2 cursor-pointer inline-flex items-center gap-1 rounded-full bg-black/50 text-white text-xs px-3 py-1.5 hover:bg-black/70 transition-colors"
+                title={t("changeCover")}
+              >
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => handleCover(e.target.files)}
+                  disabled={coverUploading}
+                />
+                <ImagePlus size={13} />
+                {coverUploading ? "…" : t("changeCover")}
+              </label>
+            )}
+          </div>
+        ) : isAdmin ? (
+          <label
+            className="flex h-16 cursor-pointer items-center justify-center gap-1.5 bg-gradient-to-r from-indigo-500/10 to-violet-500/10 text-xs text-slate-400 hover:from-indigo-500/20 hover:to-violet-500/20 hover:text-indigo-500 transition-colors"
+            title={t("changeCover")}
+          >
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => handleCover(e.target.files)}
+              disabled={coverUploading}
+            />
+            <ImagePlus size={14} />
+            {coverUploading ? "…" : t("addCover")}
+          </label>
+        ) : null}
+
+        <div className="p-6">
         <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
           {group.name}
         </h1>
@@ -175,25 +286,61 @@ export default function GroupDetailPage() {
               {t("members")}
             </p>
             <div className="flex flex-wrap gap-3">
-              {group.members.map((m) => (
-                <Link
-                  key={m.userId}
-                  href={`/profile/${m.userId}`}
-                  className="flex items-center gap-1.5 no-underline"
-                  title={m.user.name || m.user.username || undefined}
-                >
-                  <Avatar user={m.user} size={28} />
-                  <span className="text-xs text-slate-600 dark:text-slate-300 max-w-24 truncate">
-                    {m.user.name || m.user.username}
-                    {m.role === "ADMIN" && (
-                      <span className="text-indigo-500 font-semibold"> ★</span>
+              {group.members.map((m) => {
+                const canKick =
+                  isAdmin &&
+                  m.userId !== group.creatorId &&
+                  (group.isCreator || m.role !== "ADMIN");
+                return (
+                  <div key={m.userId} className="flex items-center gap-1">
+                    <Link
+                      href={`/profile/${m.userId}`}
+                      className="flex items-center gap-1.5 no-underline"
+                      title={m.user.name || m.user.username || undefined}
+                    >
+                      <Avatar user={m.user} size={28} />
+                      <span className="text-xs text-slate-600 dark:text-slate-300 max-w-24 truncate">
+                        {m.user.name || m.user.username}
+                        {m.role === "ADMIN" && (
+                          <span className="text-indigo-500 font-semibold"> ★</span>
+                        )}
+                      </span>
+                    </Link>
+                    {canKick && (
+                      <button
+                        onClick={() => removeMember(m.userId)}
+                        aria-label={t("kick")}
+                        title={t("kick")}
+                        className="text-slate-300 hover:text-red-500 transition-colors"
+                      >
+                        <X size={14} />
+                      </button>
                     )}
-                  </span>
-                </Link>
-              ))}
+                    {group.isCreator && m.userId !== group.creatorId && (
+                      <button
+                        onClick={() =>
+                          setRole(m.userId, m.role === "ADMIN" ? "MEMBER" : "ADMIN")
+                        }
+                        aria-label={
+                          m.role === "ADMIN" ? t("demote") : t("promote")
+                        }
+                        title={m.role === "ADMIN" ? t("demote") : t("promote")}
+                        className={`transition-colors ${
+                          m.role === "ADMIN"
+                            ? "text-amber-500"
+                            : "text-slate-300 hover:text-amber-500"
+                        }`}
+                      >
+                        <Crown size={14} />
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
+        </div>
       </div>
 
       {group.isMember && (

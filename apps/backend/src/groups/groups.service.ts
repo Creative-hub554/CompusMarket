@@ -96,6 +96,7 @@ export class GroupsService {
       id: group.id,
       name: group.name,
       description: group.description,
+      coverUrl: group.coverUrl,
       createdAt: group.createdAt,
       creator: group.creator,
       creatorId: group.creatorId,
@@ -113,7 +114,7 @@ export class GroupsService {
     };
   }
 
-  async update(id: string, userId: string, dto: UpdateGroupDto) {
+  async update(id: string, userId: string, dto: UpdateGroupDto & { coverUrl?: string }) {
     const membership = await this.requireMembership(id, userId);
     if (membership.role !== "ADMIN") {
       throw new ForbiddenException("Only group admins can edit the group");
@@ -125,9 +126,84 @@ export class GroupsService {
         ...(dto.description !== undefined
           ? { description: dto.description.trim() || null }
           : {}),
+        ...(dto.coverUrl !== undefined
+          ? { coverUrl: dto.coverUrl.trim() || null }
+          : {}),
       },
     });
-    return { id: updated.id, name: updated.name, description: updated.description };
+    return {
+      id: updated.id,
+      name: updated.name,
+      description: updated.description,
+      coverUrl: updated.coverUrl,
+    };
+  }
+
+  /**
+   * Remove a member. Admins can remove MEMBERs; only the creator can remove
+   * another ADMIN. The creator cannot be removed.
+   */
+  async removeMember(groupId: string, requesterId: string, targetUserId: string) {
+    const group = await this.prisma.group.findUnique({
+      where: { id: groupId },
+      select: { creatorId: true },
+    });
+    if (!group) throw new NotFoundException("Group not found");
+    if (targetUserId === group.creatorId) {
+      throw new BadRequestException("The group creator cannot be removed");
+    }
+
+    const requester = await this.requireMembership(groupId, requesterId);
+    const target = await this.requireMembership(groupId, targetUserId);
+    if (requester.role !== "ADMIN") {
+      throw new ForbiddenException("Only group admins can remove members");
+    }
+    if (target.role === "ADMIN" && requesterId !== group.creatorId) {
+      throw new ForbiddenException("Only the group creator can remove an admin");
+    }
+
+    await this.prisma.groupMember.delete({
+      where: { groupId_userId: { groupId, userId: targetUserId } },
+    });
+
+    // Keep the group chat roster in sync.
+    const thread = await this.prisma.thread.findUnique({
+      where: { groupId },
+      select: { id: true },
+    });
+    if (thread) {
+      await this.prisma.threadParticipant.deleteMany({
+        where: { threadId: thread.id, userId: targetUserId },
+      });
+    }
+    return { removed: targetUserId };
+  }
+
+  /** Promote/demote between ADMIN and MEMBER. Creator-only. */
+  async setMemberRole(
+    groupId: string,
+    requesterId: string,
+    targetUserId: string,
+    role: "ADMIN" | "MEMBER"
+  ) {
+    const group = await this.prisma.group.findUnique({
+      where: { id: groupId },
+      select: { creatorId: true },
+    });
+    if (!group) throw new NotFoundException("Group not found");
+    if (requesterId !== group.creatorId) {
+      throw new ForbiddenException("Only the group creator can change roles");
+    }
+    if (targetUserId === group.creatorId) {
+      throw new BadRequestException("The creator is always an admin");
+    }
+    const membership = await this.requireMembership(groupId, targetUserId);
+    const updated = await this.prisma.groupMember.update({
+      where: { id: membership.id },
+      data: { role },
+      include: { user: { select: { id: true, name: true, username: true, image: true } } },
+    });
+    return { userId: updated.userId, role: updated.role };
   }
 
   async remove(id: string, userId: string, role?: string): Promise<void> {

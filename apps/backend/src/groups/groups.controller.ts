@@ -58,6 +58,32 @@ export class GroupsController {
     return this.groups.update(id, req.user.userId, dto);
   }
 
+  @Delete(":id/members/:userId")
+  @UseGuards(AuthGuard("jwt"))
+  removeMember(
+    @Req() req: AuthUser,
+    @Param("id") id: string,
+    @Param("userId") userId: string
+  ) {
+    return this.groups.removeMember(id, req.user.userId, userId);
+  }
+
+  @Patch(":id/members/:userId")
+  @UseGuards(AuthGuard("jwt"))
+  setMemberRole(
+    @Req() req: AuthUser,
+    @Param("id") id: string,
+    @Param("userId") userId: string,
+    @Body() body: { role: "ADMIN" | "MEMBER" }
+  ) {
+    return this.groups.setMemberRole(
+      id,
+      req.user.userId,
+      userId,
+      body?.role === "ADMIN" ? "ADMIN" : "MEMBER"
+    );
+  }
+
   @Delete(":id")
   @UseGuards(AuthGuard("jwt"))
   remove(@Req() req: AuthUser, @Param("id") id: string) {
