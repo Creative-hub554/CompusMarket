@@ -139,7 +139,7 @@ export class ChatBotService {
   async buildReplies(threadId: string, senderId: string, content: string): Promise<string[]> {
     // Natural language goes to the LLM agent; explicit /commands stay deterministic.
     if (!content.trim().startsWith("/")) {
-      const agentReply = await this.buildAgentReply(threadId, senderId, content);
+      const agentReply = await this.buildAgentReply(threadId, senderId);
       if (agentReply) return [agentReply];
     }
 
@@ -235,8 +235,7 @@ export class ChatBotService {
    */
   private async buildAgentReply(
     threadId: string,
-    senderId: string,
-    content: string
+    senderId: string
   ): Promise<string | null> {
     try {
       if (!this.ai.status().available) return null;
