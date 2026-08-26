@@ -32,7 +32,7 @@ Order matters after Prisma schema edits: **stop running dev servers first** (the
 - Production/fresh environments: `prisma migrate deploy` (never `db push`). Verified byte-exact against `schema.prisma`.
 - If a DB already has the schema but no recorded history (fresh clone of an old dev.db): `prisma migrate resolve --applied 20260826102541_init`.
 - Gotcha: Prisma resolves `file:` URLs in `DATABASE_URL` relative to the **schema folder** (`packages/database/prisma/`), but `--url` CLI flags resolve against **cwd** — mixing them up creates doubled `prisma/prisma/` paths. Prefer `--url "file:./<name>.db"` with cwd = `packages/database`.
-- Postgres caveat: `migration_lock.toml` pins provider `sqlite`. When production moves to Postgres, re-baseline under the postgres provider (regenerate init migration + resolve on the prod DB) — don't hand-edit SQL between dialects.
+- Postgres cutover: `migration_lock.toml` pins provider `sqlite`. At cutover, re-baseline under the postgres provider (regenerate init migration + `migrate resolve` on the prod DB) — don't hand-edit SQL between dialects. `docker/compose.yml` already ships postgres:15 (`theo_platform`). Audited 2026-08-26: raw SQL is dialect-safe; remaining known behavior change — Prisma `contains` filters become **case-sensitive** on PG (chat-bot `/find`, jobs, notes, search fallback); wrap in `lower()` or accept at cutover.
 
 Node and pnpm are **not always in PATH** on this Windows machine. If commands fail, prepend:
 ```powershell

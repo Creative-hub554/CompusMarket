@@ -67,7 +67,7 @@ export class GroupsService {
     if (query) {
       const matched = await this.prisma.$queryRaw<{ id: string }[]>`
         SELECT "id" FROM "Group"
-        WHERE "name" LIKE ${`%${escapeLike(query)}%`} ESCAPE '\\'
+        WHERE lower("name") LIKE lower(${`%${escapeLike(query)}%`}) ESCAPE '\'
         ORDER BY "createdAt" DESC
         LIMIT ${SEARCH_SCAN_LIMIT}`;
       where = { id: { in: matched.map((r) => r.id) } };
