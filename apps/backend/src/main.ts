@@ -1,6 +1,9 @@
 import { config } from "dotenv";
 import { resolve } from "path";
-config({ path: resolve(__dirname, "../.env") });
+// The per-app .env is the source of truth: override inherited shell/user-level
+// variables so stale machine-wide placeholders (e.g. OPENROUTER_API_KEY) can't
+// shadow real local config.
+config({ path: resolve(__dirname, "../.env"), override: true });
 
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";

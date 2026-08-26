@@ -26,6 +26,15 @@ export interface SearchSpec {
   condition?: "A" | "B" | "C";
 }
 
+export type AgentTool = {
+  type: "function";
+  function: {
+    name: string;
+    description: string;
+    parameters: Record<string, unknown>;
+  };
+};
+
 const KNOWN_SECTIONS = [
   "/market",
   "/feed",
@@ -327,6 +336,69 @@ Return only valid JSON.`;
       return this.normalizeSearchSpec(this.parseJsonOrNull(raw));
     } catch (e) {
       this.logger.error("Failed to extract search spec", e);
+      return null;
+    }
+  }
+
+  /**
+   * One agentic turn: run the model with tools, execute any requested tool
+   * calls, and feed results back until a final text answer is produced.
+   * Returns null when AI is unavailable or the loop fails — callers are
+   * expected to fall back to deterministic behaviour.
+   */
+  async runAgentTurn(
+    history: OpenAI.Chat.ChatCompletionMessageParam[],
+    tools: AgentTool[],
+    executeTool: (name: string, argsJson: string) => Promise<unknown>,
+    maxRounds = 3,
+  ): Promise<string | null> {
+    if (!this.isAvailable()) return null;
+
+    const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [...history];
+    try {
+      for (let round = 0; round < maxRounds; round++) {
+        const response = await this.chatWithRetry({
+          model: this.model,
+          messages,
+          max_tokens: 1200,
+          temperature: 0.6,
+          ...(tools.length > 0 ? { tools, tool_choice: "auto" as const } : {}),
+        });
+        const msg = response.choices[0]?.message;
+        if (!msg) return null;
+
+        if (msg.tool_calls && msg.tool_calls.length > 0) {
+          const functionCalls = msg.tool_calls.filter(
+            (c): c is OpenAI.Chat.ChatCompletionMessageFunctionToolCall => c.type === "function",
+          );
+          messages.push({
+            role: "assistant",
+            content: msg.content ?? "",
+            tool_calls: msg.tool_calls,
+          } as OpenAI.Chat.ChatCompletionMessageParam);
+          for (const call of functionCalls) {
+            let result: unknown;
+            try {
+              result = await executeTool(call.function.name, call.function.arguments);
+            } catch (e) {
+              this.logger.warn(`Agent tool ${call.function.name} failed`, e as Error);
+              result = { error: "tool execution failed" };
+            }
+            messages.push({
+              role: "tool",
+              tool_call_id: call.id,
+              content: JSON.stringify(result ?? {}).slice(0, 4000),
+            });
+          }
+          continue;
+        }
+
+        return msg.content?.trim() || null;
+      }
+      // Model kept calling tools without concluding; give up gracefully.
+      return null;
+    } catch (e) {
+      this.logger.error("Agent turn failed", e);
       return null;
     }
   }

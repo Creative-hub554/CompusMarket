@@ -1,6 +1,7 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { ChatGateway } from "./chat.gateway";
+import { ChatBotService } from "./chat-bot.service";
 
 const PARTICIPANT_SELECT = {
   id: true,
@@ -13,8 +14,14 @@ const PARTICIPANT_SELECT = {
 export class ThreadsService {
   constructor(
     private prisma: PrismaService,
-    private chat: ChatGateway
+    private chat: ChatGateway,
+    private bot: ChatBotService
   ) {}
+
+  /** Id of the built-in bot account (ensures it exists). */
+  async getBotUserId(): Promise<string> {
+    return this.bot.getBotUserId();
+  }
 
   private async assertParticipant(threadId: string, userId: string) {
     const participant = await this.prisma.threadParticipant.findUnique({
@@ -162,6 +169,45 @@ export class ThreadsService {
       where: { id: threadId },
       include: { participants: { select: PARTICIPANT_SELECT } },
     });
+  }
+
+  /**
+   * Telegram-style contact sync: match a batch of emails/usernames against
+   * registered users. Returns public profiles of everyone found (self excluded).
+   */
+  async syncContacts(userId: string, contacts: string[]) {
+    const keys = [
+      ...new Set(
+        contacts
+          .map((c) => c.trim().toLowerCase())
+          .filter((c) => c.length > 0 && c.length <= 254)
+      ),
+    ].slice(0, 200);
+    if (keys.length === 0) return [];
+
+    const users = await this.prisma.user.findMany({
+      where: {
+        id: { not: userId },
+        OR: [{ email: { in: keys } }, { username: { in: keys } }],
+      },
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        image: true,
+        email: true,
+      },
+    });
+
+    return users.map((u) => ({
+      id: u.id,
+      name: u.name,
+      username: u.username,
+      image: u.image,
+      matched: keys.filter(
+        (k) => k === u.email?.toLowerCase() || k === u.username?.toLowerCase()
+      ),
+    }));
   }
 
   /**

@@ -12,6 +12,7 @@ import { Server, Socket } from "socket.io";
 import { PrismaService } from "../prisma/prisma.service";
 import { NotificationsService } from "../social/notifications.service";
 import { notificationEvents, NOTIFICATION_CREATED } from "../realtime/notification.events";
+import { ChatBotService } from "./chat-bot.service";
 import { verify } from "jsonwebtoken";
 import { getAuthSecret, getCorsOrigins } from "../common/config";
 
@@ -50,7 +51,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
   constructor(
     private prisma: PrismaService,
-    private notifications: NotificationsService
+    private notifications: NotificationsService,
+    private bot: ChatBotService
   ) {}
 
   onModuleInit() {
@@ -197,46 +199,80 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       });
       if (!participant) return;
 
-      const message = await this.prisma.message.create({
-        data: {
-          threadId: data.threadId,
-          senderId: userId,
-          content,
-          ...(attachments ? { attachments } : {}),
-        },
-        include: { sender: { select: { id: true, name: true, image: true } } },
-      });
+      await this.persistAndBroadcast(data.threadId, userId, content, attachments);
 
-      await Promise.all([
-        this.prisma.thread.update({
-          where: { id: data.threadId },
-          data: { lastMessageAt: new Date() },
-        }),
-        this.prisma.threadParticipant.update({
-          where: { threadId_userId: { threadId: data.threadId, userId } },
-          data: { lastReadAt: new Date() },
-        }),
-      ]);
-
-      this.server.to(data.threadId).emit("newMessage", message);
-
-      const otherParticipants = await this.prisma.threadParticipant.findMany({
-        where: { threadId: data.threadId, userId: { not: userId } },
-        select: { userId: true },
-      });
-      await Promise.all(
-        otherParticipants.map((p) =>
-          this.notifications.notify({
-            userId: p.userId,
-            actorId: userId,
-            kind: "MESSAGE",
-            entityId: data.threadId,
-            message: content || "Sent an attachment",
-          })
-        )
-      );
+      // Telegram-style auto-response when chatting with the built-in bot.
+      void this.maybeReplyAsBot(data.threadId, userId, content);
     } catch (err) {
       this.logger.error("ChatGateway error:", err as Error);
+    }
+  }
+
+  /** Persist a message and fan it out exactly like a human-sent one. */
+  private async persistAndBroadcast(
+    threadId: string,
+    senderId: string,
+    content: string,
+    attachments?: { url: string; kind: string }[]
+  ) {
+    const message = await this.prisma.message.create({
+      data: {
+        threadId,
+        senderId,
+        content,
+        ...(attachments ? { attachments } : {}),
+      },
+      include: { sender: { select: { id: true, name: true, image: true } } },
+    });
+
+    await Promise.all([
+      this.prisma.thread.update({
+        where: { id: threadId },
+        data: { lastMessageAt: new Date() },
+      }),
+      this.prisma.threadParticipant.update({
+        where: { threadId_userId: { threadId, userId: senderId } },
+        data: { lastReadAt: new Date() },
+      }),
+    ]);
+
+    this.server.to(threadId).emit("newMessage", message);
+
+    const otherParticipants = await this.prisma.threadParticipant.findMany({
+      where: { threadId, userId: { not: senderId } },
+      select: { userId: true },
+    });
+    await Promise.all(
+      otherParticipants.map((p) =>
+        this.notifications.notify({
+          userId: p.userId,
+          actorId: senderId,
+          kind: "MESSAGE",
+          entityId: threadId,
+          message: content || "Sent an attachment",
+        })
+      )
+    );
+  }
+
+  private async maybeReplyAsBot(threadId: string, senderId: string, content: string) {
+    let botId: string | null = null;
+    let typingShown = false;
+    try {
+      if (!(await this.bot.shouldRespond(threadId))) return;
+      botId = await this.bot.getBotUserId();
+      this.server.to(threadId).emit("typing", { threadId, userId: botId, typing: true });
+      typingShown = true;
+      const replies = await this.bot.buildReplies(threadId, senderId, content);
+      for (const reply of replies) {
+        await this.persistAndBroadcast(threadId, botId, reply);
+      }
+    } catch (err) {
+      this.logger.error("Bot reply failed:", err as Error);
+    } finally {
+      if (typingShown && botId) {
+        this.server.to(threadId).emit("typing", { threadId, userId: botId, typing: false });
+      }
     }
   }
 

@@ -3,11 +3,16 @@ import { BadRequestException, ForbiddenException, NotFoundException } from "@nes
 import { ThreadsService } from "./threads.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { ChatGateway } from "./chat.gateway";
+import { ChatBotService } from "./chat-bot.service";
 
 // Importing the real gateway runs module-level getAuthSecret(); stub it out.
 vi.mock("./chat.gateway", () => ({
   ChatGateway: class {},
 }));
+
+function makeBot() {
+  return { getBotUserId: vi.fn(async () => "bot-id"), shouldRespond: vi.fn(async () => false), buildReplies: vi.fn(async () => []) };
+}
 
 function makePrisma() {
   return {
@@ -47,8 +52,9 @@ describe("ThreadsService", () => {
     prisma = makePrisma();
     service = new ThreadsService(
       prisma as unknown as PrismaService,
-      makeGateway() as unknown as ChatGateway
-    );
+      makeGateway() as unknown as ChatGateway,
+        makeBot() as unknown as ChatBotService
+      );
   });
 
   describe("findOrCreateThread", () => {
@@ -187,7 +193,8 @@ describe("ThreadsService", () => {
     it("returns nothing when nobody is online", async () => {
       const svc = new ThreadsService(
         prisma as unknown as PrismaService,
-        makeGateway([]) as unknown as ChatGateway
+        makeGateway([]) as unknown as ChatGateway,
+        makeBot() as unknown as ChatBotService
       );
 
       await expect(svc.listOnlineContacts("me")).resolves.toEqual([]);
@@ -197,7 +204,8 @@ describe("ThreadsService", () => {
     it("ranks online users by total messages across threads, excluding offline peers", async () => {
       const svc = new ThreadsService(
         prisma as unknown as PrismaService,
-        makeGateway(["u2", "u3"]) as unknown as ChatGateway
+        makeGateway(["u2", "u3"]) as unknown as ChatGateway,
+        makeBot() as unknown as ChatBotService
       );
       prisma.threadParticipant.findMany.mockResolvedValue([
         {

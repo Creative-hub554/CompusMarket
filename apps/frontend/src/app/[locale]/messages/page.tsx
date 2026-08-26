@@ -5,7 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useSession } from "next-auth/react";
 import { Avatar } from "@/components/social/Avatar";
-import { Users } from "lucide-react";
+import { Users, Bot, UserPlus, X } from "lucide-react";
 import { timeAgo, useAuthSocket } from "@/lib/social";
 
 type Thread = {
@@ -18,12 +18,26 @@ type Thread = {
   unreadCount: number;
 };
 
+type MatchedUser = {
+  id: string;
+  name: string | null;
+  username: string | null;
+  image: string | null;
+  matched: string[];
+};
+
 export default function MessagesPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const [threads, setThreads] = useState<Thread[]>([]);
   const [loading, setLoading] = useState(true);
   const [online, setOnline] = useState<Set<string>>(new Set());
+  const [botId, setBotId] = useState<string | null>(null);
+  const [aiReady, setAiReady] = useState(false);
+  const [syncOpen, setSyncOpen] = useState(false);
+  const [contactList, setContactList] = useState("");
+  const [syncing, setSyncing] = useState(false);
+  const [matches, setMatches] = useState<MatchedUser[]>([]);
   const socketRef = useAuthSocket(session?.user?.id);
 
   useEffect(() => {
@@ -33,7 +47,45 @@ export default function MessagesPage() {
       .then((data) => setThreads(Array.isArray(data) ? data : []))
       .catch(() => setThreads([]))
       .finally(() => setLoading(false));
+    fetch("/api/threads/bot")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => setBotId(data?.id ?? null))
+      .catch(() => {});
+    fetch("/api/ai/status")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => setAiReady(!!data?.available))
+      .catch(() => {});
   }, [session?.user?.id]);
+
+  const openBotChat = () => {
+    if (!botId) return;
+    fetch("/api/threads", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: botId }),
+    })
+      .then((r) => r.json())
+      .then(({ id }) => router.push(`/messages/${id}`))
+      .catch(() => {});
+  };
+
+  const syncContacts = () => {
+    const list = contactList
+      .split(/[\n,;]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (list.length === 0) return;
+    setSyncing(true);
+    fetch("/api/threads/contacts/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contacts: list }),
+    })
+      .then((r) => r.json())
+      .then((data) => setMatches(Array.isArray(data) ? data : []))
+      .catch(() => setMatches([]))
+      .finally(() => setSyncing(false));
+  };
 
   useEffect(() => {
     const socket = socketRef.current;
@@ -89,7 +141,110 @@ export default function MessagesPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10">
-      <h1 className="text-2xl font-bold mb-6">Messages</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Messages</h1>
+        <button
+          onClick={() => {
+            setSyncOpen((v) => !v);
+            setMatches([]);
+          }}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-gold-500/40 text-gold-700 dark:text-gold-light px-3 py-1.5 text-xs font-semibold hover:bg-gold-500/10 transition-colors"
+        >
+          <UserPlus size={14} />
+          Sync contacts
+        </button>
+      </div>
+
+      {syncOpen && (
+        <div className="section-box p-4 mb-5 animate-slide-down">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-semibold">Find people you know</p>
+            <button onClick={() => setSyncOpen(false)} className="text-gray-400 hover:text-slate-600 dark:hover:text-slate-300" title="Close">
+              <X size={15} />
+            </button>
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+            Paste emails or usernames (one per line) — we&apos;ll match them against Champey accounts.
+          </p>
+          <textarea
+            value={contactList}
+            onChange={(e) => setContactList(e.target.value)}
+            rows={3}
+            placeholder={"friend@example.com\nsokha_99"}
+            className="input-field resize-none font-mono text-xs"
+          />
+          <div className="flex items-center gap-3 mt-2">
+            <button
+              onClick={syncContacts}
+              disabled={syncing || !contactList.trim()}
+              className="btn-primary !py-1.5 text-xs"
+            >
+              {syncing ? "Matching…" : "Match contacts"}
+            </button>
+            {matches.length > 0 && (
+              <span className="text-xs text-gray-500 dark:text-gray-400">{matches.length} found on Champey</span>
+            )}
+          </div>
+          {matches.length > 0 && (
+            <ul className="mt-3 divide-y divide-[var(--border-subtle)]">
+              {matches.map((u) => (
+                <li key={u.id} className="flex items-center gap-3 py-2">
+                  <Avatar user={u} size={34} />
+                  <span className="flex-1 min-w-0">
+                    <span className="block text-sm font-medium truncate">{u.name || u.username}</span>
+                    <span className="block text-[11px] text-gray-400 truncate">
+                      {u.username ? `@${u.username}` : ""} · matched {u.matched.join(", ")}
+                    </span>
+                  </span>
+                  <button
+                    onClick={() =>
+                      fetch("/api/threads", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ userId: u.id }),
+                      })
+                        .then((r) => r.json())
+                        .then(({ id }) => router.push(`/messages/${id}`))
+                        .catch(() => {})
+                    }
+                    className="rounded-lg bg-gradient-to-br from-gold-500 to-gold-600 text-white px-3 py-1.5 text-xs font-semibold hover:brightness-110 transition"
+                  >
+                    Chat
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {/* Built-in assistant, Telegram-style */}
+      {botId && (
+        <button
+          onClick={openBotChat}
+          className="w-full text-left rounded-xl border border-gold-500/40 bg-gradient-to-r from-gold-500/10 to-transparent p-4 hover:border-gold-500/70 transition-all flex items-center gap-3 mb-3"
+        >
+          <span className="w-12 h-12 shrink-0 rounded-full bg-gradient-to-br from-gold-500 to-gold-600 flex items-center justify-center shadow-[0_6px_18px_-6px_rgba(212,160,39,0.6)]">
+            <Bot size={22} className="text-white" />
+          </span>
+          <span className="flex-1 min-w-0">
+            <span className="block font-semibold">
+              Champey Bot
+              {aiReady && (
+                <span className="ml-2 align-middle rounded-full bg-gold-500/15 px-1.5 py-0.5 text-[10px] font-bold text-gold-700 dark:text-gold-light">
+                  AI AGENT
+                </span>
+              )}
+            </span>
+            <span className="block text-sm text-gray-500 dark:text-gray-400 truncate">
+              {aiReady
+                ? "Ask me anything — I can search the market for you"
+                : "Your assistant — try /find iphone or /help"}
+            </span>
+          </span>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-gold-600 dark:text-gold-light">BOT</span>
+        </button>
+      )}
 
       {loading ? (
         <div className="space-y-3">
