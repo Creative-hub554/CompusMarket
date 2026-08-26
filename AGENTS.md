@@ -64,7 +64,7 @@ Backend modules cover more than commerce: `auth`, `products`, `orders`, `cart`, 
 - **Vitest**: `next-intl` must stay in `server.deps.inline` (`vitest.config.ts`) or its ESM import of `next/navigation` fails to resolve under pnpm. Tests rendering pages that use the i18n `Link` should `vi.mock("@/i18n/navigation")` with an anchor stub.
 - Brand strings are single-sourced in `apps/frontend/src/lib/site.ts` (`SITE_NAME`, `getSiteUrl()` from `NEXT_PUBLIC_SITE_URL`) — used by metadata, JSON-LD, sitemap.
 - Tailwind v4 is CSS-first: no `tailwind.config`; tokens live in `@theme` in `src/app/globals.css`, which also `@source`s `packages/ui/src`. Shared primitives (`.btn-primary`, `.card-hover`, `.page-title`, `.input-field`, …) are hand-written utilities in that file — restyling them propagates site-wide.
-- **km.json fallback**: some new keys (market, jobs, nav) were NOT added to `km.json` to avoid garbling Khmer. They fall back to `en` via `next-intl`. This is a known follow-up — add Khmer translations when ready.
+- **km.json is fully translated** (all `en.json` keys have real Khmer counterparts — verified key-for-key). Keep it that way: every new `en.json` key needs its Khmer translation in the same change; don't rely on the `next-intl` English fallback.
 
 ## Auth architecture
 
