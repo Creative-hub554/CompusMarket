@@ -79,30 +79,34 @@ export class ThreadsService {
       },
     });
 
-    const mapped = await Promise.all(
-      participations.map(async (p) => {
-        const others = p.thread.participants
-          .filter((t) => t.userId !== userId)
-          .map((t) => t.user);
-        const lastMessage = p.thread.messages[0] ?? null;
-        const unreadCount = await this.prisma.message.count({
-          where: {
-            threadId: p.threadId,
-            senderId: { not: userId },
-            readAt: null,
-          },
-        });
-        return {
-          id: p.threadId,
-          product: p.thread.product,
-          group: p.thread.group,
-          participants: others,
-          lastMessage,
-          lastMessageAt: p.thread.lastMessageAt,
-          unreadCount,
-        };
-      })
+    const unreadCounts = await this.prisma.message.groupBy({
+      by: ["threadId"],
+      where: {
+        threadId: { in: participations.map((p) => p.threadId) },
+        senderId: { not: userId },
+        readAt: null,
+      },
+      _count: { _all: true },
+    });
+    const unreadByThread = new Map(
+      unreadCounts.map((c) => [c.threadId, c._count._all])
     );
+
+    const mapped = participations.map((p) => {
+      const others = p.thread.participants
+        .filter((t) => t.userId !== userId)
+        .map((t) => t.user);
+      const lastMessage = p.thread.messages[0] ?? null;
+      return {
+        id: p.threadId,
+        product: p.thread.product,
+        group: p.thread.group,
+        participants: others,
+        lastMessage,
+        lastMessageAt: p.thread.lastMessageAt,
+        unreadCount: unreadByThread.get(p.threadId) ?? 0,
+      };
+    });
 
     return mapped.sort(
       (a, b) =>
@@ -129,14 +133,16 @@ export class ThreadsService {
 
   async markRead(threadId: string, userId: string): Promise<void> {
     await this.assertParticipant(threadId, userId);
-    await this.prisma.threadParticipant.update({
-      where: { threadId_userId: { threadId, userId } },
-      data: { lastReadAt: new Date() },
-    });
-    await this.prisma.message.updateMany({
-      where: { threadId, senderId: { not: userId }, readAt: null },
-      data: { readAt: new Date() },
-    });
+    await Promise.all([
+      this.prisma.threadParticipant.update({
+        where: { threadId_userId: { threadId, userId } },
+        data: { lastReadAt: new Date() },
+      }),
+      this.prisma.message.updateMany({
+        where: { threadId, senderId: { not: userId }, readAt: null },
+        data: { readAt: new Date() },
+      }),
+    ]);
   }
 
   async participantIds(threadId: string): Promise<string[]> {
@@ -153,4 +159,5 @@ export class ThreadsService {
       include: { participants: { select: PARTICIPANT_SELECT } },
     });
   }
+
 }

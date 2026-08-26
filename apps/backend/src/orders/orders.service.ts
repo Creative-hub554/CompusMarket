@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from "@nestjs/common";
+import { OrderStatus, OrderItemStatus, Prisma } from "@theo/database";
 import { PrismaService } from "../prisma/prisma.service";
-import { OrderStatus, OrderItemStatus } from "@theo/database";
 
 const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   PENDING: [OrderStatus.PROCESSING, OrderStatus.CANCELLED],
@@ -25,19 +25,12 @@ export class OrdersService {
 
     const [order] = await this.prisma.$transaction(async (tx) => {
       for (const item of cart.items) {
-        const product = await tx.product.findUnique({ where: { id: item.productId } });
-        if (!product || !product.stock || product.stock < item.quantity) {
-          throw new BadRequestException(`Insufficient stock for ${product?.name || "product"}`);
-        }
-      }
-
-      for (const item of cart.items) {
         const result = await tx.product.updateMany({
           where: { id: item.productId, stock: { gte: item.quantity } },
           data: { stock: { decrement: item.quantity } },
         });
         if (result.count === 0) {
-          throw new BadRequestException(`Insufficient stock for item in cart`);
+          throw new BadRequestException(`Insufficient stock for ${item.product.name || "product"}`);
         }
       }
 
@@ -61,25 +54,26 @@ export class OrdersService {
         include: { items: { include: { product: true } } },
       });
 
+      const warrantyRows: Prisma.WarrantyCreateManyInput[] = [];
       for (const item of cart.items) {
-        if (item.product.warrantyMonths && item.product.warrantyMonths > 0) {
-          const orderItem = order.items.find((oi) => oi.productId === item.productId);
-          if (orderItem) {
-            const startDate = new Date();
-            const endDate = new Date();
-            endDate.setMonth(endDate.getMonth() + item.product.warrantyMonths);
-            await tx.warranty.create({
-              data: {
-                orderItemId: orderItem.id,
-                productId: item.productId,
-                userId,
-                months: item.product.warrantyMonths,
-                startDate,
-                endDate,
-              },
-            });
-          }
-        }
+        const months = item.product.warrantyMonths;
+        if (!months || months <= 0) continue;
+        const orderItem = order.items.find((oi) => oi.productId === item.productId);
+        if (!orderItem) continue;
+        const startDate = new Date();
+        const endDate = new Date();
+        endDate.setMonth(endDate.getMonth() + months);
+        warrantyRows.push({
+          orderItemId: orderItem.id,
+          productId: item.productId,
+          userId,
+          months,
+          startDate,
+          endDate,
+        });
+      }
+      if (warrantyRows.length > 0) {
+        await tx.warranty.createMany({ data: warrantyRows });
       }
 
       await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
@@ -95,6 +89,7 @@ export class OrdersService {
       where: { userId },
       include: { items: { include: { product: true } } },
       orderBy: { createdAt: "desc" },
+      take: 100,
     });
   }
 
@@ -105,6 +100,7 @@ export class OrdersService {
         user: { select: { name: true, email: true } },
       },
       orderBy: { createdAt: "desc" },
+      take: 200,
     });
   }
 

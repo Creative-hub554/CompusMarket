@@ -13,7 +13,12 @@ import * as qrcode from "qrcode";
 import { SearchService } from "../search/search.service";
 
 type ProductWithCategory = Product & { category: Category };
-type ProductWithRelations = Product & { category: Category; reviews: Review[] };
+type ProductWithRelations = Product & {
+  category: Category;
+  reviews: Review[];
+  ratingAvg?: number;
+  ratingCount?: number;
+};
 
 @Injectable()
 export class ProductsService {
@@ -36,6 +41,7 @@ export class ProductsService {
       },
       include: { category: true },
       orderBy: { createdAt: "desc" },
+      take: 100,
     });
   }
 
@@ -117,24 +123,39 @@ export class ProductsService {
   }
 
   async findOne(id: string): Promise<ProductWithRelations> {
-    const product = await this.prisma.product.findUnique({
-      where: { id, status: "ACTIVE" },
-      include: {
-        category: true,
-        reviews: {
-          include: { user: { select: { name: true } } },
-          orderBy: { createdAt: "desc" },
+    const [product, summary] = await Promise.all([
+      this.prisma.product.findUnique({
+        where: { id, status: "ACTIVE" },
+        include: {
+          category: true,
+          reviews: {
+            take: 20,
+            include: { user: { select: { name: true } } },
+            orderBy: { createdAt: "desc" },
+          },
         },
-      },
-    });
+      }),
+      this.prisma.review.aggregate({
+        where: { productId: id },
+        _avg: { rating: true },
+        _count: { rating: true },
+      }),
+    ]);
     if (!product) throw new NotFoundException("Product not found");
-    return product;
+    return {
+      ...product,
+      ratingAvg: summary._avg.rating ?? 0,
+      ratingCount: summary._count.rating,
+    };
   }
 
   async findOneAdmin(id: string): Promise<ProductWithRelations> {
     const product = await this.prisma.product.findUnique({
       where: { id },
-      include: { category: true, reviews: true },
+      include: {
+        category: true,
+        reviews: { orderBy: { createdAt: "desc" }, take: 50 },
+      },
     });
     if (!product) throw new NotFoundException("Product not found");
     return product;
@@ -162,6 +183,8 @@ export class ProductsService {
         ...(inStock ? { stock: { gt: 0 } } : {}),
       },
       include: { category: true },
+      orderBy: { createdAt: "desc" },
+      take: 60,
     });
   }
 
@@ -178,13 +201,12 @@ export class ProductsService {
     userId: string
   ): Promise<{ orderItemId: string; createdAt: Date }[]> {
     const items = await this.prisma.orderItem.findMany({
-      where: { productId, order: { userId } },
+      where: { productId, order: { userId }, feedback: { is: null } },
       orderBy: { createdAt: "desc" },
-      include: { feedback: true },
+      take: 50,
+      select: { id: true, createdAt: true },
     });
-    return items
-      .filter((item) => !item.feedback)
-      .map((item) => ({ orderItemId: item.id, createdAt: item.createdAt }));
+    return items.map((item) => ({ orderItemId: item.id, createdAt: item.createdAt }));
   }
 
   async createReview(

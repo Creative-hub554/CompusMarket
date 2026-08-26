@@ -37,12 +37,14 @@ export class StoriesService {
     const following = await this.prisma.follow.findMany({
       where: { followerId: viewerId },
       select: { followingId: true },
+      take: 200,
     });
     const authors = [viewerId, ...following.map((f) => f.followingId)];
 
     const stories = await this.prisma.story.findMany({
       where: { authorId: { in: authors }, expiresAt: { gt: new Date() } },
-      orderBy: { createdAt: "asc" },
+      orderBy: { createdAt: "desc" },
+      take: 300,
       include: {
         author: { select: { id: true, name: true, username: true, image: true } },
         views: { where: { userId: viewerId }, select: { userId: true } },
@@ -50,7 +52,7 @@ export class StoriesService {
     });
 
     const groups = new Map<string, StoryGroup>();
-    for (const s of stories) {
+    for (const s of [...stories].reverse()) {
       let group = groups.get(s.author.id);
       if (!group) {
         group = { author: s.author, stories: [], allViewed: true };

@@ -137,17 +137,20 @@ describe("ProductsService", () => {
   });
 
   describe("getReviewable", () => {
-    it("returns only purchased order items without an existing review", async () => {
+    it("queries purchased order items without an existing review", async () => {
       mockPrisma.orderItem.findMany.mockResolvedValue([
-        { id: "oi1", createdAt: new Date(), feedback: null },
-        { id: "oi2", createdAt: new Date(), feedback: { id: "r1" } },
+        { id: "oi1", createdAt: new Date() },
       ]);
 
       const result = await service.getReviewable("p1", "u1");
 
       expect(mockPrisma.orderItem.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { productId: "p1", order: { userId: "u1" } },
+          where: {
+            productId: "p1",
+            order: { userId: "u1" },
+            feedback: { is: null },
+          },
         }),
       );
       expect(result).toEqual([{ orderItemId: "oi1", createdAt: expect.any(Date) }]);

@@ -21,6 +21,7 @@ export class ArticlesService {
     return this.prisma.article.findMany({
       where: { published: true },
       orderBy: { createdAt: "desc" },
+      take: 50,
     });
   }
 
@@ -28,6 +29,7 @@ export class ArticlesService {
     return this.prisma.article.findMany({
       orderBy: { createdAt: "desc" },
       include: { author: { select: { name: true } } },
+      take: 100,
     });
   }
 
@@ -44,6 +46,7 @@ export class ArticlesService {
     return this.prisma.article.findMany({
       where: { published: true, category },
       orderBy: { createdAt: "desc" },
+      take: 50,
     });
   }
 

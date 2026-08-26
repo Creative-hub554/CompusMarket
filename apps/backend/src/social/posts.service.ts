@@ -4,16 +4,24 @@ import { PrismaService } from "../prisma/prisma.service";
 import { NotificationsService } from "./notifications.service";
 import { CreateCommentDto, CreatePostDto, PostMediaInputDto } from "./dto/social.dto";
 
-const POST_INCLUDE = {
+const LIST_POST_INCLUDE = {
   author: { select: { id: true, name: true, username: true, image: true } },
   media: { orderBy: { position: Prisma.SortOrder.asc } },
-  reactions: { select: { emoji: true, userId: true } },
-  bookmarks: { select: { userId: true } },
   group: { select: { id: true, name: true } },
   _count: { select: { comments: true } },
 } satisfies Prisma.PostInclude;
 
+const POST_INCLUDE = {
+  ...LIST_POST_INCLUDE,
+  reactions: { select: { emoji: true, userId: true } },
+  bookmarks: { select: { userId: true } },
+} satisfies Prisma.PostInclude;
+
 type PostWithRelations = Prisma.PostGetPayload<{ include: typeof POST_INCLUDE }> & {
+  pinnedAt?: Date | null;
+};
+
+type ListPost = Prisma.PostGetPayload<{ include: typeof LIST_POST_INCLUDE }> & {
   pinnedAt?: Date | null;
 };
 
@@ -36,6 +44,24 @@ export function mapPost(post: PostWithRelations, viewerId?: string): MappedPost 
   for (const r of post.reactions) {
     grouped.set(r.emoji, (grouped.get(r.emoji) || 0) + 1);
   }
+  return finalizePost(post, {
+    reactions: [...grouped.entries()]
+      .map(([emoji, count]) => ({ emoji, count }))
+      .sort((a, b) => b.count - a.count),
+    viewerReaction: viewerId
+      ? post.reactions.find((r) => r.userId === viewerId)?.emoji ?? null
+      : null,
+    bookmarked: viewerId ? post.bookmarks.some((b) => b.userId === viewerId) : false,
+  });
+}
+
+function finalizePost(
+  post: Pick<
+    PostWithRelations,
+    "id" | "content" | "createdAt" | "author" | "group" | "media" | "_count" | "pinnedAt"
+  >,
+  summary: { reactions: { emoji: string; count: number }[]; viewerReaction: string | null; bookmarked: boolean }
+): MappedPost {
   return {
     id: post.id,
     content: post.content,
@@ -49,15 +75,11 @@ export function mapPost(post: PostWithRelations, viewerId?: string): MappedPost 
       thumbUrl: m.thumbUrl,
       position: m.position,
     })),
-    reactions: [...grouped.entries()]
-      .map(([emoji, count]) => ({ emoji, count }))
-      .sort((a, b) => b.count - a.count),
+    reactions: summary.reactions,
     commentCount: post._count.comments,
-    viewerReaction: viewerId ? post.reactions.find((r) => r.userId === viewerId)?.emoji ?? null : null,
+    viewerReaction: summary.viewerReaction,
     pinned: Boolean(post.pinnedAt),
-    bookmarked: viewerId
-      ? post.bookmarks.some((b) => b.userId === viewerId)
-      : false,
+    bookmarked: summary.bookmarked,
   };
 }
 
@@ -184,12 +206,13 @@ export class PostsService {
       orderBy: { createdAt: "desc" },
       take: limit + 1,
       ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
-      include: { post: { include: POST_INCLUDE } },
+      include: { post: { include: LIST_POST_INCLUDE } },
     });
     const hasMore = bookmarks.length > limit;
-    const items = bookmarks
-      .slice(0, limit)
-      .map((b) => mapPost(b.post, userId));
+    const items = await this.hydratePosts(
+      bookmarks.slice(0, limit).map((b) => b.post),
+      userId
+    );
     return { items, nextCursor: hasMore ? items[items.length - 1].id : null };
   }
 
@@ -239,11 +262,54 @@ export class PostsService {
       orderBy,
       take: limit + 1,
       ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
-      include: POST_INCLUDE,
+      include: LIST_POST_INCLUDE,
     });
     const hasMore = posts.length > limit;
-    const items = posts.slice(0, limit).map((p) => mapPost(p, viewerId));
+    const page = posts.slice(0, limit);
+    const items = await this.hydratePosts(page, viewerId);
     return { items, nextCursor: hasMore ? items[items.length - 1].id : null };
+  }
+
+  private async hydratePosts(posts: ListPost[], viewerId?: string): Promise<MappedPost[]> {
+    if (posts.length === 0) return [];
+    const ids = posts.map((p) => p.id);
+
+    const [tallies, viewerReactions, viewerBookmarks] = await Promise.all([
+      this.prisma.reaction.groupBy({
+        by: ["postId", "emoji"],
+        where: { postId: { in: ids } },
+        _count: { emoji: true },
+      }),
+      viewerId
+        ? this.prisma.reaction.findMany({
+            where: { postId: { in: ids }, userId: viewerId },
+            select: { postId: true, emoji: true },
+          })
+        : Promise.resolve<{ postId: string; emoji: string }[]>([]),
+      viewerId
+        ? this.prisma.bookmark.findMany({
+            where: { postId: { in: ids }, userId: viewerId },
+            select: { postId: true },
+          })
+        : Promise.resolve<{ postId: string }[]>([]),
+    ]);
+
+    const talliesByPost = new Map<string, { emoji: string; count: number }[]>();
+    for (const t of tallies) {
+      const list = talliesByPost.get(t.postId) ?? [];
+      list.push({ emoji: t.emoji, count: t._count.emoji });
+      talliesByPost.set(t.postId, list);
+    }
+    const reactionByPost = new Map(viewerReactions.map((r) => [r.postId, r.emoji]));
+    const bookmarkedIds = new Set(viewerBookmarks.map((b) => b.postId));
+
+    return posts.map((post) =>
+      finalizePost(post, {
+        reactions: (talliesByPost.get(post.id) ?? []).sort((a, b) => b.count - a.count),
+        viewerReaction: reactionByPost.get(post.id) ?? null,
+        bookmarked: bookmarkedIds.has(post.id),
+      })
+    );
   }
 
   async update(id: string, userId: string, content: string): Promise<MappedPost> {
@@ -275,21 +341,31 @@ export class PostsService {
     });
     if (!post) throw new NotFoundException("Post not found");
 
-    const existing = await this.prisma.reaction.findUnique({
-      where: { postId_userId: { postId, userId } },
-    });
+    const reacted = await this.prisma.$transaction(async (tx) => {
+      const existing = await tx.reaction.findUnique({
+        where: { postId_userId: { postId, userId } },
+        select: { id: true, emoji: true },
+      });
 
-    let reacted: boolean;
-    if (existing && existing.emoji === emoji) {
-      await this.prisma.reaction.delete({ where: { id: existing.id } });
-      reacted = false;
-    } else if (existing) {
-      await this.prisma.reaction.update({ where: { id: existing.id }, data: { emoji } });
-      reacted = true;
-    } else {
-      await this.prisma.reaction.create({ data: { postId, userId, emoji } });
-      reacted = true;
-    }
+      if (existing && existing.emoji === emoji) {
+        await tx.reaction.delete({ where: { id: existing.id } });
+        return false;
+      }
+      if (existing) {
+        await tx.reaction.update({ where: { id: existing.id }, data: { emoji } });
+        return true;
+      }
+      const created = await tx.reaction
+        .create({ data: { postId, userId, emoji } })
+        .catch(() => null);
+      if (!created) {
+        await tx.reaction.update({
+          where: { postId_userId: { postId, userId } },
+          data: { emoji },
+        });
+      }
+      return true;
+    });
 
     if (reacted) {
       await this.notifications.notify({
@@ -322,6 +398,7 @@ export class PostsService {
     });
     if (!post) throw new NotFoundException("Post not found");
 
+    let parentAuthorId: string | null = null;
     if (dto.parentId) {
       const parent = await this.prisma.comment.findUnique({
         where: { id: dto.parentId },
@@ -330,12 +407,7 @@ export class PostsService {
       if (!parent || parent.postId !== postId) {
         throw new BadRequestException("Invalid parent comment");
       }
-      await this.notifications.notify({
-        userId: parent.authorId,
-        actorId: userId,
-        kind: "COMMENT",
-        entityId: postId,
-      });
+      parentAuthorId = parent.authorId;
     }
 
     const comment = await this.prisma.comment.create({
@@ -348,12 +420,22 @@ export class PostsService {
       include: { author: { select: { id: true, name: true, username: true, image: true } } },
     });
 
-    await this.notifications.notify({
-      userId: post.authorId,
-      actorId: userId,
-      kind: "COMMENT",
-      entityId: postId,
-    });
+    await Promise.all([
+      parentAuthorId
+        ? this.notifications.notify({
+            userId: parentAuthorId,
+            actorId: userId,
+            kind: "COMMENT",
+            entityId: postId,
+          })
+        : Promise.resolve(),
+      this.notifications.notify({
+        userId: post.authorId,
+        actorId: userId,
+        kind: "COMMENT",
+        entityId: postId,
+      }),
+    ]);
 
     return comment;
   }

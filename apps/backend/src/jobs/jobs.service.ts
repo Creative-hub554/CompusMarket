@@ -35,11 +35,13 @@ export class JobsService {
     const recipients = new Set<string>();
 
     const alerts = await this.prisma.jobAlert.findMany({
-      where: { userId: { not: userId } },
-      select: { userId: true, type: true, location: true, q: true },
+      where: {
+        userId: { not: userId },
+        OR: [{ type: null }, { type: dto.type }],
+      },
+      select: { userId: true, location: true, q: true },
     });
     for (const alert of alerts) {
-      if (alert.type && alert.type !== dto.type) continue;
       if (
         alert.location &&
         !(job.location || "").toLowerCase().includes(alert.location.toLowerCase())
@@ -94,13 +96,9 @@ export class JobsService {
         "An alert needs at least one of type, location or keyword"
       );
     }
-    const existing = await this.prisma.jobAlert.findMany({ where: { userId } });
-    const dupe = existing.find(
-      (a) =>
-        (a.type ?? null) === type &&
-        (a.location ?? null) === location &&
-        (a.q ?? null) === q
-    );
+    const dupe = await this.prisma.jobAlert.findFirst({
+      where: { userId, type, location, q },
+    });
     if (dupe) return dupe;
     return this.prisma.jobAlert.create({
       data: { userId, type, location, q },
@@ -136,6 +134,7 @@ export class JobsService {
     return this.prisma.job.findMany({
       where,
       orderBy: { createdAt: "desc" },
+      take: 100,
       include: { postedBy: { select: { id: true, name: true, image: true } } },
     });
   }
@@ -219,6 +218,7 @@ export class JobsService {
     return this.prisma.jobApplication.findMany({
       where: { jobId },
       orderBy: { createdAt: "desc" },
+      take: 200,
       include: {
         applicant: { select: { id: true, name: true, image: true } },
       },
@@ -229,6 +229,7 @@ export class JobsService {
     return this.prisma.jobApplication.findMany({
       where: { applicantId: userId },
       orderBy: { createdAt: "desc" },
+      take: 100,
       include: { job: true },
     });
   }

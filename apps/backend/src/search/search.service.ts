@@ -5,6 +5,10 @@ import type { Prisma, ProductCondition } from "@theo/database";
 
 const INDEX_NAME = "products";
 
+function escapeFilterValue(value: string): string {
+  return value.replace(/["\\]/g, "\\$&");
+}
+
 @Injectable()
 export class SearchService implements OnModuleInit {
   constructor(private prisma: PrismaService) {}
@@ -109,23 +113,33 @@ export class SearchService implements OnModuleInit {
     if (!this.isAvailable()) return;
     try {
       await this.ensureIndex();
-      const products = await this.prisma.product.findMany({
-        include: { category: true },
-      });
-      const docs = products.map((p) => ({
-        id: p.id,
-        name: p.name,
-        description: p.description,
-        price: Number(p.price),
-        condition: p.condition,
-        status: p.status,
-        categoryId: p.categoryId,
-        categoryName: p.category.name,
-        images: p.images,
-        createdAt: p.createdAt.getTime(),
-      }));
-      await this.client!.index(INDEX_NAME).addDocuments(docs);
-      this.logger.log(`Reindexed ${docs.length} products`);
+      let cursor: string | undefined;
+      let total = 0;
+      for (;;) {
+        const products = await this.prisma.product.findMany({
+          include: { category: true },
+          orderBy: { id: "asc" },
+          ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+          take: 200,
+        });
+        if (products.length === 0) break;
+        cursor = products[products.length - 1].id;
+        total += products.length;
+        const docs = products.map((p) => ({
+          id: p.id,
+          name: p.name,
+          description: p.description,
+          price: Number(p.price),
+          condition: p.condition,
+          status: p.status,
+          categoryId: p.categoryId,
+          categoryName: p.category.name,
+          images: p.images,
+          createdAt: p.createdAt.getTime(),
+        }));
+        await this.client!.index(INDEX_NAME).addDocuments(docs);
+      }
+      this.logger.log(`Reindexed ${total} products`);
     } catch (e) {
       this.logger.error("Failed to reindex all products", e);
     }
@@ -142,7 +156,7 @@ export class SearchService implements OnModuleInit {
     try {
       const filterParts: string[] = [];
       if (filters?.categoryId) {
-        filterParts.push(`categoryId = "${filters.categoryId}"`);
+        filterParts.push(`categoryId = "${escapeFilterValue(filters.categoryId)}"`);
       }
       if (filters?.minPrice !== undefined) {
         filterParts.push(`price >= ${Number(filters.minPrice)}`);
@@ -151,7 +165,7 @@ export class SearchService implements OnModuleInit {
         filterParts.push(`price <= ${Number(filters.maxPrice)}`);
       }
       if (filters?.condition) {
-        filterParts.push(`condition = "${filters.condition}"`);
+        filterParts.push(`condition = "${escapeFilterValue(filters.condition)}"`);
       }
 
       const result = await this.client!.index(INDEX_NAME).search(query, {

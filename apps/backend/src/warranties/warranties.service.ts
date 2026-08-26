@@ -35,6 +35,7 @@ export class WarrantiesService {
         user: { select: { name: true, email: true } },
       },
       orderBy: { createdAt: "desc" },
+      take: 200,
     });
   }
 
@@ -62,6 +63,7 @@ export class WarrantiesService {
         product: { select: { name: true, images: true } },
       },
       orderBy: { createdAt: "desc" },
+      take: 100,
     });
   }
 
@@ -72,6 +74,7 @@ export class WarrantiesService {
         user: { select: { name: true, email: true } },
       },
       orderBy: { createdAt: "desc" },
+      take: 100,
     });
   }
 
@@ -87,21 +90,28 @@ export class WarrantiesService {
     }
 
     if (new Date() > warranty.endDate) {
-      await this.prisma.warranty.update({
-        where: { id },
+      await this.prisma.warranty.updateMany({
+        where: { id, status: WarrantyStatus.ACTIVE },
         data: { status: WarrantyStatus.EXPIRED },
       });
       throw new BadRequestException("Warranty has expired");
     }
 
-    return this.prisma.warranty.update({
-      where: { id },
+    const claimed = await this.prisma.warranty.updateMany({
+      where: { id, userId, status: WarrantyStatus.ACTIVE },
       data: {
         status: WarrantyStatus.CLAIMED,
         claimDate: new Date(),
         claimReason: dto.reason,
         claimStatus: WarrantyClaimStatus.PENDING,
       },
+    });
+    if (claimed.count === 0) {
+      throw new BadRequestException("Warranty is not active");
+    }
+
+    return this.prisma.warranty.findUnique({
+      where: { id },
       include: {
         product: { select: { name: true } },
       },

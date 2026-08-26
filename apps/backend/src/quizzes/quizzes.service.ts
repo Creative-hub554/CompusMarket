@@ -178,6 +178,7 @@ export class QuizzesService {
     return this.prisma.quizAttempt.findMany({
       where: { quizId },
       orderBy: { startedAt: "desc" },
+      take: 100,
       include: { user: { select: { id: true, name: true, email: true } } },
     });
   }
@@ -186,6 +187,7 @@ export class QuizzesService {
     return this.prisma.quizAttempt.findMany({
       where: { userId },
       orderBy: { startedAt: "desc" },
+      take: 100,
       include: { quiz: { select: { id: true, title: true } } },
     });
   }

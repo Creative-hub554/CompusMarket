@@ -8,6 +8,7 @@ export async function GET(req: NextRequest) {
 
   const articles = await prisma.article.findMany({
     orderBy: { createdAt: "desc" },
+    take: 100,
   });
 
   return NextResponse.json(articles);

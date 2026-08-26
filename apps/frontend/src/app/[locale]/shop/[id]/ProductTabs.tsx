@@ -27,9 +27,12 @@ export function ProductTabs({ product }: { product: Product }) {
   };
 
   const average =
-    reviews.length > 0
-      ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-      : 0;
+    product.ratingCount !== undefined && reviews.length <= product.ratingCount
+      ? (product.ratingAvg ?? 0)
+      : reviews.length > 0
+        ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+        : 0;
+  const reviewCount = product.ratingCount ?? reviews.length;
 
   function handleCreated(review: Review) {
     setReviews((prev) => [review, ...prev]);
@@ -84,7 +87,7 @@ export function ProductTabs({ product }: { product: Product }) {
         <div>
           <div className="flex items-center gap-3 mb-6">
             <h2 className="text-xl font-bold">{t("reviews")}</h2>
-            {reviews.length > 0 && (
+            {reviewCount > 0 && (
               <span className="flex items-center gap-1 text-sm text-yellow-500">
                 <span className="text-base">
                   {"★".repeat(Math.round(average))}
@@ -93,7 +96,7 @@ export function ProductTabs({ product }: { product: Product }) {
                 <span className="text-slate-600 dark:text-slate-300 font-medium">
                   {average.toFixed(1)}
                 </span>
-                <span className="text-slate-400">({reviews.length})</span>
+                <span className="text-slate-400">({reviewCount})</span>
               </span>
             )}
           </div>

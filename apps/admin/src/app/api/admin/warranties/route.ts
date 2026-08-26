@@ -12,6 +12,7 @@ export async function GET(req: NextRequest) {
       user: { select: { name: true, email: true } },
     },
     orderBy: { createdAt: "desc" },
+    take: 200,
   });
 
   return NextResponse.json(warranties);

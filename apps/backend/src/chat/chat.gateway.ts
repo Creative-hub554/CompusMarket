@@ -219,15 +219,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         where: { threadId: data.threadId, userId: { not: userId } },
         select: { userId: true },
       });
-      for (const p of otherParticipants) {
-        await this.notifications.notify({
-          userId: p.userId,
-          actorId: userId,
-          kind: "MESSAGE",
-          entityId: data.threadId,
-          message: content || "Sent an attachment",
-        });
-      }
+      await Promise.all(
+        otherParticipants.map((p) =>
+          this.notifications.notify({
+            userId: p.userId,
+            actorId: userId,
+            kind: "MESSAGE",
+            entityId: data.threadId,
+            message: content || "Sent an attachment",
+          })
+        )
+      );
     } catch (err) {
       this.logger.error("ChatGateway error:", err as Error);
     }
@@ -299,10 +301,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
       const ticket = await this.prisma.supportTicket.findUnique({
         where: { id: data.ticketId },
+        select: { customerId: true },
       });
       if (!ticket) return;
 
-      const user = await this.prisma.user.findUnique({ where: { id: userId } });
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true },
+      });
       const isCustomer = ticket.customerId === userId;
       const isAdmin = user?.role === "ADMIN";
       if (!isCustomer && !isAdmin) return;
@@ -330,10 +336,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
       const ticket = await this.prisma.supportTicket.findUnique({
         where: { id: data.ticketId },
+        select: { customerId: true },
       });
       if (!ticket) return;
 
-      const user = await this.prisma.user.findUnique({ where: { id: userId } });
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true },
+      });
       const isCustomer = ticket.customerId === userId;
       const isAdmin = user?.role === "ADMIN";
       if (!isCustomer && !isAdmin) return;
@@ -369,14 +379,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       if (!userId) return;
 
       // Only the ticket customer (or an admin) may mark its messages as read.
-      const user = await this.prisma.user.findUnique({ where: { id: userId } });
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true },
+      });
       if (!user) return;
 
       const ticket =
         user.role === "ADMIN"
-          ? await this.prisma.supportTicket.findUnique({ where: { id: data.ticketId } })
+          ? await this.prisma.supportTicket.findUnique({
+              where: { id: data.ticketId },
+              select: { id: true },
+            })
           : await this.prisma.supportTicket.findFirst({
               where: { id: data.ticketId, customerId: userId },
+              select: { id: true },
             });
       if (!ticket) return;
 

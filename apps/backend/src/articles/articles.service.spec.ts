@@ -81,6 +81,7 @@ describe("ArticlesService", () => {
       expect(mockPrisma.article.findMany).toHaveBeenCalledWith({
         where: { published: true },
         orderBy: { createdAt: "desc" },
+        take: 50,
       });
     });
   });
@@ -94,6 +95,7 @@ describe("ArticlesService", () => {
       expect(mockPrisma.article.findMany).toHaveBeenCalledWith({
         orderBy: { createdAt: "desc" },
         include: { author: { select: { name: true } } },
+        take: 100,
       });
     });
   });
@@ -126,6 +128,7 @@ describe("ArticlesService", () => {
       expect(mockPrisma.article.findMany).toHaveBeenCalledWith({
         where: { published: true, category: "TECH" },
         orderBy: { createdAt: "desc" },
+        take: 50,
       });
     });
   });

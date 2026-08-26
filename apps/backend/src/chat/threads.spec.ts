@@ -18,6 +18,7 @@ function makePrisma() {
     },
     message: {
       count: vi.fn(),
+      groupBy: vi.fn(),
       findMany: vi.fn(),
       updateMany: vi.fn(),
     },
@@ -107,14 +108,27 @@ describe("ThreadsService", () => {
           },
         },
       ]);
-      prisma.message.count.mockResolvedValue(2);
+      prisma.message.groupBy.mockResolvedValue([
+        { threadId: "t-new", _count: { _all: 2 } },
+      ]);
 
       const threads = await service.listThreads("me");
 
+      expect(prisma.message.groupBy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          by: ["threadId"],
+          where: {
+            threadId: { in: ["t-old", "t-new"] },
+            senderId: { not: "me" },
+            readAt: null,
+          },
+        })
+      );
       expect(threads[0].id).toBe("t-new");
       expect(threads[0].participants).toEqual([{ id: "u3", name: "Cara", username: "cara", image: null }]);
       expect(threads[0].unreadCount).toBe(2);
       expect(threads[1].id).toBe("t-old");
+      expect(threads[1].unreadCount).toBe(0);
     });
   });
 

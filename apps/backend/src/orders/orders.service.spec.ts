@@ -11,6 +11,7 @@ describe("OrdersService", () => {
     order: {
       findUnique: vi.fn(),
       findMany: vi.fn(),
+      create: vi.fn(),
       update: vi.fn(),
     },
     orderItem: { updateMany: vi.fn() },
@@ -21,7 +22,8 @@ describe("OrdersService", () => {
     },
     cartItem: { deleteMany: vi.fn() },
     product: { findUnique: vi.fn(), updateMany: vi.fn() },
-    warranty: { create: vi.fn() },
+    warranty: { create: vi.fn(), createMany: vi.fn() },
+    $transaction: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -34,6 +36,89 @@ describe("OrdersService", () => {
 
   it("should be defined", () => {
     expect(service).toBeDefined();
+  });
+
+  describe("checkout", () => {
+    const cart = {
+      id: "cart-1",
+      items: [
+        {
+          productId: "p1",
+          quantity: 2,
+          product: { id: "p1", name: "Phone", price: 100, warrantyMonths: 12 },
+        },
+        {
+          productId: "p2",
+          quantity: 1,
+          product: { id: "p2", name: "Case", price: 10, warrantyMonths: null },
+        },
+      ],
+    };
+
+    beforeEach(() => {
+      mockPrisma.$transaction.mockImplementation(
+        async (cb: (tx: unknown) => unknown) => cb(mockPrisma)
+      );
+    });
+
+    it("throws when the cart is empty", async () => {
+      mockPrisma.cart.findUnique.mockResolvedValue(null);
+
+      await expect(service.checkout("u-1")).rejects.toBeInstanceOf(BadRequestException);
+      expect(mockPrisma.order.create).not.toHaveBeenCalled();
+    });
+
+    it("creates the order, batches warranty rows and clears the cart", async () => {
+      mockPrisma.cart.findUnique.mockResolvedValue(cart);
+      mockPrisma.product.updateMany.mockResolvedValue({ count: 1 });
+      mockPrisma.order.create.mockResolvedValue({
+        id: "o-1",
+        status: OrderStatus.PENDING,
+        items: [
+          { id: "oi-1", productId: "p1" },
+          { id: "oi-2", productId: "p2" },
+        ],
+      });
+      mockPrisma.warranty.createMany.mockResolvedValue({ count: 1 });
+
+      const result = await service.checkout("u-1");
+
+      expect(mockPrisma.product.updateMany).toHaveBeenCalledWith({
+        where: { id: "p1", stock: { gte: 2 } },
+        data: { stock: { decrement: 2 } },
+      });
+      expect(mockPrisma.order.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ userId: "u-1", total: 210 }),
+        }),
+      );
+      expect(mockPrisma.warranty.createMany).toHaveBeenCalledTimes(1);
+      expect(mockPrisma.warranty.createMany).toHaveBeenCalledWith({
+        data: [
+          expect.objectContaining({
+            orderItemId: "oi-1",
+            productId: "p1",
+            userId: "u-1",
+            months: 12,
+          }),
+        ],
+      });
+      expect(mockPrisma.warranty.create).not.toHaveBeenCalled();
+      expect(mockPrisma.cartItem.deleteMany).toHaveBeenCalledWith({
+        where: { cartId: "cart-1" },
+      });
+      expect(result.id).toBe("o-1");
+    });
+
+    it("rejects without creating anything when stock is insufficient", async () => {
+      mockPrisma.cart.findUnique.mockResolvedValue(cart);
+      mockPrisma.product.updateMany.mockResolvedValue({ count: 0 });
+
+      await expect(service.checkout("u-1")).rejects.toBeInstanceOf(BadRequestException);
+      expect(mockPrisma.order.create).not.toHaveBeenCalled();
+      expect(mockPrisma.warranty.createMany).not.toHaveBeenCalled();
+      expect(mockPrisma.cartItem.deleteMany).not.toHaveBeenCalled();
+    });
   });
 
   describe("findOne", () => {

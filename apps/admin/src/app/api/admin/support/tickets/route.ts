@@ -16,6 +16,7 @@ export async function GET(req: NextRequest) {
       },
     },
     orderBy: { updatedAt: "desc" },
+    take: 200,
   });
 
   return NextResponse.json(tickets);

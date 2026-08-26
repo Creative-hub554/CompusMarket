@@ -28,6 +28,8 @@ export type Product = {
   warrantyMonths?: number;
   category: { id: string; name: string; slug: string };
   reviews?: Review[];
+  ratingAvg?: number;
+  ratingCount?: number;
   createdAt: string;
 };
 
