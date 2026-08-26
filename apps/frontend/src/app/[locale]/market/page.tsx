@@ -92,13 +92,16 @@ export default function MarketPage() {
     <div className="mx-auto max-w-7xl px-4 py-8 animate-fade-in">
       <div className="mb-6">
         <h1 className="page-title">{t("title")}</h1>
-        <p className="text-slate-500 dark:text-slate-400 mt-1">{t("subtitle")}</p>
+        <p className="page-subtitle">{t("subtitle")}</p>
       </div>
 
       <ReelsStrip />
 
       {/* Filter bar */}
-      <div className="card rounded-xl p-4 mb-6 space-y-4">
+      <div
+        className="rounded-xl p-4 mb-6 space-y-4 border"
+        style={{ background: "var(--surface)", borderColor: "var(--border-subtle)" }}
+      >
         <div className="flex flex-col md:flex-row gap-3">
           <input
             type="search"
@@ -134,7 +137,7 @@ export default function MarketPage() {
         </div>
 
         <div className="flex flex-wrap items-end gap-3">
-          <label className="text-xs text-slate-500 flex flex-col gap-1">
+          <label className="text-xs flex flex-col gap-1" style={{ color: "var(--text-muted)" }}>
             {t("minPrice")}
             <input
               type="number"
@@ -144,7 +147,7 @@ export default function MarketPage() {
               className="input-field w-28"
             />
           </label>
-          <label className="text-xs text-slate-500 flex flex-col gap-1">
+          <label className="text-xs flex flex-col gap-1" style={{ color: "var(--text-muted)" }}>
             {t("maxPrice")}
             <input
               type="number"
@@ -157,7 +160,7 @@ export default function MarketPage() {
           {hasFilters && (
             <button
               onClick={clearFilters}
-              className="text-sm text-gold-600 hover:underline pb-2"
+              className="text-sm font-medium text-gold-600 hover:text-gold-700 dark:text-gold-400 dark:hover:text-gold-300 pb-2 transition-colors"
             >
               {t("clearFilters")}
             </button>
@@ -165,7 +168,7 @@ export default function MarketPage() {
         </div>
       </div>
 
-      <p className="text-sm text-slate-400 mb-4">
+      <p className="text-sm mb-4" style={{ color: "var(--text-muted)" }}>
         {loading
           ? t("loading")
           : t("resultsCount", { count: total })}
@@ -176,17 +179,21 @@ export default function MarketPage() {
           {Array.from({ length: 8 }).map((_, i) => (
             <div
               key={i}
-              className="rounded-xl border border-slate-200 bg-white h-64 animate-pulse"
+              className="rounded-xl border h-64 animate-pulse"
+              style={{ background: "var(--surface-2)", borderColor: "var(--border-subtle)" }}
             />
           ))}
         </div>
       ) : hits.length === 0 ? (
-        <div className="text-center py-16 border rounded-xl bg-white">
-          <p className="text-slate-500">{t("noResults")}</p>
+        <div
+          className="text-center py-16 rounded-xl border"
+          style={{ background: "var(--surface)", borderColor: "var(--border-subtle)" }}
+        >
+          <p style={{ color: "var(--text-muted)" }}>{t("noResults")}</p>
           {hasFilters && (
             <button
               onClick={clearFilters}
-              className="mt-4 inline-block text-gold-600 hover:underline"
+              className="mt-4 inline-block text-sm font-medium text-gold-600 hover:text-gold-700 dark:text-gold-400 dark:hover:text-gold-300 transition-colors"
             >
               {t("clearFilters")}
             </button>

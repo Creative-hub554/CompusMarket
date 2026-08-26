@@ -119,7 +119,7 @@ export default async function Home() {
               <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-gold/15 to-gold-light/15 text-gold-dark dark:text-gold-light">
                 <Icon size={18} />
               </span>
-              <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 group-hover:text-gold-dark dark:group-hover:text-gold-light transition-colors">
+              <span className="text-sm font-semibold transition-colors" style={{ color: "var(--text-body)" }}>
                 {label}
               </span>
             </Link>
@@ -144,8 +144,8 @@ export default async function Home() {
                     <Thumb className={`w-full h-full transition-transform duration-500 group-hover:scale-110 ${featured ? "max-h-52" : "max-h-24"}`} />
                   </div>
                   <div className="px-5 pb-4 flex items-center justify-between">
-                    <div className="font-bold text-slate-900 dark:text-slate-100">{cat.name}</div>
-                    <span className="text-[11px] font-medium text-slate-400">{cat._count.products}</span>
+                    <div className="font-bold" style={{ color: "var(--text-body)" }}>{cat.name}</div>
+                    <span className="text-[11px] font-medium" style={{ color: "var(--text-muted)" }}>{cat._count.products}</span>
                   </div>
                 </Link>
               );
@@ -167,8 +167,8 @@ export default async function Home() {
                 <span className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-gold to-gold-light text-slate-950 shadow-[0_8px_20px_-6px_rgba(212,160,39,0.6)]">
                   <Icon size={22} />
                 </span>
-                <h3 className="text-xl font-bold mb-3">{title}</h3>
-                <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-sm">{desc}</p>
+                <h3 className="text-xl font-bold mb-3" style={{ color: "var(--text-body)" }}>{title}</h3>
+                <p className="leading-relaxed text-sm" style={{ color: "var(--text-muted)" }}>{desc}</p>
               </div>
             ))}
           </div>

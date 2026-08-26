@@ -6,7 +6,12 @@ export function Input({
 }: InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
-      className={`w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500/30 focus:border-gold-500 ${className}`}
+      className={`w-full rounded-lg border px-3 py-2 text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold ${className}`}
+      style={{
+        background: "var(--surface)",
+        borderColor: "var(--border-subtle)",
+        color: "var(--text-body)",
+      }}
       {...props}
     />
   );

@@ -6,7 +6,11 @@ export function Card({
 }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={`rounded-xl border border-slate-200 bg-white ${className}`}
+      className={`rounded-xl border transition-colors duration-200 ${className}`}
+      style={{
+        background: "var(--surface)",
+        borderColor: "var(--border-subtle)",
+      }}
       {...props}
     />
   );

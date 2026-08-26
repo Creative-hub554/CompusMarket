@@ -251,11 +251,12 @@ function ResumeBuilderContent() {
     <div className="mx-auto max-w-7xl px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold">{t.resume.title}</h1>
-          <p className="text-slate-500 text-sm mt-1">{t.resume.subtitle}</p>
+          <h1 className="page-title">{t.resume.title}</h1>
+          <p className="page-subtitle">{t.resume.subtitle}</p>
           <button
             onClick={() => setGalleryOpen(true)}
-            className="mt-2 inline-flex items-center gap-2 rounded-lg border bg-white px-3 py-1.5 text-sm hover:bg-slate-50"
+            className="mt-2 inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm transition-colors hover:bg-[var(--surface-2)]"
+            style={{ borderColor: "var(--border-subtle)", color: "var(--text-body)" }}
           >
             <span
               style={{
@@ -273,7 +274,7 @@ function ResumeBuilderContent() {
                 ? templates.find((t) => t.id === selectedTemplate)?.nameKm
                 : templates.find((t) => t.id === selectedTemplate)?.name}
             </span>
-            <span className="text-xs text-slate-400">
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>
               {locale === "km" ? "ប្តូរ" : "Change"}
             </span>
           </button>
@@ -281,32 +282,33 @@ function ResumeBuilderContent() {
         <div className="flex gap-2 items-center">
           <button
             onClick={() => setLocale(locale === "en" ? "km" : "en")}
-            className="rounded border px-3 py-1.5 text-sm hover:bg-slate-100"
+            className="btn-ghost"
           >
             {locale === "en" ? t.resume.languageKm : t.resume.languageEn}
           </button>
           <input
             value={resumeTitle}
             onChange={(e) => setResumeTitle(e.target.value)}
-            className="rounded border px-3 py-1.5 text-sm w-48"
+            className="input-field w-48"
           />
           <button
             onClick={saveResume}
             disabled={saving}
-            className="rounded bg-green-600 px-4 py-1.5 text-sm text-white hover:bg-green-700 disabled:opacity-50"
+            className="btn-success disabled:opacity-50"
           >
             {saving ? t.resume.saving : t.resume.save}
           </button>
           <button
             onClick={() => setExportLocale(exportLocale === "en" ? "km" : "en")}
-            className={`rounded px-2 py-1.5 text-xs font-medium border ${exportLocale === "km" ? "bg-amber-100 border-amber-300 text-amber-800" : "bg-slate-50 border-slate-200 text-slate-600"}`}
+            className={`rounded px-2 py-1.5 text-xs font-medium border transition-colors ${exportLocale === "km" ? "bg-amber-100 border-amber-300 text-amber-800 dark:bg-amber-950/60 dark:border-amber-700 dark:text-amber-300" : ""}`}
+            style={exportLocale !== "km" ? { borderColor: "var(--border-subtle)", color: "var(--text-muted)" } : {}}
           >
             {exportLocale === "en" ? "ខ្មែរ" : "EN"}
           </button>
           <button
             onClick={handleExportPdf}
             disabled={pdfExporting}
-            className="rounded bg-gold-600 px-4 py-1.5 text-sm text-white hover:bg-gold-700 inline-block disabled:opacity-50"
+            className="btn-primary disabled:opacity-50"
           >
             {pdfExporting ? t.resume.generating : t.resume.exportPdf}
           </button>
@@ -322,24 +324,25 @@ function ResumeBuilderContent() {
                 onClick={() => setActiveSection(item.id)}
                 className={`block w-full rounded px-3 py-2 text-left text-sm font-medium transition ${
                   activeSection === item.id
-                    ? "bg-gold-100 text-gold-700"
-                    : "text-slate-600 hover:bg-slate-100"
+                    ? "bg-gold-100 text-gold-700 dark:bg-gold-950/60 dark:text-gold-300"
+                    : "hover:bg-[var(--surface-2)]"
                 }`}
+                style={activeSection !== item.id ? { color: "var(--text-muted)" } : {}}
               >
                 {item.label}
               </button>
             ))}
             <hr className="my-3" />
             <div className="space-y-1">
-              <p className="text-xs font-semibold text-slate-400 px-3 uppercase">
+              <p className="text-xs font-semibold px-3 uppercase" style={{ color: "var(--text-muted)" }}>
                 {t.resume.savedResumes}
               </p>
               {loading ? (
-                <p className="px-3 text-xs text-slate-400">
+                <p className="px-3 text-xs" style={{ color: "var(--text-muted)" }}>
                   {t.resume.loading}
                 </p>
               ) : savedResumes.length === 0 ? (
-                <p className="px-3 text-xs text-slate-400">
+                <p className="px-3 text-xs" style={{ color: "var(--text-muted)" }}>
                   {t.resume.noSavedResumes}
                 </p>
               ) : (
@@ -349,15 +352,17 @@ function ResumeBuilderContent() {
                       onClick={() => loadResume(r)}
                       className={`flex-1 rounded px-2 py-1 text-left text-xs transition ${
                         currentResumeId === r.id
-                          ? "bg-gold-50 text-gold-700"
-                          : "text-slate-600 hover:bg-slate-100"
+                          ? "bg-gold-50 text-gold-700 dark:bg-gold-950/40 dark:text-gold-300"
+                          : "hover:bg-[var(--surface-2)]"
                       }`}
+                      style={currentResumeId !== r.id ? { color: "var(--text-muted)" } : {}}
                     >
                       {r.title}
                     </button>
                     <button
                       onClick={() => deleteResume(r.id)}
-                      className="text-slate-400 hover:text-red-500 text-xs"
+                      className="hover:text-red-500 text-xs transition-colors"
+                      style={{ color: "var(--text-muted)" }}
                     >
                       x
                     </button>
@@ -366,7 +371,7 @@ function ResumeBuilderContent() {
               )}
               <button
                 onClick={newResume}
-                className="w-full rounded px-2 py-1 text-left text-xs text-gold-600 hover:bg-gold-50"
+                className="w-full rounded px-2 py-1 text-left text-xs text-gold-600 dark:text-gold-400 hover:bg-[var(--surface-2)] transition-colors"
               >
                 {t.resume.newResume}
               </button>
@@ -377,7 +382,7 @@ function ResumeBuilderContent() {
         <div className="flex-1 max-w-2xl space-y-6">
           {activeSection === "personal" && (
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold">{t.resume.personalInfo}</h2>
+              <h2 className="text-xl font-semibold" style={{ color: "var(--text-body)" }}>{t.resume.personalInfo}</h2>
               {Object.entries(resume.personalInfo).map(([key, value]) => (
                 <div key={key}>
                   <label className="block text-sm font-medium mb-1 capitalize">
@@ -395,7 +400,7 @@ function ResumeBuilderContent() {
                           },
                         }))
                       }
-                      className="w-full rounded border px-3 py-2 text-sm"
+                      className="input-field"
                       rows={4}
                     />
                   ) : (
@@ -417,7 +422,7 @@ function ResumeBuilderContent() {
                           },
                         }))
                       }
-                      className="w-full rounded border px-3 py-2 text-sm"
+                      className="input-field"
                     />
                   )}
                 </div>
@@ -428,10 +433,10 @@ function ResumeBuilderContent() {
           {activeSection === "education" && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">{t.resume.education}</h2>
+                <h2 className="text-xl font-semibold" style={{ color: "var(--text-body)" }}>{t.resume.education}</h2>
                 <button
                   onClick={addEducation}
-                  className="rounded bg-gold-600 px-3 py-1 text-sm text-white"
+                  className="btn-primary"
                 >
                   {t.resume.add}
                 </button>
@@ -443,12 +448,13 @@ function ResumeBuilderContent() {
                 renderItem={(edu, i) => (
                   <div
                     data-draggable-item
-                    className="rounded border p-4 space-y-3 mb-3 bg-white"
+                    className="rounded border p-4 space-y-3 mb-3"
+                    style={{ background: "var(--surface)", borderColor: "var(--border-subtle)" }}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-1">
                         <DragHandle index={i} onDragStart={() => {}} />
-                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                        <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
                           {edu.institution || t.resume.institution}
                         </span>
                       </div>
@@ -456,7 +462,8 @@ function ResumeBuilderContent() {
                         onClick={() =>
                           removeItem(resume.education, i, reorderEducation)
                         }
-                        className="text-slate-400 hover:text-red-500 text-sm px-1"
+                        className="hover:text-red-500 text-sm px-1 transition-colors"
+                        style={{ color: "var(--text-muted)" }}
                         title="Remove"
                       >
                         ✕
@@ -464,7 +471,7 @@ function ResumeBuilderContent() {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="col-span-2">
-                        <label className="text-xs font-medium">
+                        <label className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
                           {t.resume.institution}
                         </label>
                         <input
@@ -474,11 +481,11 @@ function ResumeBuilderContent() {
                             u[i] = { ...edu, institution: e.target.value };
                             setResume((p) => ({ ...p, education: u }));
                           }}
-                          className="w-full rounded border px-3 py-2 text-sm"
+                          className="input-field"
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-medium">
+                        <label className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
                           {t.resume.degree}
                         </label>
                         <input
@@ -488,11 +495,11 @@ function ResumeBuilderContent() {
                             u[i] = { ...edu, degree: e.target.value };
                             setResume((p) => ({ ...p, education: u }));
                           }}
-                          className="w-full rounded border px-3 py-2 text-sm"
+                          className="input-field"
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-medium">
+                        <label className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
                           {t.resume.field}
                         </label>
                         <input
@@ -502,11 +509,11 @@ function ResumeBuilderContent() {
                             u[i] = { ...edu, field: e.target.value };
                             setResume((p) => ({ ...p, education: u }));
                           }}
-                          className="w-full rounded border px-3 py-2 text-sm"
+                          className="input-field"
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-medium">
+                        <label className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
                           {t.resume.start}
                         </label>
                         <input
@@ -517,11 +524,11 @@ function ResumeBuilderContent() {
                             u[i] = { ...edu, startDate: e.target.value };
                             setResume((p) => ({ ...p, education: u }));
                           }}
-                          className="w-full rounded border px-3 py-2 text-sm"
+                          className="input-field"
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-medium">
+                        <label className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
                           {t.resume.end}
                         </label>
                         <input
@@ -532,7 +539,7 @@ function ResumeBuilderContent() {
                             u[i] = { ...edu, endDate: e.target.value };
                             setResume((p) => ({ ...p, education: u }));
                           }}
-                          className="w-full rounded border px-3 py-2 text-sm"
+                          className="input-field"
                         />
                       </div>
                     </div>
@@ -545,10 +552,10 @@ function ResumeBuilderContent() {
           {activeSection === "experience" && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">{t.resume.experience}</h2>
+                <h2 className="text-xl font-semibold" style={{ color: "var(--text-body)" }}>{t.resume.experience}</h2>
                 <button
                   onClick={addExperience}
-                  className="rounded bg-gold-600 px-3 py-1 text-sm text-white"
+                  className="btn-primary"
                 >
                   {t.resume.add}
                 </button>
@@ -560,12 +567,13 @@ function ResumeBuilderContent() {
                 renderItem={(exp, i) => (
                   <div
                     data-draggable-item
-                    className="rounded border p-4 space-y-3 mb-3 bg-white"
+                    className="rounded border p-4 space-y-3 mb-3"
+                    style={{ background: "var(--surface)", borderColor: "var(--border-subtle)" }}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-1">
                         <DragHandle index={i} onDragStart={() => {}} />
-                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                        <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
                           {exp.company || t.resume.company}
                         </span>
                       </div>
@@ -573,7 +581,8 @@ function ResumeBuilderContent() {
                         onClick={() =>
                           removeItem(resume.experience, i, reorderExperience)
                         }
-                        className="text-slate-400 hover:text-red-500 text-sm px-1"
+                        className="hover:text-red-500 text-sm px-1 transition-colors"
+                        style={{ color: "var(--text-muted)" }}
                         title="Remove"
                       >
                         ✕
@@ -581,7 +590,7 @@ function ResumeBuilderContent() {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="col-span-2">
-                        <label className="text-xs font-medium">
+                        <label className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
                           {t.resume.company}
                         </label>
                         <input
@@ -591,11 +600,11 @@ function ResumeBuilderContent() {
                             u[i] = { ...exp, company: e.target.value };
                             setResume((p) => ({ ...p, experience: u }));
                           }}
-                          className="w-full rounded border px-3 py-2 text-sm"
+                          className="input-field"
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-medium">
+                        <label className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
                           {t.resume.position}
                         </label>
                         <input
@@ -605,12 +614,12 @@ function ResumeBuilderContent() {
                             u[i] = { ...exp, position: e.target.value };
                             setResume((p) => ({ ...p, experience: u }));
                           }}
-                          className="w-full rounded border px-3 py-2 text-sm"
+                          className="input-field"
                         />
                       </div>
                       <div className="flex gap-2">
                         <div className="flex-1">
-                          <label className="text-xs font-medium">
+                          <label className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
                             {t.resume.start}
                           </label>
                           <input
@@ -621,11 +630,11 @@ function ResumeBuilderContent() {
                               u[i] = { ...exp, startDate: e.target.value };
                               setResume((p) => ({ ...p, experience: u }));
                             }}
-                            className="w-full rounded border px-3 py-2 text-sm"
+                            className="input-field"
                           />
                         </div>
                         <div className="flex-1">
-                          <label className="text-xs font-medium">
+                          <label className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
                             {t.resume.end}
                           </label>
                           <input
@@ -636,12 +645,12 @@ function ResumeBuilderContent() {
                               u[i] = { ...exp, endDate: e.target.value };
                               setResume((p) => ({ ...p, experience: u }));
                             }}
-                            className="w-full rounded border px-3 py-2 text-sm"
+                            className="input-field"
                           />
                         </div>
                       </div>
                       <div className="col-span-2">
-                        <label className="text-xs font-medium">
+                        <label className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
                           {t.resume.description}
                         </label>
                         <textarea
@@ -651,7 +660,7 @@ function ResumeBuilderContent() {
                             u[i] = { ...exp, description: e.target.value };
                             setResume((p) => ({ ...p, experience: u }));
                           }}
-                          className="w-full rounded border px-3 py-2 text-sm"
+                          className="input-field"
                           rows={3}
                         />
                       </div>
@@ -723,7 +732,7 @@ function ResumeBuilderContent() {
                 </h2>
                 <button
                   onClick={addCertification}
-                  className="rounded bg-gold-600 px-3 py-1 text-sm text-white"
+                  className="btn-primary"
                 >
                   {t.resume.add}
                 </button>
@@ -735,12 +744,13 @@ function ResumeBuilderContent() {
                 renderItem={(cert, i) => (
                   <div
                     data-draggable-item
-                    className="rounded border p-4 space-y-3 mb-3 bg-white"
+                    className="rounded border p-4 space-y-3 mb-3"
+                    style={{ background: "var(--surface)", borderColor: "var(--border-subtle)" }}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-1">
                         <DragHandle index={i} onDragStart={() => {}} />
-                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                        <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
                           {cert.name || t.resume.name}
                         </span>
                       </div>
@@ -752,7 +762,8 @@ function ResumeBuilderContent() {
                             reorderCertifications,
                           )
                         }
-                        className="text-slate-400 hover:text-red-500 text-sm px-1"
+                        className="hover:text-red-500 text-sm px-1 transition-colors"
+                        style={{ color: "var(--text-muted)" }}
                         title="Remove"
                       >
                         ✕
@@ -760,7 +771,7 @@ function ResumeBuilderContent() {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="col-span-2">
-                        <label className="text-xs font-medium">
+                        <label className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
                           {t.resume.name}
                         </label>
                         <input
@@ -770,11 +781,11 @@ function ResumeBuilderContent() {
                             u[i] = { ...cert, name: e.target.value };
                             setResume((p) => ({ ...p, certifications: u }));
                           }}
-                          className="w-full rounded border px-3 py-2 text-sm"
+                          className="input-field"
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-medium">
+                        <label className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
                           {t.resume.issuer}
                         </label>
                         <input
@@ -784,11 +795,11 @@ function ResumeBuilderContent() {
                             u[i] = { ...cert, issuer: e.target.value };
                             setResume((p) => ({ ...p, certifications: u }));
                           }}
-                          className="w-full rounded border px-3 py-2 text-sm"
+                          className="input-field"
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-medium">
+                        <label className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
                           {t.resume.date}
                         </label>
                         <input
@@ -799,7 +810,7 @@ function ResumeBuilderContent() {
                             u[i] = { ...cert, date: e.target.value };
                             setResume((p) => ({ ...p, certifications: u }));
                           }}
-                          className="w-full rounded border px-3 py-2 text-sm"
+                          className="input-field"
                         />
                       </div>
                     </div>
@@ -815,7 +826,7 @@ function ResumeBuilderContent() {
                 <h2 className="text-xl font-semibold">{t.resume.languages}</h2>
                 <button
                   onClick={addLanguage}
-                  className="rounded bg-gold-600 px-3 py-1 text-sm text-white"
+                  className="btn-primary"
                 >
                   {t.resume.add}
                 </button>
@@ -832,7 +843,7 @@ function ResumeBuilderContent() {
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-1">
                         <DragHandle index={i} onDragStart={() => {}} />
-                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                        <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
                           {lang.name || t.resume.language}
                         </span>
                       </div>
@@ -840,7 +851,8 @@ function ResumeBuilderContent() {
                         onClick={() =>
                           removeItem(resume.languages, i, reorderLanguages)
                         }
-                        className="text-slate-400 hover:text-red-500 text-sm px-1"
+                        className="hover:text-red-500 text-sm px-1 transition-colors"
+                        style={{ color: "var(--text-muted)" }}
                         title="Remove"
                       >
                         ✕
@@ -848,7 +860,7 @@ function ResumeBuilderContent() {
                     </div>
                     <div className="flex gap-3 items-end">
                       <div className="flex-1">
-                        <label className="text-xs font-medium">
+                        <label className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
                           {t.resume.language}
                         </label>
                         <input
@@ -858,11 +870,11 @@ function ResumeBuilderContent() {
                             u[i] = { ...lang, name: e.target.value };
                             setResume((p) => ({ ...p, languages: u }));
                           }}
-                          className="w-full rounded border px-3 py-2 text-sm"
+                          className="input-field"
                         />
                       </div>
                       <div className="w-40">
-                        <label className="text-xs font-medium">
+                        <label className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
                           {t.resume.level}
                         </label>
                         <select
@@ -872,7 +884,7 @@ function ResumeBuilderContent() {
                             u[i] = { ...lang, level: e.target.value };
                             setResume((p) => ({ ...p, languages: u }));
                           }}
-                          className="w-full rounded border px-3 py-2 text-sm"
+                          className="input-field"
                         >
                           {levelOptions.map((opt) => (
                             <option key={opt}>{opt}</option>

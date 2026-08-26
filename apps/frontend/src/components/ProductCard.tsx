@@ -37,20 +37,24 @@ export function ProductCard({
   return (
     <Link
       href={`/shop/${id}`}
-      className="card-hover group block rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)] overflow-hidden hover:border-gold-400/60"
+      className="group block rounded-2xl border overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lift)]"
+      style={{
+        background: "var(--surface)",
+        borderColor: "var(--border-subtle)",
+      }}
     >
-      <div className="aspect-square w-full bg-[var(--surface-2)] flex items-center justify-center overflow-hidden">
+      <div className="aspect-square w-full flex items-center justify-center overflow-hidden" style={{ background: "var(--surface-2)" }}>
         {images?.[0] ? (
           <Image
             src={images[0]}
             alt={name}
             width={500}
             height={500}
-            className="h-full w-full object-contain group-hover:scale-110 transition-transform duration-500"
+            className="h-full w-full object-contain group-hover:scale-105 transition-transform duration-500 ease-out"
           />
         ) : (
           <svg
-            className="h-12 w-12 text-slate-300 dark:text-slate-600"
+            className="h-14 w-14 text-slate-300 dark:text-slate-600"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -65,22 +69,31 @@ export function ProductCard({
         )}
       </div>
 
-      <div className="p-4 space-y-2">
-        <h3 className="font-semibold truncate text-slate-900 dark:text-slate-100">{name}</h3>
+      <div className="p-3.5 space-y-1.5">
+        <h3
+          className="font-semibold truncate text-sm leading-snug"
+          style={{ color: "var(--text-body)" }}
+        >
+          {name}
+        </h3>
         {categoryName && (
-          <p className="text-xs text-slate-500 dark:text-slate-400">{categoryName}</p>
+          <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+            {categoryName}
+          </p>
         )}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 pt-0.5">
           <span
-            className={`text-xs px-2 py-0.5 rounded-full font-medium ${conditionColors[condition] || "bg-slate-100 dark:bg-slate-800"}`}
+            className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${conditionColors[condition] || ""}`}
           >
             {conditionLabels[condition] || condition}
           </span>
           {sellerBadge && (
-            <span className="text-xs text-slate-700 dark:text-slate-300">{t("seller")}</span>
+            <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+              {t("seller")}
+            </span>
           )}
         </div>
-        <p className="text-lg font-extrabold bg-gradient-to-r from-gold-600 to-gold-600 bg-clip-text text-transparent dark:from-gold-400 dark:to-gold-400">
+        <p className="text-base font-extrabold bg-gradient-to-r from-gold-600 to-gold-500 bg-clip-text text-transparent dark:from-gold-400 dark:to-gold-300 pt-0.5">
           ${Number(price).toLocaleString()}
         </p>
       </div>
