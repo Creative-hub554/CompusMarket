@@ -93,7 +93,7 @@ export default async function ProductDetailPage({ params }: Props) {
       />
       {/* Gradient header strip */}
       <div className="gradient-mesh text-white rounded-2xl p-6 md:p-8 mb-8">
-        <p className="text-[11px] tracking-[0.25em] text-indigo-300 uppercase font-semibold">
+        <p className="text-[11px] tracking-[0.25em] text-gold-300 uppercase font-semibold">
           {product.category.name}
         </p>
         <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight mt-2">

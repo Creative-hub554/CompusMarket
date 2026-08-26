@@ -30,7 +30,7 @@ export default function SellerApplyPage() {
         </p>
         <Link
           href="/login"
-          className="text-indigo-600 font-medium hover:underline"
+          className="text-gold-600 font-medium hover:underline"
         >
           Go to Login
         </Link>
@@ -103,7 +103,7 @@ export default function SellerApplyPage() {
             <div
               className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center text-sm font-medium ${
                 i <= step
-                  ? "bg-indigo-600 text-white"
+                  ? "bg-gold-600 text-white"
                   : "bg-slate-200 text-slate-500 dark:text-slate-400"
               }`}
             >
@@ -129,8 +129,8 @@ export default function SellerApplyPage() {
               onClick={() => setAccountType("PERSONAL")}
               className={`p-6 border-2 rounded-lg text-left ${
                 accountType === "PERSONAL"
-                  ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-950/40"
-                  : "border-[var(--border-subtle)] hover:border-indigo-400/60"
+                  ? "border-gold-500 bg-gold-50 dark:bg-gold-950/40"
+                  : "border-[var(--border-subtle)] hover:border-gold-400/60"
               }`}
             >
               <h3 className="font-bold text-lg">Personal</h3>
@@ -141,8 +141,8 @@ export default function SellerApplyPage() {
               onClick={() => setAccountType("BUSINESS")}
               className={`p-6 border-2 rounded-lg text-left ${
                 accountType === "BUSINESS"
-                  ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-950/40"
-                  : "border-[var(--border-subtle)] hover:border-indigo-400/60"
+                  ? "border-gold-500 bg-gold-50 dark:bg-gold-950/40"
+                  : "border-[var(--border-subtle)] hover:border-gold-400/60"
               }`}
             >
               <h3 className="font-bold text-lg">Business</h3>
@@ -152,7 +152,7 @@ export default function SellerApplyPage() {
           </div>
           <button
             onClick={() => setStep(1)}
-            className="mt-4 bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700"
+            className="mt-4 bg-gold-600 text-white px-6 py-2 rounded hover:bg-gold-700"
           >
             Next
           </button>
@@ -194,7 +194,7 @@ export default function SellerApplyPage() {
             </button>
             <button
               onClick={() => setStep(2)}
-              className="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700"
+              className="bg-gold-600 text-white px-6 py-2 rounded hover:bg-gold-700"
             >
               Next
             </button>
@@ -227,7 +227,7 @@ export default function SellerApplyPage() {
                   const file = e.target.files?.[0];
                   if (file) handleUpload(docType, file);
                 }}
-                className="block w-full text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 dark:bg-indigo-950/40 file:text-indigo-700 hover:file:bg-indigo-100"
+                className="block w-full text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gold-50 dark:bg-gold-950/40 file:text-gold-700 hover:file:bg-gold-100"
               />
               {documents.find((d) => d.type === docType) && (
                 <p className="text-sm text-green-600 mt-1">Uploaded</p>
@@ -246,7 +246,7 @@ export default function SellerApplyPage() {
               disabled={requiredDocs.some(
                 (t) => !documents.find((d) => d.type === t),
               )}
-              className="px-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-gold-600 text-white rounded hover:bg-gold-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
             </button>
@@ -282,7 +282,7 @@ export default function SellerApplyPage() {
           </div>
           <p className="text-sm text-slate-500 dark:text-slate-400">
             By submitting, you agree to the{" "}
-            <Link href="/terms/seller" className="text-indigo-600 underline">
+            <Link href="/terms/seller" className="text-gold-600 underline">
               Seller Terms &amp; Conditions
             </Link>
             .

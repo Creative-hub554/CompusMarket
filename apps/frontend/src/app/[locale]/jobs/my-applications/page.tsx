@@ -48,7 +48,7 @@ export default function MyApplicationsPage() {
       ) : apps.length === 0 ? (
         <div className="text-center py-16 border rounded-xl bg-[var(--surface)]">
           <p className="text-slate-500 dark:text-slate-400">{t("noApplications")}</p>
-          <Link href="/jobs" className="text-indigo-600 hover:underline">
+          <Link href="/jobs" className="text-gold-600 hover:underline">
             {t("backToJobs")}
           </Link>
         </div>
@@ -58,7 +58,7 @@ export default function MyApplicationsPage() {
             <Link
               key={app.id}
               href={`/jobs/${app.jobId}`}
-              className="block rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] p-4 hover:border-indigo-300"
+              className="block rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] p-4 hover:border-gold-300"
             >
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold">

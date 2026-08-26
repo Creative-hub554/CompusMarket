@@ -114,7 +114,7 @@ export default function EditProfilePage() {
           {me?.coverImage ? (
             <Image src={me.coverImage} alt="" width={1200} height={400} unoptimized className="w-full h-full object-cover group-hover:opacity-90" />
           ) : (
-            <span className="flex items-center justify-center w-full h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white text-sm font-medium group-hover:opacity-90">
+            <span className="flex items-center justify-center w-full h-full bg-gradient-to-r from-gold-500 via-purple-500 to-pink-500 text-white text-sm font-medium group-hover:opacity-90">
               Change cover photo
             </span>
           )}
@@ -139,12 +139,12 @@ export default function EditProfilePage() {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full border border-[var(--border-subtle)] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+            className="w-full border border-[var(--border-subtle)] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gold-300"
           />
         </div>
         <div>
           <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Username</label>
-          <div className="flex items-center border border-[var(--border-subtle)] rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-indigo-300">
+          <div className="flex items-center border border-[var(--border-subtle)] rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-gold-300">
             <span className="text-gray-400 mr-1">@</span>
             <input
               value={username}
@@ -163,7 +163,7 @@ export default function EditProfilePage() {
             rows={3}
             maxLength={500}
             placeholder="Tell the community about yourself…"
-            className="w-full border border-[var(--border-subtle)] rounded-xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300"
+            className="w-full border border-[var(--border-subtle)] rounded-xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-gold-300"
           />
         </div>
 
@@ -172,7 +172,7 @@ export default function EditProfilePage() {
         <button
           onClick={save}
           disabled={saving}
-          className="w-full bg-indigo-600 text-white rounded-xl py-3 font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+          className="w-full bg-gold-600 text-white rounded-xl py-3 font-semibold hover:bg-gold-700 disabled:opacity-50 transition-colors"
         >
           {saving ? "Saving…" : "Save changes"}
         </button>

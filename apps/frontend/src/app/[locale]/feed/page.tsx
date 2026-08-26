@@ -101,7 +101,7 @@ export default function FeedPage() {
                   href={href}
                   className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors text-sm font-medium ${
                     active
-                      ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-300"
+                      ? "bg-gold-500/10 text-gold-600 dark:text-gold-300"
                       : "hover:bg-[var(--surface-2)] text-slate-700 dark:text-slate-300"
                   }`}
                 >
@@ -109,7 +109,7 @@ export default function FeedPage() {
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={img} alt="" width={26} height={26} className="rounded-lg" />
                   ) : Icon ? (
-                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500/15 to-violet-500/15 text-indigo-500 dark:text-indigo-300">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-gold-500/15 to-gold-500/15 text-gold-500 dark:text-gold-300">
                       <Icon size={16} />
                     </span>
                   ) : null}

@@ -92,7 +92,7 @@ export function PromoVideoPopup() {
           <p className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">
             {promo.name}
           </p>
-          <p className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
+          <p className="text-sm font-bold text-gold-600 dark:text-gold-400">
             ${Number(promo.price).toFixed(2)}
           </p>
         </div>
@@ -103,7 +103,7 @@ export function PromoVideoPopup() {
           onClick={buyNow}
           disabled={added}
           className={`w-full rounded-lg py-2 text-sm font-semibold text-white transition-colors ${
-            added ? "bg-green-600" : "bg-indigo-600 hover:bg-indigo-700"
+            added ? "bg-green-600" : "bg-gold-600 hover:bg-gold-700"
           }`}
         >
           {added ? t("promoAdded") : t("promoBuyNow")}

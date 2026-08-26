@@ -74,21 +74,21 @@ export function Nav() {
   const panelCls =
     "absolute left-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200 z-50";
   const itemCls =
-    "block px-4 py-2 text-sm text-gray-700 dark:text-slate-200 hover:bg-indigo-600 hover:text-white transition-colors whitespace-nowrap dark:text-slate-200";
+    "block px-4 py-2 text-sm text-gray-700 dark:text-slate-200 hover:bg-gold hover:text-slate-900 transition-colors whitespace-nowrap";
   const groupLabelCls =
     "px-4 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400";
 
   return (
-    <nav className="bg-slate-900/85 backdrop-blur-xl text-white border-b border-white/10 shadow-lg sticky top-0 z-40">
+    <nav className="bg-slate-900/85 backdrop-blur-xl text-white border-b border-[rgba(212,160,39,0.25)] shadow-[0_4px_24px_-8px_rgba(212,160,39,0.35)] sticky top-0 z-40">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 gap-2">
         <Link href="/" className="shrink-0 animate-fade-in no-underline flex items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/champey-mark.svg" alt="" width={34} height={34} className="drop-shadow-[0_0_10px_rgba(139,92,246,0.45)]" />
+          <img src="/champey-mark.svg" alt="" width={34} height={34} className="drop-shadow-[0_0_10px_rgba(212,160,39,0.5)]" />
           <div>
             <div className="text-lg sm:text-xl font-bold tracking-[0.12em] leading-none text-white">
               champey
             </div>
-            <div className="text-[10px] sm:text-[11px] tracking-[0.28em] text-indigo-300 font-medium mt-0.5 text-right">
+            <div className="text-[10px] sm:text-[11px] tracking-[0.28em] text-gold-light font-medium mt-0.5 text-right">
               bytheo
             </div>
           </div>
@@ -105,7 +105,7 @@ export function Nav() {
             <button aria-haspopup="true" className="nav-link opacity-90 hover:opacity-100">
               {t("social")}
             </button>
-            <div className={`${panelCls} bg-white dark:bg-slate-900 rounded-lg shadow-xl py-1 min-w-44 border border-gray-100 dark:border-slate-700`}>
+            <div className={`${panelCls} bg-white dark:bg-slate-900 rounded-lg shadow-xl py-1 min-w-44 border border-[rgba(212,160,39,0.3)] dark:border-[rgba(212,160,39,0.22)]`}>
               <Link href="/feed" className={itemCls}>
                 {t("feed")}
               </Link>
@@ -131,7 +131,7 @@ export function Nav() {
             <button aria-haspopup="true" className="nav-link opacity-90 hover:opacity-100">
               {t("market")}
             </button>
-            <div className={`${panelCls} grid grid-cols-2 gap-x-2 bg-white dark:bg-slate-900 rounded-lg shadow-xl pb-2 min-w-72 border border-gray-100 dark:border-slate-700`}>
+            <div className={`${panelCls} grid grid-cols-2 gap-x-2 bg-white dark:bg-slate-900 rounded-lg shadow-xl pb-2 min-w-72 border border-[rgba(212,160,39,0.3)] dark:border-[rgba(212,160,39,0.22)]`}>
               <div>
                 <p className={groupLabelCls}>{t("buying")}</p>
                 <Link href="/shop" className={itemCls}>
@@ -167,7 +167,7 @@ export function Nav() {
             <button aria-haspopup="true" className="nav-link opacity-90 hover:opacity-100">
               {t("jobs")}
             </button>
-            <div className={`${panelCls} right-auto bg-white dark:bg-slate-900 rounded-lg shadow-xl py-1 min-w-48 border border-gray-100 dark:border-slate-700`}>
+            <div className={`${panelCls} right-auto bg-white dark:bg-slate-900 rounded-lg shadow-xl py-1 min-w-48 border border-[rgba(212,160,39,0.3)] dark:border-[rgba(212,160,39,0.22)]`}>
               <Link href="/jobs" className={itemCls}>
                 {t("jobBoard")}
               </Link>
@@ -215,7 +215,7 @@ export function Nav() {
                   />
                 </button>
                 {menuOpen && (
-                  <div className="absolute right-0 top-full mt-2 bg-white dark:bg-slate-900 rounded-lg shadow-xl py-1 min-w-44 z-50 border border-gray-100 dark:border-slate-700">
+                  <div className="absolute right-0 top-full mt-2 bg-white dark:bg-slate-900 rounded-lg shadow-xl py-1 min-w-44 z-50 border border-[rgba(212,160,39,0.3)] dark:border-[rgba(212,160,39,0.22)]">
                     <Link
                       href={`/profile/${session.user.id}`}
                       onClick={() => setMenuOpen(false)}
@@ -295,7 +295,7 @@ export function Nav() {
 
       {/* Mobile search + accordion nav */}
       {open && (
-        <div className="md:hidden border-t border-white/10 px-4 py-3 space-y-2 bg-khmer-blue-light animate-slide-down">
+        <div className="md:hidden border-t border-[rgba(212,160,39,0.25)] px-4 py-3 space-y-2 bg-slate-900 animate-slide-down">
           <SearchBar />
 
           {/* Social */}

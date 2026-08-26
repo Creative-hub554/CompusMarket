@@ -134,7 +134,7 @@ export function NotificationsBell() {
           <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-100">
             <span className="font-semibold text-slate-800 dark:text-slate-200 text-sm">Notifications</span>
             {unread > 0 && (
-              <button onClick={markAllRead} className="text-xs text-indigo-600 hover:underline">
+              <button onClick={markAllRead} className="text-xs text-gold-600 hover:underline">
                 Mark all read
               </button>
             )}
@@ -149,7 +149,7 @@ export function NotificationsBell() {
                   href={href(n)}
                   onClick={() => setOpen(false)}
                   className={`flex items-start gap-2.5 px-4 py-3 hover:bg-[var(--surface-2)] transition-colors ${
-                    n.readAt ? "" : "bg-indigo-50 dark:bg-indigo-950/40/60"
+                    n.readAt ? "" : "bg-gold-50 dark:bg-gold-950/40/60"
                   }`}
                 >
                   <Avatar user={n.actor} size={32} />

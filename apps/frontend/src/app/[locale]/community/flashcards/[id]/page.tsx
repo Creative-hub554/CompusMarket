@@ -204,7 +204,7 @@ export default function StudyPage() {
 
       <div className="progress-bar mb-6">
         <div
-          className="progress-fill bg-indigo-600"
+          className="progress-fill bg-gold-600"
           style={{ width: `${progress}%` }}
         />
       </div>
@@ -227,9 +227,9 @@ export default function StudyPage() {
               </p>
             </div>
           </div>
-          <div className="flip-card-back cursor-default rounded-xl border-2 border-indigo-600/20 p-10 flex items-center justify-center text-center bg-gradient-to-br from-indigo-50 to-indigo-50/50 min-h-[320px]">
+          <div className="flip-card-back cursor-default rounded-xl border-2 border-gold-600/20 p-10 flex items-center justify-center text-center bg-gradient-to-br from-gold-50 to-gold-50/50 min-h-[320px]">
             <div>
-              <p className="text-xs text-indigo-600 mb-4 uppercase tracking-wider font-semibold">
+              <p className="text-xs text-gold-600 mb-4 uppercase tracking-wider font-semibold">
                 Answer
               </p>
               <p className="text-lg whitespace-pre-wrap leading-relaxed text-slate-800 dark:text-slate-200">
@@ -262,7 +262,7 @@ export default function StudyPage() {
             </button>
             <button
               onClick={() => review(4)}
-              className="rounded-xl bg-indigo-50 dark:bg-indigo-950/40 px-4 py-3 text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition border border-indigo-200 hover:border-indigo-300"
+              className="rounded-xl bg-gold-50 dark:bg-gold-950/40 px-4 py-3 text-sm font-medium text-gold-700 hover:bg-gold-100 transition border border-gold-200 hover:border-gold-300"
             >
               <span className="block">Good</span>
               <span className="text-xs opacity-60">3 — Correct</span>

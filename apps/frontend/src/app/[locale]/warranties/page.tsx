@@ -56,7 +56,7 @@ export default function MyWarrantiesPage() {
         <p className="text-gray-600 dark:text-gray-300 mb-4">
           Unable to load your warranties. You may need to sign in.
         </p>
-        <Link href="/login" className="text-indigo-600 hover:underline">
+        <Link href="/login" className="text-gold-600 hover:underline">
           Sign in to view your warranties
         </Link>
       </div>
@@ -70,7 +70,7 @@ export default function MyWarrantiesPage() {
       {warranties.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-gray-500 dark:text-gray-400 mb-4">No warranties yet</p>
-          <Link href="/shop" className="text-indigo-600 hover:underline">
+          <Link href="/shop" className="text-gold-600 hover:underline">
             Browse Products
           </Link>
         </div>
@@ -85,7 +85,7 @@ export default function MyWarrantiesPage() {
               <Link
                 key={w.id}
                 href={`/warranties/${w.id}`}
-                className="block rounded-lg border p-4 hover:border-indigo-300 transition"
+                className="block rounded-lg border p-4 hover:border-gold-300 transition"
               >
                 <div className="flex items-center justify-between">
                   <div>

@@ -207,10 +207,10 @@ export default function DiagramEditorPage() {
       </div>
 
       {showHelp && (
-        <div className="mb-5 p-5 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 rounded-xl text-sm text-indigo-900 animate-slide-down">
+        <div className="mb-5 p-5 bg-gold-50 dark:bg-gold-950/40 border border-gold-200 rounded-xl text-sm text-gold-900 animate-slide-down">
           <div className="flex items-center gap-2 mb-3">
             <svg
-              className="w-5 h-5 text-indigo-600"
+              className="w-5 h-5 text-gold-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -228,7 +228,7 @@ export default function DiagramEditorPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="space-y-1">
-              <p className="font-medium text-xs uppercase tracking-wider text-indigo-700">
+              <p className="font-medium text-xs uppercase tracking-wider text-gold-700">
                 Flowchart
               </p>
               <code className="block text-xs bg-white/60 dark:bg-slate-900/60 rounded p-2">
@@ -242,7 +242,7 @@ export default function DiagramEditorPage() {
               </code>
             </div>
             <div className="space-y-1">
-              <p className="font-medium text-xs uppercase tracking-wider text-indigo-700">
+              <p className="font-medium text-xs uppercase tracking-wider text-gold-700">
                 Sequence
               </p>
               <code className="block text-xs bg-white/60 dark:bg-slate-900/60 rounded p-2">
@@ -253,7 +253,7 @@ export default function DiagramEditorPage() {
               </code>
             </div>
             <div className="space-y-1">
-              <p className="font-medium text-xs uppercase tracking-wider text-indigo-700">
+              <p className="font-medium text-xs uppercase tracking-wider text-gold-700">
                 General
               </p>
               <code className="block text-xs bg-white/60 dark:bg-slate-900/60 rounded p-2">
@@ -291,7 +291,7 @@ export default function DiagramEditorPage() {
               ref={textareaRef}
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              className="w-full rounded-xl border border-[var(--border-subtle)] px-4 py-3 text-sm font-mono h-[550px] resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition pl-14 leading-6"
+              className="w-full rounded-xl border border-[var(--border-subtle)] px-4 py-3 text-sm font-mono h-[550px] resize-none focus:outline-none focus:ring-2 focus:ring-gold-500/30 focus:border-gold-500 transition pl-14 leading-6"
               placeholder="Enter Mermaid diagram code..."
               spellCheck={false}
             />

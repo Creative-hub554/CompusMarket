@@ -16,7 +16,7 @@ type Ticket = {
 
 const statusStyles: Record<Ticket["status"], string> = {
   OPEN: "bg-green-100 text-green-800",
-  IN_PROGRESS: "bg-indigo-100 text-indigo-800",
+  IN_PROGRESS: "bg-gold-100 text-gold-800",
   RESOLVED: "bg-[var(--surface-2)] text-slate-700 dark:text-slate-300",
   CLOSED: "bg-[var(--surface-2)] text-slate-700 dark:text-slate-300",
 };
@@ -48,7 +48,7 @@ export default function SupportPage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">Sign In Required</h1>
           <p className="text-slate-500 dark:text-slate-400 mb-4">Please sign in to access support.</p>
-          <Link href="/login" className="text-indigo-600 font-medium hover:underline">Go to Login</Link>
+          <Link href="/login" className="text-gold-600 font-medium hover:underline">Go to Login</Link>
         </div>
       </div>
     );
@@ -80,7 +80,7 @@ export default function SupportPage() {
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Support</h1>
           <button
             onClick={() => router.push("/support/new")}
-            className="bg-indigo-600 text-white rounded-lg px-5 py-2.5 text-sm font-medium hover:bg-indigo-700 transition-colors"
+            className="bg-gold-600 text-white rounded-lg px-5 py-2.5 text-sm font-medium hover:bg-gold-700 transition-colors"
           >
             New Ticket
           </button>

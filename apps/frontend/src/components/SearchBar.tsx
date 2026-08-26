@@ -130,7 +130,7 @@ export function SearchBar() {
           onChange={(e) => handleChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={nav("searchPlaceholder")}
-          className="w-64 pl-10 pr-4 py-2 text-sm bg-white/15 text-white placeholder-white/50 border border-white/20 rounded-full focus:outline-none focus:border-indigo-400 focus:bg-white/20 transition-all"
+          className="w-64 pl-10 pr-4 py-2 text-sm bg-white/15 text-white placeholder-white/50 border border-white/20 rounded-full focus:outline-none focus:border-gold-400 focus:bg-white/20 transition-all"
           onFocus={() => results.length > 0 && setOpen(true)}
           aria-label={nav("searchPlaceholder")}
         />
@@ -208,7 +208,7 @@ export function SearchBar() {
               setOpen(false);
               setQuery("");
             }}
-            className="block px-4 py-2 text-center text-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 border-t border-[var(--border-subtle)]"
+            className="block px-4 py-2 text-center text-sm text-gold-600 dark:text-gold-400 hover:bg-gold-50 dark:hover:bg-gold-950/40 border-t border-[var(--border-subtle)]"
           >
             {t("viewAllResults")}
           </Link>

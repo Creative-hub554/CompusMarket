@@ -37,7 +37,7 @@ export function ProductCard({
   return (
     <Link
       href={`/shop/${id}`}
-      className="card-hover group block rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)] overflow-hidden hover:border-indigo-400/60"
+      className="card-hover group block rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)] overflow-hidden hover:border-gold-400/60"
     >
       <div className="aspect-square w-full bg-[var(--surface-2)] flex items-center justify-center overflow-hidden">
         {images?.[0] ? (
@@ -80,7 +80,7 @@ export function ProductCard({
             <span className="text-xs text-slate-700 dark:text-slate-300">{t("seller")}</span>
           )}
         </div>
-        <p className="text-lg font-extrabold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent dark:from-indigo-400 dark:to-violet-400">
+        <p className="text-lg font-extrabold bg-gradient-to-r from-gold-600 to-gold-600 bg-clip-text text-transparent dark:from-gold-400 dark:to-gold-400">
           ${Number(price).toLocaleString()}
         </p>
       </div>

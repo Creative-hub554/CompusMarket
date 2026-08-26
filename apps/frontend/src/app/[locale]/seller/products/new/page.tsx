@@ -46,7 +46,7 @@ export default function SellerNewProductPage() {
         <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
         <Link
           href="/login"
-          className="text-indigo-600 font-medium hover:underline"
+          className="text-gold-600 font-medium hover:underline"
         >
           Go to Login
         </Link>
@@ -224,7 +224,7 @@ export default function SellerNewProductPage() {
             accept="image/*"
             onChange={handleImageUpload}
             disabled={uploading || images.length >= 5}
-            className="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 disabled:opacity-50"
+            className="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gold-50 file:text-gold-700 hover:file:bg-gold-100 disabled:opacity-50"
           />
           {images.length > 0 && (
             <div className="flex gap-2 mt-2 flex-wrap">
@@ -255,7 +255,7 @@ export default function SellerNewProductPage() {
         <button
           onClick={handleSubmit}
           disabled={submitting || !name || !price || !categoryId}
-          className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-gold-600 text-white py-2 rounded hover:bg-gold-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {submitting ? "Creating..." : "Create Product"}
         </button>

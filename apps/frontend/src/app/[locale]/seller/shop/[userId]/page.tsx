@@ -71,7 +71,7 @@ export default async function SellerShopPage({
               </div>
               <div className="p-4">
                 <h3 className="font-semibold truncate">{product.name}</h3>
-                <p className="text-lg font-bold text-indigo-600 mt-1">
+                <p className="text-lg font-bold text-gold-600 mt-1">
                   ${product.price.toFixed(2)}
                 </p>
                 <p className="text-xs text-slate-500 mt-1">

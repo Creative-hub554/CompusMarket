@@ -48,7 +48,7 @@ export default function SellerProductsPage() {
         <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
         <Link
           href="/login"
-          className="text-indigo-600 font-medium hover:underline"
+          className="text-gold-600 font-medium hover:underline"
         >
           Go to Login
         </Link>
@@ -82,7 +82,7 @@ export default function SellerProductsPage() {
         <button
           onClick={() => router.push("/seller/products/new")}
           disabled={products.length >= maxProducts}
-          className="bg-slate-900 text-white px-6 py-2 rounded hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-slate-900 text-white px-6 py-2 rounded hover:bg-gold-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Add Product
         </button>
@@ -105,7 +105,7 @@ export default function SellerProductsPage() {
           <p className="text-slate-600 dark:text-slate-300 mb-4">You have no products yet.</p>
           <button
             onClick={() => router.push("/seller/products/new")}
-            className="bg-slate-900 text-white px-6 py-2 rounded hover:bg-indigo-700 transition-colors"
+            className="bg-slate-900 text-white px-6 py-2 rounded hover:bg-gold-700 transition-colors"
           >
             Add Your First Product
           </button>
@@ -154,7 +154,7 @@ export default function SellerProductsPage() {
               <div className="flex flex-col gap-2 shrink-0">
                 <Link
                   href={`/seller/products/${product.id}/edit`}
-                  className="text-indigo-600 text-sm font-medium hover:underline text-center"
+                  className="text-gold-600 text-sm font-medium hover:underline text-center"
                 >
                   Edit
                 </Link>

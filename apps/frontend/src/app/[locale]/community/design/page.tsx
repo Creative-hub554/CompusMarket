@@ -114,7 +114,7 @@ const categories = [
     bg: "bg-blue-50",
     sites: [
       { name: "Cambodian Flag", count: 25, color: "bg-blue-100 text-blue-800" },
-      { name: "Royal Arms", count: 12, color: "bg-indigo-100 text-indigo-800" },
+      { name: "Royal Arms", count: 12, color: "bg-gold-100 text-gold-800" },
       {
         name: "National Symbols",
         count: 20,
@@ -302,12 +302,12 @@ const categories = [
       {
         name: "Batik & Ikat",
         count: 20,
-        color: "bg-indigo-100 text-indigo-800",
+        color: "bg-gold-100 text-gold-800",
       },
       {
         name: "Ornamental Motifs",
         count: 22,
-        color: "bg-violet-100 text-violet-800",
+        color: "bg-gold-100 text-gold-800",
       },
       {
         name: "Sacred Geometry",
@@ -522,13 +522,13 @@ const categories = [
     name: "UI Icons & Graphics",
     icon: "🖌️",
     count: 200,
-    color: "text-indigo-600",
-    bg: "bg-indigo-50 dark:bg-indigo-950/40",
+    color: "text-gold-600",
+    bg: "bg-gold-50 dark:bg-gold-950/40",
     sites: [
       {
         name: "Khmer UI Icons",
         count: 50,
-        color: "bg-indigo-100 text-indigo-800",
+        color: "bg-gold-100 text-gold-800",
       },
       {
         name: "Country Silhouettes",
@@ -679,7 +679,7 @@ export default function DesignPage() {
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Source Links</p>
         </div>
         <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] p-4 text-center">
-          <span className="text-2xl font-bold text-indigo-600">
+          <span className="text-2xl font-bold text-gold-600">
             {colorPalettes.length}
           </span>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Color Palettes</p>
@@ -712,7 +712,7 @@ export default function DesignPage() {
         <div className="flex gap-1 bg-[var(--surface-2)] rounded-lg p-1">
           <button
             onClick={() => setViewMode("grid")}
-            className={`px-3 py-1.5 text-xs rounded-md transition font-medium ${viewMode === "grid" ? "bg-[var(--surface)] shadow-sm text-indigo-600" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-300"}`}
+            className={`px-3 py-1.5 text-xs rounded-md transition font-medium ${viewMode === "grid" ? "bg-[var(--surface)] shadow-sm text-gold-600" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-300"}`}
           >
             <svg
               className="w-4 h-4"
@@ -730,7 +730,7 @@ export default function DesignPage() {
           </button>
           <button
             onClick={() => setViewMode("list")}
-            className={`px-3 py-1.5 text-xs rounded-md transition font-medium ${viewMode === "list" ? "bg-[var(--surface)] shadow-sm text-indigo-600" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-300"}`}
+            className={`px-3 py-1.5 text-xs rounded-md transition font-medium ${viewMode === "list" ? "bg-[var(--surface)] shadow-sm text-gold-600" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-300"}`}
           >
             <svg
               className="w-4 h-4"
@@ -752,7 +752,7 @@ export default function DesignPage() {
       {/* Color Palettes Section */}
       <section className="mb-10">
         <h2 className="section-title mb-4 flex items-center gap-2">
-          <span className="w-6 h-6 rounded-lg bg-gradient-to-br from-pink-400 via-purple-400 to-indigo-400" />
+          <span className="w-6 h-6 rounded-lg bg-gradient-to-br from-pink-400 via-purple-400 to-gold-400" />
           Khmer Color Palettes
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
@@ -782,7 +782,7 @@ export default function DesignPage() {
                   <button
                     key={i}
                     onClick={() => navigator.clipboard.writeText(c)}
-                    className="text-[10px] font-mono text-slate-500 dark:text-slate-400 hover:text-indigo-600 bg-[var(--surface-2)] px-1.5 py-0.5 rounded hover:bg-indigo-50 dark:bg-indigo-950/40 transition"
+                    className="text-[10px] font-mono text-slate-500 dark:text-slate-400 hover:text-gold-600 bg-[var(--surface-2)] px-1.5 py-0.5 rounded hover:bg-gold-50 dark:bg-gold-950/40 transition"
                     title={`Copy ${c}`}
                   >
                     {c}
@@ -868,7 +868,7 @@ export default function DesignPage() {
                 >
                   <div className="flex items-center gap-3">
                     <svg
-                      className="w-5 h-5 text-indigo-600 shrink-0"
+                      className="w-5 h-5 text-gold-600 shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -881,14 +881,14 @@ export default function DesignPage() {
                       />
                     </svg>
                     <div>
-                      <p className="text-sm font-medium text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 transition">
+                      <p className="text-sm font-medium text-slate-800 dark:text-slate-200 group-hover:text-gold-600 transition">
                         {src.name}
                       </p>
                       <span className="text-xs text-slate-400">{src.type}</span>
                     </div>
                   </div>
                   <svg
-                    className="w-4 h-4 text-slate-300 group-hover:text-indigo-600 transition"
+                    className="w-4 h-4 text-slate-300 group-hover:text-gold-600 transition"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -938,7 +938,7 @@ export default function DesignPage() {
                       );
                     })()}
                   </div>
-                  <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-1 group-hover:text-indigo-600 transition-colors">
+                  <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-1 group-hover:text-gold-600 transition-colors">
                     {cat.name}
                   </h3>
                   <p className="text-sm text-slate-400">
@@ -983,7 +983,7 @@ export default function DesignPage() {
                     })()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 transition-colors">
+                    <h3 className="font-semibold text-slate-900 dark:text-slate-100 group-hover:text-gold-600 transition-colors">
                       {cat.name}
                     </h3>
                     <p className="text-xs text-slate-400">
@@ -995,7 +995,7 @@ export default function DesignPage() {
                     {cat.sources.length} sources
                   </span>
                   <svg
-                    className="w-5 h-5 text-slate-300 group-hover:text-indigo-600 transition"
+                    className="w-5 h-5 text-slate-300 group-hover:text-gold-600 transition"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -1015,7 +1015,7 @@ export default function DesignPage() {
       ) : null}
 
       {/* Design Tips Section */}
-      <section className="mt-10 p-6 rounded-2xl bg-gradient-to-br from-slate-900/5 to-indigo-50/50 border border-indigo-600/10">
+      <section className="mt-10 p-6 rounded-2xl bg-gradient-to-br from-slate-900/5 to-gold-50/50 border border-gold-600/10">
         <h2 className="section-title mb-4 flex items-center gap-2">
           <svg
             className="w-5 h-5 text-amber-500"

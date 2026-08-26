@@ -102,11 +102,11 @@ export default function MessagesPage() {
           <p className="mb-2">No conversations yet.</p>
           <p className="text-sm">
             Start one from a{" "}
-            <Link href="/market" className="text-indigo-600 hover:underline">
+            <Link href="/market" className="text-gold-600 hover:underline">
               seller&apos;s shop
             </Link>{" "}
             or say hi on the{" "}
-            <Link href="/feed" className="text-indigo-600 hover:underline">
+            <Link href="/feed" className="text-gold-600 hover:underline">
               feed
             </Link>
             .
@@ -121,10 +121,10 @@ export default function MessagesPage() {
               <button
                 key={thread.id}
                 onClick={() => router.push(`/messages/${thread.id}`)}
-                className="w-full text-left rounded-xl border border-[var(--border-subtle)] p-4 hover:bg-[var(--surface-2)] hover:border-indigo-200 transition-all flex items-center gap-3"
+                className="w-full text-left rounded-xl border border-[var(--border-subtle)] p-4 hover:bg-[var(--surface-2)] hover:border-gold-200 transition-all flex items-center gap-3"
               >
                 {thread.group ? (
-                  <span className="w-12 h-12 shrink-0 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
+                  <span className="w-12 h-12 shrink-0 rounded-full bg-gradient-to-br from-gold-500 to-gold-600 flex items-center justify-center">
                     <Users size={20} className="text-white" />
                   </span>
                 ) : (
@@ -142,7 +142,7 @@ export default function MessagesPage() {
                     )}
                   </div>
                   {thread.product && (
-                    <span className="inline-block mt-0.5 text-xs bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 rounded-full px-2 py-0.5 truncate max-w-full">
+                    <span className="inline-block mt-0.5 text-xs bg-gold-50 dark:bg-gold-950/40 text-gold-600 rounded-full px-2 py-0.5 truncate max-w-full">
                       {thread.product.name}
                     </span>
                   )}
@@ -151,7 +151,7 @@ export default function MessagesPage() {
                   </p>
                 </div>
                 {thread.unreadCount > 0 && (
-                  <span className="bg-indigo-600 text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] px-1.5 flex items-center justify-center shrink-0">
+                  <span className="bg-gold-600 text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] px-1.5 flex items-center justify-center shrink-0">
                     {thread.unreadCount}
                   </span>
                 )}

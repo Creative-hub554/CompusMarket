@@ -104,7 +104,7 @@ export function StoriesBar() {
           disabled={uploading}
           className="flex flex-col items-center gap-1 shrink-0 w-16"
         >
-          <span className="w-14 h-14 rounded-full border-2 border-dashed border-indigo-300 flex items-center justify-center text-indigo-500 text-xl bg-[var(--surface)]">
+          <span className="w-14 h-14 rounded-full border-2 border-dashed border-gold-300 flex items-center justify-center text-gold-500 text-xl bg-[var(--surface)]">
             {uploading ? "…" : "＋"}
           </span>
           <span className="text-[10px] text-gray-500 dark:text-gray-400 truncate w-full text-center">Your story</span>
@@ -126,7 +126,7 @@ export function StoriesBar() {
               className={`p-[2px] rounded-full ${
                 group.allViewed
                   ? "bg-gray-200"
-                  : "bg-gradient-to-tr from-yellow-400 via-pink-500 to-indigo-500"
+                  : "bg-gradient-to-tr from-yellow-400 via-pink-500 to-gold-500"
               }`}
             >
               <span className="block p-[2px] bg-[var(--surface)] rounded-full">

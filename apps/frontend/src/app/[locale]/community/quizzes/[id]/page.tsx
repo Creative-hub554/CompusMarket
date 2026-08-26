@@ -253,7 +253,7 @@ export default function QuizDetailPage() {
         </div>
         <div className="progress-bar mb-6">
           <div
-            className="progress-fill bg-indigo-600"
+            className="progress-fill bg-gold-600"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -264,7 +264,7 @@ export default function QuizDetailPage() {
           {questions.map((q, i) => (
             <div
               key={q.id}
-              className={`border rounded-xl p-5 transition ${answers[q.id] ? "border-indigo-600/20 bg-indigo-50 dark:bg-indigo-950/40/30" : "border-[var(--border-subtle)]"}`}
+              className={`border rounded-xl p-5 transition ${answers[q.id] ? "border-gold-600/20 bg-gold-50 dark:bg-gold-950/40/30" : "border-[var(--border-subtle)]"}`}
             >
               <p className="font-medium mb-3 text-slate-900 dark:text-slate-100">
                 {i + 1}. {q.question}{" "}
@@ -277,7 +277,7 @@ export default function QuizDetailPage() {
                   {["True", "False"].map((opt) => (
                     <label
                       key={opt}
-                      className={`flex items-center gap-2 cursor-pointer p-3 rounded-xl border-2 transition ${answers[q.id] === opt ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 font-medium" : "border-[var(--border-subtle)] hover:border-indigo-400/60"}`}
+                      className={`flex items-center gap-2 cursor-pointer p-3 rounded-xl border-2 transition ${answers[q.id] === opt ? "border-gold-600 bg-gold-50 dark:bg-gold-950/40 text-gold-600 font-medium" : "border-[var(--border-subtle)] hover:border-gold-400/60"}`}
                     >
                       <input
                         type="radio"
@@ -307,13 +307,13 @@ export default function QuizDetailPage() {
                   {(q.options || []).map((opt: string) => (
                     <label
                       key={opt}
-                      className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl border-2 transition ${answers[q.id] === opt ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-950/40" : "border-[var(--border-subtle)] hover:border-indigo-400/60 hover:bg-[var(--surface-2)]"}`}
+                      className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl border-2 transition ${answers[q.id] === opt ? "border-gold-600 bg-gold-50 dark:bg-gold-950/40" : "border-[var(--border-subtle)] hover:border-gold-400/60 hover:bg-[var(--surface-2)]"}`}
                     >
                       <div
-                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${answers[q.id] === opt ? "border-indigo-600" : "border-[var(--border-subtle)]"}`}
+                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${answers[q.id] === opt ? "border-gold-600" : "border-[var(--border-subtle)]"}`}
                       >
                         {answers[q.id] === opt && (
-                          <div className="w-2.5 h-2.5 rounded-full bg-indigo-600" />
+                          <div className="w-2.5 h-2.5 rounded-full bg-gold-600" />
                         )}
                       </div>
                       <input
@@ -342,7 +342,7 @@ export default function QuizDetailPage() {
     return (
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-8">
-          <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 bg-gradient-to-br from-indigo-600 to-indigo-700 text-white">
+          <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 bg-gradient-to-br from-gold-600 to-gold-700 text-white">
             <span className="text-3xl font-bold">
               {Math.round(result.score)}%
             </span>
@@ -476,7 +476,7 @@ export default function QuizDetailPage() {
                   type="checkbox"
                   checked={isPublic}
                   onChange={(e) => setIsPublic(e.target.checked)}
-                  className="rounded border-[var(--border-subtle)] text-indigo-600 focus:ring-indigo-500"
+                  className="rounded border-[var(--border-subtle)] text-gold-600 focus:ring-gold-500"
                 />
                 Public (anyone can take this quiz)
               </label>

@@ -44,7 +44,7 @@ export function ProductTabs({ product }: { product: Product }) {
             onClick={() => setActive(tab.id)}
             className={`rounded-t-lg px-4 py-2 text-sm font-semibold transition-colors ${
               active === tab.id
-                ? "border-b-2 border-indigo-600 text-indigo-600"
+                ? "border-b-2 border-gold-600 text-gold-600"
                 : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-slate-100"
             }`}
           >

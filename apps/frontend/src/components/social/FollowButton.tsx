@@ -37,7 +37,7 @@ export function FollowButton({
       } ${
         following
           ? "border border-gray-300 text-gray-700 hover:bg-gray-50"
-          : "bg-indigo-600 text-white hover:bg-indigo-700"
+          : "bg-gold-600 text-white hover:bg-gold-700"
       }`}
     >
       {following ? "Following" : "Follow"}

@@ -177,7 +177,7 @@ export default function NoteEditorPage() {
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="w-full rounded-xl border border-[var(--border-subtle)] px-4 py-3 text-sm font-mono h-[600px] resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition leading-relaxed"
+              className="w-full rounded-xl border border-[var(--border-subtle)] px-4 py-3 text-sm font-mono h-[600px] resize-none focus:outline-none focus:ring-2 focus:ring-gold-500/30 focus:border-gold-500 transition leading-relaxed"
               placeholder="Write your note in Markdown..."
             />
           </div>
@@ -198,7 +198,7 @@ export default function NoteEditorPage() {
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="w-full rounded-xl border border-[var(--border-subtle)] px-4 py-3 text-sm font-mono h-[550px] resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition leading-relaxed"
+            className="w-full rounded-xl border border-[var(--border-subtle)] px-4 py-3 text-sm font-mono h-[550px] resize-none focus:outline-none focus:ring-2 focus:ring-gold-500/30 focus:border-gold-500 transition leading-relaxed"
             placeholder="Write your note in Markdown... Use **bold**, *italic*, # headings, - lists, etc."
           />
         </div>

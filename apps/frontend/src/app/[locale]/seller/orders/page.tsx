@@ -22,9 +22,9 @@ type OrderItem = {
 
 const statusColors: Record<string, string> = {
   PENDING: "bg-yellow-100 text-yellow-800",
-  APPROVED: "bg-indigo-100 text-indigo-800",
-  PACKING: "bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700",
-  SHIPPED: "bg-indigo-100 text-indigo-800",
+  APPROVED: "bg-gold-100 text-gold-800",
+  PACKING: "bg-gold-50 dark:bg-gold-950/40 text-gold-700",
+  SHIPPED: "bg-gold-100 text-gold-800",
   DELIVERED: "bg-green-100 text-green-800",
   REJECTED: "bg-red-100 text-red-800",
   CANCELLED: "bg-[var(--surface-2)] text-slate-800 dark:text-slate-200",
@@ -54,7 +54,7 @@ export default function SellerOrdersPage() {
         <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
         <Link
           href="/login"
-          className="text-indigo-600 font-medium hover:underline"
+          className="text-gold-600 font-medium hover:underline"
         >
           Go to Login
         </Link>

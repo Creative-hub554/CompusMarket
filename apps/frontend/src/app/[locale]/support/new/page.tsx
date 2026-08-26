@@ -69,7 +69,7 @@ function NewTicketForm() {
         </p>
         <Link
           href="/login"
-          className="rounded-lg bg-slate-900 px-4 py-2 text-sm text-white hover:bg-indigo-700 transition font-medium"
+          className="rounded-lg bg-slate-900 px-4 py-2 text-sm text-white hover:bg-gold-700 transition font-medium"
         >
           Sign In
         </Link>
@@ -88,7 +88,7 @@ function NewTicketForm() {
       <h1 className="text-2xl font-bold mt-2 mb-6">New Support Ticket</h1>
 
       {order && (
-        <div className="mb-4 p-3 bg-indigo-50 border border-indigo-200 rounded-lg text-sm text-indigo-800">
+        <div className="mb-4 p-3 bg-gold-50 border border-gold-200 rounded-lg text-sm text-gold-800">
           Related to Order: <strong>{order.orderNumber}</strong>
         </div>
       )}
@@ -122,7 +122,7 @@ function NewTicketForm() {
         <button
           type="submit"
           disabled={sending}
-          className="rounded-lg bg-slate-900 px-6 py-2 text-sm text-white hover:bg-indigo-700 transition disabled:opacity-50 font-medium"
+          className="rounded-lg bg-slate-900 px-6 py-2 text-sm text-white hover:bg-gold-700 transition disabled:opacity-50 font-medium"
         >
           {sending ? "Sending..." : "Submit Ticket"}
         </button>

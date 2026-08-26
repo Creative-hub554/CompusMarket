@@ -86,7 +86,7 @@ export default function JobDetailPage() {
     return (
       <div className="mx-auto max-w-3xl px-4 py-8">
         <p className="text-slate-500 dark:text-slate-400">{t("noResults")}</p>
-        <Link href="/jobs" className="text-indigo-600 hover:underline">
+        <Link href="/jobs" className="text-gold-600 hover:underline">
           {t("backToJobs")}
         </Link>
       </div>
@@ -97,7 +97,7 @@ export default function JobDetailPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 animate-fade-in">
-      <Link href="/jobs" className="text-sm text-indigo-600 hover:underline">
+      <Link href="/jobs" className="text-sm text-gold-600 hover:underline">
         ← {t("backToJobs")}
       </Link>
 
@@ -109,7 +109,7 @@ export default function JobDetailPage() {
               {job.company} · {job.location}
             </p>
           </div>
-          <span className="shrink-0 text-xs uppercase tracking-wide bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full">
+          <span className="shrink-0 text-xs uppercase tracking-wide bg-gold-100 text-gold-700 px-2 py-1 rounded-full">
             {job.type.replace("_", " ")}
           </span>
         </div>

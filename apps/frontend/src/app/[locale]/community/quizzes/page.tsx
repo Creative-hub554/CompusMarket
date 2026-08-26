@@ -167,7 +167,7 @@ export default function QuizzesPage() {
         <div className="flex gap-2">
           <button
             onClick={() => setShowAi(!showAi)}
-            className="rounded-lg border border-indigo-300 bg-indigo-50 dark:bg-indigo-950/40 px-3 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition"
+            className="rounded-lg border border-gold-300 bg-gold-50 dark:bg-gold-950/40 px-3 py-2 text-sm font-medium text-gold-700 hover:bg-gold-100 transition"
           >
             ✨ AI Generate
           </button>
@@ -193,8 +193,8 @@ export default function QuizzesPage() {
       </div>
 
       {showAi && (
-        <div className="mb-6 p-5 border border-indigo-200 rounded-xl bg-indigo-50 dark:bg-indigo-950/40">
-          <h2 className="text-sm font-semibold text-indigo-800 mb-3">
+        <div className="mb-6 p-5 border border-gold-200 rounded-xl bg-gold-50 dark:bg-gold-950/40">
+          <h2 className="text-sm font-semibold text-gold-800 mb-3">
             ✨ AI Generate Quiz
           </h2>
           <div className="flex gap-2 items-start">
@@ -327,7 +327,7 @@ export default function QuizzesPage() {
                 href={`/community/quizzes/${quiz.id}`}
                 className="block p-5"
               >
-                <h3 className="font-semibold truncate text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 transition-colors">
+                <h3 className="font-semibold truncate text-slate-900 dark:text-slate-100 group-hover:text-gold-600 transition-colors">
                   {quiz.title}
                 </h3>
                 {quiz.description && (

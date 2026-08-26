@@ -306,7 +306,7 @@ function ResumeBuilderContent() {
           <button
             onClick={handleExportPdf}
             disabled={pdfExporting}
-            className="rounded bg-indigo-600 px-4 py-1.5 text-sm text-white hover:bg-indigo-700 inline-block disabled:opacity-50"
+            className="rounded bg-gold-600 px-4 py-1.5 text-sm text-white hover:bg-gold-700 inline-block disabled:opacity-50"
           >
             {pdfExporting ? t.resume.generating : t.resume.exportPdf}
           </button>
@@ -322,7 +322,7 @@ function ResumeBuilderContent() {
                 onClick={() => setActiveSection(item.id)}
                 className={`block w-full rounded px-3 py-2 text-left text-sm font-medium transition ${
                   activeSection === item.id
-                    ? "bg-indigo-100 text-indigo-700"
+                    ? "bg-gold-100 text-gold-700"
                     : "text-slate-600 hover:bg-slate-100"
                 }`}
               >
@@ -349,7 +349,7 @@ function ResumeBuilderContent() {
                       onClick={() => loadResume(r)}
                       className={`flex-1 rounded px-2 py-1 text-left text-xs transition ${
                         currentResumeId === r.id
-                          ? "bg-indigo-50 text-indigo-700"
+                          ? "bg-gold-50 text-gold-700"
                           : "text-slate-600 hover:bg-slate-100"
                       }`}
                     >
@@ -366,7 +366,7 @@ function ResumeBuilderContent() {
               )}
               <button
                 onClick={newResume}
-                className="w-full rounded px-2 py-1 text-left text-xs text-indigo-600 hover:bg-indigo-50"
+                className="w-full rounded px-2 py-1 text-left text-xs text-gold-600 hover:bg-gold-50"
               >
                 {t.resume.newResume}
               </button>
@@ -431,7 +431,7 @@ function ResumeBuilderContent() {
                 <h2 className="text-xl font-semibold">{t.resume.education}</h2>
                 <button
                   onClick={addEducation}
-                  className="rounded bg-indigo-600 px-3 py-1 text-sm text-white"
+                  className="rounded bg-gold-600 px-3 py-1 text-sm text-white"
                 >
                   {t.resume.add}
                 </button>
@@ -548,7 +548,7 @@ function ResumeBuilderContent() {
                 <h2 className="text-xl font-semibold">{t.resume.experience}</h2>
                 <button
                   onClick={addExperience}
-                  className="rounded bg-indigo-600 px-3 py-1 text-sm text-white"
+                  className="rounded bg-gold-600 px-3 py-1 text-sm text-white"
                 >
                   {t.resume.add}
                 </button>
@@ -677,7 +677,7 @@ function ResumeBuilderContent() {
                 />
                 <button
                   onClick={addSkill}
-                  className="rounded bg-indigo-600 px-4 py-2 text-sm text-white"
+                  className="rounded bg-gold-600 px-4 py-2 text-sm text-white"
                 >
                   {t.resume.add}
                 </button>
@@ -723,7 +723,7 @@ function ResumeBuilderContent() {
                 </h2>
                 <button
                   onClick={addCertification}
-                  className="rounded bg-indigo-600 px-3 py-1 text-sm text-white"
+                  className="rounded bg-gold-600 px-3 py-1 text-sm text-white"
                 >
                   {t.resume.add}
                 </button>
@@ -815,7 +815,7 @@ function ResumeBuilderContent() {
                 <h2 className="text-xl font-semibold">{t.resume.languages}</h2>
                 <button
                   onClick={addLanguage}
-                  className="rounded bg-indigo-600 px-3 py-1 text-sm text-white"
+                  className="rounded bg-gold-600 px-3 py-1 text-sm text-white"
                 >
                   {t.resume.add}
                 </button>

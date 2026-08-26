@@ -40,7 +40,7 @@ export default function SellerDashboardPage() {
         </p>
         <Link
           href="/login"
-          className="text-indigo-600 font-medium hover:underline"
+          className="text-gold-600 font-medium hover:underline"
         >
           Go to Login
         </Link>
@@ -71,7 +71,7 @@ export default function SellerDashboardPage() {
           </p>
           <button
             onClick={() => router.push("/seller/apply")}
-            className="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700"
+            className="bg-gold-600 text-white px-6 py-2 rounded hover:bg-gold-700"
           >
             Apply Now
           </button>
@@ -115,7 +115,7 @@ export default function SellerDashboardPage() {
             <div className="flex items-center gap-2">
               <div className="flex-1 bg-slate-200 rounded-full h-3">
                 <div
-                  className="bg-indigo-600 h-3 rounded-full"
+                  className="bg-gold-600 h-3 rounded-full"
                   style={{
                     width: `${Math.min(
                       ((profile._count?.products || 0) / maxProducts) * 100,
@@ -140,7 +140,7 @@ export default function SellerDashboardPage() {
             <button
               onClick={() => router.push("/seller/products/new")}
               disabled={(profile._count?.products || 0) >= maxProducts}
-              className="bg-slate-900 text-white px-6 py-2 rounded hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-slate-900 text-white px-6 py-2 rounded hover:bg-gold-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Add Product
             </button>

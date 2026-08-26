@@ -66,7 +66,7 @@ export default function ProfilePage() {
       <div className="relative mb-14">
         <div
           className={`h-44 rounded-2xl overflow-hidden ${
-            profile.coverImage ? "" : "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"
+            profile.coverImage ? "" : "bg-gradient-to-r from-gold-500 via-purple-500 to-pink-500"
           }`}
         >
           {profile.coverImage && (

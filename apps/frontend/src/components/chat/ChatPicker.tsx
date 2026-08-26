@@ -86,7 +86,7 @@ export function ChatPicker({ mode, onSelect, onClose }: Props) {
                 aria-pressed={tab === i}
                 className={`flex-1 text-[10px] font-semibold rounded-full py-1 transition-colors ${
                   tab === i
-                    ? "bg-indigo-500/15 text-indigo-600 dark:text-indigo-300"
+                    ? "bg-gold-500/15 text-gold-600 dark:text-gold-300"
                     : "text-slate-400 hover:bg-slate-500/10"
                 }`}
               >

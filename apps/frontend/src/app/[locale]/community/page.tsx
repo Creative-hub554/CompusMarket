@@ -36,8 +36,8 @@ const tools = [
     icon: (
       <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
     ),
-    color: "text-indigo-600",
-    bg: "bg-indigo-50 dark:bg-indigo-950/40",
+    color: "text-gold-600",
+    bg: "bg-gold-50 dark:bg-gold-950/40",
   },
   {
     href: "/community/diagrams",
@@ -119,7 +119,7 @@ export default function CommunityPage() {
             <div className={`w-12 h-12 ${tool.bg} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200 ${tool.color}`}>
               {tool.icon}
             </div>
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1.5 group-hover:text-indigo-600 transition-colors">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1.5 group-hover:text-gold-600 transition-colors">
               {tool.title}
             </h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{tool.desc}</p>

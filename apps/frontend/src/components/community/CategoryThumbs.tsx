@@ -599,7 +599,7 @@ export function IconsThumb({ className }: ThumbProps) {
     >
       <rect width="200" height="140" fill="#eef2ff" />
       <g>
-        <rect x="20" y="20" width="34" height="34" rx="8" fill="#4f46e5" />
+        <rect x="20" y="20" width="34" height="34" rx="8" fill="#b8860b" />
         <rect x="66" y="20" width="34" height="34" rx="8" fill="#0891b2" />
         <rect x="112" y="20" width="34" height="34" rx="8" fill="#059669" />
         <rect x="158" y="20" width="22" height="34" rx="8" fill="#d97706" />
@@ -613,7 +613,7 @@ export function IconsThumb({ className }: ThumbProps) {
       </g>
       <g>
         <rect x="20" y="70" width="34" height="34" rx="8" fill="#dc2626" />
-        <rect x="66" y="70" width="34" height="34" rx="8" fill="#7c3aed" />
+        <rect x="66" y="70" width="34" height="34" rx="8" fill="#d4a027" />
         <rect x="112" y="70" width="34" height="34" rx="8" fill="#e11d48" />
         <rect x="158" y="70" width="22" height="34" rx="8" fill="#ca8a04" />
       </g>
@@ -633,7 +633,7 @@ export function IconsThumb({ className }: ThumbProps) {
         <path d="M169 76 L169 98" />
         <path d="M160 84 Q169 76 178 84" />
       </g>
-      <g fill="#312e81">
+      <g fill="#654613">
         <path d="M20 116 L30 104 L40 116 L36 120 L24 120 Z" />
         <path d="M80 116 L88 106 L96 116 L92 120 L84 120 Z" />
         <path d="M140 116 L150 104 L160 116 L156 120 L144 120 Z" />

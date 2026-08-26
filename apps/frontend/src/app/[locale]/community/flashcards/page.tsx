@@ -132,14 +132,14 @@ export default function FlashcardsPage() {
           {filtered.map((deck) => (
             <div key={deck.id} className="card relative group">
               <Link href={`/community/flashcards/${deck.id}`} className="block p-5">
-                <h3 className="font-semibold truncate text-slate-900 group-hover:text-indigo-600 transition-colors">{deck.title}</h3>
+                <h3 className="font-semibold truncate text-slate-900 group-hover:text-gold-600 transition-colors">{deck.title}</h3>
                 {deck.description && <p className="text-sm text-slate-500 mt-1.5 line-clamp-2 leading-relaxed">{deck.description}</p>}
                 <div className="flex items-center gap-3 mt-4 text-xs text-slate-400">
                   <span className="font-medium">{deck._count?.cards ?? 0} cards</span>
                 </div>
               </Link>
               <div className="px-5 pb-4">
-                <Link href={`/community/flashcards/${deck.id}/edit`} className="text-xs text-indigo-600 hover:text-indigo-700 font-medium">Edit Cards</Link>
+                <Link href={`/community/flashcards/${deck.id}/edit`} className="text-xs text-gold-600 hover:text-gold-700 font-medium">Edit Cards</Link>
               </div>
               <button
                 onClick={() => deleteDeck(deck.id)}

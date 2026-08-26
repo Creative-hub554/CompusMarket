@@ -49,7 +49,7 @@ export default async function ShopPage({
             <li>
               <Link
                 href="/shop"
-                className={`font-medium hover:underline ${!category ? "text-indigo-600" : "text-slate-600"}`}
+                className={`font-medium hover:underline ${!category ? "text-gold-600" : "text-slate-600"}`}
               >
                 {t("all")} ({totalCount})
               </Link>
@@ -59,7 +59,7 @@ export default async function ShopPage({
                 <Link
                   href={`/shop?category=${cat.slug}`}
                   className={`transition-colors ${
-                    category === cat.slug ? "text-indigo-600 font-semibold" : "text-slate-600 hover:text-indigo-600"
+                    category === cat.slug ? "text-gold-600 font-semibold" : "text-slate-600 hover:text-gold-600"
                   }`}
                 >
                   {cat.name} ({cat._count.products})

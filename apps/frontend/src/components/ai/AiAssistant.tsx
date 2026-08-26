@@ -170,7 +170,7 @@ export function AiAssistant() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="w-14 h-14 rounded-full shadow-[0_8px_30px_-6px_rgba(99,102,241,0.6)] flex items-center justify-center bg-gradient-to-br from-indigo-500 to-violet-600 hover:scale-105 active:scale-95 transition-transform"
+          className="w-14 h-14 rounded-full shadow-[0_8px_30px_-6px_rgba(212,160,39,0.6)] flex items-center justify-center bg-gradient-to-br from-gold-500 to-gold-600 hover:scale-105 active:scale-95 transition-transform"
           aria-label={t.aiAssistant.title}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -191,7 +191,7 @@ export function AiAssistant() {
                   key={l}
                   onClick={() => changeLang(l)}
                   aria-pressed={lang === l}
-                  className={`px-2 py-0.5 text-xs rounded-full transition-colors ${lang === l ? "bg-white text-indigo-700 font-bold" : "text-white/80 hover:bg-white/15"}`}
+                  className={`px-2 py-0.5 text-xs rounded-full transition-colors ${lang === l ? "bg-white text-gold-700 font-bold" : "text-white/80 hover:bg-white/15"}`}
                 >
                   {l === "en" ? "EN" : l === "zh" ? "中文" : "ខ្មែរ"}
                 </button>
@@ -213,7 +213,7 @@ export function AiAssistant() {
                   className={`max-w-[85%] text-sm whitespace-pre-wrap px-3 py-2 ${
                     msg.role === "assistant"
                       ? "rounded-2xl rounded-bl-md bg-[var(--surface-2)] text-slate-800 dark:text-slate-200"
-                      : "rounded-2xl rounded-br-md bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-medium"
+                      : "rounded-2xl rounded-br-md bg-gradient-to-r from-gold-500 to-gold-600 text-white font-medium"
                   }`}
                 >
                   {msg.content}
@@ -225,7 +225,7 @@ export function AiAssistant() {
                         key={product.id}
                         href={`/shop/${product.id}`}
                         onClick={() => setIsOpen(false)}
-                        className="flex items-center gap-2 p-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] hover:border-indigo-400/60 transition"
+                        className="flex items-center gap-2 p-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] hover:border-gold-400/60 transition"
                       >
                         <div className="w-10 h-10 bg-[var(--surface-2)] rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
                           {product.image ? (
@@ -251,7 +251,7 @@ export function AiAssistant() {
                         key={link}
                         href={link}
                         onClick={() => setIsOpen(false)}
-                        className="text-xs bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-100 dark:border-indigo-900 rounded-full px-2.5 py-1 transition"
+                        className="text-xs bg-gold-50 dark:bg-gold-950/40 text-gold-700 dark:text-gold-300 hover:bg-gold-100 dark:hover:bg-gold-900/60 border border-gold-100 dark:border-gold-900 rounded-full px-2.5 py-1 transition"
                       >
                         {PATH_LABELS[link] ?? link} →
                       </Link>
@@ -266,7 +266,7 @@ export function AiAssistant() {
                   <button
                     key={starter}
                     onClick={() => sendMessage(starter)}
-                    className="text-xs bg-[var(--surface-2)] hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-slate-600 dark:text-slate-300 hover:text-indigo-700 dark:hover:text-indigo-300 border border-[var(--border-subtle)] rounded-full px-2.5 py-1 transition"
+                    className="text-xs bg-[var(--surface-2)] hover:bg-gold-50 dark:hover:bg-gold-950/40 text-slate-600 dark:text-slate-300 hover:text-gold-700 dark:hover:text-gold-300 border border-[var(--border-subtle)] rounded-full px-2.5 py-1 transition"
                   >
                     {starter}
                   </button>
@@ -301,7 +301,7 @@ export function AiAssistant() {
                 onClick={() => sendMessage()}
                 disabled={isLoading || !input.trim()}
                 aria-label="Send message"
-                className="bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white text-sm px-4 py-1.5 rounded-full disabled:opacity-50 transition-all active:scale-95"
+                className="bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-white text-sm px-4 py-1.5 rounded-full disabled:opacity-50 transition-all active:scale-95"
               >
                 Send
               </button>

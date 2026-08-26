@@ -240,7 +240,7 @@ export default function GroupsPage() {
               className="card rounded-2xl p-5 flex items-center gap-4"
             >
               <Link href={`/community/groups/${group.id}`} className="flex-1 min-w-0 no-underline">
-                <h2 className="font-bold text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 inline-flex items-center gap-1.5">
+                <h2 className="font-bold text-slate-900 dark:text-slate-100 group-hover:text-gold-600 inline-flex items-center gap-1.5">
                   {group.name}
                   {group.privacy === "PRIVATE" && (
                     <Lock size={13} className="text-slate-400" aria-label={t("privacyPrivate")} />
@@ -275,7 +275,7 @@ export default function GroupsPage() {
                       group.isMember
                         ? "btn-ghost"
                         : group.hasPendingRequest
-                          ? "btn-ghost !text-indigo-600 dark:!text-indigo-400"
+                          ? "btn-ghost !text-gold-600 dark:!text-gold-400"
                           : "btn-primary !py-1.5"
                     }
                   >

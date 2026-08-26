@@ -157,7 +157,7 @@ export default function MarketPage() {
           {hasFilters && (
             <button
               onClick={clearFilters}
-              className="text-sm text-indigo-600 hover:underline pb-2"
+              className="text-sm text-gold-600 hover:underline pb-2"
             >
               {t("clearFilters")}
             </button>
@@ -186,7 +186,7 @@ export default function MarketPage() {
           {hasFilters && (
             <button
               onClick={clearFilters}
-              className="mt-4 inline-block text-indigo-600 hover:underline"
+              className="mt-4 inline-block text-gold-600 hover:underline"
             >
               {t("clearFilters")}
             </button>

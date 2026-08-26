@@ -74,7 +74,7 @@ export function ReelsStrip() {
           <button
             key={promo.id}
             onClick={() => openModal(i)}
-            className="group relative shrink-0 snap-start w-36 md:w-44 aspect-[9/16] rounded-2xl overflow-hidden bg-black ring-1 ring-[var(--border-subtle)] hover:ring-indigo-400/70 hover:-translate-y-1 transition-all shadow-[var(--shadow-soft)]"
+            className="group relative shrink-0 snap-start w-36 md:w-44 aspect-[9/16] rounded-2xl overflow-hidden bg-black ring-1 ring-[var(--border-subtle)] hover:ring-gold-400/70 hover:-translate-y-1 transition-all shadow-[var(--shadow-soft)]"
             aria-label={`${t("reelsTitle")}: ${promo.name}`}
           >
             <video
@@ -157,7 +157,7 @@ export function ReelsStrip() {
                 className={`shrink-0 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition-all ${
                   added
                     ? "bg-green-600"
-                    : "bg-gradient-to-r from-indigo-500 to-violet-600 hover:scale-[1.03] active:scale-95"
+                    : "bg-gradient-to-r from-gold-500 to-gold-600 hover:scale-[1.03] active:scale-95"
                 }`}
               >
                 {added ? t("promoAdded") : t("promoBuyNow")}

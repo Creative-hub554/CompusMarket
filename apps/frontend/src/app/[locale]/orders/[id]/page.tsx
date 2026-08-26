@@ -40,9 +40,9 @@ type Order = {
 
 const itemStatusColors: Record<string, string> = {
   PENDING: "bg-yellow-100 text-yellow-800",
-  APPROVED: "bg-indigo-100 text-indigo-800",
-  PACKING: "bg-indigo-100 text-indigo-800",
-  SHIPPED: "bg-indigo-100 text-indigo-800",
+  APPROVED: "bg-gold-100 text-gold-800",
+  PACKING: "bg-gold-100 text-gold-800",
+  SHIPPED: "bg-gold-100 text-gold-800",
   DELIVERED: "bg-green-100 text-green-800",
   REJECTED: "bg-red-100 text-red-800",
   CANCELLED: "bg-[var(--surface-2)] text-gray-800 dark:text-gray-200",
@@ -232,7 +232,7 @@ export default function OrderDetailPage() {
         </Link>
         <Link
           href="/shop"
-          className="rounded-lg bg-slate-900 px-4 py-2 text-sm text-white hover:bg-indigo-700 transition-colors"
+          className="rounded-lg bg-slate-900 px-4 py-2 text-sm text-white hover:bg-gold-700 transition-colors"
         >
           {t("continueShopping")}
         </Link>
@@ -316,7 +316,7 @@ function FeedbackForm({
             accept="image/*"
             onChange={handleUpload}
             disabled={uploading || images.length >= 3}
-            className="text-xs text-gray-500 dark:text-gray-400 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-indigo-50 dark:bg-indigo-950/40 file:text-indigo-700"
+            className="text-xs text-gray-500 dark:text-gray-400 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-gold-50 dark:bg-gold-950/40 file:text-gold-700"
           />
           {images.length > 0 && (
             <div className="flex gap-1">
@@ -337,7 +337,7 @@ function FeedbackForm({
         <button
           onClick={handleSubmit}
           disabled={submitting}
-          className="bg-khmer-blue text-white px-4 py-1.5 rounded text-sm font-medium hover:bg-khmer-blue-light transition-colors disabled:opacity-50"
+          className="bg-gold-600 text-white px-4 py-1.5 rounded text-sm font-medium hover:bg-gold-700 transition-colors disabled:opacity-50"
         >
           {submitting ? t("feedbackSubmitting") : t("feedbackSubmit")}
         </button>

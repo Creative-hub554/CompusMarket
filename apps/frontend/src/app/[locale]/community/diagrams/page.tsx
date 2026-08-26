@@ -13,7 +13,7 @@ const diagramTypes = [
   { value: "er", label: "ER", color: "badge bg-pink-100 text-pink-700" },
   { value: "gantt", label: "Gantt", color: "badge bg-teal-100 text-teal-700" },
   { value: "pie", label: "Pie", color: "badge bg-yellow-100 text-yellow-700" },
-  { value: "mindmap", label: "Mindmap", color: "badge bg-indigo-100 text-indigo-700" },
+  { value: "mindmap", label: "Mindmap", color: "badge bg-gold-100 text-gold-700" },
   { value: "timeline", label: "Timeline", color: "badge bg-rose-100 text-rose-700" },
 ];
 
@@ -154,7 +154,7 @@ export default function DiagramsPage() {
           {diagrams.map((d) => (
             <div key={d.id} className="card relative group">
               <Link href={`/community/diagrams/${d.id}`} className="block p-5">
-                <h3 className="font-semibold truncate text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 transition-colors">{d.title}</h3>
+                <h3 className="font-semibold truncate text-slate-900 dark:text-slate-100 group-hover:text-gold-600 transition-colors">{d.title}</h3>
                 <span className={`${getTypeStyle(d.type)} mt-2`}>{d.type}</span>
                 <p className="text-xs text-slate-400 mt-4">{new Date(d.updatedAt).toLocaleDateString()}</p>
               </Link>

@@ -144,7 +144,7 @@ export default function NotesPage() {
         <div className="flex gap-2">
           <button
             onClick={() => setShowAi(!showAi)}
-            className="rounded-lg border border-indigo-300 bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition"
+            className="rounded-lg border border-gold-300 bg-gold-50 px-3 py-2 text-sm font-medium text-gold-700 hover:bg-gold-100 transition"
           >
             ✨ AI Generate
           </button>
@@ -170,8 +170,8 @@ export default function NotesPage() {
       </div>
 
       {showAi && (
-        <div className="mb-6 p-5 border border-indigo-200 rounded-xl bg-indigo-50">
-          <h2 className="text-sm font-semibold text-indigo-800 mb-3">
+        <div className="mb-6 p-5 border border-gold-200 rounded-xl bg-gold-50">
+          <h2 className="text-sm font-semibold text-gold-800 mb-3">
             ✨ AI Generate Note
           </h2>
           <div className="flex gap-2 items-start">
@@ -300,7 +300,7 @@ export default function NotesPage() {
                   href={`/community/notes/${note.id}`}
                   className="block p-5"
                 >
-                  <h3 className="font-semibold truncate text-slate-900 group-hover:text-indigo-600 transition-colors">
+                  <h3 className="font-semibold truncate text-slate-900 group-hover:text-gold-600 transition-colors">
                     {note.title}
                   </h3>
                   {preview && (

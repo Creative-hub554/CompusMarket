@@ -154,7 +154,7 @@ export default function JobsPage() {
           {hasFilters ? (
             <button
               onClick={clearFilters}
-              className="text-sm text-indigo-600 hover:underline"
+              className="text-sm text-gold-600 hover:underline"
             >
               {t("clearFilters")}
             </button>
@@ -180,13 +180,13 @@ export default function JobsPage() {
               {alerts.map((a) => (
                 <span
                   key={a.id}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 text-xs font-medium pl-3 pr-1.5 py-1"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-gold-50 dark:bg-gold-950/40 text-gold-700 dark:text-gold-300 text-xs font-medium pl-3 pr-1.5 py-1"
                 >
                   🔔 {alertsLabel(a)}
                   <button
                     onClick={() => removeAlert(a.id)}
                     aria-label={t("removeAlert")}
-                    className="w-4 h-4 rounded-full hover:bg-indigo-200/60 dark:hover:bg-indigo-800/60 flex items-center justify-center text-[10px] leading-none"
+                    className="w-4 h-4 rounded-full hover:bg-gold-200/60 dark:hover:bg-gold-800/60 flex items-center justify-center text-[10px] leading-none"
                   >
                     ✕
                   </button>
@@ -222,18 +222,18 @@ export default function JobsPage() {
               <Link
                 key={job.id}
                 href={`/jobs/${job.id}`}
-                className="card-hover group block rounded-xl border border-slate-200 bg-white p-5 hover:border-indigo-300"
+                className="card-hover group block rounded-xl border border-slate-200 bg-white p-5 hover:border-gold-300"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h3 className="font-semibold text-lg group-hover:text-indigo-600 transition-colors">
+                    <h3 className="font-semibold text-lg group-hover:text-gold-600 transition-colors">
                       {job.title}
                     </h3>
                     <p className="text-sm text-slate-600">
                       {job.company} · {job.location}
                     </p>
                   </div>
-                  <span className="shrink-0 text-[11px] uppercase tracking-wide bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full">
+                  <span className="shrink-0 text-[11px] uppercase tracking-wide bg-gold-100 text-gold-700 px-2 py-1 rounded-full">
                     {job.type.replace("_", " ")}
                   </span>
                 </div>

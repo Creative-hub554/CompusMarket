@@ -74,7 +74,7 @@ export default function WarrantyDetailPage() {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16 text-center">
         <h1 className="text-2xl font-bold mb-4">Warranty Not Found</h1>
-        <Link href="/warranties" className="text-indigo-600 hover:underline">
+        <Link href="/warranties" className="text-gold-600 hover:underline">
           &larr; Back to Warranties
         </Link>
       </div>
@@ -89,7 +89,7 @@ export default function WarrantyDetailPage() {
     <div className="mx-auto max-w-4xl px-4 py-8">
       <Link
         href="/warranties"
-        className="text-sm text-indigo-600 hover:underline mb-4 block"
+        className="text-sm text-gold-600 hover:underline mb-4 block"
       >
         &larr; My Warranties
       </Link>

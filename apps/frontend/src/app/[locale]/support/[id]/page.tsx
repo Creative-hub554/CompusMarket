@@ -28,7 +28,7 @@ type Ticket = {
 
 const statusStyles: Record<Ticket["status"], string> = {
   OPEN: "bg-green-100 text-green-800",
-  IN_PROGRESS: "bg-indigo-100 text-indigo-800",
+  IN_PROGRESS: "bg-gold-100 text-gold-800",
   RESOLVED: "bg-[var(--surface-2)] text-slate-700 dark:text-slate-300",
   CLOSED: "bg-[var(--surface-2)] text-slate-700 dark:text-slate-300",
 };
@@ -100,7 +100,7 @@ export default function TicketDetailPage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">Sign In Required</h1>
           <p className="text-slate-500 dark:text-slate-400 mb-4">Please sign in to view this ticket.</p>
-          <Link href="/login" className="text-indigo-600 font-medium hover:underline">Go to Login</Link>
+          <Link href="/login" className="text-gold-600 font-medium hover:underline">Go to Login</Link>
         </div>
       </div>
     );
@@ -119,7 +119,7 @@ export default function TicketDetailPage() {
       <div className="min-h-[calc(100vh-64px)] bg-[var(--surface)] flex items-center justify-center">
         <div className="text-center">
           <p className="text-slate-600 dark:text-slate-300 mb-4">Ticket not found</p>
-          <Link href="/support" className="text-indigo-600 font-medium hover:underline">Back to Support</Link>
+          <Link href="/support" className="text-gold-600 font-medium hover:underline">Back to Support</Link>
         </div>
       </div>
     );
@@ -153,18 +153,18 @@ export default function TicketDetailPage() {
         <div className="mx-6 mt-4 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl p-4 flex items-center gap-3">
           {ticket.order ? (
             <>
-              <span className="text-indigo-600 text-lg">&#x1F4E6;</span>
+              <span className="text-gold-600 text-lg">&#x1F4E6;</span>
               <div className="flex-1">
                 <p className="text-slate-900 dark:text-slate-100 text-sm font-medium">Regarding Order</p>
                 <p className="text-slate-500 dark:text-slate-400 text-xs">#{ticket.order.orderNumber}</p>
               </div>
-              <Link href={`/orders/${ticket.order.id}`} className="text-indigo-600 text-sm hover:underline">
+              <Link href={`/orders/${ticket.order.id}`} className="text-gold-600 text-sm hover:underline">
                 View Order
               </Link>
             </>
           ) : (
             <>
-              <span className="text-indigo-600 text-lg">&#x1F50D;</span>
+              <span className="text-gold-600 text-lg">&#x1F50D;</span>
               <div className="flex-1">
                 <p className="text-slate-900 dark:text-slate-100 text-sm font-medium">Regarding Product</p>
                 <p className="text-slate-500 dark:text-slate-400 text-xs">{ticket.product?.name}</p>
@@ -187,17 +187,17 @@ export default function TicketDetailPage() {
               <div
                 className={`max-w-[75%] ${
                   isMe
-                    ? "bg-indigo-600 text-white rounded-2xl rounded-br-md"
+                    ? "bg-gold-600 text-white rounded-2xl rounded-br-md"
                     : "bg-[var(--surface-2)] text-slate-900 dark:text-slate-100 rounded-2xl rounded-bl-md"
                 } px-4 py-2.5 text-sm`}
               >
                 <p>{msg.content}</p>
                 <div className={`flex items-center gap-1 mt-1 ${isMe ? "justify-end" : "justify-start"}`}>
-                  <span className={`text-[11px] ${isMe ? "text-indigo-200" : "text-slate-500 dark:text-slate-400"}`}>
+                  <span className={`text-[11px] ${isMe ? "text-gold-200" : "text-slate-500 dark:text-slate-400"}`}>
                     {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </span>
                   {isMe && (
-                    <span className={`text-[11px] ${msg.readAt ? "text-indigo-200" : "text-indigo-300"}`}>
+                    <span className={`text-[11px] ${msg.readAt ? "text-gold-200" : "text-gold-300"}`}>
                       {msg.readAt ? "\u2713\u2713" : "\u2713"}
                     </span>
                   )}
@@ -222,12 +222,12 @@ export default function TicketDetailPage() {
             }}
             placeholder="Type your message..."
             rows={1}
-            className="flex-1 bg-[var(--surface)] border border-[var(--border-subtle)] rounded-lg px-4 py-3 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:border-indigo-500 outline-none transition-colors resize-none"
+            className="flex-1 bg-[var(--surface)] border border-[var(--border-subtle)] rounded-lg px-4 py-3 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:border-gold-500 outline-none transition-colors resize-none"
           />
           <button
             onClick={sendMessage}
             disabled={!input.trim()}
-            className="bg-indigo-600 text-white rounded-lg px-5 py-3 text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-gold-600 text-white rounded-lg px-5 py-3 text-sm font-medium hover:bg-gold-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Send
           </button>

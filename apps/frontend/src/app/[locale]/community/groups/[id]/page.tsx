@@ -255,7 +255,7 @@ export default function GroupDetailPage() {
     <div className="mx-auto max-w-2xl px-4 py-8 animate-fade-in">
       <Link
         href="/community/groups"
-        className="inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 hover:text-indigo-600 mb-4 no-underline"
+        className="inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 hover:text-gold-600 mb-4 no-underline"
       >
         <ArrowLeft size={15} /> {t("backToGroups")}
       </Link>
@@ -288,7 +288,7 @@ export default function GroupDetailPage() {
           </div>
         ) : isAdmin ? (
           <label
-            className="flex h-16 cursor-pointer items-center justify-center gap-1.5 bg-gradient-to-r from-indigo-500/10 to-violet-500/10 text-xs text-slate-400 hover:from-indigo-500/20 hover:to-violet-500/20 hover:text-indigo-500 transition-colors"
+            className="flex h-16 cursor-pointer items-center justify-center gap-1.5 bg-gradient-to-r from-gold-500/10 to-gold-500/10 text-xs text-slate-400 hover:from-gold-500/20 hover:to-gold-500/20 hover:text-gold-500 transition-colors"
             title={t("changeCover")}
           >
             <input
@@ -335,7 +335,7 @@ export default function GroupDetailPage() {
                 group.isMember
                   ? "btn-ghost"
                   : group.hasPendingRequest
-                    ? "btn-ghost !text-indigo-600 dark:!text-indigo-400"
+                    ? "btn-ghost !text-gold-600 dark:!text-gold-400"
                     : "btn-primary"
               }
             >
@@ -384,7 +384,7 @@ export default function GroupDetailPage() {
                       <span className="text-xs text-slate-600 dark:text-slate-300 max-w-24 truncate">
                         {m.user.name || m.user.username}
                         {m.role === "ADMIN" && (
-                          <span className="text-indigo-500 font-semibold"> ★</span>
+                          <span className="text-gold-500 font-semibold"> ★</span>
                         )}
                       </span>
                     </Link>

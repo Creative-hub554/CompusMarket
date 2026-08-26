@@ -232,7 +232,7 @@ export default function ChatPage() {
           ←
         </Link>
         {thread?.group ? (
-          <span className="w-10 h-10 shrink-0 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
+          <span className="w-10 h-10 shrink-0 rounded-full bg-gradient-to-br from-gold-500 to-gold-600 flex items-center justify-center">
             <Users size={18} className="text-white" />
           </span>
         ) : (
@@ -245,7 +245,7 @@ export default function ChatPage() {
               : other?.name || other?.username || "Chat"}
           </p>
           {peerTyping ? (
-            <p className="text-xs text-indigo-500">typing…</p>
+            <p className="text-xs text-gold-500">typing…</p>
           ) : thread?.group ? (
             <p className="text-xs text-gray-400">
               {thread.participants.length + 1} members
@@ -255,7 +255,7 @@ export default function ChatPage() {
           )}
         </div>
         {thread?.product && (
-          <span className="hidden sm:inline-block text-xs bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 rounded-full px-3 py-1 truncate max-w-[180px]">
+          <span className="hidden sm:inline-block text-xs bg-gold-50 dark:bg-gold-950/40 text-gold-600 rounded-full px-3 py-1 truncate max-w-[180px]">
             {thread.product.name}
           </span>
         )}
@@ -273,7 +273,7 @@ export default function ChatPage() {
               <div
                 className={`max-w-[75%] rounded-2xl px-4 py-2 ${
                   isMe
-                    ? "bg-indigo-600 text-white rounded-br-sm"
+                    ? "bg-gold-600 text-white rounded-br-sm"
                     : "bg-[var(--surface)] border border-[var(--border-subtle)] rounded-bl-sm"
                 }`}
               >
@@ -296,7 +296,7 @@ export default function ChatPage() {
                   </div>
                 )}
                 {msg.content && <MessageContent content={msg.content} isMe={isMe} />}
-                <p className={`text-[10px] mt-1 ${isMe ? "text-indigo-200" : "text-gray-400"}`}>
+                <p className={`text-[10px] mt-1 ${isMe ? "text-gold-200" : "text-gray-400"}`}>
                   {timeAgo(msg.createdAt)}
                 </p>
               </div>
@@ -351,7 +351,7 @@ export default function ChatPage() {
             onClose={() => setPicker(null)}
           />
         )}
-        <label className="cursor-pointer p-2 text-gray-500 dark:text-gray-400 hover:text-indigo-600" title="Attach photo or video">
+        <label className="cursor-pointer p-2 text-gray-500 dark:text-gray-400 hover:text-gold-600" title="Attach photo or video">
           <input
             type="file"
             multiple
@@ -368,8 +368,8 @@ export default function ChatPage() {
           aria-expanded={picker === "emoji"}
           className={`p-2 rounded-lg transition-colors ${
             picker === "emoji"
-              ? "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40"
-              : "text-gray-500 dark:text-gray-400 hover:text-indigo-600"
+              ? "text-gold-600 bg-gold-50 dark:bg-gold-950/40"
+              : "text-gray-500 dark:text-gray-400 hover:text-gold-600"
           }`}
         >
           <Smile size={20} />
@@ -380,8 +380,8 @@ export default function ChatPage() {
           aria-expanded={picker === "sticker"}
           className={`p-2 rounded-lg transition-colors ${
             picker === "sticker"
-              ? "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40"
-              : "text-gray-500 dark:text-gray-400 hover:text-indigo-600"
+              ? "text-gold-600 bg-gold-50 dark:bg-gold-950/40"
+              : "text-gray-500 dark:text-gray-400 hover:text-gold-600"
           }`}
         >
           <StickerIcon size={20} />
@@ -400,11 +400,11 @@ export default function ChatPage() {
                   aria-selected={i === commandIndex}
                   className={`w-full text-left px-3.5 py-2 text-sm transition-colors ${
                     i === commandIndex
-                      ? "bg-indigo-500/10"
+                      ? "bg-gold-500/10"
                       : "hover:bg-[var(--surface-2)]"
                   }`}
                 >
-                  <span className="font-mono font-semibold text-indigo-600 dark:text-indigo-400">{c.cmd}</span>
+                  <span className="font-mono font-semibold text-gold-600 dark:text-gold-400">{c.cmd}</span>
                   <span className="ml-2 text-slate-500 dark:text-slate-400 text-xs">{c.hint}</span>
                 </button>
               ))}
@@ -443,13 +443,13 @@ export default function ChatPage() {
               handleTyping();
             }}
             placeholder="Type a message — try / for commands"
-            className="w-full resize-none border border-[var(--border-subtle)] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 max-h-32"
+            className="w-full resize-none border border-[var(--border-subtle)] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gold-300 max-h-32"
           />
         </div>
         <button
           onClick={sendMessage}
           disabled={(!input.trim() && pending.length === 0) || uploading}
-          className="bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-4 py-2 rounded-xl hover:opacity-90 disabled:opacity-50 transition-all active:scale-95"
+          className="bg-gradient-to-r from-gold-500 to-gold-600 text-white px-4 py-2 rounded-xl hover:opacity-90 disabled:opacity-50 transition-all active:scale-95"
         >
           Send
         </button>

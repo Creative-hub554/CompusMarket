@@ -368,7 +368,7 @@ export default function ImageProcessorPage() {
         <div
           onDrop={handleDrop}
           onDragOver={handleDragOver}
-          className="border-2 border-dashed border-[var(--border-subtle)] rounded-2xl p-16 text-center cursor-pointer hover:border-indigo-600 transition-colors bg-white/50 dark:bg-slate-900/50"
+          className="border-2 border-dashed border-[var(--border-subtle)] rounded-2xl p-16 text-center cursor-pointer hover:border-gold-600 transition-colors bg-white/50 dark:bg-slate-900/50"
           onClick={() => document.getElementById('file-input')?.click()}
         >
           <svg className="w-16 h-16 mx-auto mb-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -380,7 +380,7 @@ export default function ImageProcessorPage() {
 
           {isProcessing && (
             <div className="mt-6 flex flex-col items-center gap-3">
-              <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+              <div className="w-10 h-10 border-4 border-gold-600 border-t-transparent rounded-full animate-spin" />
               <p className="text-sm text-slate-500 dark:text-slate-400">{processingMsg}</p>
             </div>
           )}
@@ -440,13 +440,13 @@ export default function ImageProcessorPage() {
                       __html: currentSuit.svg.replace('<svg', '<svg style="width:100%;height:100%"')
                     }}
                   />
-                  <div data-rotate className="absolute -top-8 left-1/2 -translate-x-1/2 w-6 h-6 bg-[var(--surface)] rounded-full border-2 border-indigo-600 cursor-grab active:cursor-grabbing flex items-center justify-center shadow-sm">
-                    <svg className="w-3 h-3 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                  <div data-rotate className="absolute -top-8 left-1/2 -translate-x-1/2 w-6 h-6 bg-[var(--surface)] rounded-full border-2 border-gold-600 cursor-grab active:cursor-grabbing flex items-center justify-center shadow-sm">
+                    <svg className="w-3 h-3 text-gold-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                   </div>
-                  <div data-resize="tl" className="absolute -top-2 -left-2 w-4 h-4 bg-[var(--surface)] border-2 border-indigo-600 rounded-sm cursor-nw-resize shadow-sm" />
-                  <div data-resize="tr" className="absolute -top-2 -right-2 w-4 h-4 bg-[var(--surface)] border-2 border-indigo-600 rounded-sm cursor-ne-resize shadow-sm" />
-                  <div data-resize="bl" className="absolute -bottom-2 -left-2 w-4 h-4 bg-[var(--surface)] border-2 border-indigo-600 rounded-sm cursor-sw-resize shadow-sm" />
-                  <div data-resize="br" className="absolute -bottom-2 -right-2 w-4 h-4 bg-[var(--surface)] border-2 border-indigo-600 rounded-sm cursor-se-resize shadow-sm" />
+                  <div data-resize="tl" className="absolute -top-2 -left-2 w-4 h-4 bg-[var(--surface)] border-2 border-gold-600 rounded-sm cursor-nw-resize shadow-sm" />
+                  <div data-resize="tr" className="absolute -top-2 -right-2 w-4 h-4 bg-[var(--surface)] border-2 border-gold-600 rounded-sm cursor-ne-resize shadow-sm" />
+                  <div data-resize="bl" className="absolute -bottom-2 -left-2 w-4 h-4 bg-[var(--surface)] border-2 border-gold-600 rounded-sm cursor-sw-resize shadow-sm" />
+                  <div data-resize="br" className="absolute -bottom-2 -right-2 w-4 h-4 bg-[var(--surface)] border-2 border-gold-600 rounded-sm cursor-se-resize shadow-sm" />
                 </div>
               )}
             </div>
@@ -466,8 +466,8 @@ export default function ImageProcessorPage() {
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Gender</label>
               <div className="flex gap-2">
-                <button onClick={() => handleGenderChange('male')} className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border transition-colors ${gender === 'male' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-[var(--surface)] text-slate-700 dark:text-slate-300 border-[var(--border-subtle)] hover:border-indigo-400/60'}`}>Male</button>
-                <button onClick={() => handleGenderChange('female')} className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border transition-colors ${gender === 'female' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-[var(--surface)] text-slate-700 dark:text-slate-300 border-[var(--border-subtle)] hover:border-indigo-400/60'}`}>Female</button>
+                <button onClick={() => handleGenderChange('male')} className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border transition-colors ${gender === 'male' ? 'bg-gold-600 text-white border-gold-600' : 'bg-[var(--surface)] text-slate-700 dark:text-slate-300 border-[var(--border-subtle)] hover:border-gold-400/60'}`}>Male</button>
+                <button onClick={() => handleGenderChange('female')} className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border transition-colors ${gender === 'female' ? 'bg-gold-600 text-white border-gold-600' : 'bg-[var(--surface)] text-slate-700 dark:text-slate-300 border-[var(--border-subtle)] hover:border-gold-400/60'}`}>Female</button>
               </div>
             </div>
 
@@ -475,7 +475,7 @@ export default function ImageProcessorPage() {
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Suit</label>
               <div className="grid grid-cols-2 gap-3">
                 {SUITS.filter(s => s.gender === gender).map(s => (
-                  <button key={s.id} onClick={() => setSuitId(s.id)} className={`relative aspect-[3/4] rounded-xl border-2 overflow-hidden transition-all ${suitId === s.id ? 'border-indigo-600 ring-2 ring-indigo-600/30 shadow-md' : 'border-[var(--border-subtle)] hover:border-indigo-400/60 hover:shadow-sm'}`}>
+                  <button key={s.id} onClick={() => setSuitId(s.id)} className={`relative aspect-[3/4] rounded-xl border-2 overflow-hidden transition-all ${suitId === s.id ? 'border-gold-600 ring-2 ring-gold-600/30 shadow-md' : 'border-[var(--border-subtle)] hover:border-gold-400/60 hover:shadow-sm'}`}>
                     <div className="w-full h-full bg-[var(--surface)]" dangerouslySetInnerHTML={{ __html: s.svg.replace('<svg', '<svg style="width:100%;height:100%"') }} />
                     <span className="absolute bottom-0 inset-x-0 text-xs font-semibold text-center py-1.5 bg-gradient-to-t from-white via-white/95 to-transparent text-slate-800 dark:text-slate-200">{s.name}</span>
                   </button>
@@ -487,14 +487,14 @@ export default function ImageProcessorPage() {
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Background</label>
               <div className="grid grid-cols-4 gap-2">
                 {BG_OPTIONS.map(b => (
-                  <button key={b.id} onClick={() => setBgId(b.id)} className={`aspect-square rounded-lg border-2 overflow-hidden transition-all ${bgId === b.id ? 'border-indigo-600 ring-2 ring-indigo-600/20' : 'border-[var(--border-subtle)] hover:border-[var(--border-subtle)]'}`} title={b.name}>
+                  <button key={b.id} onClick={() => setBgId(b.id)} className={`aspect-square rounded-lg border-2 overflow-hidden transition-all ${bgId === b.id ? 'border-gold-600 ring-2 ring-gold-600/20' : 'border-[var(--border-subtle)] hover:border-[var(--border-subtle)]'}`} title={b.name}>
                     <div className="w-full h-full" style={b.type === 'gradient' ? { background: `linear-gradient(135deg, ${b.colors[0]}, ${b.colors[1]})` } : { backgroundColor: b.colors[0] }} />
                   </button>
                 ))}
               </div>
             </div>
 
-            <button onClick={generatePreview} className="w-full py-2.5 rounded-xl text-sm font-semibold border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all flex items-center justify-center gap-2">
+            <button onClick={generatePreview} className="w-full py-2.5 rounded-xl text-sm font-semibold border-2 border-gold-600 text-gold-600 hover:bg-gold-600 hover:text-white transition-all flex items-center justify-center gap-2">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
               Preview
             </button>

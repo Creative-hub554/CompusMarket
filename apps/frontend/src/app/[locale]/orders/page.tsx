@@ -46,7 +46,7 @@ export default function OrdersPage() {
           {t("errorTitle")}
         </h1>
         <p className="text-gray-600 mb-4">{t("errorDesc")}</p>
-        <Link href="/login" className="text-indigo-600 hover:underline">
+        <Link href="/login" className="text-gold-600 hover:underline">
           {t("signInToView")}
         </Link>
       </div>
@@ -55,8 +55,8 @@ export default function OrdersPage() {
 
   const statusColors: Record<string, string> = {
     PENDING: "bg-yellow-100 text-yellow-800",
-    PROCESSING: "bg-indigo-100 text-indigo-800",
-    SHIPPED: "bg-indigo-100 text-indigo-800",
+    PROCESSING: "bg-gold-100 text-gold-800",
+    SHIPPED: "bg-gold-100 text-gold-800",
     DELIVERED: "bg-green-100 text-green-800",
     CANCELLED: "bg-red-100 text-red-800",
   };
@@ -68,7 +68,7 @@ export default function OrdersPage() {
       {orders.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-gray-500 mb-4">{t("empty")}</p>
-          <Link href="/shop" className="text-indigo-600 hover:underline">
+          <Link href="/shop" className="text-gold-600 hover:underline">
             {t("startShopping")}
           </Link>
         </div>
@@ -78,7 +78,7 @@ export default function OrdersPage() {
             <Link
               key={order.id}
               href={`/orders/${order.id}`}
-              className="block rounded-lg border p-4 hover:border-indigo-300 transition"
+              className="block rounded-lg border p-4 hover:border-gold-300 transition"
             >
               <div className="flex items-center justify-between">
                 <div>

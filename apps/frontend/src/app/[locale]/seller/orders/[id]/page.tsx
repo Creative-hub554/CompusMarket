@@ -34,9 +34,9 @@ type Order = {
 
 const statusColors: Record<string, string> = {
   PENDING: "bg-yellow-100 text-yellow-800",
-  APPROVED: "bg-indigo-100 text-indigo-800",
-  PACKING: "bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700",
-  SHIPPED: "bg-indigo-100 text-indigo-800",
+  APPROVED: "bg-gold-100 text-gold-800",
+  PACKING: "bg-gold-50 dark:bg-gold-950/40 text-gold-700",
+  SHIPPED: "bg-gold-100 text-gold-800",
   DELIVERED: "bg-green-100 text-green-800",
   REJECTED: "bg-red-100 text-red-800",
   CANCELLED: "bg-[var(--surface-2)] text-slate-800 dark:text-slate-200",
@@ -64,14 +64,14 @@ const NEXT_ACTIONS: Record<
     {
       action: "PACKING",
       label: "Start Packing",
-      color: "bg-indigo-600 hover:bg-indigo-700",
+      color: "bg-gold-600 hover:bg-gold-700",
     },
   ],
   PACKING: [
     {
       action: "SHIPPED",
       label: "Mark as Shipped",
-      color: "bg-indigo-600 hover:bg-indigo-700",
+      color: "bg-gold-600 hover:bg-gold-700",
     },
   ],
   SHIPPED: [],
@@ -134,7 +134,7 @@ export default function SellerOrderDetailPage() {
         <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
         <Link
           href="/login"
-          className="text-indigo-600 font-medium hover:underline"
+          className="text-gold-600 font-medium hover:underline"
         >
           Go to Login
         </Link>
@@ -155,7 +155,7 @@ export default function SellerOrderDetailPage() {
     <div className="max-w-3xl mx-auto px-4 py-8 animate-fade-in">
       <button
         onClick={() => router.push("/seller/orders")}
-        className="text-sm text-indigo-600 hover:underline mb-4 block"
+        className="text-sm text-gold-600 hover:underline mb-4 block"
       >
         &larr; Back to orders
       </button>
