@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { api } from "@/services/api";
 import { notFound } from "next/navigation";
 import { languageAlternates } from "@/lib/site";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +44,7 @@ export default async function ArticlePage({ params }: Props) {
 
   return (
     <article className="mx-auto max-w-3xl px-4 py-8">
-      <p className="text-sm text-indigo-600 font-medium uppercase tracking-wide">
+      <p className="text-sm text-gold-600 font-medium uppercase tracking-wide">
         {article.category.replace(/_/g, " ")}
       </p>
       <h1 className="text-3xl font-bold mt-2 mb-4">{article.title}</h1>
@@ -51,12 +53,8 @@ export default async function ArticlePage({ params }: Props) {
         {new Date(article.createdAt).toLocaleDateString()}
       </p>
 
-      <div className="prose prose-gray max-w-none">
-        {article.content.split("\n").map((paragraph, i) => (
-          <p key={i} className="mb-4 leading-relaxed">
-            {paragraph}
-          </p>
-        ))}
+      <div className="prose prose-gray dark:prose-invert max-w-none">
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>{article.content}</ReactMarkdown>
       </div>
     </article>
   );

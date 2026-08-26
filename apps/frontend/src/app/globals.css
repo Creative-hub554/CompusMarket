@@ -1,22 +1,43 @@
 @source "../../../../packages/ui/src";
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
   --color-ink: #0f172a;
-  --color-accent: #6366f1;
-  --color-accent-dark: #4338ca;
-  --color-accent2: #8b5cf6;
-  --color-accent2-dark: #7c3aed;
+  --color-accent: #d4a027;
+  --color-accent-dark: #b8860b;
+  --color-accent2: #f0c040;
+  --color-accent2-dark: #d4a027;
+
+  /* Khmer gold palette */
+  --color-gold: #d4a027;
+  --color-gold-light: #f0c040;
+  --color-gold-dark: #b8860b;
+  --color-gold-50: #fdfaef;
+  --color-gold-100: #f9f1d6;
+  --color-gold-200: #f3e2ab;
+  --color-gold-300: #eccd77;
+  --color-gold-400: #e5b84a;
+  --color-gold-500: #d4a027;
+  --color-gold-600: #b8860b;
+  --color-gold-700: #96690d;
+  --color-gold-800: #7a5410;
+  --color-gold-900: #654613;
+  --color-gold-950: #392405;
 
   --radius-xl: 0.75rem;
   --radius-2xl: 1rem;
   --radius-3xl: 1.5rem;
 
-  --shadow-soft: 0 2px 12px -2px rgb(15 23 42 / 0.08);
-  --shadow-lift: 0 16px 32px -12px rgb(15 23 42 / 0.22);
-  --shadow-glow: 0 8px 30px -6px rgb(99 102 241 / 0.45);
+  --shadow-soft: 0 2px 12px -2px rgb(212 160 39 / 0.12);
+  --shadow-lift: 0 16px 32px -12px rgb(212 160 39 / 0.32);
+  --shadow-glow: 0 8px 30px -6px rgb(212 160 39 / 0.45);
+  --shadow-gold:
+    0 1px 2px rgb(15 23 42 / 0.06),
+    0 0 0 1px rgb(212 160 39 / 0.14),
+    0 10px 32px -12px rgb(212 160 39 / 0.35);
 
   /* Legacy aliases — keep existing pages compiling during migration */
   --color-khmer-blue: #0f172a;
@@ -30,14 +51,15 @@
 /* ---- Semantic surface tokens (flip in dark mode) ---- */
 
 :root {
-  --bg-body: #f8fafc;
+  --bg-body: #f6f3ea;
   --text-body: #111827;
   --surface: #ffffff;
-  --surface-2: #f1f5f9;
-  --border-subtle: #e2e8f0;
+  --surface-2: #f4f1e8;
+  --border-subtle: #e7e1d2;
+  --border-gold: rgba(212, 160, 39, 0.28);
   --text-muted: #64748b;
   --glass-bg: rgba(255, 255, 255, 0.72);
-  --glass-border: rgba(255, 255, 255, 0.55);
+  --glass-border: rgba(212, 160, 39, 0.25);
 }
 
 .dark {
@@ -46,9 +68,10 @@
   --surface: #111a2e;
   --surface-2: #1a2439;
   --border-subtle: #26334d;
+  --border-gold: rgba(212, 160, 39, 0.22);
   --text-muted: #94a3b8;
   --glass-bg: rgba(17, 26, 46, 0.72);
-  --glass-border: rgba(148, 163, 184, 0.16);
+  --glass-border: rgba(212, 160, 39, 0.18);
 }
 
 * {
@@ -105,10 +128,10 @@ h4 {
 @keyframes pulseGlow {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+    box-shadow: 0 0 0 0 rgba(212, 160, 39, 0.4);
   }
   50% {
-    box-shadow: 0 0 0 8px rgba(99, 102, 241, 0);
+    box-shadow: 0 0 0 8px rgba(212, 160, 39, 0);
   }
 }
 
@@ -228,11 +251,29 @@ h4 {
 
 /* ---- Modern surfaces ---- */
 
-/* Animated indigo/violet mesh backdrop for heroes */
+/* Boxed section separator: each page part lives in its own gold-glowed box */
+.section-box {
+  border-radius: var(--radius-3xl);
+  background: var(--surface);
+  border: 1px solid var(--border-gold);
+  box-shadow: var(--shadow-gold);
+}
+.dark .section-box {
+  background:
+    linear-gradient(180deg, rgb(212 160 39 / 0.04), transparent 40%),
+    var(--surface);
+}
+
+/* Navy/gold hero gradient (was the Khmer flag banner) */
+.banner-flag {
+  background: linear-gradient(135deg, #0b1120 0%, #17203a 55%, #6b5510 130%);
+}
+
+/* Animated navy/gold mesh backdrop for heroes */
 .gradient-mesh {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #0f172a 0%, #171335 55%, #2e1065 130%);
+  background: linear-gradient(135deg, #0b1120 0%, #131c33 55%, #2b230a 130%);
 }
 .gradient-mesh::before,
 .gradient-mesh::after {
@@ -240,7 +281,7 @@ h4 {
   position: absolute;
   border-radius: 50%;
   filter: blur(70px);
-  opacity: 0.55;
+  opacity: 0.45;
   pointer-events: none;
 }
 .gradient-mesh::before {
@@ -248,7 +289,7 @@ h4 {
   height: 480px;
   left: -120px;
   top: -160px;
-  background: radial-gradient(circle, #6366f1 0%, transparent 65%);
+  background: radial-gradient(circle, #d4a027 0%, transparent 65%);
   animation: meshDrift 14s ease-in-out infinite;
 }
 .gradient-mesh::after {
@@ -256,7 +297,7 @@ h4 {
   height: 520px;
   right: -140px;
   bottom: -200px;
-  background: radial-gradient(circle, #8b5cf6 0%, transparent 65%);
+  background: radial-gradient(circle, #f0c040 0%, transparent 65%);
   animation: meshDrift 18s ease-in-out infinite reverse;
 }
 
@@ -291,7 +332,7 @@ h4 {
 }
 
 .text-gradient {
-  background: linear-gradient(90deg, #818cf8, #a78bfa, #818cf8);
+  background: linear-gradient(90deg, #d4a027, #f0c040, #d4a027);
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
@@ -301,13 +342,14 @@ h4 {
 /* ---- UI primitives ---- */
 
 .btn-primary {
-  @apply rounded-lg px-4 py-2 text-sm text-white font-medium transition disabled:opacity-40;
-  background: linear-gradient(135deg, #6366f1, #7c3aed);
-  box-shadow: 0 4px 14px -4px rgb(99 102 241 / 0.5);
+  @apply rounded-lg px-4 py-2 text-sm font-medium transition disabled:opacity-40;
+  color: #241b02;
+  background: linear-gradient(135deg, #d4a027, #f0c040);
+  box-shadow: 0 4px 14px -4px rgb(212 160 39 / 0.55);
 }
 .btn-primary:hover {
-  background: linear-gradient(135deg, #4f46e5, #6d28d9);
-  box-shadow: 0 6px 20px -4px rgb(99 102 241 / 0.6);
+  background: linear-gradient(135deg, #c8941f, #e6b434);
+  box-shadow: 0 6px 20px -4px rgb(212 160 39 / 0.7);
   transform: translateY(-1px);
 }
 
@@ -330,7 +372,7 @@ h4 {
 }
 
 .input-field {
-  @apply rounded-lg border px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition;
+  @apply rounded-lg border px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold transition;
   background: var(--surface);
   border-color: var(--border-subtle);
   color: var(--text-body);
@@ -394,7 +436,7 @@ h4 {
   left: 0;
   width: 48px;
   height: 3px;
-  background: linear-gradient(90deg, #6366f1, #a78bfa);
+  background: linear-gradient(90deg, #d4a027, #f0c040);
   border-radius: 2px;
 }
 
@@ -470,12 +512,7 @@ img {
   box-shadow: var(--shadow-lift);
 }
 
-/* Navy hero gradient (was the Khmer flag banner) */
-.banner-flag {
-  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 55%, #4338ca 130%);
-}
-
-/* Indigo underline accent */
+/* Gold underline accent */
 .gold-underline {
   position: relative;
 }
@@ -486,7 +523,7 @@ img {
   left: 0;
   width: 48px;
   height: 3px;
-  background: linear-gradient(90deg, #6366f1, #a78bfa);
+  background: linear-gradient(90deg, #d4a027, #f0c040);
   border-radius: 2px;
 }
 
@@ -501,7 +538,7 @@ img {
   left: 0;
   width: 0;
   height: 2px;
-  background: linear-gradient(90deg, #6366f1, #a78bfa);
+  background: linear-gradient(90deg, #d4a027, #f0c040);
   transition: width 0.3s ease;
 }
 .nav-link:hover::after {
