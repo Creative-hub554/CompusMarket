@@ -18,7 +18,7 @@ pnpm --filter admin dev --port 3001    # Next.js admin :3001
 npx vitest run                         # unit tests (backend excludes *.e2e-spec.ts)
 npx vitest run --config vitest.e2e.config.ts   # backend e2e specs (separate config, 30s timeout)
 npx vitest run src/auth/auth.service.spec.ts   # backend: single test file (from apps/backend)
-npx vitest run src/components/Button.test.tsx  # frontend: single test file (from apps/frontend)
+npx vitest run "src/app/[locale]/community/documents/page.test.tsx"   # frontend: single test file (from apps/frontend; quote bracket paths)
 npx tsc --noEmit                       # typecheck
 npx eslint .                           # lint
 ```
