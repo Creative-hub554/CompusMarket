@@ -7,7 +7,7 @@ Pnpm + Turborepo monorepo. Three apps (`apps/frontend`, `apps/admin`, `apps/back
 ```bash
 pnpm install                           # install all deps
 pnpm --filter @theo/database exec prisma generate   # regenerate client after schema changes
-pnpm --filter @theo/database exec prisma db push    # apply schema to local SQLite
+pnpm --filter @theo/database exec prisma migrate dev --name <change>   # create + apply a migration (workflow below)
 pnpm --filter @theo/database exec prisma db seed    # idempotent demo data (admin/categories/products/group/job)
 pnpm dev                               # turbo dev (all apps)
 pnpm --filter backend dev              # NestJS API :4000
@@ -23,7 +23,16 @@ npx tsc --noEmit                       # typecheck
 npx eslint .                           # lint
 ```
 
-Order matters after Prisma schema edits: **stop running dev servers first** (they hold the query-engine DLL and `prisma generate` fails with EPERM), then `generate`, then `db push`.
+Order matters after Prisma schema edits: **stop running dev servers first** (they hold the query-engine DLL and `prisma generate` fails with EPERM), then `generate`, then `migrate dev`.
+
+## Prisma migrations (NOT `db push`)
+
+- Schema changes go through **versioned migrations** (`prisma/migrations/`, single baseline `20260826102541_init` as of 2026-08-26). `prisma db push` is banned for schema work — it was how the migration history silently drifted from the real schema for months.
+- Workflow: edit `schema.prisma` → stop dev servers → `prisma generate` → `prisma migrate dev --name <change>` (creates + applies + regenerates). Commit the generated `migrations/<timestamp>_<name>/` folder.
+- Production/fresh environments: `prisma migrate deploy` (never `db push`). Verified byte-exact against `schema.prisma`.
+- If a DB already has the schema but no recorded history (fresh clone of an old dev.db): `prisma migrate resolve --applied 20260826102541_init`.
+- Gotcha: Prisma resolves `file:` URLs in `DATABASE_URL` relative to the **schema folder** (`packages/database/prisma/`), but `--url` CLI flags resolve against **cwd** — mixing them up creates doubled `prisma/prisma/` paths. Prefer `--url "file:./<name>.db"` with cwd = `packages/database`.
+- Postgres caveat: `migration_lock.toml` pins provider `sqlite`. When production moves to Postgres, re-baseline under the postgres provider (regenerate init migration + resolve on the prod DB) — don't hand-edit SQL between dialects.
 
 Node and pnpm are **not always in PATH** on this Windows machine. If commands fail, prepend:
 ```powershell

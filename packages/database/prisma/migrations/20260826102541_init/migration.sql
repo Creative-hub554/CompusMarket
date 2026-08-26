@@ -1,4 +1,25 @@
 -- CreateTable
+CREATE TABLE "JobAlert" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "type" TEXT,
+    "location" TEXT,
+    "q" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "JobAlert_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Bookmark" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "postId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Bookmark_postId_fkey" FOREIGN KEY ("postId") REFERENCES "Post" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "Bookmark_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "email" TEXT NOT NULL,
@@ -7,6 +28,9 @@ CREATE TABLE "User" (
     "role" TEXT NOT NULL DEFAULT 'CUSTOMER',
     "emailVerified" DATETIME,
     "image" TEXT,
+    "username" TEXT,
+    "bio" TEXT,
+    "coverImage" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
 );
@@ -55,7 +79,9 @@ CREATE TABLE "Product" (
     "status" TEXT NOT NULL DEFAULT 'ACTIVE',
     "categoryId" TEXT NOT NULL,
     "sellerId" TEXT,
-    "images" JSONB NOT NULL DEFAULT [],
+    "images" JSONB,
+    "videoUrl" TEXT,
+    "videoActive" BOOLEAN NOT NULL DEFAULT false,
     "qrCode" TEXT,
     "serialNumber" TEXT,
     "stock" INTEGER NOT NULL DEFAULT 1,
@@ -72,7 +98,7 @@ CREATE TABLE "Review" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "rating" INTEGER NOT NULL,
     "comment" TEXT,
-    "images" JSONB NOT NULL DEFAULT [],
+    "images" JSONB,
     "userId" TEXT NOT NULL,
     "productId" TEXT NOT NULL,
     "orderItemId" TEXT NOT NULL,
@@ -103,7 +129,7 @@ CREATE TABLE "Article" (
     "content" TEXT NOT NULL,
     "excerpt" TEXT,
     "category" TEXT NOT NULL,
-    "tags" JSONB NOT NULL DEFAULT [],
+    "tags" JSONB,
     "published" BOOLEAN NOT NULL DEFAULT false,
     "authorId" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -209,28 +235,38 @@ CREATE TABLE "SellerDocument" (
 );
 
 -- CreateTable
-CREATE TABLE "Conversation" (
+CREATE TABLE "Thread" (
     "id" TEXT NOT NULL PRIMARY KEY,
-    "buyerId" TEXT NOT NULL,
-    "sellerId" TEXT NOT NULL,
     "productId" TEXT,
+    "groupId" TEXT,
     "lastMessageAt" DATETIME,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "Conversation_buyerId_fkey" FOREIGN KEY ("buyerId") REFERENCES "User" ("id") ON DELETE NO ACTION ON UPDATE CASCADE,
-    CONSTRAINT "Conversation_sellerId_fkey" FOREIGN KEY ("sellerId") REFERENCES "SellerProfile" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT "Conversation_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+    CONSTRAINT "Thread_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT "Thread_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "Group" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "ThreadParticipant" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "threadId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "lastReadAt" DATETIME,
+    "joinedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "ThreadParticipant_threadId_fkey" FOREIGN KEY ("threadId") REFERENCES "Thread" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "ThreadParticipant_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
 CREATE TABLE "Message" (
     "id" TEXT NOT NULL PRIMARY KEY,
-    "conversationId" TEXT NOT NULL,
+    "threadId" TEXT NOT NULL,
     "senderId" TEXT NOT NULL,
     "content" TEXT NOT NULL,
+    "attachments" JSONB,
     "readAt" DATETIME,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "Message_conversationId_fkey" FOREIGN KEY ("conversationId") REFERENCES "Conversation" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "Message_threadId_fkey" FOREIGN KEY ("threadId") REFERENCES "Thread" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "Message_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "User" ("id") ON DELETE NO ACTION ON UPDATE CASCADE
 );
 
@@ -351,7 +387,7 @@ CREATE TABLE "QuizQuestion" (
     "quizId" TEXT NOT NULL,
     "type" TEXT NOT NULL DEFAULT 'MULTIPLE_CHOICE',
     "question" TEXT NOT NULL,
-    "options" JSONB NOT NULL DEFAULT [],
+    "options" JSONB,
     "correctAnswer" TEXT NOT NULL,
     "points" INTEGER NOT NULL DEFAULT 1,
     "order" INTEGER NOT NULL DEFAULT 0,
@@ -390,20 +426,209 @@ CREATE TABLE "Note" (
     "userId" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "content" TEXT NOT NULL,
-    "tags" JSONB NOT NULL DEFAULT [],
+    "tags" JSONB,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     CONSTRAINT "Note_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+-- CreateTable
+CREATE TABLE "Post" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "authorId" TEXT NOT NULL,
+    "groupId" TEXT,
+    "pinnedAt" DATETIME,
+    "content" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "Post_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "Post_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "Group" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Group" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "coverUrl" TEXT,
+    "privacy" TEXT NOT NULL DEFAULT 'PUBLIC',
+    "creatorId" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "Group_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "GroupJoinRequest" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "groupId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'PENDING',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "GroupJoinRequest_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "Group" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "GroupJoinRequest_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "GroupMember" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "groupId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "role" TEXT NOT NULL DEFAULT 'MEMBER',
+    "joinedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "GroupMember_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "Group" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "GroupMember_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "PostMedia" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "postId" TEXT NOT NULL,
+    "kind" TEXT NOT NULL DEFAULT 'IMAGE',
+    "url" TEXT NOT NULL,
+    "thumbUrl" TEXT,
+    "position" INTEGER NOT NULL DEFAULT 0,
+    CONSTRAINT "PostMedia_postId_fkey" FOREIGN KEY ("postId") REFERENCES "Post" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Reaction" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "postId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "emoji" TEXT NOT NULL DEFAULT '👍',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Reaction_postId_fkey" FOREIGN KEY ("postId") REFERENCES "Post" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "Reaction_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Comment" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "postId" TEXT NOT NULL,
+    "authorId" TEXT NOT NULL,
+    "parentId" TEXT,
+    "content" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "Comment_postId_fkey" FOREIGN KEY ("postId") REFERENCES "Post" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "Comment_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "Comment_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "Comment" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Follow" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "followerId" TEXT NOT NULL,
+    "followingId" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Follow_followerId_fkey" FOREIGN KEY ("followerId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "Follow_followingId_fkey" FOREIGN KEY ("followingId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Story" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "authorId" TEXT NOT NULL,
+    "mediaUrl" TEXT NOT NULL,
+    "mediaKind" TEXT NOT NULL DEFAULT 'IMAGE',
+    "caption" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "expiresAt" DATETIME NOT NULL,
+    CONSTRAINT "Story_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "StoryView" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "storyId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "viewedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "StoryView_storyId_fkey" FOREIGN KEY ("storyId") REFERENCES "Story" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "StoryView_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Notification" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "actorId" TEXT NOT NULL,
+    "kind" TEXT NOT NULL,
+    "entityId" TEXT,
+    "message" TEXT,
+    "readAt" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "Notification_actorId_fkey" FOREIGN KEY ("actorId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Job" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "title" TEXT NOT NULL,
+    "company" TEXT NOT NULL,
+    "location" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "salaryMin" INTEGER,
+    "salaryMax" INTEGER,
+    "status" TEXT NOT NULL DEFAULT 'OPEN',
+    "postedById" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "Job_postedById_fkey" FOREIGN KEY ("postedById") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "JobApplication" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "jobId" TEXT NOT NULL,
+    "applicantId" TEXT NOT NULL,
+    "coverLetter" TEXT,
+    "resumeId" TEXT,
+    "status" TEXT NOT NULL DEFAULT 'PENDING',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "JobApplication_jobId_fkey" FOREIGN KEY ("jobId") REFERENCES "Job" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "JobApplication_applicantId_fkey" FOREIGN KEY ("applicantId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "RefreshToken" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "tokenHash" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "expiresAt" DATETIME NOT NULL,
+    "revokedAt" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "RefreshToken_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateIndex
+CREATE INDEX "JobAlert_userId_idx" ON "JobAlert"("userId");
+
+-- CreateIndex
+CREATE INDEX "Bookmark_userId_idx" ON "Bookmark"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Bookmark_postId_userId_key" ON "Bookmark"("postId", "userId");
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
+
+-- CreateIndex
+CREATE INDEX "Account_userId_idx" ON "Account"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Account_provider_providerAccountId_key" ON "Account"("provider", "providerAccountId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Session_sessionToken_key" ON "Session"("sessionToken");
+
+-- CreateIndex
+CREATE INDEX "Session_userId_idx" ON "Session"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Category_slug_key" ON "Category"("slug");
@@ -415,6 +640,12 @@ CREATE INDEX "Product_categoryId_idx" ON "Product"("categoryId");
 CREATE INDEX "Product_sellerId_idx" ON "Product"("sellerId");
 
 -- CreateIndex
+CREATE INDEX "Product_stock_idx" ON "Product"("stock");
+
+-- CreateIndex
+CREATE INDEX "Product_status_createdAt_idx" ON "Product"("status", "createdAt");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Review_orderItemId_key" ON "Review"("orderItemId");
 
 -- CreateIndex
@@ -424,7 +655,13 @@ CREATE INDEX "Review_userId_idx" ON "Review"("userId");
 CREATE INDEX "Review_productId_idx" ON "Review"("productId");
 
 -- CreateIndex
+CREATE INDEX "Resume_userId_idx" ON "Resume"("userId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Article_slug_key" ON "Article"("slug");
+
+-- CreateIndex
+CREATE INDEX "Article_authorId_idx" ON "Article"("authorId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Cart_userId_key" ON "Cart"("userId");
@@ -439,10 +676,16 @@ CREATE INDEX "CartItem_productId_idx" ON "CartItem"("productId");
 CREATE INDEX "Order_userId_idx" ON "Order"("userId");
 
 -- CreateIndex
+CREATE INDEX "Order_status_createdAt_idx" ON "Order"("status", "createdAt");
+
+-- CreateIndex
 CREATE INDEX "OrderItem_orderId_idx" ON "OrderItem"("orderId");
 
 -- CreateIndex
 CREATE INDEX "OrderItem_productId_idx" ON "OrderItem"("productId");
+
+-- CreateIndex
+CREATE INDEX "OrderItem_status_idx" ON "OrderItem"("status");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Warranty_orderItemId_key" ON "Warranty"("orderItemId");
@@ -457,16 +700,25 @@ CREATE INDEX "Warranty_productId_idx" ON "Warranty"("productId");
 CREATE UNIQUE INDEX "SellerProfile_userId_key" ON "SellerProfile"("userId");
 
 -- CreateIndex
-CREATE INDEX "Conversation_buyerId_idx" ON "Conversation"("buyerId");
+CREATE INDEX "SellerDocument_sellerProfileId_idx" ON "SellerDocument"("sellerProfileId");
 
 -- CreateIndex
-CREATE INDEX "Conversation_sellerId_idx" ON "Conversation"("sellerId");
+CREATE UNIQUE INDEX "Thread_groupId_key" ON "Thread"("groupId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Conversation_buyerId_sellerId_productId_key" ON "Conversation"("buyerId", "sellerId", "productId");
+CREATE INDEX "Thread_lastMessageAt_idx" ON "Thread"("lastMessageAt");
 
 -- CreateIndex
-CREATE INDEX "Message_conversationId_idx" ON "Message"("conversationId");
+CREATE INDEX "ThreadParticipant_userId_idx" ON "ThreadParticipant"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ThreadParticipant_threadId_userId_key" ON "ThreadParticipant"("threadId", "userId");
+
+-- CreateIndex
+CREATE INDEX "Message_threadId_readAt_idx" ON "Message"("threadId", "readAt");
+
+-- CreateIndex
+CREATE INDEX "Message_threadId_createdAt_idx" ON "Message"("threadId", "createdAt");
 
 -- CreateIndex
 CREATE INDEX "Message_senderId_idx" ON "Message"("senderId");
@@ -475,10 +727,25 @@ CREATE INDEX "Message_senderId_idx" ON "Message"("senderId");
 CREATE INDEX "SupportTicket_customerId_idx" ON "SupportTicket"("customerId");
 
 -- CreateIndex
+CREATE INDEX "SupportTicket_orderId_idx" ON "SupportTicket"("orderId");
+
+-- CreateIndex
+CREATE INDEX "SupportTicket_productId_idx" ON "SupportTicket"("productId");
+
+-- CreateIndex
 CREATE INDEX "SupportMessage_ticketId_idx" ON "SupportMessage"("ticketId");
 
 -- CreateIndex
 CREATE INDEX "SupportMessage_senderId_idx" ON "SupportMessage"("senderId");
+
+-- CreateIndex
+CREATE INDEX "DocumentFolder_userId_idx" ON "DocumentFolder"("userId");
+
+-- CreateIndex
+CREATE INDEX "Document_userId_idx" ON "Document"("userId");
+
+-- CreateIndex
+CREATE INDEX "Diagram_userId_idx" ON "Diagram"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "FlashcardDeck_userId_title_key" ON "FlashcardDeck"("userId", "title");
@@ -512,3 +779,90 @@ CREATE INDEX "QuizAnswer_questionId_idx" ON "QuizAnswer"("questionId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Note_userId_title_key" ON "Note"("userId", "title");
+
+-- CreateIndex
+CREATE INDEX "Post_authorId_idx" ON "Post"("authorId");
+
+-- CreateIndex
+CREATE INDEX "Post_groupId_idx" ON "Post"("groupId");
+
+-- CreateIndex
+CREATE INDEX "Post_createdAt_idx" ON "Post"("createdAt");
+
+-- CreateIndex
+CREATE INDEX "Group_createdAt_idx" ON "Group"("createdAt");
+
+-- CreateIndex
+CREATE INDEX "GroupJoinRequest_userId_idx" ON "GroupJoinRequest"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "GroupJoinRequest_groupId_userId_key" ON "GroupJoinRequest"("groupId", "userId");
+
+-- CreateIndex
+CREATE INDEX "GroupMember_userId_idx" ON "GroupMember"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "GroupMember_groupId_userId_key" ON "GroupMember"("groupId", "userId");
+
+-- CreateIndex
+CREATE INDEX "PostMedia_postId_idx" ON "PostMedia"("postId");
+
+-- CreateIndex
+CREATE INDEX "Reaction_postId_idx" ON "Reaction"("postId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Reaction_postId_userId_key" ON "Reaction"("postId", "userId");
+
+-- CreateIndex
+CREATE INDEX "Comment_postId_idx" ON "Comment"("postId");
+
+-- CreateIndex
+CREATE INDEX "Comment_authorId_idx" ON "Comment"("authorId");
+
+-- CreateIndex
+CREATE INDEX "Comment_parentId_idx" ON "Comment"("parentId");
+
+-- CreateIndex
+CREATE INDEX "Follow_followingId_idx" ON "Follow"("followingId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Follow_followerId_followingId_key" ON "Follow"("followerId", "followingId");
+
+-- CreateIndex
+CREATE INDEX "Story_authorId_idx" ON "Story"("authorId");
+
+-- CreateIndex
+CREATE INDEX "Story_expiresAt_idx" ON "Story"("expiresAt");
+
+-- CreateIndex
+CREATE INDEX "StoryView_storyId_idx" ON "StoryView"("storyId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "StoryView_storyId_userId_key" ON "StoryView"("storyId", "userId");
+
+-- CreateIndex
+CREATE INDEX "Notification_userId_readAt_idx" ON "Notification"("userId", "readAt");
+
+-- CreateIndex
+CREATE INDEX "Job_postedById_idx" ON "Job"("postedById");
+
+-- CreateIndex
+CREATE INDEX "Job_status_idx" ON "Job"("status");
+
+-- CreateIndex
+CREATE INDEX "Job_type_idx" ON "Job"("type");
+
+-- CreateIndex
+CREATE INDEX "JobApplication_jobId_idx" ON "JobApplication"("jobId");
+
+-- CreateIndex
+CREATE INDEX "JobApplication_applicantId_idx" ON "JobApplication"("applicantId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "JobApplication_jobId_applicantId_key" ON "JobApplication"("jobId", "applicantId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "RefreshToken_tokenHash_key" ON "RefreshToken"("tokenHash");
+
+-- CreateIndex
+CREATE INDEX "RefreshToken_userId_idx" ON "RefreshToken"("userId");
