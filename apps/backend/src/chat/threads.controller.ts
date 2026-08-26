@@ -29,6 +29,11 @@ export class ThreadsController {
     return this.threads.listThreads(req.user.userId);
   }
 
+  @Get("online")
+  online(@Req() req: AuthUser) {
+    return this.threads.listOnlineContacts(req.user.userId);
+  }
+
   @Post()
   async create(@Req() req: AuthUser, @Body() dto: CreateThreadDto) {
     let targetId = dto.userId;

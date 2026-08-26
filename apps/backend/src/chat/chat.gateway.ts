@@ -141,6 +141,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     client.emit("presenceSnapshot", { online: [...this.onlineUsers.keys()] });
   }
 
+  /** Currently connected user ids (shared with REST layer for contact ranking). */
+  getOnlineUserIds(): string[] {
+    return [...this.onlineUsers.keys()];
+  }
+
   // ── Threads ──
 
   @SubscribeMessage("joinThread")

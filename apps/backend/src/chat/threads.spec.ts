@@ -2,6 +2,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { BadRequestException, ForbiddenException, NotFoundException } from "@nestjs/common";
 import { ThreadsService } from "./threads.service";
 import { PrismaService } from "../prisma/prisma.service";
+import { ChatGateway } from "./chat.gateway";
+
+// Importing the real gateway runs module-level getAuthSecret(); stub it out.
+vi.mock("./chat.gateway", () => ({
+  ChatGateway: class {},
+}));
 
 function makePrisma() {
   return {
@@ -28,6 +34,10 @@ function makePrisma() {
   };
 }
 
+function makeGateway(online: string[] = []) {
+  return { getOnlineUserIds: vi.fn(() => online) };
+}
+
 describe("ThreadsService", () => {
   let prisma: ReturnType<typeof makePrisma>;
   let service: ThreadsService;
@@ -35,7 +45,10 @@ describe("ThreadsService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     prisma = makePrisma();
-    service = new ThreadsService(prisma as unknown as PrismaService);
+    service = new ThreadsService(
+      prisma as unknown as PrismaService,
+      makeGateway() as unknown as ChatGateway
+    );
   });
 
   describe("findOrCreateThread", () => {
@@ -167,6 +180,75 @@ describe("ThreadsService", () => {
         where: { threadId: "t1", senderId: { not: "me" }, readAt: null },
         data: { readAt: expect.any(Date) },
       });
+    });
+  });
+
+  describe("listOnlineContacts", () => {
+    it("returns nothing when nobody is online", async () => {
+      const svc = new ThreadsService(
+        prisma as unknown as PrismaService,
+        makeGateway([]) as unknown as ChatGateway
+      );
+
+      await expect(svc.listOnlineContacts("me")).resolves.toEqual([]);
+      expect(prisma.threadParticipant.findMany).not.toHaveBeenCalled();
+    });
+
+    it("ranks online users by total messages across threads, excluding offline peers", async () => {
+      const svc = new ThreadsService(
+        prisma as unknown as PrismaService,
+        makeGateway(["u2", "u3"]) as unknown as ChatGateway
+      );
+      prisma.threadParticipant.findMany.mockResolvedValue([
+        {
+          thread: {
+            lastMessageAt: new Date("2026-01-01T10:00:00Z"),
+            _count: { messages: 10 },
+            participants: [
+              { userId: "me", user: {} },
+              { userId: "u2", user: { id: "u2", name: "Bob", username: null, image: null } },
+            ],
+          },
+        },
+        {
+          thread: {
+            lastMessageAt: new Date("2026-02-01T10:00:00Z"),
+            _count: { messages: 5 },
+            participants: [
+              { userId: "me", user: {} },
+              { userId: "u2", user: { id: "u2", name: "Bob", username: null, image: null } },
+            ],
+          },
+        },
+        {
+          thread: {
+            lastMessageAt: new Date("2026-03-01T10:00:00Z"),
+            _count: { messages: 7 },
+            participants: [
+              { userId: "me", user: {} },
+              { userId: "u3", user: { id: "u3", name: "Cara", username: null, image: null } },
+            ],
+          },
+        },
+        {
+          thread: {
+            lastMessageAt: new Date("2026-04-01T10:00:00Z"),
+            _count: { messages: 99 },
+            participants: [
+              { userId: "me", user: {} },
+              { userId: "u4", user: { id: "u4", name: "Offline", username: null, image: null } },
+            ],
+          },
+        },
+      ]);
+
+      const contacts = await svc.listOnlineContacts("me");
+
+      expect(contacts).toHaveLength(2);
+      expect(contacts[0].user.id).toBe("u2");
+      expect(contacts[0].messageCount).toBe(15);
+      expect(contacts[1].user.id).toBe("u3");
+      expect(contacts[1].messageCount).toBe(7);
     });
   });
 });

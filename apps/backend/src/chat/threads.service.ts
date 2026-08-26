@@ -1,5 +1,6 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { ChatGateway } from "./chat.gateway";
 
 const PARTICIPANT_SELECT = {
   id: true,
@@ -10,7 +11,10 @@ const PARTICIPANT_SELECT = {
 
 @Injectable()
 export class ThreadsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private chat: ChatGateway
+  ) {}
 
   private async assertParticipant(threadId: string, userId: string) {
     const participant = await this.prisma.threadParticipant.findUnique({
@@ -160,4 +164,57 @@ export class ThreadsService {
     });
   }
 
+  /**
+   * Online users I share a private thread with, ranked by total messages
+   * exchanged (most interacted first).
+   */
+  async listOnlineContacts(userId: string) {
+    const onlineIds = this.chat.getOnlineUserIds().filter((id) => id !== userId);
+    if (onlineIds.length === 0) return [];
+
+    const participations = await this.prisma.threadParticipant.findMany({
+      where: { userId, thread: { groupId: null } },
+      select: {
+        thread: {
+          select: {
+            lastMessageAt: true,
+            _count: { select: { messages: true } },
+            participants: {
+              select: { userId: true, user: { select: { id: true, name: true, username: true, image: true } } },
+            },
+          },
+        },
+      },
+    });
+
+    type Contact = {
+      user: { id: string; name: string | null; username: string | null; image: string | null };
+      messageCount: number;
+      lastMessageAt: Date | null;
+    };
+    const byUser = new Map<string, Contact>();
+
+    for (const p of participations) {
+      const other = p.thread.participants.find((t) => t.userId !== userId);
+      if (!other || !onlineIds.includes(other.userId)) continue;
+
+      const existing = byUser.get(other.userId);
+      const count = p.thread._count.messages;
+      const last = p.thread.lastMessageAt;
+      if (!existing) {
+        byUser.set(other.userId, { user: other.user, messageCount: count, lastMessageAt: last });
+      } else {
+        existing.messageCount += count;
+        if (last && (!existing.lastMessageAt || last > existing.lastMessageAt)) {
+          existing.lastMessageAt = last;
+        }
+      }
+    }
+
+    return [...byUser.values()].sort(
+      (a, b) =>
+        b.messageCount - a.messageCount ||
+        (b.lastMessageAt?.getTime() ?? 0) - (a.lastMessageAt?.getTime() ?? 0)
+    );
+  }
 }

@@ -10,6 +10,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/toast";
 import SessionWrapper from "@/components/SessionWrapper";
 import { AiAssistant } from "@/components/ai/AiAssistant";
+import { ChatDockProvider } from "@/components/chat/ChatDock";
 import { OrganizationJsonLd } from "@/components/OrganizationJsonLd";
 import { SITE_NAME, SITE_DESCRIPTION, getSiteUrl, languageAlternates } from "@/lib/site";
 import "../globals.css";
@@ -97,7 +98,9 @@ export default async function LocaleLayout({ children, params }: Props) {
                 <main className="min-h-[calc(100vh-4rem)]">{children}</main>
                 <Footer />
                 <AiAssistant />
-              
+                <ChatDockProvider />
+
+
             </NextIntlClientProvider>
           </SessionWrapper>
         </ThemeProvider>

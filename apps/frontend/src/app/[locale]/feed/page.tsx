@@ -10,6 +10,7 @@ import { PostCard, FeedPost } from "@/components/social/PostCard";
 import { StoriesBar } from "@/components/social/StoriesBar";
 import { FollowButton } from "@/components/social/FollowButton";
 import { Avatar } from "@/components/social/Avatar";
+import { OnlineContacts } from "@/components/chat/ChatDock";
 
 type Suggestion = {
   id: string;
@@ -117,6 +118,10 @@ export default function FeedPage() {
                 </Link>
               );
             })}
+            {/* Online people, most interacted first */}
+            <div className="mt-4 pt-4 border-t border-[var(--border-subtle)]">
+              <OnlineContacts />
+            </div>
           </div>
         </aside>
 

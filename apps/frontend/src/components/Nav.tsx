@@ -187,7 +187,7 @@ export function Nav() {
           <Link
             href="/cart"
             aria-label={t("cart")}
-            className="relative p-1 rounded hover:bg-white/10 transition-colors"
+            className="relative p-1 rounded hover:bg-[var(--surface-2)] transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.3 2.3c-.6.6-.2 1.7.7 1.7H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -265,7 +265,7 @@ export function Nav() {
         {/* Mobile hamburger */}
         <button
           onClick={() => setOpen(!open)}
-          className="md:hidden p-2 -mr-2 rounded hover:bg-white/10 transition-colors"
+          className="md:hidden p-2 -mr-2 rounded hover:bg-[var(--surface-2)] transition-colors"
           aria-label={t("toggleMenu")}
         >
           <svg
@@ -295,26 +295,26 @@ export function Nav() {
 
       {/* Mobile search + accordion nav */}
       {open && (
-        <div className="md:hidden border-t border-[rgba(212,160,39,0.25)] px-4 py-3 space-y-2 bg-slate-900 animate-slide-down">
+        <div className="md:hidden border-t border-[rgba(212,160,39,0.25)] px-4 py-3 space-y-2 animate-slide-down" style={{ background: "var(--surface)" }}>
           <SearchBar />
 
           {/* Social */}
           <details className="group">
-            <summary className="flex items-center justify-between rounded px-3 py-2 cursor-pointer font-semibold hover:bg-white/10 transition-colors">
+            <summary className="flex items-center justify-between rounded px-3 py-2 cursor-pointer font-semibold hover:bg-[var(--surface-2)] transition-colors" style={{ color: "var(--text-body)" }}>
               {t("social")}
               <span className="text-xs opacity-70">▾</span>
             </summary>
             <div className="pl-4 flex flex-col gap-1 text-sm">
-              <Link href="/feed" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-white/10 transition-colors">
+              <Link href="/feed" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-[var(--surface-2)] transition-colors">
                 {t("feed")}
               </Link>
-              <Link href="/community/groups" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-white/10 transition-colors">
+              <Link href="/community/groups" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-[var(--surface-2)] transition-colors">
                 {t("groups")}
               </Link>
-              <Link href="/community" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-white/10 transition-colors">
+              <Link href="/community" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-[var(--surface-2)] transition-colors">
                 {t("community")}
               </Link>
-              <Link href="/messages" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-white/10 transition-colors flex items-center gap-1">
+              <Link href="/messages" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-[var(--surface-2)] transition-colors flex items-center gap-1">
                 {t("messages")}
                 {msgUnread > 0 && (
                   <span className="bg-red-600 text-white text-xs rounded-full h-4 min-w-[1rem] flex items-center justify-center px-1">
@@ -327,32 +327,32 @@ export function Nav() {
 
           {/* Market */}
           <details className="group">
-            <summary className="flex items-center justify-between rounded px-3 py-2 cursor-pointer font-semibold hover:bg-white/10 transition-colors">
+            <summary className="flex items-center justify-between rounded px-3 py-2 cursor-pointer font-semibold hover:bg-[var(--surface-2)] transition-colors" style={{ color: "var(--text-body)" }}>
               {t("market")}
               <span className="text-xs opacity-70">▾</span>
             </summary>
             <div className="pl-4 flex flex-col gap-1 text-sm">
               <p className="px-3 pt-1 pb-0.5 text-[10px] font-bold uppercase tracking-wider opacity-60">{t("buying")}</p>
-              <Link href="/shop" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-white/10 transition-colors">
+              <Link href="/shop" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-[var(--surface-2)] transition-colors">
                 {t("shop")}
               </Link>
-              <Link href="/market" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-white/10 transition-colors">
+              <Link href="/market" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-[var(--surface-2)] transition-colors">
                 {t("market")}
               </Link>
-              <Link href="/orders" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-white/10 transition-colors">
+              <Link href="/orders" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-[var(--surface-2)] transition-colors">
                 {t("orders")}
               </Link>
-              <Link href="/warranties" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-white/10 transition-colors">
+              <Link href="/warranties" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-[var(--surface-2)] transition-colors">
                 {t("warranties")}
               </Link>
               <p className="px-3 pt-1 pb-0.5 text-[10px] font-bold uppercase tracking-wider opacity-60">{t("selling")}</p>
-              <Link href="/seller/dashboard" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-white/10 transition-colors">
+              <Link href="/seller/dashboard" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-[var(--surface-2)] transition-colors">
                 {t("seller")}
               </Link>
-              <Link href="/seller/products" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-white/10 transition-colors">
+              <Link href="/seller/products" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-[var(--surface-2)] transition-colors">
                 {t("products")}
               </Link>
-              <Link href="/seller/orders" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-white/10 transition-colors">
+              <Link href="/seller/orders" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-[var(--surface-2)] transition-colors">
                 {t("sellerOrders")}
               </Link>
             </div>
@@ -360,21 +360,21 @@ export function Nav() {
 
           {/* Jobs */}
           <details className="group">
-            <summary className="flex items-center justify-between rounded px-3 py-2 cursor-pointer font-semibold hover:bg-white/10 transition-colors">
+            <summary className="flex items-center justify-between rounded px-3 py-2 cursor-pointer font-semibold hover:bg-[var(--surface-2)] transition-colors" style={{ color: "var(--text-body)" }}>
               {t("jobs")}
               <span className="text-xs opacity-70">▾</span>
             </summary>
             <div className="pl-4 flex flex-col gap-1 text-sm">
-              <Link href="/jobs" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-white/10 transition-colors">
+              <Link href="/jobs" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-[var(--surface-2)] transition-colors">
                 {t("jobBoard")}
               </Link>
-              <Link href="/jobs/post" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-white/10 transition-colors">
+              <Link href="/jobs/post" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-[var(--surface-2)] transition-colors">
                 {t("postJob")}
               </Link>
-              <Link href="/jobs/my-applications" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-white/10 transition-colors">
+              <Link href="/jobs/my-applications" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-[var(--surface-2)] transition-colors">
                 {t("myApplications")}
               </Link>
-              <Link href="/community/resume" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-white/10 transition-colors">
+              <Link href="/community/resume" onClick={() => setOpen(false)} className="rounded px-3 py-2 hover:bg-[var(--surface-2)] transition-colors">
                 {t("resume")}
               </Link>
             </div>
@@ -384,33 +384,33 @@ export function Nav() {
           <Link
             href="/cart"
             onClick={() => setOpen(false)}
-            className="rounded px-3 py-2 hover:bg-white/10 transition-colors flex items-center gap-2"
+            className="rounded px-3 py-2 hover:bg-[var(--surface-2)] transition-colors flex items-center gap-2"
           >
             {t("cart")}
             <CartBadge count={itemCount} />
           </Link>
 
-          <div className="pt-1 border-t border-white/10">
+          <div className="pt-1 border-t" style={{ borderColor: "var(--border-subtle)" }}>
             {session?.user ? (
               <>
                 <Link
                   href={`/profile/${session.user.id}`}
                   onClick={() => setOpen(false)}
-                  className="rounded px-3 py-2 hover:bg-white/10 transition-colors block"
+                  className="rounded px-3 py-2 hover:bg-[var(--surface-2)] transition-colors block"
                 >
                   {t("myProfile")}
                 </Link>
                 <Link
                   href="/profile/edit"
                   onClick={() => setOpen(false)}
-                  className="rounded px-3 py-2 hover:bg-white/10 transition-colors block"
+                  className="rounded px-3 py-2 hover:bg-[var(--surface-2)] transition-colors block"
                 >
                   {t("editProfile")}
                 </Link>
                 <Link
                   href="/support"
                   onClick={() => setOpen(false)}
-                  className="rounded px-3 py-2 hover:bg-white/10 transition-colors block"
+                  className="rounded px-3 py-2 hover:bg-[var(--surface-2)] transition-colors block"
                 >
                   {t("helpSupport")}
                 </Link>
@@ -419,7 +419,7 @@ export function Nav() {
                     signOut();
                     setOpen(false);
                   }}
-                  className="w-full text-left rounded px-3 py-2 text-amber-500 hover:bg-white/10 transition-colors"
+                  className="w-full text-left rounded px-3 py-2 text-amber-600 dark:text-amber-400 hover:bg-[var(--surface-2)] transition-colors"
                 >
                   {t("signOut")}
                 </button>
@@ -428,7 +428,7 @@ export function Nav() {
               <Link
                 href="/login"
                 onClick={() => setOpen(false)}
-                className="rounded px-3 py-2 font-semibold text-amber-500 hover:bg-white/10 transition-colors block"
+                className="rounded px-3 py-2 font-semibold text-amber-600 dark:text-amber-400 hover:bg-[var(--surface-2)] transition-colors block"
               >
                 {t("signIn")}
               </Link>
