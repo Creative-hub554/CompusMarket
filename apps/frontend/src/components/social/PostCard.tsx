@@ -22,7 +22,7 @@ function renderContent(content: string) {
       <Link
         key={`${match[1]}-${at}`}
         href={`/profile/${match[1]}`}
-        className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline"
+        className="text-gold-600 dark:text-gold-400 font-medium hover:underline"
         onClick={(e) => e.stopPropagation()}
       >
         @{match[1]}
@@ -37,6 +37,7 @@ function renderContent(content: string) {
 export type FeedPost = {
   pinned?: boolean;
   bookmarked?: boolean;
+  group?: { id: string; name: string } | null;
   id: string;
   content: string;
   createdAt: string;
@@ -147,7 +148,7 @@ export function PostCard({
   return (
     <article className="bg-[var(--surface)] rounded-2xl border border-[var(--border-subtle)] shadow-sm hover:shadow-md transition-shadow">
       {post.pinned && (
-        <p className="px-4 pt-3 text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+        <p className="px-4 pt-3 text-xs font-semibold text-gold-600 dark:text-gold-400 flex items-center gap-1">
           📌 Pinned
         </p>
       )}
@@ -159,9 +160,21 @@ export function PostCard({
           <Link href={`/profile/${post.author.id}`} className="font-semibold hover:underline truncate block">
             {post.author.name || post.author.username || "Anonymous"}
           </Link>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-400 flex items-center gap-1.5 flex-wrap">
             {timeAgo(post.createdAt)}
             {post.author.username ? ` · @${post.author.username}` : ""}
+            {post.group && (
+              <>
+                <span aria-hidden>▸</span>
+                <Link
+                  href={`/community/groups/${post.group.id}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center gap-1 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-300 font-semibold px-2 py-0.5 hover:underline"
+                >
+                  👥 {post.group.name}
+                </Link>
+              </>
+            )}
           </p>
         </div>
         {onTogglePin && (
@@ -171,8 +184,8 @@ export function PostCard({
             title={post.pinned ? "Unpin post" : "Pin post"}
             className={`px-2 transition-colors ${
               post.pinned
-                ? "text-indigo-500"
-                : "text-gray-300 hover:text-indigo-500"
+                ? "text-gold-500"
+                : "text-gray-300 hover:text-gold-500"
             }`}
           >
             📌
@@ -185,8 +198,8 @@ export function PostCard({
             title={bookmarked ? "Remove bookmark" : "Save post"}
             className={`px-2 text-lg transition-colors ${
               bookmarked
-                ? "text-indigo-500"
-                : "text-gray-300 hover:text-indigo-500"
+                ? "text-gold-500"
+                : "text-gray-300 hover:text-gold-500"
             }`}
           >
             {bookmarked ? "🔖" : "📑"}
@@ -214,7 +227,7 @@ export function PostCard({
             onClick={() => (myReaction ? react(myReaction) : setShowPicker((v) => !v))}
             onDoubleClick={() => setShowPicker(true)}
             className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-              myReaction ? "bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600" : "text-gray-500 dark:text-gray-400 hover:bg-[var(--surface-2)]"
+              myReaction ? "bg-gold-50 dark:bg-gold-950/40 text-gold-600" : "text-gray-500 dark:text-gray-400 hover:bg-[var(--surface-2)]"
             }`}
           >
             {myReaction || "👍"} React
@@ -283,12 +296,12 @@ export function PostCard({
               onChange={(e) => setCommentInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && submitComment()}
               placeholder="Write a comment…"
-              className="flex-1 rounded-full border border-[var(--border-subtle)] px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              className="flex-1 rounded-full border border-[var(--border-subtle)] px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold-300"
             />
             <button
               onClick={submitComment}
               disabled={!commentInput.trim()}
-              className="text-indigo-600 font-medium text-sm px-3 disabled:opacity-40"
+              className="text-gold-600 font-medium text-sm px-3 disabled:opacity-40"
             >
               Send
             </button>

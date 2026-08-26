@@ -9,6 +9,7 @@ const POST_INCLUDE = {
   media: { orderBy: { position: Prisma.SortOrder.asc } },
   reactions: { select: { emoji: true, userId: true } },
   bookmarks: { select: { userId: true } },
+  group: { select: { id: true, name: true } },
   _count: { select: { comments: true } },
 } satisfies Prisma.PostInclude;
 
@@ -21,6 +22,7 @@ export interface MappedPost {
   content: string;
   createdAt: Date;
   author: { id: string; name: string | null; username: string | null; image: string | null };
+  group: { id: string; name: string } | null;
   media: { id: string; kind: "IMAGE" | "VIDEO"; url: string; thumbUrl: string | null; position: number }[];
   reactions: { emoji: string; count: number }[];
   commentCount: number;
@@ -39,6 +41,7 @@ export function mapPost(post: PostWithRelations, viewerId?: string): MappedPost 
     content: post.content,
     createdAt: post.createdAt,
     author: post.author,
+    group: post.group,
     media: post.media.map((m) => ({
       id: m.id,
       kind: m.kind,
@@ -145,7 +148,24 @@ export class PostsService {
       select: { followingId: true },
     });
     const authorIds = [...following.map((f) => f.followingId), userId];
-    return this.queryFeed({ authorId: { in: authorIds } }, userId, cursorId, limit);
+
+    // Facebook-style: the feed also carries posts from groups you belong to.
+    const myGroups = await this.prisma.groupMember.findMany({
+      where: { userId },
+      select: { groupId: true },
+    });
+
+    return this.queryFeed(
+      {
+        OR: [
+          { authorId: { in: authorIds } },
+          { groupId: { in: myGroups.map((g) => g.groupId) } },
+        ],
+      },
+      userId,
+      cursorId,
+      limit
+    );
   }
 
   async byAuthor(
