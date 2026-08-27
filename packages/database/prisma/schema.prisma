@@ -1004,6 +1004,8 @@ model Campaign {
   status        CampaignStatus    @default(DRAFT)
   paymentStatus String            @default("PENDING")
   moderationStatus String         @default("PENDING")
+  refundStatus  String            @default("NOT_REFUNDED")
+  refundedAt    DateTime?
   stripePaymentId String?
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
@@ -1027,6 +1029,8 @@ model BannerAd {
   stripePaymentId String?
   paymentStatus  String   @default("PENDING")
   moderationStatus String  @default("PENDING")
+  refundStatus    String   @default("NOT_REFUNDED")
+  refundedAt      DateTime?
   // Ad content fields
   imageUrl       String?
   videoUrl       String?

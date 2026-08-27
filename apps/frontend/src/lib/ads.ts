@@ -99,3 +99,14 @@ export async function recordVideoAdView(input: { videoAdId: string; watchedSecon
 export async function getAdSlotPricing() {
   return fetchJson(`/api/ads/slot-pricing`);
 }
+
+export async function getAdBilling() {
+  return fetchJson<Array<Record<string, unknown>>>("/api/ads/billing");
+}
+
+export async function refundAdPayment(input: { type: "campaign" | "banner"; id: string }) {
+  return fetchJson("/api/ads/refund", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}

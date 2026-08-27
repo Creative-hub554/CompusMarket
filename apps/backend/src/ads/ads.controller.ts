@@ -1,4 +1,5 @@
-import { BadRequestException, Body, Controller, Get, Headers, Param, Post, Req } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Get, Headers, Param, Post, Req, UseGuards } from "@nestjs/common";
+import { AuthGuard } from "@nestjs/passport";
 import { RawBodyRequest } from "@nestjs/common";
 import { Request } from "express";
 import { AdsService } from "./ads.service";
@@ -39,7 +40,26 @@ export class AdsController {
     if (!body.bannerAdId || !body.eventKey || !["IMPRESSION", "CLICK"].includes(body.type)) {
       throw new BadRequestException("Valid bannerAdId, type, and eventKey are required");
     }
+
     return this.ads.recordBannerEvent(body.bannerAdId, body.type, body.eventKey);
+  }
+
+  @Get("/billing")
+  @UseGuards(AuthGuard("jwt"))
+  async billing(@Req() req: { user: { userId: string } }) {
+    return this.ads.advertiserBilling(req.user.userId);
+  }
+
+  @Post("/refund")
+  @UseGuards(AuthGuard("jwt"))
+  async refund(
+    @Req() req: { user: { userId: string } },
+    @Body() body: { type: "campaign" | "banner"; id: string },
+  ) {
+    if (!["campaign", "banner"].includes(body.type) || !body.id) {
+      throw new BadRequestException("Valid payment type and id are required");
+    }
+    return this.ads.refundOwnedAd(req.user.userId, body.type, body.id);
   }
 
     @Get("/slot-pricing")

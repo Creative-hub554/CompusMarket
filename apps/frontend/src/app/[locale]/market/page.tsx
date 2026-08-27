@@ -154,7 +154,7 @@ function MarketAdBanner({ slot, refreshInterval = 30000 }: { slot: AdSlot; refre
       {isVideo ? (
         <video
           src={banner.videoUrl}
-          alt={banner.altText || banner.title || 'Video advertisement'}
+          aria-label={banner.altText || banner.title || 'Video advertisement'}
           className="w-full rounded-lg"
           controls
           playsInline

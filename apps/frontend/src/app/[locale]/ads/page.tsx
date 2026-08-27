@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "@/i18n/navigation";
+import { getAdBilling, refundAdPayment } from "@/lib/ads";
 
 type Campaign = {
   id: string;
@@ -32,6 +33,17 @@ type Banner = {
 };
 
 type AdData = { campaigns: Campaign[]; banners: Banner[] };
+type BillingItem = {
+  type: "campaign" | "banner";
+  id: string;
+  amount: number;
+  currency: string;
+  paymentStatus: string;
+  refundStatus: string;
+  refundedAt: string | null;
+  createdAt: string;
+  receiptUrl: string | null;
+};
 
 function Status({ children }: { children: string }) {
   return <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">{children}</span>;
@@ -41,6 +53,7 @@ export default function AdvertiserAdsPage() {
   const [data, setData] = useState<AdData | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState("");
+  const [billing, setBilling] = useState<BillingItem[]>([]);
 
   const load = useCallback(() => {
     fetch("/api/ads/mine")
@@ -50,6 +63,9 @@ export default function AdvertiserAdsPage() {
       })
       .then(setData)
       .catch((err: Error) => setError(err.message));
+    getAdBilling()
+      .then((items) => setBilling(items as BillingItem[]))
+      .catch(() => setBilling([]));
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -70,6 +86,21 @@ export default function AdvertiserAdsPage() {
       setError(err instanceof Error ? err.message : "Failed to update ad");
     } finally {
       setBusy("");
+    }
+
+    async function refund(item: BillingItem) {
+      if (!window.confirm("Request a refund for this payment? The ad will be stopped.")) return;
+      setBusy(item.id);
+      setError("");
+      try {
+        await refundAdPayment({ type: item.type, id: item.id });
+        setBilling((current) => current.map((entry) => entry.id === item.id ? { ...entry, refundStatus: "REFUNDED", refundedAt: new Date().toISOString() } : entry));
+        load();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Refund failed");
+      } finally {
+        setBusy("");
+      }
     }
   }
 
@@ -127,6 +158,23 @@ export default function AdvertiserAdsPage() {
                 <p className="mt-1 text-xs text-slate-500">Starts: {new Date(banner.startAt).toLocaleString()}</p>
               </div>
               {banner.moderationStatus === "APPROVED" && <button onClick={() => update("banner", banner.id, "PAUSED")} disabled={busy === banner.id} className="self-end text-sm text-amber-700 hover:underline">Pause</button>}
+            </div>
+          ))}
+        </div>
+      </section>
+      <section className="mt-8">
+        <h2 className="mb-3 text-xl font-semibold">Billing history ({billing.length})</h2>
+        <div className="space-y-3">
+          {billing.length === 0 ? <p className="text-sm text-slate-500">No payments yet.</p> : billing.map((item) => (
+            <div key={`${item.type}-${item.id}`} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-white p-4">
+              <div>
+                <p className="font-semibold">{item.type === "banner" ? "Banner booking" : "Boost campaign"} · {item.amount} {item.currency}</p>
+                <p className="text-sm text-slate-500">Payment: {item.paymentStatus} · Refund: {item.refundStatus} · {new Date(item.createdAt).toLocaleString()}</p>
+              </div>
+              <div className="flex items-center gap-3 text-sm">
+                {item.receiptUrl ? <a href={item.receiptUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">Receipt</a> : <span className="text-slate-400">Receipt unavailable</span>}
+                {item.paymentStatus === "SUCCEEDED" && item.refundStatus === "NOT_REFUNDED" && <button onClick={() => refund(item)} disabled={busy === item.id} className="text-red-700 hover:underline">Refund</button>}
+              </div>
             </div>
           ))}
         </div>

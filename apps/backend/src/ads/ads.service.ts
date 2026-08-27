@@ -200,6 +200,43 @@ export class AdsService {
       });
     }
 
+    async advertiserBilling(userId: string) {
+      const [campaigns, banners] = await Promise.all([
+        this.prisma.campaign.findMany({
+          where: { userId, stripePaymentId: { not: null } },
+          orderBy: { createdAt: "desc" },
+          select: { id: true, createdAt: true, dailyBudget: true, lifetimeBudget: true, currency: true, stripePaymentId: true, paymentStatus: true, refundStatus: true, refundedAt: true },
+        }),
+        this.prisma.bannerAd.findMany({
+          where: { userId, stripePaymentId: { not: null } },
+          orderBy: { createdAt: "desc" },
+          select: { id: true, createdAt: true, slot: true, totalPrice: true, currency: true, stripePaymentId: true, paymentStatus: true, refundStatus: true, refundedAt: true },
+        }),
+      ]);
+      const payments = [
+        ...await Promise.all(campaigns.map(async (item) => ({ type: "campaign" as const, ...item, amount: Number(item.lifetimeBudget ?? item.dailyBudget), receiptUrl: await this.stripe.paymentReceiptUrl(item.stripePaymentId!) }))),
+        ...await Promise.all(banners.map(async (item) => ({ type: "banner" as const, ...item, amount: Number(item.totalPrice), receiptUrl: await this.stripe.paymentReceiptUrl(item.stripePaymentId!) }))),
+      ];
+      return payments.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    }
+
+    async refundOwnedAd(userId: string, type: "campaign" | "banner", id: string) {
+      if (type === "campaign") {
+        const item = await this.prisma.campaign.findFirst({ where: { id, userId } });
+        if (!item) throw new Error("Campaign not found");
+        if (item.refundStatus !== "NOT_REFUNDED") throw new Error("Payment has already been refunded");
+        if (item.paymentStatus !== "SUCCEEDED" || !item.stripePaymentId) throw new Error("Only successful payments can be refunded");
+        await this.stripe.refundPaymentIntent(item.stripePaymentId);
+        return this.prisma.campaign.update({ where: { id }, data: { refundStatus: "REFUNDED", refundedAt: new Date(), status: "CANCELLED" } });
+      }
+      const item = await this.prisma.bannerAd.findFirst({ where: { id, userId } });
+      if (!item) throw new Error("Banner ad not found");
+      if (item.refundStatus !== "NOT_REFUNDED") throw new Error("Payment has already been refunded");
+      if (item.paymentStatus !== "SUCCEEDED" || !item.stripePaymentId) throw new Error("Only successful payments can be refunded");
+      await this.stripe.refundPaymentIntent(item.stripePaymentId);
+      return this.prisma.bannerAd.update({ where: { id }, data: { refundStatus: "REFUNDED", refundedAt: new Date(), moderationStatus: "PAUSED" } });
+    }
+
     async recordBannerEvent(
       bannerAdId: string,
       type: "IMPRESSION" | "CLICK",

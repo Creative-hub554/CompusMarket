@@ -26,6 +26,19 @@ export class StripeService {
     return pi;
   }
 
+  async refundPaymentIntent(id: string) {
+    if (!this.stripe) return { id: `re_sim_${Date.now()}`, status: "succeeded" };
+    return this.stripe.refunds.create({ payment_intent: id });
+  }
+
+  async paymentReceiptUrl(id: string) {
+    if (!this.stripe || id.startsWith("pi_sim_")) return null;
+    const intent = await this.stripe.paymentIntents.retrieve(id, { expand: ["latest_charge"] });
+    const charge = intent.latest_charge;
+    if (!charge || typeof charge === "string") return null;
+    return charge.receipt_url;
+  }
+
   constructWebhookEvent(payload: Buffer, signature: string) {
     if (!this.stripe) throw new Error("Stripe is not configured");
     const secret = process.env.STRIPE_WEBHOOK_SECRET;
