@@ -1,0 +1,79 @@
+"use client";
+
+async function fetchJson<T>(input: RequestInfo | URL, init?: RequestInit): Promise<T> {
+  const res = await fetch(input, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(init?.headers || {}),
+    },
+  });
+
+  const body = await res.text();
+  const json = body ? JSON.parse(body) : null;
+  if (!res.ok) {
+    const message = json?.error || json?.message || "Request failed";
+    throw new Error(message);
+  }
+  return json as T;
+}
+
+export type AdSlot = "LEFT" | "RIGHT" | "BOTTOM";
+export type CampaignObjective = "VIDEO_VIEWS" | "ENGAGEMENT" | "BRAND_AWARENESS" | "TRAFFIC";
+
+export async function createAdCampaign(input: {
+  postId?: string;
+  objective?: CampaignObjective;
+  dailyBudget: number;
+  lifetimeBudget?: number;
+  currency?: string;
+  startAt?: Date | string;
+  endAt?: Date | string;
+}) {
+  return fetchJson(`/api/ads/campaigns`, {
+    method: "POST",
+    body: JSON.stringify({
+      ...input,
+      startAt: input.startAt ? new Date(input.startAt).toISOString() : undefined,
+      endAt: input.endAt ? new Date(input.endAt).toISOString() : undefined,
+    }),
+  });
+}
+
+export async function purchaseBannerAd(input: {
+  slot: AdSlot;
+  startAt?: Date | string;
+  durationMinutes: number;
+  totalPrice: number;
+  currency?: string;
+  // Ad content fields
+  imageUrl?: string;
+  videoUrl?: string;
+  clickUrl?: string;
+  altText?: string;
+  title?: string;
+  description?: string;
+}) {
+  return fetchJson(`/api/ads/banner-purchase`, {
+    method: "POST",
+    body: JSON.stringify({
+      ...input,
+      startAt: input.startAt ? new Date(input.startAt).toISOString() : undefined,
+    }),
+  });
+}
+
+export async function getActiveBannerForSlot(slot: AdSlot) {
+  return fetchJson(`/api/ads/banner/${slot}`);
+}
+
+export async function recordVideoAdView(input: { videoAdId: string; watchedSeconds: number }) {
+  return fetchJson(`/api/ads/video-view`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function getAdSlotPricing() {
+  return fetchJson(`/api/ads/slot-pricing`);
+}

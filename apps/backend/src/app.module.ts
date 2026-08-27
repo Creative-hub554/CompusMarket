@@ -27,6 +27,7 @@ import { QuizzesModule } from "./quizzes/quizzes.module";
 import { NotesModule } from "./notes/notes.module";
 import { JobsModule } from "./jobs/jobs.module";
 import { HealthModule } from "./health/health.module";
+import { AdsModule } from "./ads/ads.module";
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ SearchModule,
     NotesModule,
     JobsModule,
     HealthModule,
+    AdsModule,
   ],
   controllers: [AppController],
   providers: [

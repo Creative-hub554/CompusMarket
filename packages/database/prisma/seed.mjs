@@ -160,13 +160,29 @@ async function main() {
     });
   }
 
-  console.log("Seed complete.");
-  console.log(`  admin:    ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}`);
-  console.log(`  categories: ${CATEGORIES.length}`);
-  console.log(`  products:   ${PRODUCTS.length}`);
-  console.log("  group:      Champey Community (+ pinned welcome post)");
-  console.log("  job:        Sales Associate (Part-time)");
-}
+  // Ad Slot Pricing
+    const AD_SLOT_PRICING = [
+      { slot: "LEFT", price: 10.00, currency: "USD", durationMinutes: 1440 }, // 24 hours
+      { slot: "RIGHT", price: 10.00, currency: "USD", durationMinutes: 1440 }, // 24 hours
+      { slot: "BOTTOM", price: 15.00, currency: "USD", durationMinutes: 1440 }, // 24 hours
+    ];
+  
+    for (const pricing of AD_SLOT_PRICING) {
+      await prisma.adSlotPricing.upsert({
+        where: { slot: pricing.slot },
+        update: { price: pricing.price, currency: pricing.currency, durationMinutes: pricing.durationMinutes, isActive: true },
+        create: pricing,
+      });
+    }
+
+    console.log("Seed complete.");
+    console.log(`  admin:    ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}`);
+    console.log(`  categories: ${CATEGORIES.length}`);
+    console.log(`  products:   ${PRODUCTS.length}`);
+    console.log("  group:      Champey Community (+ pinned welcome post)");
+    console.log("  job:        Sales Associate (Part-time)");
+    console.log("  ad slot pricing: LEFT, RIGHT, BOTTOM");
+  }
 
 main()
   .catch((e) => {
