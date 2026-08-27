@@ -997,6 +997,8 @@ model Campaign {
   startAt       DateTime          @default(now())
   endAt         DateTime?
   status        CampaignStatus    @default(DRAFT)
+  paymentStatus String            @default("PENDING")
+  moderationStatus String         @default("PENDING")
   stripePaymentId String?
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
@@ -1018,6 +1020,8 @@ model BannerAd {
   totalPrice     Decimal
   currency       String   @default("USD")
   stripePaymentId String?
+  paymentStatus  String   @default("PENDING")
+  moderationStatus String  @default("PENDING")
   // Ad content fields
   imageUrl       String?
   videoUrl       String?
@@ -1056,6 +1060,7 @@ model BannerAd {
   durationSeconds Int
   cpv             Decimal
   currency        String   @default("USD")
+  moderationStatus String @default("PENDING")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

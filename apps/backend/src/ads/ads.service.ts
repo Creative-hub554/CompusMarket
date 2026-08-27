@@ -1,4 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
+import Stripe from "stripe";
 import { PrismaService } from "../prisma/prisma.service";
 import { StripeService } from "./stripe.service";
 
@@ -55,6 +56,7 @@ export class AdsService {
     const pi = await this.stripe.createPaymentIntent(Math.max(1, amountMinor), currency.toLowerCase(), { type: "campaign", userId });
     const stripePaymentId = (pi as any).id ?? `simulated:${Date.now()}`;
 
+    const simulated = stripePaymentId.startsWith("pi_sim_");
     const campaign = await this.prisma.campaign.create({
       data: {
         userId,
@@ -66,12 +68,14 @@ export class AdsService {
         currency,
         startAt: dto.startAt ?? new Date(),
         endAt: dto.endAt ?? undefined,
-        status: "ACTIVE",
+        status: simulated ? "ACTIVE" : "DRAFT",
+        paymentStatus: simulated ? "SUCCEEDED" : "PENDING",
+        moderationStatus: "PENDING",
         stripePaymentId: stripePaymentId as string,
       },
     });
 
-    return campaign;
+    return { ...campaign, clientSecret: (pi as any).client_secret ?? null };
   }
 
   private amountToMinorUnits(currency: string, amount: number) {
@@ -94,6 +98,7 @@ export class AdsService {
     const pi = await this.stripe.createPaymentIntent(Math.max(1, amountMinor), currency.toLowerCase(), { type: "banner", userId });
     const stripePaymentId = (pi as any).id ?? `simulated:${Date.now()}`;
 
+    const simulated = stripePaymentId.startsWith("pi_sim_");
     const banner = await this.prisma.bannerAd.create({
       data: {
         userId,
@@ -103,6 +108,8 @@ export class AdsService {
         totalPrice: String(totalNumber),
         currency,
         stripePaymentId: stripePaymentId as string,
+        paymentStatus: simulated ? "SUCCEEDED" : "PENDING",
+        moderationStatus: "PENDING",
           // Ad content fields
           imageUrl: dto.imageUrl,
           videoUrl: dto.videoUrl,
@@ -112,7 +119,7 @@ export class AdsService {
           description: dto.description,
         },
       });
-      return banner;
+      return { ...banner, clientSecret: (pi as any).client_secret ?? null };
     }
 
   /** Return the currently active banner for a slot using 5-minute rotation among active banners. */
@@ -122,6 +129,8 @@ export class AdsService {
       where: {
         slot,
         startAt: { lte: now },
+        paymentStatus: "SUCCEEDED",
+        moderationStatus: "APPROVED",
         AND: [{
           // startAt + durationMinutes > now
         }],
@@ -189,5 +198,66 @@ export class AdsService {
         where: { isActive: true },
         orderBy: { slot: "asc" },
       });
+    }
+
+    async handlePaymentIntentSucceeded(paymentIntentId: string) {
+      const [campaigns, banners] = await Promise.all([
+        this.prisma.campaign.updateMany({
+          where: { stripePaymentId: paymentIntentId },
+          data: { paymentStatus: "SUCCEEDED", status: "ACTIVE" },
+        }),
+        this.prisma.bannerAd.updateMany({
+          where: { stripePaymentId: paymentIntentId },
+          data: { paymentStatus: "SUCCEEDED" },
+        }),
+      ]);
+      return { campaigns: campaigns.count, banners: banners.count };
+    }
+
+    async handlePaymentIntentFailed(paymentIntentId: string) {
+      const [campaigns, banners] = await Promise.all([
+        this.prisma.campaign.updateMany({
+          where: { stripePaymentId: paymentIntentId },
+          data: { paymentStatus: "FAILED", status: "CANCELLED" },
+        }),
+        this.prisma.bannerAd.updateMany({
+          where: { stripePaymentId: paymentIntentId },
+          data: { paymentStatus: "FAILED" },
+        }),
+      ]);
+      return { campaigns: campaigns.count, banners: banners.count };
+    }
+
+    async listModerationQueue() {
+      const [banners, videos] = await Promise.all([
+        this.prisma.bannerAd.findMany({
+          where: { moderationStatus: "PENDING" },
+          orderBy: { createdAt: "asc" },
+          include: { user: { select: { id: true, name: true, email: true } } },
+        }),
+        this.prisma.videoAd.findMany({
+          where: { moderationStatus: "PENDING" },
+          orderBy: { createdAt: "asc" },
+          include: { user: { select: { id: true, name: true, email: true } } },
+        }),
+      ]);
+      return { banners, videos };
+    }
+
+    async moderateAd(type: "banner" | "video", id: string, moderationStatus: "APPROVED" | "REJECTED" | "PAUSED") {
+      if (type === "banner") {
+        return this.prisma.bannerAd.update({
+          where: { id },
+          data: { moderationStatus },
+        });
+      }
+      return this.prisma.videoAd.update({
+        where: { id },
+        data: { moderationStatus },
+      });
+    }
+
+    constructStripeWebhookEvent(payload: Buffer, signature: string): Stripe.Event {
+      return this.stripe.constructWebhookEvent(payload, signature);
     }
   }

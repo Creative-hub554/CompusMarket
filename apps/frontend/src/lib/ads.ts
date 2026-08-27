@@ -1,12 +1,13 @@
 "use client";
 
 async function fetchJson<T>(input: RequestInfo | URL, init?: RequestInit): Promise<T> {
+  const headers = new Headers(init?.headers);
+  if (!(init?.body instanceof FormData)) {
+    headers.set("Content-Type", "application/json");
+  }
   const res = await fetch(input, {
     ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers || {}),
-    },
+    headers,
   });
 
   const body = await res.text();
@@ -65,6 +66,16 @@ export async function purchaseBannerAd(input: {
 
 export async function getActiveBannerForSlot(slot: AdSlot) {
   return fetchJson(`/api/ads/banner/${slot}`);
+}
+
+export async function uploadAdMedia(file: File, kind: "image" | "video") {
+  const body = new FormData();
+  body.append("file", file);
+  return fetchJson<{ url: string; filename: string }>(`/api/upload/${kind}`, {
+    method: "POST",
+    headers: {},
+    body,
+  });
 }
 
 export async function recordVideoAdView(input: { videoAdId: string; watchedSeconds: number }) {

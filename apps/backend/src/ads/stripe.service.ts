@@ -25,4 +25,11 @@ export class StripeService {
     const pi = await this.stripe.paymentIntents.capture(id);
     return pi;
   }
+
+  constructWebhookEvent(payload: Buffer, signature: string) {
+    if (!this.stripe) throw new Error("Stripe is not configured");
+    const secret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (!secret) throw new Error("STRIPE_WEBHOOK_SECRET is not configured");
+    return this.stripe.webhooks.constructEvent(payload, signature, secret);
+  }
 }

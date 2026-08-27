@@ -1,4 +1,6 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Get, Headers, Param, Post, Req } from "@nestjs/common";
+import { RawBodyRequest } from "@nestjs/common";
+import { Request } from "express";
 import { AdsService } from "./ads.service";
 
 @Controller("/ads")
@@ -34,4 +36,44 @@ export class AdsController {
     async getSlotPricing() {
       return this.ads.getAdSlotPricing();
     }
+
+  @Get("/moderation")
+  async moderationQueue() {
+    return this.ads.listModerationQueue();
   }
+
+  @Post("/moderation/:type/:id")
+  async moderate(
+    @Param("type") type: string,
+    @Param("id") id: string,
+    @Body() body: { status: "APPROVED" | "REJECTED" | "PAUSED" },
+  ) {
+    if (type !== "banner" && type !== "video") {
+      throw new BadRequestException("Invalid ad type");
+    }
+    if (!["APPROVED", "REJECTED", "PAUSED"].includes(body.status)) {
+      throw new BadRequestException("Invalid moderation status");
+    }
+    return this.ads.moderateAd(type, id, body.status);
+  }
+
+    @Post("/webhook")
+    async stripeWebhook(
+      @Req() req: RawBodyRequest<Request>,
+      @Headers("stripe-signature") signature?: string,
+    ) {
+      if (!signature || !req.rawBody) {
+        throw new BadRequestException("Stripe signature and raw request body are required");
+      }
+      const event = this.ads.constructStripeWebhookEvent(req.rawBody, signature);
+      if (event.type === "payment_intent.succeeded") {
+        await this.ads.handlePaymentIntentSucceeded((event.data.object as { id: string }).id);
+      } else if (
+        event.type === "payment_intent.payment_failed" ||
+        event.type === "payment_intent.canceled"
+      ) {
+        await this.ads.handlePaymentIntentFailed((event.data.object as { id: string }).id);
+      }
+      return { received: true };
+    }
+    }

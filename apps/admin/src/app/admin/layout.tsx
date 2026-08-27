@@ -15,6 +15,9 @@ const NAV_ITEMS = [
   { href: "/admin/support", label: "Support" },
   { href: "/admin/users", label: "Users" },
   { href: "/admin/moderation", label: "Moderation" },
+  { href: "/admin/ads", label: "Advertising" },
+  { href: "/admin/ads/analytics", label: "Ad Analytics" },
+  { href: "/admin/ads/moderation", label: "Ad Moderation" },
 ];
 
 export default function AdminLayout({

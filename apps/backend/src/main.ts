@@ -12,7 +12,7 @@ import helmet from "helmet";
 import { getCorsOrigins } from "./common/config";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { rawBody: true });
   app.setGlobalPrefix("api");
 
   // Explicit allow-list of origins (comma-separated via CORS_ORIGIN env).
