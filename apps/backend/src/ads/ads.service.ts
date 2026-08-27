@@ -221,20 +221,43 @@ export class AdsService {
     }
 
     async refundOwnedAd(userId: string, type: "campaign" | "banner", id: string) {
+      const windowHours = Number(process.env.AD_REFUND_WINDOW_HOURS ?? 24);
       if (type === "campaign") {
         const item = await this.prisma.campaign.findFirst({ where: { id, userId } });
         if (!item) throw new Error("Campaign not found");
         if (item.refundStatus !== "NOT_REFUNDED") throw new Error("Payment has already been refunded");
         if (item.paymentStatus !== "SUCCEEDED" || !item.stripePaymentId) throw new Error("Only successful payments can be refunded");
-        await this.stripe.refundPaymentIntent(item.stripePaymentId);
-        return this.prisma.campaign.update({ where: { id }, data: { refundStatus: "REFUNDED", refundedAt: new Date(), status: "CANCELLED" } });
+        if (Date.now() - item.createdAt.getTime() > windowHours * 60 * 60 * 1000) throw new Error("This payment is outside the refund window");
+        return this.prisma.campaign.update({ where: { id }, data: { refundStatus: "REQUESTED", refundRequestedAt: new Date(), status: "CANCELLED" } });
       }
+
       const item = await this.prisma.bannerAd.findFirst({ where: { id, userId } });
       if (!item) throw new Error("Banner ad not found");
       if (item.refundStatus !== "NOT_REFUNDED") throw new Error("Payment has already been refunded");
       if (item.paymentStatus !== "SUCCEEDED" || !item.stripePaymentId) throw new Error("Only successful payments can be refunded");
+      if (Date.now() - item.createdAt.getTime() > windowHours * 60 * 60 * 1000) throw new Error("This payment is outside the refund window");
+      return this.prisma.bannerAd.update({ where: { id }, data: { refundStatus: "REQUESTED", refundRequestedAt: new Date(), moderationStatus: "PAUSED" } });
+    }
+
+    async listRefundRequests() {
+      const [campaigns, banners] = await Promise.all([
+        this.prisma.campaign.findMany({ where: { refundStatus: "REQUESTED" }, orderBy: { refundRequestedAt: "asc" }, include: { user: { select: { name: true, email: true } } } }),
+        this.prisma.bannerAd.findMany({ where: { refundStatus: "REQUESTED" }, orderBy: { refundRequestedAt: "asc" }, include: { user: { select: { name: true, email: true } } } }),
+      ]);
+      return { campaigns, banners };
+    }
+
+    async approveRefund(type: "campaign" | "banner", id: string) {
+      if (type === "campaign") {
+        const item = await this.prisma.campaign.findUnique({ where: { id } });
+        if (!item || item.refundStatus !== "REQUESTED" || !item.stripePaymentId) throw new Error("Refund request not found");
+        await this.stripe.refundPaymentIntent(item.stripePaymentId);
+        return this.prisma.campaign.update({ where: { id }, data: { refundStatus: "REFUNDED", refundedAt: new Date() } });
+      }
+      const item = await this.prisma.bannerAd.findUnique({ where: { id } });
+      if (!item || item.refundStatus !== "REQUESTED" || !item.stripePaymentId) throw new Error("Refund request not found");
       await this.stripe.refundPaymentIntent(item.stripePaymentId);
-      return this.prisma.bannerAd.update({ where: { id }, data: { refundStatus: "REFUNDED", refundedAt: new Date(), moderationStatus: "PAUSED" } });
+      return this.prisma.bannerAd.update({ where: { id }, data: { refundStatus: "REFUNDED", refundedAt: new Date() } });
     }
 
     async recordBannerEvent(

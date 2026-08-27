@@ -174,7 +174,7 @@ export default function AdvertiserAdsPage() {
               </div>
               <div className="flex items-center gap-3 text-sm">
                 {item.receiptUrl ? <a href={item.receiptUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">Receipt</a> : <span className="text-slate-400">Receipt unavailable</span>}
-                {item.paymentStatus === "SUCCEEDED" && item.refundStatus === "NOT_REFUNDED" && <button onClick={() => refund(item)} disabled={busy === item.id} className="text-red-700 hover:underline">Refund</button>}
+                {item.paymentStatus === "SUCCEEDED" && item.refundStatus === "NOT_REFUNDED" && <button onClick={() => refund(item)} disabled={busy === item.id} className="text-red-700 hover:underline">Request refund</button>}
               </div>
             </div>
           ))}

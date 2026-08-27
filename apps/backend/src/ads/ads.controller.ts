@@ -59,7 +59,23 @@ export class AdsController {
     if (!["campaign", "banner"].includes(body.type) || !body.id) {
       throw new BadRequestException("Valid payment type and id are required");
     }
+
     return this.ads.refundOwnedAd(req.user.userId, body.type, body.id);
+  }
+
+  @Get("/refund-requests")
+  @UseGuards(AuthGuard("jwt"))
+  async refundRequests(@Req() req: { user: { role: string } }) {
+    if (req.user.role !== "ADMIN") throw new BadRequestException("Admin access required");
+    return this.ads.listRefundRequests();
+  }
+
+  @Post("/refund-requests/:type/:id/approve")
+  @UseGuards(AuthGuard("jwt"))
+  async approveRefund(@Req() req: { user: { role: string } }, @Param("type") type: string, @Param("id") id: string) {
+    if (req.user.role !== "ADMIN") throw new BadRequestException("Admin access required");
+    if (type !== "campaign" && type !== "banner") throw new BadRequestException("Invalid ad type");
+    return this.ads.approveRefund(type, id);
   }
 
     @Get("/slot-pricing")

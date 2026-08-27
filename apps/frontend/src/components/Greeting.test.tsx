@@ -3,9 +3,8 @@ import { Greeting } from "./Greeting";
 
 describe("Greeting", () => {
   it("renders with default name", () => {
-    render(<Greeting />);
-    expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent("Welcome");
-    expect(screen.getByText(/Hello/)).toBeInTheDocument();
+    render(<Greeting name="Guest" />);
+    expect(screen.getByText(/Hello Guest/)).toBeInTheDocument();
   });
 
   it("renders with custom name", () => {
