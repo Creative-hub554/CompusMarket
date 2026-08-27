@@ -32,6 +32,16 @@ export class AdsController {
     return this.ads.recordVideoView(userId, body.videoAdId, body.watchedSeconds);
   }
 
+  @Post("/banner-event")
+  async recordBannerEvent(
+    @Body() body: { bannerAdId: string; type: "IMPRESSION" | "CLICK"; eventKey: string },
+  ) {
+    if (!body.bannerAdId || !body.eventKey || !["IMPRESSION", "CLICK"].includes(body.type)) {
+      throw new BadRequestException("Valid bannerAdId, type, and eventKey are required");
+    }
+    return this.ads.recordBannerEvent(body.bannerAdId, body.type, body.eventKey);
+  }
+
     @Get("/slot-pricing")
     async getSlotPricing() {
       return this.ads.getAdSlotPricing();

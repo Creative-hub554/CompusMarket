@@ -200,6 +200,25 @@ export class AdsService {
       });
     }
 
+    async recordBannerEvent(
+      bannerAdId: string,
+      type: "IMPRESSION" | "CLICK",
+      eventKey: string,
+    ) {
+      const banner = await this.prisma.bannerAd.findFirst({
+        where: { id: bannerAdId, paymentStatus: "SUCCEEDED", moderationStatus: "APPROVED" },
+        select: { id: true },
+      });
+      if (!banner) throw new Error("Banner ad not found");
+
+      await this.prisma.bannerAdEvent.upsert({
+        where: { eventKey },
+        update: {},
+        create: { bannerAdId, type, eventKey },
+      });
+      return { recorded: true };
+    }
+
     async handlePaymentIntentSucceeded(paymentIntentId: string) {
       const [campaigns, banners] = await Promise.all([
         this.prisma.campaign.updateMany({

@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { PromoVideoPopup } from "@/components/market/PromoVideoPopup";
 import { ReelsStrip } from "@/components/market/ReelsStrip";
 import { ProductCard } from "@/components/ProductCard";
-import { getActiveBannerForSlot, getAdSlotPricing, type AdSlot } from "@/lib/ads";
+import { getActiveBannerForSlot, getAdSlotPricing, recordBannerAdEvent, type AdSlot } from "@/lib/ads";
 
 type SearchHit = {
   id: string;
@@ -83,6 +83,20 @@ function MarketAdBanner({ slot, refreshInterval = 30000 }: { slot: AdSlot; refre
     };
   }, [fetchBanner, refreshInterval]);
 
+  useEffect(() => {
+    if (!banner || typeof window === "undefined") return;
+    const key = `ad-impression:${banner.id}`;
+    if (window.sessionStorage.getItem(key)) return;
+    window.sessionStorage.setItem(key, "1");
+    void recordBannerAdEvent({
+      bannerAdId: banner.id,
+      type: "IMPRESSION",
+      eventKey: `${banner.id}:${crypto.randomUUID()}`,
+    }).catch(() => {
+      window.sessionStorage.removeItem(key);
+    });
+  }, [banner]);
+
   // ... rest of the component
 
   if (!banner) {
@@ -98,6 +112,11 @@ function MarketAdBanner({ slot, refreshInterval = 30000 }: { slot: AdSlot; refre
 
   const handleClick = () => {
     if (banner.clickUrl) {
+      void recordBannerAdEvent({
+        bannerAdId: banner.id,
+        type: "CLICK",
+        eventKey: `${banner.id}:click:${crypto.randomUUID()}`,
+      }).catch(() => {});
       window.open(banner.clickUrl, '_blank', 'noopener,noreferrer');
     }
   };

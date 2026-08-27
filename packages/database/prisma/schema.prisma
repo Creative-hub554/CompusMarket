@@ -985,6 +985,11 @@ enum AdSlot {
   BOTTOM
 }
 
+enum BannerAdEventType {
+  IMPRESSION
+  CLICK
+}
+
 model Campaign {
   id            String            @id @default(uuid())
   userId        String
@@ -1033,10 +1038,24 @@ model BannerAd {
   updatedAt      DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  events BannerAdEvent[]
 
   @@index([userId])
   @@index([slot])
   @@index([startAt])
+}
+
+model BannerAdEvent {
+  id        String            @id @default(uuid())
+  eventKey  String            @unique
+  bannerAdId String
+  type      BannerAdEventType
+  createdAt DateTime          @default(now())
+
+  bannerAd BannerAd @relation(fields: [bannerAdId], references: [id], onDelete: Cascade)
+
+  @@index([bannerAdId, type])
+  @@index([createdAt])
 }
 
   model AdSlotPricing {

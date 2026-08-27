@@ -68,6 +68,17 @@ export async function getActiveBannerForSlot(slot: AdSlot) {
   return fetchJson(`/api/ads/banner/${slot}`);
 }
 
+export async function recordBannerAdEvent(input: {
+  bannerAdId: string;
+  type: "IMPRESSION" | "CLICK";
+  eventKey: string;
+}) {
+  return fetchJson("/api/ads/banner-event", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
 export async function uploadAdMedia(file: File, kind: "image" | "video") {
   const body = new FormData();
   body.append("file", file);
