@@ -7,39 +7,33 @@ Pnpm + Turborepo monorepo. Three apps (`apps/frontend`, `apps/admin`, `apps/back
 ```bash
 pnpm install                           # install all deps
 pnpm --filter @theo/database exec prisma generate   # regenerate client after schema changes
-pnpm --filter @theo/database exec prisma migrate dev --name <change>   # create + apply a migration (workflow below)
+pnpm --filter @theo/database exec prisma db push    # apply schema to local SQLite
 pnpm --filter @theo/database exec prisma db seed    # idempotent demo data (admin/categories/products/group/job)
 pnpm dev                               # turbo dev (all apps)
 pnpm --filter backend dev              # NestJS API :4000
 pnpm --filter frontend dev             # Next.js :3000
 pnpm --filter admin dev --port 3001    # Next.js admin :3001
+```
 
 # Per-package (run from the package directory)
+
+```bash
 npx vitest run                         # unit tests (backend excludes *.e2e-spec.ts)
 npx vitest run --config vitest.e2e.config.ts   # backend e2e specs (separate config, 30s timeout)
 npx vitest run src/auth/auth.service.spec.ts   # backend: single test file (from apps/backend)
-npx vitest run "src/app/[locale]/community/documents/page.test.tsx"   # frontend: single test file (from apps/frontend; quote bracket paths)
+npx vitest run src/components/Button.test.tsx  # frontend: single test file (from apps/frontend)
 npx tsc --noEmit                       # typecheck
 npx eslint .                           # lint
 ```
 
-Order matters after Prisma schema edits: **stop running dev servers first** (they hold the query-engine DLL and `prisma generate` fails with EPERM), then `generate`, then `migrate dev`.
+**Order matters after Prisma schema edits**: stop running dev servers first (they hold the query-engine DLL and `prisma generate` fails with EPERM), then `generate`, then `db push`.
 
-## Prisma migrations (NOT `db push`)
-
-- Schema changes go through **versioned migrations** (`prisma/migrations/`, single baseline `20260826102541_init` as of 2026-08-26). `prisma db push` is banned for schema work — it was how the migration history silently drifted from the real schema for months.
-- Workflow: edit `schema.prisma` → stop dev servers → `prisma generate` → `prisma migrate dev --name <change>` (creates + applies + regenerates). Commit the generated `migrations/<timestamp>_<name>/` folder.
-- Production/fresh environments: `prisma migrate deploy` (never `db push`). Verified byte-exact against `schema.prisma`.
-- If a DB already has the schema but no recorded history (fresh clone of an old dev.db): `prisma migrate resolve --applied 20260826102541_init`.
-- Gotcha: Prisma resolves `file:` URLs in `DATABASE_URL` relative to the **schema folder** (`packages/database/prisma/`), but `--url` CLI flags resolve against **cwd** — mixing them up creates doubled `prisma/prisma/` paths. Prefer `--url "file:./<name>.db"` with cwd = `packages/database`.
-- Postgres cutover: `migration_lock.toml` pins provider `sqlite`. At cutover, re-baseline under the postgres provider (regenerate init migration + `migrate resolve` on the prod DB) — don't hand-edit SQL between dialects. `docker/compose.yml` already ships postgres:15 (`theo_platform`). Audited 2026-08-26: raw SQL is dialect-safe; remaining known behavior change — Prisma `contains` filters become **case-sensitive** on PG (chat-bot `/find`, jobs, notes, search fallback); wrap in `lower()` or accept at cutover.
-
-Node and pnpm are **not always in PATH** on this Windows machine. If commands fail, prepend:
+Node and pnpm are **not always in PATH** on Windows. If commands fail, prepend PowerShell:
 ```powershell
 $env:PATH = "C:\Program Files\nodejs;C:\Users\theow\AppData\Roaming\npm" + ";$env:PATH"
 ```
 
-The user's actual dev launcher is `start.bat` (repo root): **Admin Mode** = frontend `:3000`, admin `:3001`, backend `:4000`; **Normal Mode** = `:3002`/`:3003`/`:4001`; custom ports available. Ports can also be overridden via `config.bat`. If a running app isn't on the default port, check `config.bat` first.
+The dev launcher is `start.bat` (repo root): **Admin Mode** = frontend `:3000`, admin `:3001`, backend `:4000`; **Normal Mode** = `:3002`/`:3003`/`:4001`; custom ports available via `start.bat` options 2/3. Ports can also be overridden via `config.bat` (loaded from `start.bat`).
 
 ## Zombie dev processes (Windows gotcha)
 
@@ -63,7 +57,7 @@ Never blanket-kill `node.exe` — `.opencode/` tooling runs on node.
 
 Workspace aliases: `@theo/database`, `@theo/ui`; both Next apps also alias `@` → `./src`.
 
-Backend modules cover more than commerce: `auth`, `products`, `orders`, `cart`, `categories`, `search`, `upload`, `warranties`, `articles`, `resumes`, `jobs`, `groups`, `ai`, `notes`, `flashcards`, `quizzes`, `diagrams`, `documents`, `health`, `social` (posts/follows/stories/notifications). Chat is thread-based (`threads.service.ts` + Socket.IO `chat.gateway.ts`) — there is no `Conversation` model. Group chat = one `Thread` per group (`Thread.groupId @unique`, participants mirror membership); group posts fan out `GROUP_POST` notifications from `groups.service`. Chat stickers (`sticker:emoji` content prefix) and slash commands (`/shrug`, `/me`, …) are client-side conventions in `messages/[id]` — the backend stores them as plain content. The built-in bot `@champeybot` (`chat-bot.service.ts`) is a real `User` row auto-created on first use; 1:1 threads containing it get automatic AI/command replies from `ChatGateway.maybeReplyAsBot` — don't mistake it for a real user or delete it in seeds/cleanups.
+Backend modules: `auth`, `products`, `orders`, `cart`, `categories`, `search`, `upload`, `warranties`, `articles`, `resumes`, `jobs`, `groups`, `ai`, `notes`, `flashcards`, `quizzes`, `diagrams`, `documents`, `health`, `social` (posts/follows/stories/notifications). Chat is thread-based (`threads.service.ts` + Socket.IO `chat.gateway.ts`) — there is no `Conversation` model. Group chat = one `Thread` per group (`Thread.groupId @unique`, participants mirror membership); group posts fan out `GROUP_POST` notifications from `groups.service`. Chat stickers (`sticker:emoji` content prefix) and slash commands (`/shrug`, `/me`, …) are client-side conventions in `messages/[id]` — the backend stores them as plain content.
 
 ## Frontend i18n (critical conventions)
 
@@ -73,7 +67,7 @@ Backend modules cover more than commerce: `auth`, `products`, `orders`, `cart`, 
 - **Vitest**: `next-intl` must stay in `server.deps.inline` (`vitest.config.ts`) or its ESM import of `next/navigation` fails to resolve under pnpm. Tests rendering pages that use the i18n `Link` should `vi.mock("@/i18n/navigation")` with an anchor stub.
 - Brand strings are single-sourced in `apps/frontend/src/lib/site.ts` (`SITE_NAME`, `getSiteUrl()` from `NEXT_PUBLIC_SITE_URL`) — used by metadata, JSON-LD, sitemap.
 - Tailwind v4 is CSS-first: no `tailwind.config`; tokens live in `@theme` in `src/app/globals.css`, which also `@source`s `packages/ui/src`. Shared primitives (`.btn-primary`, `.card-hover`, `.page-title`, `.input-field`, …) are hand-written utilities in that file — restyling them propagates site-wide.
-- **km.json is fully translated** (all `en.json` keys have real Khmer counterparts — verified key-for-key). Keep it that way: every new `en.json` key needs its Khmer translation in the same change; don't rely on the `next-intl` English fallback.
+- **km.json fallback**: some new keys (market, jobs, nav) were NOT added to `km.json` to avoid garbling Khmer. They fall back to `en` via `next-intl`. This is a known follow-up — add Khmer translations when ready.
 
 ## Auth architecture
 
