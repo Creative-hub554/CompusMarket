@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { loadStripe } from "@stripe/stripe-js";
+import { CardElement, Elements, useElements, useStripe } from "@stripe/react-stripe-js";
 import {
   getActiveBannerForSlot,
   getAdSlotPricing,
@@ -9,7 +11,13 @@ import {
   type AdSlot,
 } from "@/lib/ads";
 
-export default function MarketAdsPage() {
+const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+  : null;
+
+function MarketAdsForm() {
+  const stripe = useStripe();
+  const elements = useElements();
   const [slot, setSlot] = useState<AdSlot>("LEFT");
   const [duration, setDuration] = useState(5);
   const [price, setPrice] = useState(1);
@@ -90,6 +98,20 @@ export default function MarketAdsPage() {
         description: description.trim() || undefined,
         altText: altText.trim() || undefined,
       });
+      if (data.clientSecret && stripePromise) {
+        if (!stripe || !elements) {
+          throw new Error("Stripe checkout is not ready. Please try again.");
+        }
+        const card = elements.getElement(CardElement);
+        if (!card) throw new Error("Enter your card details to continue.");
+        const result = await stripe.confirmCardPayment(data.clientSecret, {
+          payment_method: { card },
+        });
+        if (result.error) throw new Error(result.error.message || "Payment failed");
+        if (result.paymentIntent?.status !== "succeeded") {
+          throw new Error("Payment was not completed.");
+        }
+      }
       setResp(data);
       const refreshed = await getActiveBannerForSlot(slot);
       setActiveBanner(refreshed);
@@ -199,6 +221,14 @@ export default function MarketAdsPage() {
           <input type="text" value={altText} maxLength={160} onChange={(e) => setAltText(e.target.value)} />
         </label>
         <br />
+        {stripePromise && (
+          <div style={{ margin: "16px 0", padding: 12, border: "1px solid #ccc", borderRadius: 8 }}>
+            <strong>Payment details</strong>
+            <div style={{ marginTop: 10, padding: 10, border: "1px solid #ddd", borderRadius: 4 }}>
+              <CardElement options={{ hidePostalCode: true }} />
+            </div>
+          </div>
+        )}
         <button type="submit" disabled={submitting}>
           {uploading ? "Uploading..." : submitting ? "Purchasing..." : "Purchase"}
         </button>
@@ -220,5 +250,13 @@ export default function MarketAdsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function MarketAdsPage() {
+  return (
+    <Elements stripe={stripePromise}>
+      <MarketAdsForm />
+    </Elements>
   );
 }

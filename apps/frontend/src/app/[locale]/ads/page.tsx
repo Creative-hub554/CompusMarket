@@ -88,19 +88,20 @@ export default function AdvertiserAdsPage() {
       setBusy("");
     }
 
-    async function refund(item: BillingItem) {
-      if (!window.confirm("Request a refund for this payment? The ad will be stopped.")) return;
-      setBusy(item.id);
-      setError("");
-      try {
-        await refundAdPayment({ type: item.type, id: item.id });
-        setBilling((current) => current.map((entry) => entry.id === item.id ? { ...entry, refundStatus: "REFUNDED", refundedAt: new Date().toISOString() } : entry));
-        load();
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Refund failed");
-      } finally {
-        setBusy("");
-      }
+  }
+
+  async function refund(item: BillingItem) {
+    if (!window.confirm("Request a refund for this payment? The ad will be stopped.")) return;
+    setBusy(item.id);
+    setError("");
+    try {
+      await refundAdPayment({ type: item.type, id: item.id });
+      setBilling((current) => current.map((entry) => entry.id === item.id ? { ...entry, refundStatus: "REFUNDED", refundedAt: new Date().toISOString() } : entry));
+      load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Refund failed");
+    } finally {
+      setBusy("");
     }
   }
 

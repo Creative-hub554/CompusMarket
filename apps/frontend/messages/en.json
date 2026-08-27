@@ -55,6 +55,12 @@
     "applyNow": "Apply Now",
     "allRightsReserved": "All rights reserved."
   },
+  "greeting": {
+    "title": "Welcome",
+    "message": "Hello {name}",
+    "defaultName": "Guest"
+  }
+},
   "shop": {
     "title": "Shop",
     "productsCount": "{count} products",
@@ -90,6 +96,9 @@
     "submitReview": "Submit review",
     "related": "You may also like",
     "recentlyViewed": "Recently viewed"
+  },
+  "price": {
+    "currencyKHR": "KHR"
   },
   "cart": {
     "loading": "Loading...",

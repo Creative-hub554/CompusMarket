@@ -55,7 +55,7 @@ export async function purchaseBannerAd(input: {
   title?: string;
   description?: string;
 }) {
-  return fetchJson(`/api/ads/banner-purchase`, {
+  return fetchJson<{ clientSecret: string | null }>(`/api/ads/banner-purchase`, {
     method: "POST",
     body: JSON.stringify({
       ...input,
