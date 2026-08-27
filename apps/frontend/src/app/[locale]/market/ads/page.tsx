@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import {
   getActiveBannerForSlot,
+  getAdSlotPricing,
   purchaseBannerAd,
   uploadAdMedia,
   type AdSlot,
@@ -12,6 +13,7 @@ export default function MarketAdsPage() {
   const [slot, setSlot] = useState<AdSlot>("LEFT");
   const [duration, setDuration] = useState(5);
   const [price, setPrice] = useState(1);
+  const [pricing, setPricing] = useState<Array<{ slot: AdSlot; price: number | string; currency: string; durationMinutes: number }>>([]);
   const [startAt, setStartAt] = useState<string | undefined>(undefined);
   const [currency, setCurrency] = useState<"USD" | "KHR">("USD");
   const [title, setTitle] = useState("");
@@ -25,6 +27,32 @@ export default function MarketAdsPage() {
   const [resp, setResp] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeBanner, setActiveBanner] = useState<any>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    getAdSlotPricing()
+      .then((data) => {
+        if (!Array.isArray(data)) return;
+        setPricing(data);
+        const configured = data.find((item) => item.slot === slot);
+        if (configured) {
+          setPrice(Number(configured.price));
+          setDuration(configured.durationMinutes);
+          setCurrency(configured.currency === "KHR" ? "KHR" : "USD");
+        }
+      })
+      .catch(() => setPricing([]));
+  }, [slot]);
+
+  useEffect(() => {
+    if (!mediaFile) {
+      setPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(mediaFile);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [mediaFile]);
 
   useEffect(() => {
     let cancelled = false;
@@ -103,17 +131,17 @@ export default function MarketAdsPage() {
         <br />
         <label>
           Duration (minutes)
-          <input type="number" value={duration} min={5} onChange={(e) => setDuration(Number(e.target.value))} />
+          <input type="number" value={duration} min={5} readOnly={pricing.length > 0} onChange={(e) => setDuration(Number(e.target.value))} />
         </label>
         <br />
         <label>
           Total price
-          <input type="number" value={price} min={1} step={0.01} onChange={(e) => setPrice(Number(e.target.value))} />
+          <input type="number" value={price} min={1} step={0.01} readOnly={pricing.length > 0} onChange={(e) => setPrice(Number(e.target.value))} />
         </label>
         <br />
         <label>
           Currency
-          <select value={currency} onChange={(e) => setCurrency(e.target.value as "USD" | "KHR")}>
+          <select value={currency} disabled={pricing.length > 0} onChange={(e) => setCurrency(e.target.value as "USD" | "KHR")}>
             <option value="USD">USD</option>
             <option value="KHR">KHR</option>
           </select>
@@ -141,6 +169,16 @@ export default function MarketAdsPage() {
           />
         </label>
         <br />
+        {previewUrl && (
+          <div style={{ marginBottom: 16 }}>
+            <strong>Creative preview</strong>
+            {mediaType === "image" ? (
+              <img src={previewUrl} alt={altText || "Ad preview"} style={{ display: "block", maxWidth: "100%", maxHeight: 220, marginTop: 8 }} />
+            ) : (
+              <video src={previewUrl} controls muted playsInline style={{ display: "block", maxWidth: "100%", maxHeight: 220, marginTop: 8 }} />
+            )}
+          </div>
+        )}
         <label>
           Ad title
           <input type="text" value={title} maxLength={120} onChange={(e) => setTitle(e.target.value)} />
@@ -165,8 +203,22 @@ export default function MarketAdsPage() {
           {uploading ? "Uploading..." : submitting ? "Purchasing..." : "Purchase"}
         </button>
       </form>
+      {pricing.length > 0 && (
+        <p style={{ marginTop: 16, color: "#666" }}>
+          Configured rate for {slot}: {String(price)} {currency} / {duration} minutes.
+        </p>
+      )}
       {error ? <p role="alert">{error}</p> : null}
-      <pre>{JSON.stringify(resp, null, 2)}</pre>
+      {resp && (
+        <div role="status" style={{ marginTop: 16, padding: 12, border: "1px solid #b7dfc5", borderRadius: 8 }}>
+          <strong>{resp.clientSecret ? "Payment pending" : "Ad submitted"}</strong>
+          <p>
+            {resp.clientSecret
+              ? "Your ad is awaiting Stripe payment confirmation and admin approval."
+              : "Your ad was submitted for admin approval and will appear after approval."}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
