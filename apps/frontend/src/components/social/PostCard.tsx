@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { useSession } from "next-auth/react";
 import { Avatar } from "./Avatar";
+import { ReportButton } from "./ReportButton";
 import { timeAgo } from "@/lib/social";
 
 type Media = { id: string; kind: "IMAGE" | "VIDEO"; url: string; thumbUrl?: string | null };
@@ -76,10 +77,12 @@ function MediaGrid({ media }: { media: Media[] }) {
 export function PostCard({
   post,
   onDeleted,
+  onEdited,
   onTogglePin,
 }: {
   post: FeedPost;
   onDeleted?: (id: string) => void;
+  onEdited?: (post: FeedPost) => void;
   onTogglePin?: (pinned: boolean) => void;
 }) {
   const { data: session } = useSession();
@@ -92,6 +95,9 @@ export function PostCard({
   const [comments, setComments] = useState<CommentT[] | null>(null);
   const [commentInput, setCommentInput] = useState("");
   const [commentCount, setCommentCount] = useState(post.commentCount);
+  const [content, setContent] = useState(post.content);
+  const [editing, setEditing] = useState(false);
+  const [editingDraft, setEditingDraft] = useState(post.content);
 
   async function react(emoji: string) {
     setShowPicker(false);
@@ -133,6 +139,25 @@ export function PostCard({
     if (!confirm("Delete this post?")) return;
     const res = await fetch(`/api/posts/${post.id}`, { method: "DELETE" });
     if (res.ok) onDeleted?.(post.id);
+  }
+
+  async function saveEdit() {
+    const next = editingDraft.trim();
+    if (!next || next === content) {
+      setEditing(false);
+      setEditingDraft(content);
+      return;
+    }
+    const res = await fetch(`/api/posts/${post.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content: next }),
+    });
+    if (!res.ok) return;
+    const updated = await res.json();
+    setContent(updated.content);
+    setEditing(false);
+    onEdited?.(updated);
   }
 
   const totalReactions = reactions.reduce((sum, r) => sum + r.count, 0);
@@ -206,15 +231,63 @@ export function PostCard({
           </button>
         )}
         {meId === post.author.id && (
-          <button onClick={removePost} aria-label="Delete post" className="text-gray-300 hover:text-red-500 px-2 text-lg" title="Delete post">            ×
-          </button>
+          <>
+            <button
+              onClick={() => {
+                setEditingDraft(content);
+                setEditing((v) => !v);
+              }}
+              aria-label="Edit post"
+              className={`px-2 text-sm transition-colors ${
+                editing ? "text-gold-500" : "text-gray-300 hover:text-gold-500"
+              }`}
+              title="Edit post"
+            >
+              ✎
+            </button>
+            <button onClick={removePost} aria-label="Delete post" className="text-gray-300 hover:text-red-500 px-2 text-lg" title="Delete post">            ×
+            </button>
+          </>
+        )}
+        {meId && meId !== post.author.id && (
+          <ReportButton targetType="POST" targetId={post.id} />
         )}
       </div>
 
-      {post.content && (
+      {editing ? (
+        <div className="px-4 pb-1">
+          <textarea
+            value={editingDraft}
+            onChange={(e) => setEditingDraft(e.target.value)}
+            rows={3}
+            autoFocus
+            className="w-full rounded-xl border border-[var(--border-subtle)] px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-gold-300 bg-[var(--surface)]"
+          />
+          <div className="flex items-center gap-2 mt-1">
+            <button
+              onClick={saveEdit}
+              disabled={!editingDraft.trim()}
+              className="btn-primary px-3 py-1 text-xs"
+            >
+              Save
+            </button>
+            <button
+              onClick={() => {
+                setEditing(false);
+                setEditingDraft(content);
+              }}
+              className="btn-ghost px-3 py-1 text-xs"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        content && (
         <p className="px-4 pb-1 whitespace-pre-wrap break-words text-slate-800 dark:text-slate-200">
-          {renderContent(post.content)}
+          {renderContent(content)}
         </p>
+        )
       )}
 
       <div className="px-4">

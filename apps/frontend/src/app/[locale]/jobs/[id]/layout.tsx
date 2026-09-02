@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { cache } from "react";
 import { languageAlternates, getSiteUrl } from "@/lib/site";
+import { getApiBase } from "@/lib/apiBase";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+const API_BASE = getApiBase();
 
 type Props = {
   children: React.ReactNode;

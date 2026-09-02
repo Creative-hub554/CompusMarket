@@ -1,0 +1,38 @@
+# Debug/dev overlay for the Khmer Online Shop monorepo.
+#
+# Inherits the full stack from compose.yaml and overrides the frontend + backend
+# to run with the Node.js inspector attached (see ports 9229 frontend / 9228 backend)
+# and hot-reload-friendly settings. Useful for remote debugging a running container.
+#
+#   docker compose -f compose.debug.yaml up -d --build
+#
+# Then attach your debugger to:
+#   frontend: chrome://inspect  ->  localhost:9229
+#   backend : chrome://inspect  ->  localhost:9228
+
+include:
+  - compose.yaml
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    environment:
+      NODE_ENV: development
+      NEXT_TELEMETRY_DISABLED: "1"
+      NODE_OPTIONS: --inspect=0.0.0.0:9229
+    ports:
+      - "3000:3000"
+      - "9229:9229"
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    environment:
+      NODE_ENV: development
+      NODE_OPTIONS: --inspect=0.0.0.0:9228
+    ports:
+      - "4000:4000"
+      - "9228:9228"

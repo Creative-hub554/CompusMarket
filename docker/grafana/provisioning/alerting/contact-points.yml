@@ -1,0 +1,20 @@
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: ops-email
+    receivers:
+      - uid: ops-email-receiver
+        type: email
+        settings:
+          addresses: ops@example.com
+          singleEmail: false
+        disableResolveMessage: false
+
+policies:
+  - orgId: 1
+    receiver: ops-email
+    group_by: ["alertname", "job"]
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 4h

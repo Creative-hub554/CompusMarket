@@ -173,7 +173,7 @@ pnpm --filter admin dev --port 3001 # http://localhost:3001
 ## Environment Variables (.env)
 
 ### Backend (`apps/backend/.env`)
-- `DATABASE_URL` - SQLite: `file:./dev.db`
+- `DATABASE_URL` - PostgreSQL: `postgresql://postgres:postgres@localhost:5432/khmeronlineshop`
 - `AUTH_SECRET` - NextAuth encryption key
 - `JWT_SECRET` - Backend JWT signing key
 - `PORT` - Server port (default 4000)
@@ -182,13 +182,13 @@ pnpm --filter admin dev --port 3001 # http://localhost:3001
 - `OPENAI_API_KEY` - OpenAI key for AI features (optional)
 
 ### Frontend (`apps/frontend/.env`)
-- `DATABASE_URL` - SQLite path for direct DB access (used in API routes)
+- `DATABASE_URL` - PostgreSQL for direct DB access (used in API routes)
 - `AUTH_SECRET` / `NEXTAUTH_SECRET` - Auth encryption key
 - `AUTH_URL` / `NEXTAUTH_URL` - Public URL (default: `http://localhost:3000`)
 - `OPENAI_API_KEY` - OpenAI key for AI features (optional)
 
 ### Admin (`apps/admin/.env`)
-- `DATABASE_URL` - SQLite path for direct DB access
+- `DATABASE_URL` - PostgreSQL for direct DB access
 - `AUTH_SECRET` / `NEXTAUTH_SECRET` - Auth encryption key
 - `NEXT_PUBLIC_API_URL` - Backend API URL (default: `http://localhost:4000/api`)
 - `OPENAI_API_KEY` - OpenAI key for AI features (optional)

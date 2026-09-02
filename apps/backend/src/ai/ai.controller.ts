@@ -1,5 +1,6 @@
-import { Controller, Get, Post, Body, UseGuards } from "@nestjs/common";
-import { AiService, AssistantProduct } from "./ai.service";
+import { Controller, Get, Post, Body, Req, UseGuards, ForbiddenException, ServiceUnavailableException } from "@nestjs/common";
+import { AiService, AssistantProduct, SellerInsightsPayload } from "./ai.service";
+import { PrismaService } from "../prisma/prisma.service";
 import { AuthGuard } from "@nestjs/passport";
 import { RolesGuard } from "../auth/roles.guard";
 import { Roles } from "../auth/roles.decorator";
@@ -11,11 +12,15 @@ import { CoverLetterDto } from "./dto/cover-letter.dto";
 import { CreateAssistantProductDto } from "./dto/create-assistant-product.dto";
 import { CreateAssistantCareerDto } from "./dto/create-assistant-career.dto";
 import { CreateAssistantChatDto } from "./dto/create-assistant-chat.dto";
+import { SellerInsightsDto } from "./dto/seller-insights.dto";
 
 @Controller("ai")
 @UseGuards(new RateLimitGuard(20, 60))
 export class AiController {
-  constructor(private readonly aiService: AiService) {}
+  constructor(
+    private readonly aiService: AiService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   @Get("status")
   status() {
@@ -85,5 +90,85 @@ export class AiController {
   @UseGuards(AuthGuard("jwt"))
   coverLetter(@Body() body: CoverLetterDto) {
     return this.aiService.generateCoverLetter(body.fullName, body.targetRole, body.company, body.skills, body.experience);
+  }
+
+  /**
+   * Sales / stock intelligence for the authenticated seller, computed
+   * server-side from their OWN data only. Requires an approved seller profile.
+   */
+  @Post("seller-insights")
+  @UseGuards(AuthGuard("jwt"))
+  async sellerInsights(@Req() req: { user: { userId: string } }, @Body() body: SellerInsightsDto) {
+    const profile = await this.prisma.sellerProfile.findUnique({
+      where: { userId: req.user.userId },
+      select: { id: true, verificationStatus: true },
+    });
+    if (!profile || profile.verificationStatus !== "APPROVED") {
+      throw new ForbiddenException("An approved seller profile is required");
+    }
+
+    const [products, items] = await Promise.all([
+      this.prisma.product.findMany({
+        where: { sellerId: profile.id },
+        select: { id: true, name: true, stock: true, status: true },
+      }),
+      this.prisma.orderItem.findMany({
+        where: { product: { sellerId: profile.id } },
+        select: {
+          orderId: true,
+          productId: true,
+          quantity: true,
+          price: true,
+          order: { select: { status: true } },
+        },
+      }),
+    ]);
+
+    const productCount = products.length;
+    const activeCount = products.filter((p) => p.status === "ACTIVE").length;
+    const lowStockCount = products.filter((p) => p.stock < 3).length;
+    const totalStock = products.reduce((sum, p) => sum + p.stock, 0);
+
+    const soldLines = items.filter((i) => i.order.status !== "CANCELLED");
+    const revenue = soldLines.reduce((sum, i) => sum + Number(i.price) * i.quantity, 0);
+    const orderIds = new Set(soldLines.map((i) => i.orderId));
+    const orderCount = orderIds.size;
+
+    const statusBreakdown: Record<string, number> = {};
+    for (const orderId of orderIds) {
+      const status = soldLines.find((i) => i.orderId === orderId)?.order.status;
+      if (status) statusBreakdown[status] = (statusBreakdown[status] ?? 0) + 1;
+    }
+
+    const byProduct = new Map<string, { name: string; sold: number }>();
+    for (const i of soldLines) {
+      const entry = byProduct.get(i.productId) ?? { name: "", sold: 0 };
+      const product = products.find((p) => p.id === i.productId);
+      entry.name = product?.name ?? entry.name;
+      entry.sold += i.quantity;
+      byProduct.set(i.productId, entry);
+    }
+    let topProduct: { name: string; sold: number } | null = null;
+    for (const entry of byProduct.values()) {
+      if (!topProduct || entry.sold > topProduct.sold) topProduct = entry;
+    }
+
+    const insights: SellerInsightsPayload = {
+      productCount,
+      activeCount,
+      lowStockCount,
+      totalStock,
+      orderCount,
+      revenue,
+      avgOrderValue: orderCount > 0 ? revenue / orderCount : 0,
+      statusBreakdown,
+      topProduct,
+    };
+
+    const text = await this.aiService.generateSellerInsights(insights, body.lang ?? "en");
+    if (!text) {
+      throw new ServiceUnavailableException("AI insights are unavailable right now.");
+    }
+    return { insights, text };
   }
 }

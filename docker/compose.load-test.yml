@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  k6:
+    image: grafana/k6:0.50.0
+    volumes:
+      - ./load-test.js:/scripts/load-test.js:ro
+    environment:
+      - BASE_URL=http://frontend:3000
+      - API_URL=http://backend:4000/api
+      - K6_OUT=json=/results/summary.json
+    command: run --out json=/results/summary.json /scripts/load-test.js
+    network_mode: "host"
+    depends_on:
+      - frontend
+      - backend
+
+  k6-results:
+    image: alpine:3.20
+    volumes:
+      - ./load-test-results:/results
+    command: |
+      sh -c "
+        while [ ! -f /results/summary.json ]; do sleep 1; done
+        cat /results/summary.json | jq -r '.metrics | to_entries[] | "\(.key): \(.value.values | to_entries[] | "\(.key)=\(.value)")"'
+      "
+    depends_on:
+      - k6

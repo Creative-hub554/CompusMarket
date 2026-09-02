@@ -9,6 +9,7 @@ import { useRouter } from "@/i18n/navigation";
 import { useSession } from "next-auth/react";
 import { Avatar } from "@/components/social/Avatar";
 import { uploadFile } from "@/lib/social";
+import { Eye, EyeOff } from "lucide-react";
 
 type Me = {
   id: string;
@@ -28,6 +29,16 @@ export default function EditProfilePage() {
   const [bio, setBio] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState<{
+    kind: "error" | "success";
+    text: string;
+  } | null>(null);
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -85,6 +96,39 @@ export default function EditProfilePage() {
       }
     } catch {
       toast.error("Upload failed. Is storage running?");
+    }
+  }
+
+  async function changePassword() {
+    setPasswordMessage(null);
+    if (newPassword.length < 8) {
+      setPasswordMessage({ kind: "error", text: "Password must be at least 8 characters" });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordMessage({ kind: "error", text: "Passwords do not match" });
+      return;
+    }
+    setChangingPassword(true);
+    try {
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setPasswordMessage({ kind: "error", text: body.error || "Could not change password" });
+        return;
+      }
+      setPasswordMessage({ kind: "success", text: "Password changed. Other sessions have been signed out." });
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch {
+      setPasswordMessage({ kind: "error", text: "Something went wrong" });
+    } finally {
+      setChangingPassword(false);
     }
   }
 
@@ -176,6 +220,79 @@ export default function EditProfilePage() {
         >
           {saving ? "Saving…" : "Save changes"}
         </button>
+      </div>
+
+      <div className="mt-10 rounded-2xl border border-[var(--border-subtle)] p-6">
+        <h2 className="text-lg font-bold mb-1">Change password</h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">
+          Enter your current password, then a new one.
+        </p>
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">
+              Current password
+            </label>
+            <input
+              type="password"
+              autoComplete="current-password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              className="w-full border border-[var(--border-subtle)] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gold-300"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">
+              New password
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full border border-[var(--border-subtle)] rounded-xl px-3 py-2 pr-11 focus:outline-none focus:ring-2 focus:ring-gold-300"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              >
+                {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+              </button>
+            </div>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">
+              Confirm new password
+            </label>
+            <input
+              type="password"
+              autoComplete="new-password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full border border-[var(--border-subtle)] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gold-300"
+            />
+          </div>
+          {passwordMessage && (
+            <p
+              className={
+                passwordMessage.kind === "error"
+                  ? "text-sm text-red-600"
+                  : "text-sm text-green-600"
+              }
+            >
+              {passwordMessage.text}
+            </p>
+          )}
+          <button
+            onClick={changePassword}
+            disabled={changingPassword}
+            className="w-full bg-slate-900 text-white rounded-xl py-3 font-semibold hover:bg-gold-700 disabled:opacity-50 transition-colors dark:bg-slate-100 dark:text-slate-900"
+          >
+            {changingPassword ? "Updating…" : "Update password"}
+          </button>
+        </div>
       </div>
     </div>
   );

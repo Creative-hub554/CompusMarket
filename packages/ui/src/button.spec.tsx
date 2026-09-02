@@ -6,7 +6,8 @@ describe("Button", () => {
   it("renders children with the primary variant classes", () => {
     render(<Button>Save</Button>);
     const btn = screen.getByRole("button", { name: "Save" });
-    expect(btn.className).toContain("bg-slate-900");
+    expect(btn.className).toContain("bg-gradient-to-r");
+    expect(btn.className).toContain("from-gold");
   });
 
   it("applies a custom className", () => {

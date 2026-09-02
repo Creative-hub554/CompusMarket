@@ -1,0 +1,51 @@
+# --- Dependencies / build artifacts ---
+**/node_modules
+node_modules/
+**/.pnpm-store
+.pnpm-store/
+pnpm-store/
+**/*.tsbuildinfo
+**/.next
+**/dist
+**/out
+**/build
+**/coverage
+**/.turbo
+.turbo/
+
+# --- VCS / tooling ---
+**/.git
+.git/
+.gitignore
+**/.vscode
+**/.idea
+**/.github
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# --- Environment / secrets ---
+**/.env
+.env
+.env.*
+!*.example
+
+# --- Docs (not needed in build context) ---
+**/*.md
+docs/
+README.md
+
+# --- Dev-specific heavy/tooling dirs (never part of an image build) ---
+DockerDesktopWSL/
+.worktrees/
+.opencode/
+.ori/
+.slim/
+interview/
+rtk-x86_64-pc-windows-msvc/
+*.pdf
+*.zip
+*.patch
+*.winget

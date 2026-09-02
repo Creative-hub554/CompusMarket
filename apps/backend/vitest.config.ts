@@ -6,6 +6,5 @@ export default defineConfig({
     environment: "node",
     include: ["src/**/*.spec.ts"],
     exclude: ["src/**/*.e2e-spec.ts"],
-    root: ".",
   },
 });

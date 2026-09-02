@@ -27,6 +27,9 @@ import { QuizzesModule } from "./quizzes/quizzes.module";
 import { NotesModule } from "./notes/notes.module";
 import { JobsModule } from "./jobs/jobs.module";
 import { HealthModule } from "./health/health.module";
+import { MetricsModule } from "./metrics/metrics.module";
+import { ReportsModule } from "./reports/reports.module";
+import { SentryModule } from "./sentry/sentry.module";
 
 @Module({
   imports: [
@@ -53,6 +56,9 @@ SearchModule,
     NotesModule,
     JobsModule,
     HealthModule,
+    MetricsModule,
+    ReportsModule,
+    SentryModule,
   ],
   controllers: [AppController],
   providers: [

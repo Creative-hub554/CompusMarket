@@ -2,18 +2,24 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "@/i18n/navigation";
+import { useRouter, usePathname } from "@/i18n/navigation";
 import { Link } from "@/i18n/navigation";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, MailCheck, ExternalLink } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const locale = /^\/(en|km)\b/.test(pathname) ? pathname.split("/")[1] : "km";
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [verification, setVerification] = useState<{
+    sent: boolean;
+    devUrl?: string;
+  } | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -24,7 +30,7 @@ export default function RegisterPage() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, name }),
+        body: JSON.stringify({ email, password, name, locale }),
       });
 
       if (!res.ok) {
@@ -33,6 +39,9 @@ export default function RegisterPage() {
         return;
       }
 
+      const data = await res.json();
+      setVerification(data.verification || null);
+
       const result = await signIn("credentials", {
         email,
         password,
@@ -40,9 +49,6 @@ export default function RegisterPage() {
       });
       if (result?.error) {
         setError("Account created. Please sign in.");
-      } else {
-        router.push("/");
-        router.refresh();
       }
     } catch {
       setError("Something went wrong");
@@ -62,12 +68,51 @@ export default function RegisterPage() {
               champey
             </span>
           </Link>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            Create Account
-          </h1>
+          {verification ? (
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+              Verify your email
+            </h1>
+          ) : (
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+              Create Account
+            </h1>
+          )}
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {verification ? (
+          <div className="space-y-4">
+            <div className="text-center space-y-3">
+              <MailCheck className="mx-auto text-green-600" size={40} />
+              <p className="text-sm text-slate-600 dark:text-slate-300">
+                We sent a verification email to <strong>{email}</strong>. Check
+                your inbox to finish setting up your account
+                {verification.sent ? "." : " once the mail server is configured."}
+              </p>
+              {verification.devUrl && (
+                <p className="text-xs bg-slate-100 dark:bg-slate-800 rounded-lg p-3 break-all text-slate-500">
+                  Development link (no mail server configured):{" "}
+                  <a
+                    href={verification.devUrl}
+                    className="inline-flex items-center gap-1 text-gold-600 dark:text-gold-400 font-medium hover:underline"
+                  >
+                    Verify email <ExternalLink size={12} />
+                  </a>
+                </p>
+              )}
+            </div>
+            <button
+              onClick={() => {
+                router.push("/");
+                router.refresh();
+              }}
+              className="btn-primary w-full py-2.5 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              Continue to homepage
+            </button>
+          </div>
+        ) : (
+          <>
+          <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <p className="text-sm text-red-600 bg-red-50 dark:bg-red-950/50 rounded-lg px-4 py-2.5 text-center animate-slide-down">
               {error}
@@ -144,17 +189,19 @@ export default function RegisterPage() {
           >
             {loading ? "Creating account..." : "Create Account"}
           </button>
-        </form>
+          </form>
 
-        <p className="text-sm text-slate-500 dark:text-slate-400 text-center mt-6">
-          Already have an account?{" "}
-          <Link
-            href="/login"
-            className="text-gold-600 dark:text-gold-400 font-medium hover:underline"
-          >
-            Sign in
-          </Link>
-        </p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 text-center mt-6">
+            Already have an account?{" "}
+            <Link
+              href="/login"
+              className="text-gold-600 dark:text-gold-400 font-medium hover:underline"
+            >
+              Sign in
+            </Link>
+          </p>
+          </>
+          )}
       </div>
     </div>
   );

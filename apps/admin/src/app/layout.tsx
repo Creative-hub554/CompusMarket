@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { SessionProvider } from "./SessionProvider";
+import { SentryInit } from "../components/SentryInit";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -22,6 +23,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen bg-white text-gray-900 antialiased">
         <SessionProvider>{children}</SessionProvider>
+        <SentryInit />
       </body>
     </html>
   );

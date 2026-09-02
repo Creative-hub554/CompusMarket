@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import path from "path";
 
 const minioHost = `${process.env.MINIO_ENDPOINT || "localhost"}:${
   process.env.MINIO_PORT || "9000"
@@ -7,6 +8,9 @@ const minioHost = `${process.env.MINIO_ENDPOINT || "localhost"}:${
 const minioProtocol = process.env.MINIO_USE_SSL === "true" ? "https" : "http";
 
 const nextConfig: NextConfig = {
+  // Standalone output + monorepo tracing root are required for a lean Docker image.
+  output: "standalone",
+  outputFileTracingRoot: path.join(__dirname, "../../"),
   transpilePackages: ["@react-pdf/renderer", "@theo/ui"],
   images: {
     // Allow-list only: localhost dev servers and the MinIO upload endpoint.

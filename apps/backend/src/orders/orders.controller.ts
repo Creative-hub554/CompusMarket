@@ -51,6 +51,12 @@ export class OrdersController {
     return order;
   }
 
+  @Patch(":id/cancel")
+  @UseGuards(AuthGuard("jwt"))
+  cancel(@Req() req: { user: { userId: string } }, @Param("id") id: string) {
+    return this.ordersService.cancelMine(id, req.user.userId);
+  }
+
   @Patch(":id/status")
   @UseGuards(AuthGuard("jwt"), RolesGuard)
   @Roles("ADMIN")

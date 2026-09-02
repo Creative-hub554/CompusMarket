@@ -124,10 +124,45 @@ export class OrdersService {
         `Invalid order status transition: ${order.status} -> ${status}`,
       );
     }
-    return this.prisma.order.update({
+    return this.prisma.$transaction(async (tx) => {
+      if (status === OrderStatus.CANCELLED) {
+        await this.restoreStockAndWarranties(tx, order.items);
+      }
+      return tx.order.update({
+        where: { id },
+        data: { status },
+        include: { items: { include: { product: true } } },
+      });
+    });
+  }
+
+  /**
+   * A buyer can cancel their own order while it is still cancellable
+   * (PENDING or PROCESSING). Stock is released back to the inventory and
+   * associated warranties are voided in the same transaction.
+   */
+  async cancelMine(id: string, userId: string) {
+    const order = await this.prisma.order.findUnique({
       where: { id },
-      data: { status },
       include: { items: { include: { product: true } } },
+    });
+    if (!order) throw new NotFoundException("Order not found");
+    if (order.userId !== userId) {
+      throw new ForbiddenException("You can only cancel your own order");
+    }
+    const allowed = ORDER_TRANSITIONS[order.status] ?? [];
+    if (!allowed.includes(OrderStatus.CANCELLED)) {
+      throw new BadRequestException(
+        `Order in state ${order.status} can no longer be cancelled`,
+      );
+    }
+    return this.prisma.$transaction(async (tx) => {
+      await this.restoreStockAndWarranties(tx, order.items);
+      return tx.order.update({
+        where: { id },
+        data: { status: OrderStatus.CANCELLED },
+        include: { items: { include: { product: true } } },
+      });
     });
   }
 
@@ -160,17 +195,53 @@ export class OrdersService {
     }
 
     const itemStatus =
-      status === OrderStatus.DELIVERED ? OrderItemStatus.DELIVERED : OrderItemStatus.SHIPPED;
+      status === OrderStatus.DELIVERED
+        ? OrderItemStatus.DELIVERED
+        : status === OrderStatus.CANCELLED
+          ? OrderItemStatus.CANCELLED
+          : OrderItemStatus.SHIPPED;
 
-    await this.prisma.orderItem.updateMany({
-      where: { id: { in: ownedItemIds } },
-      data: { status: itemStatus },
-    });
+    return this.prisma.$transaction(async (tx) => {
+      if (status === OrderStatus.CANCELLED && ownedItemIds.length > 0) {
+        await this.restoreStockAndWarranties(
+          tx,
+          order.items.filter((item) => ownedItemIds.includes(item.id)),
+        );
+      }
+      await tx.orderItem.updateMany({
+        where: { id: { in: ownedItemIds } },
+        data: { status: itemStatus },
+      });
 
-    return this.prisma.order.update({
-      where: { id },
-      data: { status },
-      include: { items: { include: { product: true } } },
+      const orderStatus =
+        status === OrderStatus.CANCELLED &&
+        order.items.some((item) => !ownedItemIds.includes(item.id))
+          ? order.status
+          : status;
+
+      return tx.order.update({
+        where: { id },
+        data: { status: orderStatus },
+        include: { items: { include: { product: true } } },
+      });
     });
+  }
+
+  /** Releases stock and voids warranties for the given order items. */
+  private async restoreStockAndWarranties(
+    tx: Prisma.TransactionClient,
+    items: { productId: string; quantity: number; id: string }[],
+  ) {
+    for (const item of items) {
+      if (!item.productId || item.quantity <= 0) continue;
+      await tx.product.updateMany({
+        where: { id: item.productId },
+        data: { stock: { increment: item.quantity } },
+      });
+    }
+    const orderItemIds = items.map((item) => item.id);
+    if (orderItemIds.length > 0) {
+      await tx.warranty.deleteMany({ where: { orderItemId: { in: orderItemIds } } });
+    }
   }
 }

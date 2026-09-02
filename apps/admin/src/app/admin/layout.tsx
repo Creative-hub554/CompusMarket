@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { usePathname } from "next/navigation";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard" },
@@ -15,6 +16,7 @@ const NAV_ITEMS = [
   { href: "/admin/support", label: "Support" },
   { href: "/admin/users", label: "Users" },
   { href: "/admin/moderation", label: "Moderation" },
+  { href: "/admin/reports", label: "Reports" },
 ];
 
 export default function AdminLayout({
@@ -23,14 +25,37 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const [navOpen, setNavOpen] = useState(false);
+  const pathname = usePathname();
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+
+  const closeDrawer = useCallback(() => setNavOpen(false), []);
+
+  useEffect(() => {
+    if (!navOpen) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") closeDrawer();
+    }
+    document.addEventListener("keydown", onKeyDown);
+    closeRef.current?.focus();
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [navOpen, closeDrawer]);
+
+  const isActive = (href: string) =>
+    href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
 
   const nav = (
-    <nav className="flex items-center gap-1 overflow-x-auto">
+    <nav aria-label="Admin navigation" className="flex items-center gap-1 overflow-x-auto">
       {NAV_ITEMS.map((item) => (
         <Link
           key={item.href}
           href={item.href}
-          className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+          aria-current={isActive(item.href) ? "page" : undefined}
+          className={`whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+            isActive(item.href)
+              ? "bg-indigo-50 text-indigo-700 font-semibold"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+          }`}
         >
           {item.label}
         </Link>
@@ -73,6 +98,7 @@ export default function AdminLayout({
           <div className="hidden md:block ml-4 flex-1 min-w-0">{nav}</div>
           <Link
             href="/"
+            aria-label="Return to public site"
             className="ml-auto text-xs font-medium text-slate-500 hover:text-slate-900 transition-colors shrink-0"
           >
             &larr; Back to site
@@ -82,18 +108,20 @@ export default function AdminLayout({
 
       {/* Mobile drawer */}
       {navOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label="Navigation menu">
           <div
             className="absolute inset-0 bg-black/20"
-            onClick={() => setNavOpen(false)}
+            onClick={closeDrawer}
+            aria-hidden="true"
           />
-          <div className="absolute left-0 top-0 h-full w-64 bg-white shadow-xl p-4">
+          <div ref={drawerRef} className="absolute left-0 top-0 h-full w-64 bg-white shadow-xl p-4">
             <div className="flex items-center justify-between mb-4">
               <span className="font-extrabold tracking-tight text-slate-900">
                 KHMER<span className="text-indigo-600">SHOP</span>
               </span>
               <button
-                onClick={() => setNavOpen(false)}
+                ref={closeRef}
+                onClick={closeDrawer}
                 className="p-1 rounded-lg hover:bg-slate-100"
                 aria-label="Close navigation"
               >
@@ -112,20 +140,22 @@ export default function AdminLayout({
                 </svg>
               </button>
             </div>
-            <div
-              className="flex flex-col gap-1"
-              onClick={() => setNavOpen(false)}
-            >
+            <nav aria-label="Admin navigation" className="flex flex-col gap-1" onClick={closeDrawer}>
               {NAV_ITEMS.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                  aria-current={isActive(item.href) ? "page" : undefined}
+                  className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                    isActive(item.href)
+                      ? "bg-indigo-50 text-indigo-700 font-semibold"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                  }`}
                 >
                   {item.label}
                 </Link>
               ))}
-            </div>
+            </nav>
           </div>
         </div>
       )}

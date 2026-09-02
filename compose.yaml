@@ -1,0 +1,196 @@
+# Canonical docker compose for the Khmer Online Shop monorepo.
+#
+#   docker compose up -d --build        # full stack (storefront + admin + api + infra)
+#
+# Adds optional profiles (see also docker/compose.prod.yml for production):
+#   docker compose --profile monitoring up -d
+#   docker compose --profile backup up -d
+#
+# Secrets are loaded from ./.env (copy .env.example) and docker/.env for infra.
+
+name: champey
+
+services:
+
+  # ---- Infrastructure ---------------------------------------------------
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: theo_platform
+      POSTGRES_USER: theo
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    expose:
+      - "5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U theo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    expose:
+      - "9000"
+      - "9001"
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    expose:
+      - "6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.6
+    environment:
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
+    expose:
+      - "7700"
+    volumes:
+      - meili_data:/meili_data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:7700/health | grep -q available"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---- Apps -------------------------------------------------------------
+
+  # One-off init: applies the Prisma schema (db push) and dumps the idempotent
+  # demo seed, then exits. Runs before the backend to guarantee tables exist.
+  backend-db-init:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+      target: db-init
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://theo:${POSTGRES_PASSWORD}@postgres:5432/theo_platform
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
+    restart: "no"
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+      target: runner
+    depends_on:
+      postgres:
+        condition: service_healthy
+      backend-db-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      meilisearch:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://theo:${POSTGRES_PASSWORD}@postgres:5432/theo_platform
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      MEILI_HOST: http://meilisearch:7700
+      MEILI_API_KEY: ${MEILI_MASTER_KEY}
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_USE_SSL: "false"
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      MINIO_BUCKET: ${MINIO_BUCKET:-khmeronlineshopbytheo}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000,http://localhost:3001}
+      AUTH_SECRET: ${AUTH_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      AI_MODEL: ${AI_MODEL}
+      AI_FALLBACK_MODELS: ${AI_FALLBACK_MODELS}
+      AI_BASE_URL: ${AI_BASE_URL}
+      METRICS_ENABLED: "true"
+      SENTRY_DSN: ${SENTRY_DSN:-}
+    ports:
+      - "4000:4000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4000/api/health/live || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://theo:${POSTGRES_PASSWORD}@postgres:5432/theo_platform
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+      NEXTAUTH_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+      AUTH_SECRET: ${AUTH_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  admin:
+    build:
+      context: .
+      dockerfile: apps/admin/Dockerfile
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://theo:${POSTGRES_PASSWORD}@postgres:5432/theo_platform
+      NEXTAUTH_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+      AUTH_SECRET: ${AUTH_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  minio_data:
+  redis_data:
+  meili_data:

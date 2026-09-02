@@ -11,6 +11,7 @@ import { Toaster } from "@/components/ui/toast";
 import SessionWrapper from "@/components/SessionWrapper";
 import { AiAssistant } from "@/components/ai/AiAssistant";
 import { ChatDockProvider } from "@/components/chat/ChatDock";
+import { SentryInit } from "@/components/SentryInit";
 import { OrganizationJsonLd } from "@/components/OrganizationJsonLd";
 import { SITE_NAME, SITE_DESCRIPTION, getSiteUrl, languageAlternates } from "@/lib/site";
 import "../globals.css";
@@ -99,9 +100,8 @@ export default async function LocaleLayout({ children, params }: Props) {
                 <Footer />
                 <AiAssistant />
                 <ChatDockProvider />
-
-
-            </NextIntlClientProvider>
+                <SentryInit />
+              </NextIntlClientProvider>
           </SessionWrapper>
         </ThemeProvider>
       </body>

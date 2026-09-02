@@ -26,6 +26,18 @@ export interface SearchSpec {
   condition?: "A" | "B" | "C";
 }
 
+export interface SellerInsightsPayload {
+  productCount: number;
+  activeCount: number;
+  lowStockCount: number;
+  totalStock: number;
+  orderCount: number;
+  revenue: number;
+  avgOrderValue: number;
+  statusBreakdown: Record<string, number>;
+  topProduct: { name: string; sold: number } | null;
+}
+
 export type AgentTool = {
   type: "function";
   function: {
@@ -467,6 +479,41 @@ Return only valid JSON.`;
     } catch (e) {
       this.logger.error("Assistant product search failed", e);
       return [];
+    }
+  }
+
+  async generateSellerInsights(
+    insights: SellerInsightsPayload,
+    lang: string = "en",
+  ): Promise<string | null> {
+    if (!this.isAvailable()) return null;
+
+    const language = LANGUAGE_LABELS[lang] ?? "English";
+    const prompt = `You are a practical business analyst for a seller on Champey, a Cambodian online marketplace. From the concrete dashboard numbers below, write 4-6 short observations and one concrete recommended next action for each.
+
+Dashboard (JSON):
+${JSON.stringify(insights, null, 2)}
+
+Rules:
+- Respond in ${language}.
+- Plain text, no markdown. Use numbered points ("1. …"). Keep every point to 1-2 sentences.
+- Only reference numbers actually present. Never invent metrics, products or prices.
+- Be specific: name the top selling product if there is one, flag low-stock or inactive listings, point out any cancelled orders or delivery bottlenecks.`;
+
+    try {
+      const response = await this.chatWithRetry(
+        {
+          model: this.model,
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: 900,
+          temperature: 0.6,
+        },
+        (r) => !!r.choices[0]?.message?.content?.trim(),
+      );
+      return response.choices[0]?.message?.content?.trim() || null;
+    } catch (e) {
+      this.logger.error("Seller insights generation failed", e);
+      return null;
     }
   }
 

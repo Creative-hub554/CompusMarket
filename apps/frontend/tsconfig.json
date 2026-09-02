@@ -38,6 +38,8 @@
     "node_modules",
     "**/*.test.ts",
     "**/*.test.tsx",
-    "**/*.spec.ts"
+    "**/*.spec.ts",
+    "e2e/**/*",
+    "playwright.config.ts"
   ]
 }

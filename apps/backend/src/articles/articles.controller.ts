@@ -4,6 +4,7 @@ import {
   Post,
   Body,
   Patch,
+  Delete,
   Param,
   UseGuards,
   Req,
@@ -63,5 +64,12 @@ export class ArticlesController {
     @Body() body: UpdateArticleDto
   ) {
     return this.articlesService.update(id, body);
+  }
+
+  @Delete(":id")
+  @UseGuards(AuthGuard("jwt"), RolesGuard)
+  @Roles("ADMIN", "CONTENT_EDITOR")
+  remove(@Param("id") id: string) {
+    return this.articlesService.remove(id);
   }
 }

@@ -1,0 +1,16 @@
+fail-on-severity: high
+allow-ghsas:
+  - GHSA-ggr8-5vv4-36mx  # deepmerge-ts (via Prisma)
+  - GHSA-x445-f3h2-j279  # @auth/core (via next-auth)
+  - GHSA-qx2v-qp2m-jg93  # postcss (transitive via Next.js)
+  - GHSA-3p4h-7m6x-2hcm  # multer (via NestJS)
+  - GHSA-fxqj-rqcc-2cmp  # postcss (transitive)
+  - GHSA-55q2-fjhq-7xh7  # dompurify (via mermaid)
+  - GHSA-vcc3-ghjq-m6fr  # decode-uri-component (via minio)
+  - GHSA-rgw5-rvv9-x895  # brace-expansion
+  - GHSA-5p4m-2wfm-xmqj  # js-yaml
+  - GHSA-28wg-ghj8-5hjv  # nanoid
+  - GHSA-r28c-9q8g-f849  # postcss
+  - GHSA-8r6m-32jq-jx6q  # fast-xml-parser
+  - GHSA-xmf8-cvqr-rfgj  # @auth/core
+  - GHSA-ggr8-5vv4-36mx  # deepmerge-ts

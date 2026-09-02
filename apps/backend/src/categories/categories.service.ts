@@ -22,6 +22,10 @@ export class CategoriesService {
     });
   }
 
+  async update(id: string, data: Partial<Pick<Category, "name" | "slug">>): Promise<Category> {
+    return this.prisma.category.update({ where: { id }, data });
+  }
+
   async remove(id: string): Promise<Category> {
     return this.prisma.category.delete({ where: { id } });
   }

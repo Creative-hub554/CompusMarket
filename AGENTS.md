@@ -67,7 +67,6 @@ Backend modules: `auth`, `products`, `orders`, `cart`, `categories`, `search`, `
 - **Vitest**: `next-intl` must stay in `server.deps.inline` (`vitest.config.ts`) or its ESM import of `next/navigation` fails to resolve under pnpm. Tests rendering pages that use the i18n `Link` should `vi.mock("@/i18n/navigation")` with an anchor stub.
 - Brand strings are single-sourced in `apps/frontend/src/lib/site.ts` (`SITE_NAME`, `getSiteUrl()` from `NEXT_PUBLIC_SITE_URL`) — used by metadata, JSON-LD, sitemap.
 - Tailwind v4 is CSS-first: no `tailwind.config`; tokens live in `@theme` in `src/app/globals.css`, which also `@source`s `packages/ui/src`. Shared primitives (`.btn-primary`, `.card-hover`, `.page-title`, `.input-field`, …) are hand-written utilities in that file — restyling them propagates site-wide.
-- **km.json fallback**: some new keys (market, jobs, nav) were NOT added to `km.json` to avoid garbling Khmer. They fall back to `en` via `next-intl`. This is a known follow-up — add Khmer translations when ready.
 
 ## Auth architecture
 
@@ -94,14 +93,23 @@ Shared `EventEmitter` singleton at `apps/backend/src/realtime/notification.event
 - **Backend**: `vitest`, `*.spec.ts` in `src/`, `npx vitest run`. Exclude `*.e2e-spec.ts` (separate config, 30s timeout).
 - **Frontend**: `vitest` + `@testing-library/react`, jsdom, `*.test.{ts,tsx}`.
 - Mock pattern (backend): `vi.mock("module", () => ({...}))` before imports, Prisma via `{ provide: PrismaService, useValue: mockObject }`, `vi.clearAllMocks()` in `beforeEach`.
+- **Root `vitest.config.ts` uses `projects` (workspace mode)** so each app/package runs under its own config (admin `@` alias, frontend React plugin/jsdom, backend globals). Each per-package `vitest.config.ts` must **NOT set `root: "."`** — it resolves to the repo root when loaded as a project. Remove `root` so vitest uses each config's directory as the project root.
+- The root `projects` config (`["apps/*", "packages/*"]`) auto-excludes `.worktrees/**` and `e2e/` from discovery; Playwright specs live under `apps/frontend/e2e/` and run with `npx playwright test`, not vitest.
 
 ## Environment
 
 - `.env` files are per-app (`apps/backend/.env`, `apps/frontend/.env`, `apps/admin/.env`), gitignored; root `.env.example` has the full list.
-- **Database**: `DATABASE_URL` (per-app `.env`) selects the engine; local default `file:./prisma/dev.db`, CI uses `file:./dev.db`. PostgreSQL in production.
+- **Database**: `DATABASE_URL` (per-app `.env`) selects the engine; local default `postgresql://postgres:postgres@localhost:5432/khmeronlineshop`, CI uses `postgresql://postgres:postgres@localhost:5432/theo_platform`. PostgreSQL in production.
 - **Meilisearch**: `http://localhost:7700`, master key `masterKey` (`meilisearch.exe --master-key masterKey` or `docker compose -f docker/compose.yml up -d`; copy `docker/.env.example` to `docker/.env` first — compose reads secrets from it; ports bound to `127.0.0.1`).
 - **MinIO**: :9000 (console :9001). **Redis**: `redis://localhost:6379`.
 - **Docker services are optional for dev**: the node apps run on SQLite alone; search falls back to Prisma when Meilisearch is down, but MinIO uploads fail without `MINIO_ACCESS_KEY`.
+
+## Docker builds
+
+- The canonical full-stack composition is the repo-root **`compose.yaml`** (auto-detected by `docker compose`). `docker/compose.prod.yml` is the production stack (adds monitoring/backup profiles); `docker/compose.yml` is infra-only (Postgres/MinIO/Redis/Meili) for local dev services. `compose.debug.yaml` overlays the stack with Node inspectors (frontend :9229, backend :9228). There is no repo-root `docker-compose.yml` — don't recreate it (a second root compose file triggers a Compose v2 "multiple compose files" error).
+- Each app builds via its own multi-stage Dockerfile (`apps/{backend,frontend,admin}/Dockerfile`, `turbo prune --docker` + pnpm, build context = repo root). The root `Dockerfile` builds the frontend alone (`docker build -t champey .`).
+- **`.dockerignore` must NOT exclude `**/Dockerfile*` / `**/compose*`** — removing them broke `docker build -f apps/*/Dockerfile` because Docker needs those files inside the `.` build context.
+- **`backend-db-init` one-off service**: in `compose.yaml` + `compose.prod.yml`, before the backend starts, a `db-init` target (`apps/backend/Dockerfile`) runs `prisma db push` + idempotent `prisma db seed` against PostgreSQL. Backend `depends_on: backend-db-init: service_completed_successfully`. Schema sync uses `db push` (the `migrations/` dir is empty — there are no generated migration files, so `prisma migrate deploy` is not used). Seed creates the admin (`SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD`, defaults `admin@example.com`/`change-me`) + demo categories/products.
 
 ## Code style
 
@@ -111,7 +119,7 @@ Shared `EventEmitter` singleton at `apps/backend/src/realtime/notification.event
 ## Git workflow
 
 - Conventional Commits (`fix:`, `feat:`); branches `feature/*`, `fix/*`, `refactor/*`.
-- CI (`.github/workflows/ci.yml`, pnpm 9 + Node 20): `prisma generate` → `pnpm build` → lint → `turbo run test` on PRs and pushes to `main`/`develop`. Set dummy `AUTH_SECRET`/`JWT_SECRET`/`DATABASE_URL=file:./dev.db` when running locally.
+- CI (`.github/workflows/ci.yml`, pnpm 9 + Node 20): `prisma generate` → `pnpm build` → lint → `turbo run test` on PRs and pushes to `main`/`develop`. Set dummy `AUTH_SECRET`/`JWT_SECRET`/`DATABASE_URL=postgresql://postgres:postgres@localhost:5432/theo_platform` when running locally.
 - Remote: `github.com/Creative-hub554/CompusMarket`. On this machine plain `git push` fails (blank `credential.helper` in `~/.gitconfig` disables the system credential manager) — use `git -c credential.helper=manager push`.
 - Never force-push without explicit user confirmation; `origin/main` has history that was rewritten once already.
 

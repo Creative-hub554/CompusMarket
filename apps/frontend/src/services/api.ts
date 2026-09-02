@@ -1,15 +1,72 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+import { getApiBase } from "@/lib/apiBase";
 
-async function fetchApi<T>(
+const API_BASE = getApiBase();
+
+const DEFAULT_TIMEOUT_MS = 15_000;
+const MAX_RETRIES = 2;
+
+const cache = new Map<string, { data: unknown; expiry: number }>();
+
+function cacheKey(path: string, options?: RequestInit): string | null {
+  if (options?.method && options.method !== "GET") return null;
+  const headers = options?.headers;
+  const auth = headers instanceof Headers
+    ? headers.get("Authorization") ?? ""
+    : headers?.["Authorization" as keyof typeof headers] ?? "";
+  return `${auth}:${path}`;
+}
+
+export async function fetchApi<T>(
   path: string,
-  options?: RequestInit
+  options?: RequestInit & { timeoutMs?: number; retries?: number; cacheTtlMs?: number }
 ): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: { "Content-Type": "application/json", ...options?.headers },
-    ...options,
-  });
-  if (!res.ok) throw new Error(`API error: ${res.status}`);
-  return res.json();
+  const { timeoutMs = DEFAULT_TIMEOUT_MS, retries = MAX_RETRIES, cacheTtlMs, ...fetchOptions } = options ?? {};
+  const method = fetchOptions.method ?? "GET";
+
+  if (method === "GET" && cacheTtlMs) {
+    const key = cacheKey(path, options);
+    if (key) {
+      const entry = cache.get(key);
+      if (entry && Date.now() < entry.expiry) return entry.data as T;
+    }
+  }
+
+  let lastError: Error | undefined;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(`${API_BASE}${path}`, {
+        ...fetchOptions,
+        headers: { "Content-Type": "application/json", ...fetchOptions?.headers },
+        signal: controller.signal,
+      });
+      if (!res.ok) {
+        const err = new Error(`API error: ${res.status}`) as Error & { status?: number };
+        err.status = res.status;
+        throw err;
+      }
+      const data: T = await res.json();
+      if (method === "GET" && cacheTtlMs) {
+        const key = cacheKey(path, options);
+        if (key) cache.set(key, { data, expiry: Date.now() + cacheTtlMs });
+      }
+      return data;
+    } catch (err) {
+      const isAbort = err instanceof DOMException && err.name === "AbortError";
+      if (isAbort) {
+        lastError = new Error(`Request timed out after ${timeoutMs}ms`);
+      } else {
+        lastError = err instanceof Error ? err : new Error(String(err));
+      }
+      const status = (lastError as Error & { status?: number }).status;
+      if (status !== undefined && status < 500) break;
+      if (attempt < retries) await new Promise((r) => setTimeout(r, 2 ** attempt * 300));
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  throw lastError;
 }
 
 export type Product = {

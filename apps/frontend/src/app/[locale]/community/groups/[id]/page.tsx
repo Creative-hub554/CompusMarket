@@ -481,6 +481,10 @@ export default function GroupDetailPage() {
               <PostCard
                 key={post.id}
                 post={post}
+                onDeleted={(id) => setPosts((prev) => prev.filter((p) => p.id !== id))}
+                onEdited={(updated) =>
+                  setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
+                }
                 onTogglePin={isAdmin ? (pinned) => togglePin(post) : undefined}
               />
             ))}

@@ -78,6 +78,24 @@ export default function AdminSellerDetailPage() {
     setProcessing(false);
   };
 
+  const handleDeactivate = async () => {
+    if (!confirm("This will revoke this seller's status and disable all their products. Continue?")) return;
+    setProcessing(true);
+    try {
+      const res = await fetch(`/api/admin/sellers/${id}/deactivate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes }),
+      });
+      if (!res.ok) throw new Error("Failed");
+      setSeller((prev) => prev ? { ...prev, verificationStatus: "REJECTED" } : prev);
+    } catch (err) {
+      console.error("Failed to deactivate seller:", err);
+      setError(true);
+    }
+    setProcessing(false);
+  };
+
   if (loading) return <div>Loading...</div>;
 
   if (error || !seller) {
@@ -199,6 +217,22 @@ export default function AdminSellerDetailPage() {
           <section className="border rounded-lg p-4 bg-gray-50">
             <h2 className="font-semibold mb-1">Review Notes</h2>
             <p className="text-sm text-gray-700">{seller.reviewNotes}</p>
+          </section>
+        )}
+
+        {seller.verificationStatus === "APPROVED" && (
+          <section className="border border-red-200 rounded-lg p-4 bg-red-50">
+            <h2 className="font-semibold mb-2 text-red-800">Deactivate Seller</h2>
+            <p className="text-sm text-red-600 mb-3">
+              Revoking this seller&apos;s status will downgrade their role to USER and disable all their products.
+            </p>
+            <button
+              onClick={handleDeactivate}
+              disabled={processing}
+              className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 disabled:opacity-50"
+            >
+              {processing ? "Processing..." : "Deactivate Seller"}
+            </button>
           </section>
         )}
       </div>

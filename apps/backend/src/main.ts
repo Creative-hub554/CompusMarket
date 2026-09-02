@@ -1,17 +1,16 @@
 import { config } from "dotenv";
 import { resolve } from "path";
-// The per-app .env is the source of truth: override inherited shell/user-level
-// variables so stale machine-wide placeholders (e.g. OPENROUTER_API_KEY) can't
-// shadow real local config.
-config({ path: resolve(__dirname, "../.env"), override: true });
+config({ path: resolve(__dirname, "../.env") });
 
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { ValidationPipe } from "@nestjs/common";
 import helmet from "helmet";
 import { getCorsOrigins } from "./common/config";
+import { initSentry } from "./sentry/sentry.module";
 
 async function bootstrap() {
+  initSentry();
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix("api");
 

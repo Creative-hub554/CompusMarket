@@ -10,6 +10,7 @@ describe("CategoriesService", () => {
       create: vi.fn(),
       findMany: vi.fn(),
       findUnique: vi.fn(),
+      update: vi.fn(),
       delete: vi.fn(),
       upsert: vi.fn(),
     },
@@ -78,6 +79,19 @@ describe("CategoriesService", () => {
       await service.remove("c1");
 
       expect(mockPrisma.category.delete).toHaveBeenCalledWith({ where: { id: "c1" } });
+    });
+  });
+
+  describe("update", () => {
+    it("updates only the provided fields", async () => {
+      mockPrisma.category.update.mockResolvedValue({ id: "c1", name: "Phones", slug: "phones" });
+
+      await service.update("c1", { name: "Phones" });
+
+      expect(mockPrisma.category.update).toHaveBeenCalledWith({
+        where: { id: "c1" },
+        data: { name: "Phones" },
+      });
     });
   });
 

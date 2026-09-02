@@ -1,0 +1,130 @@
+apiVersion: 1
+
+groups:
+  - name: champey.infrastructure
+    interval: 30s
+    rules:
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "{{ $labels.job }} on {{ $labels.instance }} has been down for more than 1 minute."
+
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(http_requests_total{status=~"5.."}[5m])) by (job, service)
+          /
+          sum(rate(http_requests_total[5m])) by (job, service) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate on {{ $labels.job }}"
+          description: "Error rate is above 5% for {{ $labels.job }} ({{ $value | humanizePercentage }})"
+
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job, route))
+          > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High latency on {{ $labels.job }}"
+          description: "95th percentile latency is {{ $value }}s on {{ $labels.job }} {{ $labels.route }}"
+
+      - alert: DatabaseConnectionsHigh
+        expr: |
+          pg_stat_database_numbackends / pg_settings_max_connections > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Database connections high"
+          description: "Database connection usage is above 80%"
+
+      - alert: DiskSpaceLow
+        expr: |
+          (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) < 0.15
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk space low"
+          description: "Disk space is below 15% on {{ $labels.instance }}"
+
+      - alert: MemoryUsageHigh
+        expr: |
+          (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Memory usage high"
+          description: "Memory usage is above 85% on {{ $labels.instance }}"
+
+      - alert: CPUUsageHigh
+        expr: |
+          100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU usage high"
+          description: "CPU usage is above 85% on {{ $labels.instance }}"
+
+  - name: champey.business
+    interval: 60s
+    rules:
+      - alert: LowStockProducts
+        expr: |
+          count(product_stock < 5) > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low stock products detected"
+          description: "{{ $value }} products have stock below 5"
+
+      - alert: PendingSellerApplications
+        expr: |
+          count(seller_applications_status="pending") > 5
+        for: 30m
+        labels:
+          severity: info
+        annotations:
+          summary: "Pending seller applications"
+          description: "{{ $value }} seller applications are pending review"
+
+      - alert: PendingWarrantyClaims
+        expr: |
+          count(warranty_claims_status="pending") > 10
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "High number of pending warranty claims"
+          description: "{{ $value }} warranty claims are pending"
+
+      - alert: HighOrderFailureRate
+        expr: |
+          sum(rate(orders_status="failed"[5m])) / sum(rate(orders_total[5m])) > 0.1
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High order failure rate"
+          description: "Order failure rate is above 10%"
+
+      - alert: SearchLatencyHigh
+        expr: |
+          histogram_quantile(0.95, sum(rate(search_request_duration_seconds_bucket[5m])) by (le)) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Search latency high"
+          description: "95th percentile search latency is above 1 second"

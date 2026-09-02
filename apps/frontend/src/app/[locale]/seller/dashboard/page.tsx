@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Link } from "@/i18n/navigation";
-import { useRouter } from "@/i18n/navigation";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { useSession } from "next-auth/react";
+import { Sparkles, RefreshCw } from "lucide-react";
 
 type SellerProfile = {
   id: string;
@@ -18,8 +18,13 @@ type SellerProfile = {
 export default function SellerDashboardPage() {
   const { data: session } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
+  const lang = /^\/(en|km)\b/.test(pathname) ? pathname.split("/")[1] : "km";
   const [profile, setProfile] = useState<SellerProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [insights, setInsights] = useState<string | null>(null);
+  const [insightsLoading, setInsightsLoading] = useState(false);
+  const [insightsError, setInsightsError] = useState("");
 
   useEffect(() => {
     fetch("/api/seller/apply")
@@ -30,6 +35,27 @@ export default function SellerDashboardPage() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  async function loadInsights() {
+    setInsightsError("");
+    setInsightsLoading(true);
+    try {
+      const res = await fetch("/api/seller/ai-insights", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lang }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(body.error || "Could not load insights");
+      }
+      setInsights(body.text || "");
+    } catch (e) {
+      setInsightsError(e instanceof Error ? e.message : "Could not load insights");
+    } finally {
+      setInsightsLoading(false);
+    }
+  }
 
   if (!session) {
     return (
@@ -156,6 +182,40 @@ export default function SellerDashboardPage() {
             >
               Messages
             </button>
+          </div>
+
+          <div className="bg-[var(--surface)] border rounded-lg p-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold flex items-center gap-2">
+                <Sparkles size={18} className="text-gold-600" /> AI Seller Insights
+              </h3>
+              <button
+                onClick={loadInsights}
+                disabled={insightsLoading}
+                className="inline-flex items-center gap-1.5 bg-gold-600 text-white px-4 py-1.5 rounded text-sm font-medium hover:bg-gold-700 transition-colors disabled:opacity-50"
+              >
+                <RefreshCw
+                  size={14}
+                  className={insightsLoading ? "animate-spin" : ""}
+                />
+                {insightsLoading ? "Analyzing…" : insights ? "Regenerate" : "Analyze my store"}
+              </button>
+            </div>
+            {insightsError && (
+              <p className="text-sm text-red-600 bg-red-50 dark:bg-red-950/50 rounded-lg px-3 py-2">
+                {insightsError}
+              </p>
+            )}
+            {insights ? (
+              <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
+                {insights}
+              </p>
+            ) : (
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Get actionable tips based on your stock, listings and order
+                history — generated from your own sales data.
+              </p>
+            )}
           </div>
         </div>
       )}

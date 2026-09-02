@@ -65,4 +65,10 @@ export class ArticlesService {
     if (!existing) throw new NotFoundException("Article not found");
     return this.prisma.article.update({ where: { id }, data });
   }
+
+  async remove(id: string) {
+    const existing = await this.prisma.article.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException("Article not found");
+    return this.prisma.article.delete({ where: { id } });
+  }
 }

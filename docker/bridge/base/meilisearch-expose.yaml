@@ -1,0 +1,18 @@
+#! meilisearch-expose.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: Service
+metadata:
+    name: meilisearch
+    namespace: docker
+    labels:
+        com.docker.compose.project: docker
+        com.docker.compose.service: meilisearch
+spec:
+    selector:
+        com.docker.compose.project: docker
+        com.docker.compose.service: meilisearch
+    ports:
+        - name: meilisearc-7700
+          port: 7700
+          targetPort: meilisearc-7700

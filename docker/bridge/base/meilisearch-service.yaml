@@ -1,0 +1,23 @@
+# check if there is at least one published port
+
+#! meilisearch-service.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: Service
+metadata:
+    name: meilisearch-published
+    namespace: docker
+    labels:
+        com.docker.compose.project: docker
+        com.docker.compose.service: meilisearch
+spec:
+    selector:
+        com.docker.compose.project: docker
+        com.docker.compose.service: meilisearch
+    ports:
+        - name: meilisearc-7700
+          port: 7700
+          protocol: TCP
+          targetPort: meilisearc-7700
+
+# check if there is at least one published port

@@ -13,11 +13,6 @@ import { CreateGroupDto, UpdateGroupDto } from "./dto/groups.dto";
 
 const GROUP_LIST_TAKE = 20;
 const MEMBER_PREVIEW_TAKE = 24;
-const SEARCH_SCAN_LIMIT = 200;
-
-function escapeLike(value: string): string {
-  return value.replace(/[\\%_]/g, "\\$&");
-}
 
 export interface MappedGroupSummary {
   id: string;
@@ -63,20 +58,9 @@ export class GroupsService {
     limit = GROUP_LIST_TAKE,
     query?: string
   ): Promise<{ items: MappedGroupSummary[]; nextCursor: string | null }> {
-    let where: Prisma.GroupWhereInput = {};
-    if (query) {
-      const matched = await this.prisma.$queryRaw<{ id: string }[]>`
-        SELECT "id" FROM "Group"
-        WHERE lower("name") LIKE lower(${`%${escapeLike(query)}%`}) ESCAPE '\'
-        ORDER BY "createdAt" DESC
-        LIMIT ${SEARCH_SCAN_LIMIT}`;
-      where = { id: { in: matched.map((r) => r.id) } };
-    }
-
     const groups = await this.prisma.group.findMany({
-      where,
       orderBy: { createdAt: "desc" },
-      take: query ? limit : limit + 1,
+      take: query ? 200 : limit + 1,
       ...(cursorId && !query ? { cursor: { id: cursorId }, skip: 1 } : {}),
       include: {
         _count: { select: { members: true, posts: true } },
@@ -91,8 +75,14 @@ export class GroupsService {
           : {}),
       },
     });
-    const hasMore = !query && groups.length > limit;
-    const items = groups.slice(0, limit).map((g) => this.mapSummary(g, viewerId));
+    // SQLite has no case-insensitive contains — filter in JS (group count is small).
+    const filtered = query
+      ? groups.filter((g) =>
+          g.name.toLowerCase().includes(query.toLowerCase())
+        )
+      : groups;
+    const hasMore = !query && filtered.length > limit;
+    const items = filtered.slice(0, limit).map((g) => this.mapSummary(g, viewerId));
     return { items, nextCursor: hasMore ? items[items.length - 1].id : null };
   }
 

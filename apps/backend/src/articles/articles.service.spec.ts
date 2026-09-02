@@ -12,6 +12,7 @@ describe("ArticlesService", () => {
       findMany: vi.fn(),
       findUnique: vi.fn(),
       update: vi.fn(),
+      delete: vi.fn(),
     },
   };
 
@@ -153,6 +154,24 @@ describe("ArticlesService", () => {
         data: { title: "New", published: true },
       });
       expect(result.title).toBe("New");
+    });
+  });
+
+  describe("remove", () => {
+    it("throws NotFound when the article does not exist", async () => {
+      mockPrisma.article.findUnique.mockResolvedValue(null);
+      await expect(service.remove("missing")).rejects.toBeInstanceOf(NotFoundException);
+      expect(mockPrisma.article.delete).not.toHaveBeenCalled();
+    });
+
+    it("deletes the article", async () => {
+      mockPrisma.article.findUnique.mockResolvedValue({ id: "a1" });
+      mockPrisma.article.delete.mockResolvedValue({ id: "a1" });
+
+      const result = await service.remove("a1");
+
+      expect(mockPrisma.article.delete).toHaveBeenCalledWith({ where: { id: "a1" } });
+      expect(result).toEqual({ id: "a1" });
     });
   });
 });

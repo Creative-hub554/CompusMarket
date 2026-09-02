@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -146,10 +146,16 @@ model User {
   username      String?   @unique
   bio           String?
   coverImage    String?
+  credits       Int       @default(0)
+  autoReplyEnabled Boolean @default(false)
+  autoReplyText    String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime @updatedAt
 
   refreshTokens    RefreshToken[]
+  passwordResetTokens PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  reports                 Report[]
   accounts         Account[]
   sessions         Session[]
   orders           Order[]
@@ -175,6 +181,7 @@ model User {
   notifications       Notification[]     @relation("Notifications")
   notificationActors  Notification[]     @relation("NotificationActors")
   threadParticipants  ThreadParticipant[]
+  storyReactions      StoryReaction[]     @relation("StoryReactions")
   groupsCreated       Group[]             @relation("GroupsCreated")
   groupMemberships    GroupMember[]       @relation("GroupMemberships")
   groupJoinRequests   GroupJoinRequest[]  @relation("GroupJoinRequests")
@@ -471,10 +478,16 @@ model Message {
   content     String
   attachments Json?
   readAt      DateTime?
+  replyToId   String?
+  editedAt    DateTime?
+  deletedAt   DateTime?
   createdAt   DateTime @default(now())
 
   thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
   sender User   @relation(fields: [senderId], references: [id], onDelete: NoAction)
+
+  replyTo Message? @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies Message[] @relation("MessageReplies")
 
   @@index([threadId, readAt])
   @@index([threadId, createdAt])
@@ -696,13 +709,14 @@ model Note {
 // ── Social Platform ──
 
 model Post {
-  id        String    @id @default(uuid())
-  authorId  String
-  groupId   String?
-  pinnedAt  DateTime?
-  content   String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id           String    @id @default(uuid())
+  authorId     String
+  groupId      String?
+  pinnedAt     DateTime?
+  boostedUntil DateTime?
+  content      String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   author    User        @relation("Posts", fields: [authorId], references: [id], onDelete: Cascade)
   group     Group?      @relation(fields: [groupId], references: [id], onDelete: Cascade)
@@ -714,6 +728,7 @@ model Post {
   @@index([authorId])
   @@index([groupId])
   @@index([createdAt])
+  @@index([boostedUntil])
 }
 
 enum GroupRole {
@@ -844,9 +859,24 @@ model Story {
 
   author User         @relation("Stories", fields: [authorId], references: [id], onDelete: Cascade)
   views  StoryView[]
+  reactions StoryReaction[]
 
   @@index([authorId])
   @@index([expiresAt])
+}
+
+model StoryReaction {
+  id        String   @id @default(uuid())
+  storyId   String
+  userId    String
+  emoji     String
+  createdAt DateTime @default(now())
+
+  story Story @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user  User  @relation("StoryReactions", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([storyId, userId])
+  @@index([storyId])
 }
 
 model StoryView {
@@ -947,4 +977,72 @@ model RefreshToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model EmailVerificationToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+enum ReportTargetType {
+  POST
+  PRODUCT
+  USER
+  COMMENT
+}
+
+enum ReportReason {
+  SPAM
+  ABUSE
+  FRAUD
+  INAPPROPRIATE
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  DISMISSED
+}
+
+model Report {
+  id          String           @id @default(uuid())
+  reporterId  String
+  targetType  ReportTargetType
+  targetId    String
+  reason      ReportReason
+  message     String?
+  status      ReportStatus     @default(PENDING)
+  adminNotes  String?
+  reviewedBy  String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  reporter User @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@unique([targetType, targetId, reporterId])
+  @@index([targetType, targetId])
+  @@index([status])
+  @@index([reporterId])
 }
