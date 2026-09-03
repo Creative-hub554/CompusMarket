@@ -41,10 +41,12 @@ describe("QuizzesService", () => {
       findUnique: vi.fn(),
       findMany: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
     },
     quizAnswer: {
       create: vi.fn(),
       update: vi.fn(),
+      upsert: vi.fn(),
       findFirst: vi.fn(),
     },
   };
@@ -100,6 +102,38 @@ describe("QuizzesService", () => {
         userId: "other-user",
         public: true,
       });
+    });
+
+    it("strips correctAnswer from questions when viewed by a non-owner", async () => {
+      mockPrisma.quiz.findUnique.mockResolvedValue({
+        ...quiz,
+        userId: "other-user",
+        public: true,
+        questions: [
+          {
+            id: "q-1",
+            type: "MULTIPLE_CHOICE",
+            question: "2+2?",
+            options: ["3", "4", "5"],
+            correctAnswer: "4",
+            points: 1,
+            order: 0,
+            createdAt: new Date(),
+          },
+        ],
+      });
+      const result = await service.findOne("quiz-1", "user-1");
+      expect(result.questions[0]).not.toHaveProperty("correctAnswer");
+      expect(result.questions[0]).toHaveProperty("question", "2+2?");
+    });
+
+    it("keeps correctAnswer when viewed by the owner", async () => {
+      mockPrisma.quiz.findUnique.mockResolvedValue({
+        ...quiz,
+        questions: [{ id: "q-1", correctAnswer: "4", question: "2+2?" }],
+      });
+      const result = await service.findOne("quiz-1", "user-1");
+      expect(result.questions[0]).toHaveProperty("correctAnswer", "4");
     });
   });
 
@@ -216,23 +250,25 @@ describe("QuizzesService", () => {
 
     it("marks answers correct case-insensitively with trimmed values", async () => {
       mockPrisma.quizAttempt.findUnique.mockResolvedValue(attempt);
-      mockPrisma.quizAnswer.findFirst.mockResolvedValue(null);
-      mockPrisma.quizAnswer.create.mockResolvedValue({ id: "a-1" });
+      mockPrisma.quizAnswer.upsert.mockResolvedValue({ id: "a-1" });
       await service.submitAnswer("attempt-1", "user-1", { questionId: "q-1", answer: "  paris " });
-      expect(mockPrisma.quizAnswer.create).toHaveBeenCalledWith({
-        data: { attemptId: "attempt-1", questionId: "q-1", answer: "  paris ", isCorrect: true },
+      expect(mockPrisma.quizAnswer.upsert).toHaveBeenCalledWith({
+        where: { attemptId_questionId: { attemptId: "attempt-1", questionId: "q-1" } },
+        create: { attemptId: "attempt-1", questionId: "q-1", answer: "  paris ", isCorrect: true },
+        update: { answer: "  paris ", isCorrect: true },
       });
     });
 
     it("updates an existing answer instead of creating a duplicate", async () => {
       mockPrisma.quizAttempt.findUnique.mockResolvedValue(attempt);
-      mockPrisma.quizAnswer.findFirst.mockResolvedValue({ id: "a-1" });
-      mockPrisma.quizAnswer.update.mockResolvedValue({ id: "a-1" });
+      mockPrisma.quizAnswer.upsert.mockResolvedValue({ id: "a-1" });
       await service.submitAnswer("attempt-1", "user-1", { questionId: "q-2", answer: "3" });
-      expect(mockPrisma.quizAnswer.update).toHaveBeenCalledWith({
-        where: { id: "a-1" },
-        data: { answer: "3", isCorrect: false },
-      });
+      expect(mockPrisma.quizAnswer.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { attemptId_questionId: { attemptId: "attempt-1", questionId: "q-2" } },
+          update: { answer: "3", isCorrect: false },
+        }),
+      );
     });
   });
 
@@ -255,11 +291,11 @@ describe("QuizzesService", () => {
 
     it("computes the score as earned points over total points", async () => {
       mockPrisma.quizAttempt.findUnique.mockResolvedValue(attempt);
-      mockPrisma.quizAttempt.update.mockResolvedValue({ id: "attempt-1" });
+      mockPrisma.quizAttempt.updateMany.mockResolvedValue({ count: 1 });
       await service.completeAttempt("attempt-1", "user-1");
-      expect(mockPrisma.quizAttempt.update).toHaveBeenCalledWith(
+      expect(mockPrisma.quizAttempt.updateMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { id: "attempt-1" },
+          where: { id: "attempt-1", userId: "user-1", completedAt: null },
           data: expect.objectContaining({ score: 25, totalPoints: 4 }),
         }),
       );
@@ -276,9 +312,9 @@ describe("QuizzesService", () => {
         answers: [],
         quiz: { questions: [] },
       });
-      mockPrisma.quizAttempt.update.mockResolvedValue({ id: "attempt-1" });
+      mockPrisma.quizAttempt.updateMany.mockResolvedValue({ count: 1 });
       await service.completeAttempt("attempt-1", "user-1");
-      expect(mockPrisma.quizAttempt.update).toHaveBeenCalledWith(
+      expect(mockPrisma.quizAttempt.updateMany).toHaveBeenCalledWith(
         expect.objectContaining({ data: expect.objectContaining({ score: 0, totalPoints: 0 }) }),
       );
     });

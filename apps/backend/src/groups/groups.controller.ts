@@ -15,6 +15,7 @@ import { OptionalJwtGuard } from "../auth/optional-jwt.guard";
 import { GroupsService } from "./groups.service";
 import { CreateGroupDto, UpdateGroupDto } from "./dto/groups.dto";
 import { CreatePostDto } from "../social/dto/social.dto";
+import { parseLimit } from "../common/pagination";
 
 type AuthUser = { user: { userId: string; role?: string } };
 
@@ -39,7 +40,7 @@ export class GroupsController {
     return this.groups.list(
       req.user?.userId,
       cursor || undefined,
-      limit ? parseInt(limit, 10) : undefined,
+      limit ? parseLimit(limit, 20) : undefined,
       q?.trim() || undefined
     );
   }
@@ -142,7 +143,7 @@ export class GroupsController {
       id,
       req.user?.userId,
       cursor || undefined,
-      limit ? parseInt(limit, 10) : undefined
+      limit ? parseLimit(limit, 10) : undefined
     );
   }
 

@@ -108,7 +108,7 @@ describe("ArticlesService", () => {
       const result = await service.findBySlug("hello");
 
       expect(mockPrisma.article.findUnique).toHaveBeenCalledWith({
-        where: { slug: "hello" },
+        where: { slug: "hello", published: true },
         include: { author: { select: { name: true } } },
       });
       expect(result).toEqual({ id: "a1", slug: "hello" });

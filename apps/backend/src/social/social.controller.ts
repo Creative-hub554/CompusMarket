@@ -17,6 +17,7 @@ import { FollowsService } from "./follows.service";
 import { StoriesService } from "./stories.service";
 import { ProfilesService } from "./profiles.service";
 import { NotificationsService } from "./notifications.service";
+import { parseLimit } from "../common/pagination";
 import {
   CreateCommentDto,
   CreatePostDto,
@@ -49,14 +50,14 @@ export class SocialController {
   @Get("feed")
   @UseGuards(AuthGuard("jwt"))
   feed(@Req() req: AuthUser, @Query("cursor") cursor?: string, @Query("limit") limit?: string) {
-    return this.posts.feed(req.user.userId, cursor, limit ? parseInt(limit) : undefined);
+    return this.posts.feed(req.user.userId, cursor, limit ? parseLimit(limit, 10) : undefined);
   }
 
   /** Declared before posts/:id so "bookmarks" isn't captured as an id. */
   @Get("posts/bookmarks")
   @UseGuards(AuthGuard("jwt"))
   bookmarks(@Req() req: AuthUser, @Query("cursor") cursor?: string, @Query("limit") limit?: string) {
-    return this.posts.bookmarksFor(req.user.userId, cursor, limit ? parseInt(limit) : undefined);
+    return this.posts.bookmarksFor(req.user.userId, cursor, limit ? parseLimit(limit, 10) : undefined);
   }
 
   @Get("posts/:id")
@@ -139,7 +140,7 @@ export class SocialController {
     @Query("cursor") cursor?: string,
     @Query("limit") limit?: string
   ) {
-    return this.posts.byAuthor(id, req.user?.userId, cursor, limit ? parseInt(limit) : undefined);
+    return this.posts.byAuthor(id, req.user?.userId, cursor, limit ? parseLimit(limit, 10) : undefined);
   }
 
   // ── Follows ──

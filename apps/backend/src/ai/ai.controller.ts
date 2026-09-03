@@ -28,6 +28,7 @@ export class AiController {
   }
 
   @Post("assistant/chat")
+  @UseGuards(AuthGuard("jwt"))
   async assistantChat(@Body() body: CreateAssistantChatDto) {
     const { message, lang = "en", hasResume, page } = body;
     const spec = await this.aiService.extractSearchSpec(message, lang);
@@ -50,6 +51,7 @@ export class AiController {
   }
 
   @Post("assistant/products")
+  @UseGuards(AuthGuard("jwt"))
   async assistantProducts(@Body() body: CreateAssistantProductDto) {
     const { message, lang = "en" } = body;
     const spec = await this.aiService.extractSearchSpec(message, lang);
@@ -62,6 +64,7 @@ export class AiController {
   }
 
   @Post("assistant/careers")
+  @UseGuards(AuthGuard("jwt"))
   async assistantCareers(@Body() body: CreateAssistantCareerDto) {
     const { message, lang = "en" } = body;
     return this.aiService.extractCareerMatch(message, lang);

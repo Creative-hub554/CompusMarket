@@ -142,7 +142,7 @@ export class PostsService {
     });
     const recipients = users.filter((u) => u.id !== authorId);
 
-    await Promise.all(
+    await Promise.allSettled(
       recipients.map((u) =>
         this.notifications.notify({
           userId: u.id,
@@ -420,10 +420,11 @@ export class PostsService {
       include: { author: { select: { id: true, name: true, username: true, image: true } } },
     });
 
-    await Promise.all([
-      parentAuthorId
+    const notifyParent = parentAuthorId && parentAuthorId !== post.authorId;
+    await Promise.allSettled([
+      notifyParent
         ? this.notifications.notify({
-            userId: parentAuthorId,
+            userId: parentAuthorId as string,
             actorId: userId,
             kind: "COMMENT",
             entityId: postId,

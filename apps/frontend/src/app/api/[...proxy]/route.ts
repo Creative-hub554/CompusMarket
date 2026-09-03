@@ -65,7 +65,10 @@ async function proxy(req: NextRequest) {
   const token = await getToken({ req });
   let authHeader: string | null = null;
   if (token?.sub) {
-    authHeader = `Bearer ${jwt.sign({ sub: token.sub }, JWT_SECRET, { expiresIn: "5m" })}`;
+    // The backend resolves the live role/email from the DB on validate(), but
+    // include email here too so any code reading the raw token matches the
+    // session-callback-minted token.
+    authHeader = `Bearer ${jwt.sign({ sub: token.sub, email: token.email }, JWT_SECRET, { expiresIn: "5m" })}`;
   }
 
   const targetPath = path.replace(/^\/api/, "");

@@ -1,5 +1,7 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+
+const MAX_QTY = 99;
 
 @Injectable()
 export class CartService {
@@ -21,23 +23,32 @@ export class CartService {
   }
 
   async addItem(userId: string, productId: string, quantity: number) {
-    const cart = await this.getCart(userId);
     const product = await this.prisma.product.findUnique({
       where: { id: productId },
     });
     if (!product) throw new NotFoundException("Product not found");
-
-    const existing = cart.items.find((i) => i.productId === productId);
-    if (existing) {
-      return this.prisma.cartItem.update({
-        where: { id: existing.id },
-        data: { quantity: existing.quantity + quantity },
-        include: { product: true },
-      });
+    if (product.status !== "ACTIVE") throw new BadRequestException("Product is not available");
+    if (!Number.isFinite(quantity) || quantity <= 0) {
+      throw new BadRequestException("Quantity must be a positive number");
     }
 
-    return this.prisma.cartItem.create({
-      data: { cartId: cart.id, productId, quantity },
+    const cart = await this.getCart(userId);
+
+    // Bound the line quantity: never exceed a sane max or the available stock.
+    const existingLine = cart.items.find((i) => i.productId === productId);
+    const target = (existingLine?.quantity ?? 0) + quantity;
+    const cap = product.stock > 0 ? Math.min(product.stock, MAX_QTY) : MAX_QTY;
+    const next = Math.min(target, cap);
+
+    // Atomic upsert on the (cartId, productId) unique constraint prevents
+    // duplicate lines / lost updates under concurrent add-to-cart requests.
+    await this.prisma.cartItem.upsert({
+      where: { cartId_productId: { cartId: cart.id, productId } },
+      create: { cartId: cart.id, productId, quantity: Math.min(quantity, cap) },
+      update: { quantity: next },
+    });
+    return this.prisma.cartItem.findUnique({
+      where: { cartId_productId: { cartId: cart.id, productId } },
       include: { product: true },
     });
   }
@@ -51,9 +62,10 @@ export class CartService {
       return this.removeItem(userId, itemId);
     }
 
+    const qty = Math.min(quantity, MAX_QTY);
     return this.prisma.cartItem.update({
       where: { id: itemId },
-      data: { quantity },
+      data: { quantity: qty },
       include: { product: true },
     });
   }

@@ -51,8 +51,19 @@ const handler = NextAuth({
   ],
   callbacks: {
     async jwt({ token, user }) {
-      if (user) {
-        token.role = user.role;
+      const { prisma } = await import("@theo/database");
+      if (token.sub) {
+        const current = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { role: true },
+        });
+        // Keep the token role in sync with the DB and drop the session for
+        // banned/deleted users so demotions take effect without a re-login.
+        if (!current || current.role === "BANNED") {
+          return {};
+        }
+        token.role = current.role;
+        token.email = user?.email ?? token.email;
       }
       return token;
     },

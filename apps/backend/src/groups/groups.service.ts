@@ -328,6 +328,18 @@ export class GroupsService {
       });
       return { joined: false, cancelled: true };
     }
+
+    // Keep the group chat roster in sync so the leaver can't keep reading/sending.
+    const thread = await this.prisma.thread.findUnique({
+      where: { groupId },
+      select: { id: true },
+    });
+    if (thread) {
+      await this.prisma.threadParticipant.deleteMany({
+        where: { threadId: thread.id, userId },
+      });
+    }
+
     return { joined: false };
   }
 
@@ -479,7 +491,9 @@ export class GroupsService {
     ]);
     const recipients = members.filter((m) => m.userId !== userId);
     if (group) {
-      await Promise.all(
+      // Best-effort fan-out: a failing notification write must not turn an
+      // already-persisted post into a 500 response.
+      await Promise.allSettled(
         recipients.map((m) =>
           this.notifications.notify({
             userId: m.userId,

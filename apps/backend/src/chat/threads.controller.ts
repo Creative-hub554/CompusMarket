@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from "@nest
 import { AuthGuard } from "@nestjs/passport";
 import { IsArray, IsOptional, IsString } from "class-validator";
 import { ThreadsService } from "./threads.service";
+import { parseLimit } from "../common/pagination";
 
 class CreateThreadDto {
   @IsOptional()
@@ -72,7 +73,7 @@ export class ThreadsController {
     @Query("cursor") cursor?: string,
     @Query("limit") limit?: string
   ) {
-    return this.threads.getMessages(id, req.user.userId, cursor, limit ? parseInt(limit) : undefined);
+    return this.threads.getMessages(id, req.user.userId, cursor, limit ? parseLimit(limit, 30) : undefined);
   }
 
   @Post(":id/read")

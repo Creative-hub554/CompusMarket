@@ -72,6 +72,27 @@ export class ThreadsService {
       },
       select: { id: true },
     });
+
+    // Self-heal a concurrent create: two requests can both miss the findFirst
+    // above (there is no DB-level unique on participant pairs, and SQLite can't
+    // use Serializable isolation). If a matching thread now exists that isn't
+    // the one we just made, drop our duplicate and return the survivor.
+    const match = await this.prisma.thread.findFirst({
+      where: {
+        ...(productId ? { productId } : { productId: null }),
+        id: { not: created.id },
+        participants: { every: { userId: { in: [userId, otherUserId] } } },
+        AND: [
+          { participants: { some: { userId } } },
+          { participants: { some: { userId: otherUserId } } },
+        ],
+      },
+      select: { id: true },
+    });
+    if (match) {
+      await this.prisma.thread.delete({ where: { id: created.id } });
+      return match.id;
+    }
     return created.id;
   }
 

@@ -17,6 +17,7 @@ import { CreateReviewDto } from "./dto/create-review.dto";
 import { AuthGuard } from "@nestjs/passport";
 import { RolesGuard } from "../auth/roles.guard";
 import { Roles } from "../auth/roles.decorator";
+import { parseLimit } from "../common/pagination";
 
 type AuthedReq = { user: { userId: string } };
 
@@ -59,8 +60,8 @@ export class ProductsController {
     return this.productsService.browse({
       category: category || undefined,
       q: q || undefined,
-      page: page ? parseInt(page, 10) : undefined,
-      limit: limit ? parseInt(limit, 10) : undefined,
+      page: page ? Number(page) : undefined,
+      limit: limit ? parseLimit(limit, 12, 48) : undefined,
     });
   }
 

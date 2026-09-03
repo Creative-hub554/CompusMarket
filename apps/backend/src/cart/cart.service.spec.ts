@@ -1,7 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { CartService } from "./cart.service";
 import { PrismaService } from "../prisma/prisma.service";
-import { NotFoundException } from "@nestjs/common";
+import { NotFoundException, BadRequestException } from "@nestjs/common";
 
 describe("CartService", () => {
   let service: CartService;
@@ -14,6 +14,8 @@ describe("CartService", () => {
     cartItem: {
       update: vi.fn(),
       create: vi.fn(),
+      upsert: vi.fn(),
+      findUnique: vi.fn(),
       delete: vi.fn(),
       deleteMany: vi.fn(),
     },
@@ -49,18 +51,40 @@ describe("CartService", () => {
   });
 
   describe("addItem", () => {
-    it("creates a cart item when the product is not already present", async () => {
+    it("upserts a new cart line when the product is not already present", async () => {
       mockPrisma.cart.findUnique.mockResolvedValue({
         id: "c-1",
         items: [],
       });
-      mockPrisma.product.findUnique.mockResolvedValue({ id: "p-1", stock: 5 });
-      mockPrisma.cartItem.create.mockResolvedValue({ id: "ci-1" });
+      mockPrisma.product.findUnique.mockResolvedValue({ id: "p-1", stock: 5, status: "ACTIVE" });
+      mockPrisma.cartItem.findUnique.mockResolvedValue({ id: "ci-1", productId: "p-1" });
 
-      await service.addItem("u-1", "p-1", 2);
+      const res = await service.addItem("u-1", "p-1", 2);
 
-      expect(mockPrisma.cartItem.create).toHaveBeenCalledWith(
-        expect.objectContaining({ data: { cartId: "c-1", productId: "p-1", quantity: 2 } }),
+      expect(mockPrisma.cartItem.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { cartId_productId: { cartId: "c-1", productId: "p-1" } },
+          create: expect.objectContaining({ cartId: "c-1", productId: "p-1", quantity: 2 }),
+          update: expect.objectContaining({ quantity: 2 }),
+        })
+      );
+      expect(res).toEqual({ id: "ci-1", productId: "p-1" });
+    });
+
+    it("caps the line quantity at the available stock", async () => {
+      mockPrisma.cart.findUnique.mockResolvedValue({
+        id: "c-1",
+        items: [],
+      });
+      mockPrisma.product.findUnique.mockResolvedValue({ id: "p-1", stock: 2, status: "ACTIVE" });
+      mockPrisma.cartItem.findUnique.mockResolvedValue({ id: "ci-1", productId: "p-1" });
+
+      await service.addItem("u-1", "p-1", 5);
+
+      expect(mockPrisma.cartItem.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          create: expect.objectContaining({ quantity: 2 }),
+        })
       );
     });
 
@@ -72,6 +96,12 @@ describe("CartService", () => {
       mockPrisma.product.findUnique.mockResolvedValue(null);
 
       await expect(service.addItem("u-1", "missing", 1)).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it("rejects an inactive product", async () => {
+      mockPrisma.product.findUnique.mockResolvedValue({ id: "p-1", status: "DISABLED" });
+
+      await expect(service.addItem("u-1", "p-1", 1)).rejects.toBeInstanceOf(BadRequestException);
     });
   });
 

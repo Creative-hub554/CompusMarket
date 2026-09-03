@@ -28,6 +28,14 @@ export class QuizzesService {
     });
     if (!quiz) throw new NotFoundException("Quiz not found");
     if (quiz.userId !== userId && !quiz.public) throw new ForbiddenException();
+    // The owner keeps their answer key (used by the editor); everyone viewing
+    // a public quiz must NOT see correctAnswer before taking it.
+    if (quiz.userId !== userId) {
+      return {
+        ...quiz,
+        questions: quiz.questions.map((q) => this.sanitizeQuestion(q)),
+      };
+    }
     return quiz;
   }
 
@@ -133,19 +141,13 @@ export class QuizzesService {
     if (!question) throw new NotFoundException("Question not found in this quiz");
 
     const isCorrect = question.correctAnswer.toLowerCase().trim() === data.answer.toLowerCase().trim();
-    const existingAnswer = await this.prisma.quizAnswer.findFirst({
-      where: { attemptId, questionId: data.questionId },
-    });
 
-    if (existingAnswer) {
-      return this.prisma.quizAnswer.update({
-        where: { id: existingAnswer.id },
-        data: { answer: data.answer, isCorrect },
-      });
-    }
-
-    return this.prisma.quizAnswer.create({
-      data: { attemptId, questionId: data.questionId, answer: data.answer, isCorrect },
+    // Atomic upsert on the (attemptId, questionId) unique key prevents two
+    // rows for the same question (which used to double-count the score).
+    return this.prisma.quizAnswer.upsert({
+      where: { attemptId_questionId: { attemptId, questionId: data.questionId } },
+      create: { attemptId, questionId: data.questionId, answer: data.answer, isCorrect },
+      update: { answer: data.answer, isCorrect },
     });
   }
 
@@ -163,10 +165,19 @@ export class QuizzesService {
       const q = attempt.quiz.questions.find((qq) => qq.id === a.questionId);
       return sum + (q?.points ?? 1);
     }, 0);
+    const score = totalPoints > 0 ? (earnedPoints / totalPoints) * 100 : 0;
 
-    return this.prisma.quizAttempt.update({
+    // Conditional update so two concurrent completes can't both finalize.
+    const updated = await this.prisma.quizAttempt.updateMany({
+      where: { id: attemptId, userId, completedAt: null },
+      data: { completedAt: new Date(), score, totalPoints },
+    });
+    if (updated.count === 0) {
+      throw new BadRequestException("Already completed");
+    }
+
+    return this.prisma.quizAttempt.findUnique({
       where: { id: attemptId },
-      data: { completedAt: new Date(), score: totalPoints > 0 ? (earnedPoints / totalPoints) * 100 : 0, totalPoints },
       include: { answers: { include: { question: true } } },
     });
   }

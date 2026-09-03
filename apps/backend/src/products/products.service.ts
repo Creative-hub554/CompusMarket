@@ -56,8 +56,8 @@ export class ProductsService {
     page?: number;
     limit?: number;
   }): Promise<{ items: ProductWithCategory[]; total: number; page: number; limit: number }> {
-    const limit = Math.min(Math.max(opts.limit ?? 12, 1), 48);
-    const page = Math.max(opts.page ?? 1, 1);
+    const limit = Number.isFinite(opts.limit) ? Math.min(Math.max(opts.limit as number, 1), 48) : 12;
+    const page = Number.isFinite(opts.page) ? Math.max(opts.page as number, 1) : 1;
     const q = typeof opts.q === "string" ? opts.q.trim() : undefined;
     const where = {
       status: "ACTIVE" as const,
