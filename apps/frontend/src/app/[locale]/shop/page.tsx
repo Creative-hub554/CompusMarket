@@ -18,28 +18,47 @@ export const metadata: Metadata = {
 export default async function ShopPage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string; page?: string }>;
+  searchParams: Promise<{ category?: string; q?: string; page?: string }>;
 }) {
   const t = await getTranslations("shop");
-  const { category, page } = await searchParams;
+  const { category, q, page } = await searchParams;
+  const query = typeof q === "string" ? q.trim() : undefined;
   const currentPage = Math.max(parseInt(page || "1", 10) || 1, 1);
 
   const [result, categories] = await Promise.all([
-    api.products.browse({ category, page: currentPage, limit: PAGE_SIZE }),
+    api.products.browse({ category, q: query, page: currentPage, limit: PAGE_SIZE }),
     api.categories.list(),
   ]);
   const products = result.items;
   const totalPages = Math.max(Math.ceil(result.total / PAGE_SIZE), 1);
   const totalCount = categories.reduce((sum, c) => sum + c._count.products, 0);
 
-  const pageHref = (p: number) =>
-    `/shop${category ? `?category=${category}&page=${p}` : p > 1 ? `?page=${p}` : ""}`;
+  const qs = (p: number) => {
+    const params = new URLSearchParams();
+    if (query) params.set("q", query);
+    if (category) params.set("category", category);
+    if (p > 1) params.set("page", String(p));
+    const s = params.toString();
+    return s ? `?${s}` : "";
+  };
+  const pageHref = (p: number) => `/shop${qs(p)}`;
+  const clearHref = () => {
+    const params = new URLSearchParams();
+    if (category) params.set("category", category);
+    const s = params.toString();
+    return s ? `/shop?${s}` : "/shop";
+  };
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 animate-fade-in">
       <div className="flex items-center gap-3 mb-6">
-        <h1 className="page-title">{t("title")}</h1>
+        <h1 className="page-title">{query ? t("searchFor", { q: query }) : t("title")}</h1>
         <span className="text-sm text-slate-400">{t("productsCount", { count: result.total })}</span>
+        {query && (
+          <Link href={clearHref()} className="text-sm text-gold-600 hover:underline ml-auto">
+            {t("clearSearch")}
+          </Link>
+        )}
       </div>
 
       <div className="flex gap-8">

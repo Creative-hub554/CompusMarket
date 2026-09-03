@@ -4,6 +4,7 @@ import { GroupsService } from "./groups.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { PostsService } from "../social/posts.service";
 import { NotificationsService } from "../social/notifications.service";
+import { Prisma } from "@theo/database";
 
 describe("GroupsService", () => {
   let service: GroupsService;
@@ -165,6 +166,24 @@ describe("GroupsService", () => {
       })
     );
     expect(result).toEqual({ id: "t-new" });
+  });
+
+  it("returns the winner's thread when concurrent opens hit the unique groupId race", async () => {
+    mockPrisma.groupMember.findUnique.mockResolvedValue({ role: "MEMBER" });
+    mockPrisma.thread.findUnique.mockResolvedValueOnce(null);
+    mockPrisma.groupMember.findMany.mockResolvedValue([{ userId: "u1" }]);
+    mockPrisma.thread.create.mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError("Unique constraint failed", {
+        code: "P2002",
+        clientVersion: "test",
+      })
+    );
+    // The loser re-fetches what a concurrent request created.
+    mockPrisma.thread.findUnique.mockResolvedValueOnce({ id: "t-winner" });
+
+    const result = await service.getOrCreateThread("g1", "u1");
+
+    expect(result).toEqual({ id: "t-winner" });
   });
 
   it("prevents the group creator from leaving", async () => {

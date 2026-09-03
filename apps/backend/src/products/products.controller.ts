@@ -52,11 +52,13 @@ export class ProductsController {
   @Get("browse")
   browse(
     @Query("category") category?: string,
+    @Query("q") q?: string,
     @Query("page") page?: string,
     @Query("limit") limit?: string
   ) {
     return this.productsService.browse({
       category: category || undefined,
+      q: q || undefined,
       page: page ? parseInt(page, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
     });

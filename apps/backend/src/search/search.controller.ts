@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Post, UseGuards } from "@nestjs/common";
+import { Controller, Get, Query, Post, UseGuards, BadRequestException } from "@nestjs/common";
 import { SearchService } from "./search.service";
 import { AuthGuard } from "@nestjs/passport";
 import { RolesGuard } from "../auth/roles.guard";
@@ -16,10 +16,18 @@ export class SearchController {
     @Query("maxPrice") maxPrice?: string,
     @Query("condition") condition?: string,
   ) {
+    const parsedMin = minPrice ? Number(minPrice) : undefined;
+    const parsedMax = maxPrice ? Number(maxPrice) : undefined;
+    if (
+      (parsedMin !== undefined && !Number.isFinite(parsedMin)) ||
+      (parsedMax !== undefined && !Number.isFinite(parsedMax))
+    ) {
+      throw new BadRequestException("minPrice and maxPrice must be valid numbers");
+    }
     return this.searchService.search(query || "", {
       categoryId,
-      minPrice: minPrice ? Number(minPrice) : undefined,
-      maxPrice: maxPrice ? Number(maxPrice) : undefined,
+      minPrice: parsedMin,
+      maxPrice: parsedMax,
       condition,
     });
   }

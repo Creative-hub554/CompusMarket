@@ -52,14 +52,24 @@ export class ProductsService {
    */
   async browse(opts: {
     category?: string;
+    q?: string;
     page?: number;
     limit?: number;
   }): Promise<{ items: ProductWithCategory[]; total: number; page: number; limit: number }> {
     const limit = Math.min(Math.max(opts.limit ?? 12, 1), 48);
     const page = Math.max(opts.page ?? 1, 1);
+    const q = typeof opts.q === "string" ? opts.q.trim() : undefined;
     const where = {
       status: "ACTIVE" as const,
       ...(opts.category ? { category: { slug: opts.category } } : {}),
+      ...(q
+        ? {
+            OR: [
+              { name: { contains: q } },
+              { description: { contains: q } },
+            ],
+          }
+        : {}),
     };
 
     const [items, total] = await this.prisma.$transaction([

@@ -513,14 +513,28 @@ export class GroupsService {
       select: { userId: true },
     });
 
-    const thread = await this.prisma.thread.create({
-      data: {
-        groupId,
-        participants: { create: members.map((m) => ({ userId: m.userId })) },
-      },
-      select: { id: true },
-    });
-    return { id: thread.id };
+    try {
+      const thread = await this.prisma.thread.create({
+        data: {
+          groupId,
+          participants: { create: members.map((m) => ({ userId: m.userId })) },
+        },
+        select: { id: true },
+      });
+      return { id: thread.id };
+    } catch (e) {
+      // Two members opening the group chat at once can both miss the first
+      // findUnique; the loser hits the @unique(groupId) violation. Return the
+      // thread created by the winner rather than surfacing a 500.
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+        const created = await this.prisma.thread.findUnique({
+          where: { groupId },
+          select: { id: true },
+        });
+        if (created) return { id: created.id };
+      }
+      throw e;
+    }
   }
 
   async requireMembership(groupId: string, userId: string) {

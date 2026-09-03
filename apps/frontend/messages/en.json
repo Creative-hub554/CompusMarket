@@ -62,7 +62,9 @@
     "all": "All",
     "noProducts": "No products available yet.",
     "noResults": "No products found",
-    "viewAllResults": "View all results"
+    "viewAllResults": "View all results",
+    "searchFor": "Results for \"{q}\"",
+    "clearSearch": "Clear search"
   },
   "product": {
     "noImage": "No image",
@@ -256,6 +258,8 @@
     "kickDone": "Member removed",
     "promote": "Make admin",
     "demote": "Remove admin",
+    "promoted": "Member promoted to admin",
+    "demoted": "Admin role removed",
     "changeCover": "Change cover",
     "addCover": "Add a cover image",
     "coverUpdated": "Cover updated",
