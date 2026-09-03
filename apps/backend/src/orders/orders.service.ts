@@ -143,14 +143,20 @@ export class OrdersService {
   }
 
   async updateStatus(id: string, status: OrderStatus) {
-    const order = await this.findOne(id);
-    const allowed = ORDER_TRANSITIONS[order.status] ?? [];
-    if (!allowed.includes(status)) {
-      throw new BadRequestException(
-        `Invalid order status transition: ${order.status} -> ${status}`,
-      );
-    }
     return this.prisma.$transaction(async (tx) => {
+      await this.lockOrder(tx, id);
+      const order = await tx.order.findUnique({
+        where: { id },
+        include: { items: { include: { product: true } } },
+      });
+      if (!order) throw new NotFoundException("Order not found");
+
+      const allowed = ORDER_TRANSITIONS[order.status] ?? [];
+      if (!allowed.includes(status)) {
+        throw new BadRequestException(
+          `Invalid order status transition: ${order.status} -> ${status}`,
+        );
+      }
       if (status === OrderStatus.CANCELLED) {
         await this.restoreStockAndWarranties(tx, order.items);
       }
@@ -168,21 +174,22 @@ export class OrdersService {
    * associated warranties are voided in the same transaction.
    */
   async cancelMine(id: string, userId: string) {
-    const order = await this.prisma.order.findUnique({
-      where: { id },
-      include: { items: { include: { product: true } } },
-    });
-    if (!order) throw new NotFoundException("Order not found");
-    if (order.userId !== userId) {
-      throw new ForbiddenException("You can only cancel your own order");
-    }
-    const allowed = ORDER_TRANSITIONS[order.status] ?? [];
-    if (!allowed.includes(OrderStatus.CANCELLED)) {
-      throw new BadRequestException(
-        `Order in state ${order.status} can no longer be cancelled`,
-      );
-    }
     return this.prisma.$transaction(async (tx) => {
+      await this.lockOrder(tx, id);
+      const order = await tx.order.findUnique({
+        where: { id },
+        include: { items: { include: { product: true } } },
+      });
+      if (!order) throw new NotFoundException("Order not found");
+      if (order.userId !== userId) {
+        throw new ForbiddenException("You can only cancel your own order");
+      }
+      const allowed = ORDER_TRANSITIONS[order.status] ?? [];
+      if (!allowed.includes(OrderStatus.CANCELLED)) {
+        throw new BadRequestException(
+          `Order in state ${order.status} can no longer be cancelled`,
+        );
+      }
       await this.restoreStockAndWarranties(tx, order.items);
       return tx.order.update({
         where: { id },
@@ -193,45 +200,49 @@ export class OrdersService {
   }
 
   async updateSellerStatus(id: string, userId: string, status: OrderStatus) {
-    const order = await this.prisma.order.findUnique({
-      where: { id },
-      include: {
-        items: { include: { product: { select: { sellerId: true } } } },
-      },
-    });
-    if (!order) throw new NotFoundException("Order not found");
-
     const profile = await this.prisma.sellerProfile.findUnique({ where: { userId } });
     if (!profile) {
       throw new ForbiddenException("A seller profile is required to fulfill orders");
     }
 
-    const ownedItemIds = order.items
-      .filter((item) => item.product?.sellerId === profile.id)
-      .map((item) => item.id);
-    if (ownedItemIds.length === 0) {
-      throw new ForbiddenException("You do not sell any item in this order");
-    }
-
-    const ownedItems = order.items.filter((item) =>
-      ownedItemIds.includes(item.id),
-    );
-
-    const itemAllowed = ITEM_TRANSITIONS[status] ?? [];
-    if (itemAllowed.length === 0 || ownedItems.some((i) => !itemAllowed.includes(i.status))) {
-      throw new BadRequestException(
-        `Invalid seller transition for these items: requested ${status}`,
-      );
-    }
-
-    const itemStatus =
-      status === OrderStatus.DELIVERED
-        ? OrderItemStatus.DELIVERED
-        : status === OrderStatus.CANCELLED
-          ? OrderItemStatus.CANCELLED
-          : OrderItemStatus.SHIPPED;
-
+    // Read, validate, and write inside one transaction guarded by an order
+    // row lock, so howItem status checks can't be based on stale reads under
+    // concurrency (see lockOrder).
     return this.prisma.$transaction(async (tx) => {
+      await this.lockOrder(tx, id);
+      const order = await tx.order.findUnique({
+        where: { id },
+        include: {
+          items: { include: { product: { select: { sellerId: true } } } },
+        },
+      });
+      if (!order) throw new NotFoundException("Order not found");
+
+      const ownedItemIds = order.items
+        .filter((item) => item.product?.sellerId === profile.id)
+        .map((item) => item.id);
+      if (ownedItemIds.length === 0) {
+        throw new ForbiddenException("You do not sell any item in this order");
+      }
+
+      const ownedItems = order.items.filter((item) =>
+        ownedItemIds.includes(item.id),
+      );
+
+      const itemAllowed = ITEM_TRANSITIONS[status] ?? [];
+      if (itemAllowed.length === 0 || ownedItems.some((i) => !itemAllowed.includes(i.status))) {
+        throw new BadRequestException(
+          `Invalid seller transition for these items: requested ${status}`,
+        );
+      }
+
+      const itemStatus =
+        status === OrderStatus.DELIVERED
+          ? OrderItemStatus.DELIVERED
+          : status === OrderStatus.CANCELLED
+            ? OrderItemStatus.CANCELLED
+            : OrderItemStatus.SHIPPED;
+
       if (status === OrderStatus.CANCELLED && ownedItems.length > 0) {
         await this.restoreStockAndWarranties(tx, ownedItems);
       }
@@ -267,6 +278,18 @@ export class OrdersService {
         include: { items: { include: { product: true } } },
       });
     });
+  }
+
+  /**
+   * Serializes status transitions on a single order. Acquires a row-level
+   * write lock (SELECT ... FOR UPDATE) on the order, so concurrent seller /
+   * admin / buyer transitions on the same order are applied one at a time.
+   * Re-validating against freshly-read state after acquiring this lock closes
+   * the time-of-check/time-of-use race where both readers would see the same
+   * stale status and double-transition.
+   */
+  private async lockOrder(tx: Prisma.TransactionClient, id: string) {
+    await tx.$queryRaw`SELECT id FROM "Order" WHERE "id" = ${id} FOR UPDATE`;
   }
 
   /** Releases stock and voids warranties for the given order items. */

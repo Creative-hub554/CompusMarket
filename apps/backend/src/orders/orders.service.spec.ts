@@ -24,6 +24,7 @@ describe("OrdersService", () => {
     product: { findUnique: vi.fn(), updateMany: vi.fn() },
     warranty: { create: vi.fn(), createMany: vi.fn(), deleteMany: vi.fn() },
     $transaction: vi.fn(),
+    $queryRaw: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -128,6 +129,28 @@ describe("OrdersService", () => {
   });
 
   describe("updateStatus", () => {
+    it("locks the order row before validating and applying the transition", async () => {
+      mockPrisma.order.findUnique.mockResolvedValue({
+        id: "o-1",
+        status: OrderStatus.PENDING,
+        userId: "u-1",
+        items: [],
+      });
+      mockPrisma.order.update.mockResolvedValue({ id: "o-1", status: OrderStatus.PROCESSING });
+
+      await service.updateStatus("o-1", OrderStatus.PROCESSING);
+
+      const lockCall = mockPrisma.$queryRaw.mock.calls.find((args) =>
+        String(args[0]).includes("FOR UPDATE"),
+      );
+      expect(lockCall).toBeTruthy();
+      const readOrderIdx = mockPrisma.order.findUnique.mock.invocationCallOrder[0];
+      const lockIdx = mockPrisma.$queryRaw.mock.invocationCallOrder[0];
+      const updateIdx = mockPrisma.order.update.mock.invocationCallOrder[0];
+      expect(lockIdx).toBeLessThan(readOrderIdx);
+      expect(lockIdx).toBeLessThan(updateIdx);
+    });
+
     it("applies a valid transition (PENDING -> PROCESSING)", async () => {
       mockPrisma.order.findUnique.mockResolvedValue({
         id: "o-1",
