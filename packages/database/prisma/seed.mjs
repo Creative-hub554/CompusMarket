@@ -73,6 +73,7 @@ async function main() {
       name: "Admin",
       role: "ADMIN",
       username: "admin",
+      emailVerified: new Date(),
     },
   });
 
@@ -158,6 +159,29 @@ async function main() {
         postedById: admin.id,
       },
     });
+  }
+
+  // Backfill email verification for legacy accounts. Email verification was
+  // introduced as a hard login requirement after many accounts already
+  // existed. Those legacy users were never issued a verification token, so
+  // treat them as trusted/verified. New-gate users who genuinely haven't
+  // verified still hold an active, unused token and are intentionally left
+  // unverified. Idempotent: each run only flips users in the described state.
+  const legacyUsers = await prisma.user.findMany({
+    where: {
+      emailVerified: null,
+      emailVerificationTokens: {
+        none: { usedAt: null, expiresAt: { gt: new Date() } },
+      },
+    },
+    select: { id: true },
+  });
+  if (legacyUsers.length > 0) {
+    await prisma.user.updateMany({
+      where: { id: { in: legacyUsers.map((u) => u.id) } },
+      data: { emailVerified: new Date() },
+    });
+    console.log(`  verified legacy accounts: ${legacyUsers.length}`);
   }
 
   console.log("Seed complete.");
