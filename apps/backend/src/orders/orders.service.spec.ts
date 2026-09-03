@@ -329,7 +329,7 @@ describe("OrdersService", () => {
       mockPrisma.sellerProfile.findUnique.mockResolvedValue({ id: "s-1" });
       mockPrisma.order.update.mockResolvedValue({ id: "o-1", status: OrderStatus.PROCESSING });
 
-      const result = await service.updateSellerStatus("o-1", "seller-user-1", OrderStatus.CANCELLED);
+      await service.updateSellerStatus("o-1", "seller-user-1", OrderStatus.CANCELLED);
 
       expect(mockPrisma.orderItem.updateMany).toHaveBeenCalledWith({
         where: { id: { in: ["oi-1"] } },
@@ -354,7 +354,7 @@ describe("OrdersService", () => {
       mockPrisma.sellerProfile.findUnique.mockResolvedValue({ id: "s-1" });
       mockPrisma.order.update.mockResolvedValue({ id: "o-1", status: OrderStatus.CANCELLED });
 
-      const result = await service.updateSellerStatus("o-1", "seller-user-1", OrderStatus.CANCELLED);
+      await service.updateSellerStatus("o-1", "seller-user-1", OrderStatus.CANCELLED);
 
       expect(mockPrisma.order.update).toHaveBeenCalledWith(
         expect.objectContaining({ data: { status: OrderStatus.CANCELLED } }),
