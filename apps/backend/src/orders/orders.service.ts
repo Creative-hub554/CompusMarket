@@ -10,6 +10,32 @@ const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   CANCELLED: [],
 };
 
+/** Per-seller item-level transitions. Each OrderItem carries its own status. */
+const ITEM_TRANSITIONS: Record<OrderStatus, OrderItemStatus[]> = {
+  PENDING: [],
+  PROCESSING: [],
+  SHIPPED: [OrderItemStatus.PENDING, OrderItemStatus.APPROVED, OrderItemStatus.PACKING],
+  DELIVERED: [OrderItemStatus.SHIPPED],
+  CANCELLED: [OrderItemStatus.PENDING, OrderItemStatus.APPROVED, OrderItemStatus.PACKING],
+};
+
+/** Return the later position in the linear PENDING..DELIVERED sequence. */
+function forwardOrderStatus(
+  current: OrderStatus,
+  target: OrderStatus,
+): OrderStatus {
+  const rank: Record<OrderStatus, number> = {
+    PENDING: 0,
+    PROCESSING: 1,
+    SHIPPED: 2,
+    DELIVERED: 3,
+    CANCELLED: -1,
+  };
+  if (current === OrderStatus.CANCELLED) return current;
+  if (target === OrderStatus.CANCELLED) return current;
+  return rank[target] > rank[current] ? target : current;
+}
+
 @Injectable()
 export class OrdersService {
   constructor(private prisma: PrismaService) {}
@@ -187,10 +213,14 @@ export class OrdersService {
       throw new ForbiddenException("You do not sell any item in this order");
     }
 
-    const allowed = ORDER_TRANSITIONS[order.status] ?? [];
-    if (!allowed.includes(status)) {
+    const ownedItems = order.items.filter((item) =>
+      ownedItemIds.includes(item.id),
+    );
+
+    const itemAllowed = ITEM_TRANSITIONS[status] ?? [];
+    if (itemAllowed.length === 0 || ownedItems.some((i) => !itemAllowed.includes(i.status))) {
       throw new BadRequestException(
-        `Invalid seller transition: ${order.status} -> ${status}`,
+        `Invalid seller transition for these items: requested ${status}`,
       );
     }
 
@@ -202,22 +232,34 @@ export class OrdersService {
           : OrderItemStatus.SHIPPED;
 
     return this.prisma.$transaction(async (tx) => {
-      if (status === OrderStatus.CANCELLED && ownedItemIds.length > 0) {
-        await this.restoreStockAndWarranties(
-          tx,
-          order.items.filter((item) => ownedItemIds.includes(item.id)),
-        );
+      if (status === OrderStatus.CANCELLED && ownedItems.length > 0) {
+        await this.restoreStockAndWarranties(tx, ownedItems);
       }
       await tx.orderItem.updateMany({
         where: { id: { in: ownedItemIds } },
         data: { status: itemStatus },
       });
 
-      const orderStatus =
-        status === OrderStatus.CANCELLED &&
-        order.items.some((item) => !ownedItemIds.includes(item.id))
-          ? order.status
-          : status;
+      // Order-level status is a coarse aggregate. It only ever advances
+      // forward, and only the whole order is CANCELLED once every item is
+      // cancelled (so one seller's action never locks another seller out).
+      let orderStatus = order.status;
+      if (status === OrderStatus.CANCELLED) {
+        const allCancelled = order.items.every(
+          (i) => i.status === OrderItemStatus.CANCELLED || ownedItemIds.includes(i.id),
+        );
+        if (allCancelled) orderStatus = OrderStatus.CANCELLED;
+      } else if (status === OrderStatus.DELIVERED) {
+        const allDelivered = order.items.every(
+          (i) =>
+            i.status === OrderItemStatus.DELIVERED || ownedItemIds.includes(i.id),
+        );
+        orderStatus = allDelivered
+          ? OrderStatus.DELIVERED
+          : forwardOrderStatus(orderStatus, OrderStatus.SHIPPED);
+      } else {
+        orderStatus = forwardOrderStatus(orderStatus, OrderStatus.SHIPPED);
+      }
 
       return tx.order.update({
         where: { id },

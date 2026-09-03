@@ -256,8 +256,8 @@ describe("OrdersService", () => {
         status: OrderStatus.PROCESSING,
         userId: "buyer-1",
         items: [
-          { id: "oi-1", product: { sellerId: "s-1" } },
-          { id: "oi-2", product: { sellerId: "s-other" } },
+          { id: "oi-1", status: OrderItemStatus.PENDING, product: { sellerId: "s-1" } },
+          { id: "oi-2", status: OrderItemStatus.PENDING, product: { sellerId: "s-other" } },
         ],
       });
       mockPrisma.sellerProfile.findUnique.mockResolvedValue({ id: "s-1" });
@@ -277,7 +277,7 @@ describe("OrdersService", () => {
         id: "o-1",
         status: OrderStatus.PROCESSING,
         userId: "buyer-1",
-        items: [{ id: "oi-1", product: { sellerId: "s-other" } }],
+        items: [{ id: "oi-1", status: OrderItemStatus.PENDING, product: { sellerId: "s-other" } }],
       });
       mockPrisma.sellerProfile.findUnique.mockResolvedValue({ id: "s-1" });
 
@@ -292,7 +292,7 @@ describe("OrdersService", () => {
         id: "o-1",
         status: OrderStatus.PROCESSING,
         userId: "buyer-1",
-        items: [{ id: "oi-1", product: { sellerId: "s-1" } }],
+        items: [{ id: "oi-1", status: OrderItemStatus.PENDING, product: { sellerId: "s-1" } }],
       });
       mockPrisma.sellerProfile.findUnique.mockResolvedValue(null);
 
@@ -306,7 +306,7 @@ describe("OrdersService", () => {
         id: "o-1",
         status: OrderStatus.PENDING,
         userId: "buyer-1",
-        items: [{ id: "oi-1", product: { sellerId: "s-1" } }],
+        items: [{ id: "oi-1", status: OrderItemStatus.PENDING, product: { sellerId: "s-1" } }],
       });
       mockPrisma.sellerProfile.findUnique.mockResolvedValue({ id: "s-1" });
 
@@ -316,14 +316,77 @@ describe("OrdersService", () => {
       expect(mockPrisma.orderItem.updateMany).not.toHaveBeenCalled();
     });
 
+    it("allows a seller to cancel even when another seller already shipped", async () => {
+      mockPrisma.order.findUnique.mockResolvedValue({
+        id: "o-1",
+        status: OrderStatus.SHIPPED,
+        userId: "buyer-1",
+        items: [
+          { id: "oi-1", status: OrderItemStatus.PENDING, productId: "p1", product: { sellerId: "s-1" }, quantity: 2 },
+          { id: "oi-2", status: OrderItemStatus.SHIPPED, product: { sellerId: "s-other" } },
+        ],
+      });
+      mockPrisma.sellerProfile.findUnique.mockResolvedValue({ id: "s-1" });
+      mockPrisma.order.update.mockResolvedValue({ id: "o-1", status: OrderStatus.SHIPPED });
+
+      await service.updateSellerStatus("o-1", "seller-user-1", OrderStatus.CANCELLED);
+
+      expect(mockPrisma.orderItem.updateMany).toHaveBeenCalledWith({
+        where: { id: { in: ["oi-1"] } },
+        data: { status: OrderItemStatus.CANCELLED },
+      });
+      expect(mockPrisma.product.updateMany).toHaveBeenCalledWith({
+        where: { id: "p1" },
+        data: { stock: { increment: 2 } },
+      });
+      expect(mockPrisma.order.update).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { status: OrderStatus.SHIPPED } }),
+      );
+    });
+
+    it("forbids a seller delivering items that are not yet shipped", async () => {
+      mockPrisma.order.findUnique.mockResolvedValue({
+        id: "o-1",
+        status: OrderStatus.SHIPPED,
+        userId: "buyer-1",
+        items: [{ id: "oi-1", status: OrderItemStatus.PENDING, product: { sellerId: "s-1" } }],
+      });
+      mockPrisma.sellerProfile.findUnique.mockResolvedValue({ id: "s-1" });
+
+      await expect(
+        service.updateSellerStatus("o-1", "seller-user-1", OrderStatus.DELIVERED),
+      ).rejects.toBeInstanceOf(BadRequestException);
+      expect(mockPrisma.order.update).not.toHaveBeenCalled();
+    });
+
+    it("delivers the order only once every item is delivered", async () => {
+      mockPrisma.order.findUnique.mockResolvedValue({
+        id: "o-1",
+        status: OrderStatus.SHIPPED,
+        userId: "buyer-1",
+        items: [
+          { id: "oi-1", status: OrderItemStatus.SHIPPED, product: { sellerId: "s-1" } },
+          { id: "oi-2", status: OrderItemStatus.DELIVERED, product: { sellerId: "s-other" } },
+        ],
+      });
+      mockPrisma.sellerProfile.findUnique.mockResolvedValue({ id: "s-1" });
+      mockPrisma.order.update.mockResolvedValue({ id: "o-1", status: OrderStatus.DELIVERED });
+
+      await service.updateSellerStatus("o-1", "seller-user-1", OrderStatus.DELIVERED);
+
+      expect(mockPrisma.order.update).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { status: OrderStatus.DELIVERED } }),
+      );
+    });
+
     it("cancelling in a multi-seller order keeps the order status and only touches the seller's items", async () => {
       mockPrisma.order.findUnique.mockResolvedValue({
         id: "o-1",
         status: OrderStatus.PROCESSING,
         userId: "buyer-1",
         items: [
-          { id: "oi-1", productId: "p1", product: { sellerId: "s-1" }, quantity: 2 },
-          { id: "oi-2", productId: "p2", product: { sellerId: "s-other" }, quantity: 1 },
+          { id: "oi-1", status: OrderItemStatus.PENDING, productId: "p1", product: { sellerId: "s-1" }, quantity: 2 },
+          { id: "oi-2", status: OrderItemStatus.PENDING, productId: "p2", product: { sellerId: "s-other" }, quantity: 1 },
         ],
       });
       mockPrisma.sellerProfile.findUnique.mockResolvedValue({ id: "s-1" });
@@ -349,7 +412,7 @@ describe("OrdersService", () => {
         id: "o-1",
         status: OrderStatus.PROCESSING,
         userId: "buyer-1",
-        items: [{ id: "oi-1", product: { sellerId: "s-1" }, quantity: 2 }],
+        items: [{ id: "oi-1", status: OrderItemStatus.PENDING, product: { sellerId: "s-1" }, quantity: 2 }],
       });
       mockPrisma.sellerProfile.findUnique.mockResolvedValue({ id: "s-1" });
       mockPrisma.order.update.mockResolvedValue({ id: "o-1", status: OrderStatus.CANCELLED });
