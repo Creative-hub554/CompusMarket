@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { useRouter, usePathname } from "@/i18n/navigation";
 import { Link } from "@/i18n/navigation";
 import { Eye, EyeOff, MailCheck, ExternalLink } from "lucide-react";
@@ -41,15 +40,6 @@ export default function RegisterPage() {
 
       const data = await res.json();
       setVerification(data.verification || null);
-
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-      if (result?.error) {
-        setError("Account created. Please sign in.");
-      }
     } catch {
       setError("Something went wrong");
     } finally {

@@ -34,6 +34,9 @@ const handler = NextAuth({
 
           if (!isValid) return null;
 
+          // Require a verified email before granting a working session.
+          if (!user.emailVerified) return null;
+
           return {
             id: user.id,
             email: user.email,
