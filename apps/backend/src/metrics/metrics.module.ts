@@ -1,11 +1,9 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import { Controller, Get, UseGuards } from "@nestjs/common";
 import { Module, MiddlewareConsumer, NestModule, RequestMethod } from "@nestjs/common";
-import { AuthGuard } from "@nestjs/passport";
-import { RolesGuard, ROLES_KEY } from "../auth/roles.guard";
-import { SetMetadata } from "@nestjs/common";
 import { register, Counter, Histogram, Gauge } from "prom-client";
 import type { Request, Response, NextFunction } from "express";
+import { MetricsAuthGuard } from "./metrics-auth.guard";
 
 /**
  * Prometheus metrics for the backend.
@@ -73,19 +71,18 @@ class MetricsService implements OnModuleInit, OnModuleDestroy {
 }
 
 @Controller("metrics")
-@UseGuards(AuthGuard("jwt"), RolesGuard)
+@UseGuards(MetricsAuthGuard)
 class MetricsController {
   constructor(private service: MetricsService) {}
 
   @Get()
-  @SetMetadata(ROLES_KEY, ["ADMIN"])
   async index() {
     return this.service.metrics();
   }
 }
 
 @Module({
-  providers: [MetricsService],
+  providers: [MetricsService, MetricsAuthGuard],
   controllers: [MetricsController],
   exports: [MetricsService],
 })
