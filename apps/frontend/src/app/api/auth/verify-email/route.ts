@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
 import { prisma } from "@theo/database";
 import { rateLimit } from "@/lib/rateLimit";
 import { sendMail } from "@/lib/mail";
@@ -39,24 +38,30 @@ export async function GET(req: NextRequest) {
   return NextResponse.redirect(new URL(`/${pref}/verify-email?status=success`, getSiteUrl()));
 }
 
-/** Resend the verification email to the signed-in user (dev mode returns the link). */
+/**
+ * Resend the verification email to an unverified address. Keyed by email and
+ * session-free — an unverified user cannot sign in (the login gate requires
+ * emailVerified), so relying on the session here would be a lockout dead-end.
+ * Never reveals whether an account exists (always returns ok:true).
+ */
 export async function POST(req: NextRequest) {
   if (!rateLimit(req.headers, 5)) {
     return NextResponse.json({ error: "Too many requests. Try again later." }, { status: 429 });
   }
-  const token = await getToken({ req });
-  if (!token?.sub) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
 
   try {
-    const { locale } = await req.json().catch(() => ({}));
+    const { email, locale } = await req.json();
+    if (typeof email !== "string" || !email.trim()) {
+      return NextResponse.json({ error: "An email is required" }, { status: 400 });
+    }
+    const normalized = email.trim().toLowerCase();
     const pref =
       typeof locale === "string" && /^[a-z]{2}$/.test(locale) ? locale : "km";
 
-    const user = await prisma.user.findUnique({ where: { id: token.sub } });
+    const user = await prisma.user.findUnique({ where: { email: normalized } });
+    // Never reveal whether an account exists — always return the same shape.
     if (!user || user.emailVerified) {
-      return NextResponse.json({ error: "Email is already verified" }, { status: 400 });
+      return NextResponse.json({ ok: true });
     }
 
     await prisma.emailVerificationToken.deleteMany({
