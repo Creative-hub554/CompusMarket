@@ -407,12 +407,11 @@ export class PostsService {
     });
 
     if (reacted) {
-      await this.notifications.notify({
+      await this.notifications.notifyReaction({
         userId: post.authorId,
         actorId: userId,
-        kind: "REACTION",
         entityId: postId,
-        message: emoji,
+        emoji,
       });
     }
 

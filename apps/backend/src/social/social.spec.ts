@@ -75,7 +75,9 @@ function makePrisma() {
     notification: {
       create: vi.fn(),
       findMany: vi.fn(),
+      findFirst: vi.fn(),
       count: vi.fn(),
+      update: vi.fn(),
       updateMany: vi.fn(),
     },
   };
@@ -86,7 +88,13 @@ function makePrisma() {
 }
 
 function makeNotif() {
-  return { notify: vi.fn(), list: vi.fn(), unreadCount: vi.fn(), markRead: vi.fn() };
+  return {
+    notify: vi.fn(),
+    notifyReaction: vi.fn(),
+    list: vi.fn(),
+    unreadCount: vi.fn(),
+    markRead: vi.fn(),
+  };
 }
 
 const dbPost = {
@@ -335,7 +343,7 @@ describe("PostsService", () => {
       const result = await service.react("u2", "p1", "👍");
       expect(result.reacted).toBe(false);
       expect(prisma.reaction.delete).toHaveBeenCalledWith({ where: { id: "r1" } });
-      expect(notif.notify).not.toHaveBeenCalled();
+      expect(notif.notifyReaction).not.toHaveBeenCalled();
     });
 
     it("switches emoji and notifies the author", async () => {
@@ -345,9 +353,12 @@ describe("PostsService", () => {
       const result = await service.react("u2", "p1", "👍");
       expect(result.reacted).toBe(true);
       expect(prisma.reaction.update).toHaveBeenCalled();
-      expect(notif.notify).toHaveBeenCalledWith(
-        expect.objectContaining({ userId: "u1", actorId: "u2", kind: "REACTION" })
-      );
+      expect(notif.notifyReaction).toHaveBeenCalledWith({
+        userId: "u1",
+        actorId: "u2",
+        entityId: "p1",
+        emoji: "👍",
+      });
       expect(result.reactions).toEqual([{ emoji: "👍", count: 1 }]);
     });
 
@@ -770,6 +781,82 @@ describe("NotificationsService", () => {
   it("skips self-notifications", async () => {
     await service.notify({ userId: "u1", actorId: "u1", kind: "REACTION" });
     expect(prisma.notification.create).not.toHaveBeenCalled();
+  });
+
+  describe("notifyReaction", () => {
+    it("creates one notification on the first reaction", async () => {
+      prisma.notification.findFirst.mockResolvedValue(null);
+      prisma.notification.create.mockResolvedValue({ id: "n1" });
+
+      await service.notifyReaction({
+        userId: "u1",
+        actorId: "u2",
+        entityId: "p1",
+        emoji: "👍",
+      });
+
+      expect(prisma.notification.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            userId: "u1",
+            actorId: "u2",
+            kind: "REACTION",
+            entityId: "p1",
+            message: "👍",
+          }),
+        })
+      );
+      expect(prisma.notification.update).not.toHaveBeenCalled();
+    });
+
+    it("coalesces a further reaction from the same actor into the unread row", async () => {
+      prisma.notification.findFirst.mockResolvedValue({ id: "n1" });
+      prisma.notification.update.mockResolvedValue({});
+
+      await service.notifyReaction({
+        userId: "u1",
+        actorId: "u2",
+        entityId: "p1",
+        emoji: "❤️",
+      });
+
+      expect(prisma.notification.create).not.toHaveBeenCalled();
+      expect(prisma.notification.update).toHaveBeenCalledWith({
+        where: { id: "n1" },
+        data: { message: "❤️" },
+      });
+    });
+
+    it("keeps separate rows per post even for the same actor", async () => {
+      prisma.notification.findFirst.mockResolvedValue(null);
+      prisma.notification.create.mockResolvedValue({ id: "n1" });
+
+      await service.notifyReaction({
+        userId: "u1",
+        actorId: "u2",
+        entityId: "p1",
+        emoji: "👍",
+      });
+      await service.notifyReaction({
+        userId: "u1",
+        actorId: "u2",
+        entityId: "p2",
+        emoji: "👍",
+      });
+
+      expect(prisma.notification.create).toHaveBeenCalledTimes(2);
+    });
+
+    it("skips self-reactions", async () => {
+      await service.notifyReaction({
+        userId: "u1",
+        actorId: "u1",
+        entityId: "p1",
+        emoji: "👍",
+      });
+      expect(prisma.notification.findFirst).not.toHaveBeenCalled();
+      expect(prisma.notification.create).not.toHaveBeenCalled();
+    });
   });
 
   it("marks one or all as read", async () => {
