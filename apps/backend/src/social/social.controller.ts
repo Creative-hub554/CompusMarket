@@ -157,6 +157,24 @@ export class SocialController {
     return this.follows.unfollow(req.user.userId, id);
   }
 
+  @Get("follow-requests")
+  @UseGuards(AuthGuard("jwt"))
+  followRequests(@Req() req: AuthUser) {
+    return this.follows.pendingFollowRequests(req.user.userId);
+  }
+
+  @Post("follow-requests/:id/accept")
+  @UseGuards(AuthGuard("jwt"))
+  acceptFollowRequest(@Req() req: AuthUser, @Param("id") id: string) {
+    return this.follows.respondToFollowRequest(req.user.userId, id, true);
+  }
+
+  @Post("follow-requests/:id/decline")
+  @UseGuards(AuthGuard("jwt"))
+  declineFollowRequest(@Req() req: AuthUser, @Param("id") id: string) {
+    return this.follows.respondToFollowRequest(req.user.userId, id, false);
+  }
+
   @Get("users/:id/followers")
   followers(@Param("id") id: string) {
     return this.follows.followers(id);

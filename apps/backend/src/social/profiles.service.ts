@@ -36,6 +36,23 @@ export class ProfilesService {
             .then((r) => !!r)
         : false;
 
+    // An outstanding request matters only when the target is private, the
+    // viewer is someone else, and they are not already following.
+    const followRequested =
+      viewerId &&
+      viewerId !== user.id &&
+      user.accountPrivate &&
+      !isFollowing
+        ? await this.prisma.followRequest
+            .findUnique({
+              where: {
+                followerId_followingId: { followerId: viewerId, followingId: profileId },
+              },
+              select: { status: true },
+            })
+            .then((r) => r?.status === "PENDING")
+        : false;
+
     // A private account's post count is only visible to the account holder and
     // their followers; everyone else sees zero so the count cannot be inferred
     // from a locked profile. Follower/following counts stay public.
@@ -45,6 +62,7 @@ export class ProfilesService {
     return {
       ...user,
       isFollowing,
+      followRequested,
       ...(canSeePostCount ? {} : { _count: { ...user._count, posts: 0 } }),
     };
   }

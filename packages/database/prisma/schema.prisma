@@ -97,6 +97,8 @@ enum NotificationKind {
   REACTION
   COMMENT
   FOLLOW
+  FOLLOW_REQUEST
+  FOLLOW_ACCEPTED
   MESSAGE
   GROUP_POST
   JOIN_REQUEST
@@ -186,6 +188,8 @@ model User {
   groupsCreated       Group[]             @relation("GroupsCreated")
   groupMemberships    GroupMember[]       @relation("GroupMemberships")
   groupJoinRequests   GroupJoinRequest[]  @relation("GroupJoinRequests")
+  followRequestsSent     FollowRequest[]     @relation("FollowRequestsSent")
+  followRequestsReceived FollowRequest[]     @relation("FollowRequestsReceived")
   jobAlerts           JobAlert[]          @relation("JobAlerts")
 
   documentFolders DocumentFolder[]
@@ -849,6 +853,26 @@ model Follow {
 
   @@unique([followerId, followingId])
   @@index([followingId])
+}
+
+model FollowRequest {
+  id          String              @id @default(uuid())
+  followerId  String
+  followingId String
+  status      FollowRequestStatus @default(PENDING)
+  createdAt   DateTime            @default(now())
+
+  follower  User @relation("FollowRequestsSent", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("FollowRequestsReceived", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followingId, status])
+}
+
+enum FollowRequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
 }
 
 model Story {

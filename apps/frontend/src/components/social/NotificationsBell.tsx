@@ -8,8 +8,8 @@ import { timeAgo, useAuthSocket } from "@/lib/social";
 
 type Notification = {
   id: string;
-  kind: "REACTION" | "COMMENT" | "FOLLOW" | "MESSAGE" |
-  "GROUP_POST" | "JOIN_REQUEST" | "MENTION" | "JOB_ALERT";
+  kind: "REACTION" | "COMMENT" | "FOLLOW" | "FOLLOW_REQUEST" | "FOLLOW_ACCEPTED" |
+  "MESSAGE" | "GROUP_POST" | "JOIN_REQUEST" | "MENTION" | "JOB_ALERT";
   entityId: string | null;
   message: string | null;
   readAt: string | null;
@@ -21,6 +21,8 @@ const KIND_ICON: Record<Notification["kind"], string> = {
   REACTION: "❤️",
   COMMENT: "💬",
   FOLLOW: "👤",
+  FOLLOW_REQUEST: "🙋",
+  FOLLOW_ACCEPTED: "✅",
   MESSAGE: "✉️",
   GROUP_POST: "👥",
   JOIN_REQUEST: "🙋",
@@ -91,6 +93,8 @@ export function NotificationsBell() {
       case "MESSAGE":
         return n.entityId ? `/messages/${n.entityId}` : "/messages";
       case "FOLLOW":
+      case "FOLLOW_REQUEST":
+      case "FOLLOW_ACCEPTED":
         return `/profile/${n.actor.id}`;
       case "GROUP_POST":
       case "JOIN_REQUEST":
@@ -160,6 +164,8 @@ export function NotificationsBell() {
                       {n.kind === "REACTION" && `reacted ${n.message ?? ""} to your post`}
                       {n.kind === "COMMENT" && "commented on your post"}
                       {n.kind === "FOLLOW" && "started following you"}
+                      {n.kind === "FOLLOW_REQUEST" && "requested to follow you"}
+                      {n.kind === "FOLLOW_ACCEPTED" && "accepted your follow request"}
                       {n.kind === "MESSAGE" && "sent you a message"}
                       {n.kind === "GROUP_POST" && `posted in ${n.message ?? "a group"}`}
                       {n.kind === "JOIN_REQUEST" && "wants to join your group"}

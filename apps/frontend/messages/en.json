@@ -299,6 +299,12 @@
     "privateAccount": "Private account",
     "privateAccountHint": "Only your followers can see and interact with your posts.",
     "lockedTitle": "This account is private",
-    "lockedText": "Follow this account to see their posts."
+    "lockedText": "Follow this account to see their posts.",
+    "follow": "Follow",
+    "following": "Following",
+    "requested": "Requested",
+    "followRequests": "Follow requests",
+    "accept": "Accept",
+    "decline": "Decline"
   }
 }

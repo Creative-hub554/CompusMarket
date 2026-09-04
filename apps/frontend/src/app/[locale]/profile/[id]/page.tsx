@@ -21,7 +21,13 @@ type Profile = {
   createdAt: string;
   isFollowing: boolean;
   accountPrivate?: boolean;
+  followRequested?: boolean;
   _count: { posts: number; followers: number; following: number };
+};
+
+type FollowRequest = {
+  id: string;
+  follower: { id: string; name: string | null; username: string | null; image: string | null };
 };
 
 export default function ProfilePage() {
@@ -30,6 +36,7 @@ export default function ProfilePage() {
   const { data: session, status } = useSession();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [posts, setPosts] = useState<FeedPost[]>([]);
+  const [requests, setRequests] = useState<FollowRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadPosts = useCallback(async () => {
@@ -59,9 +66,19 @@ export default function ProfilePage() {
       fetch(`/api/profiles/${id}`).then((r) => (r.ok ? r.json() : null)),
       loadPosts(),
     ])
-      .then(([p]) => setProfile(p))
+      .then(async ([p]) => {
+        setProfile(p);
+        // Own profile: surface pending follow requests to approve or decline.
+        if (p?.id && p.id === session?.user?.id) {
+          const res = await fetch("/api/follow-requests");
+          if (res.ok) {
+            const data = await res.json();
+            setRequests(Array.isArray(data) ? data : []);
+          }
+        }
+      })
       .finally(() => setLoading(false));
-  }, [id, status, loadPosts]);
+  }, [id, status, loadPosts, session?.user?.id]);
 
   if (loading || !profile) {
     return (
@@ -82,6 +99,15 @@ export default function ProfilePage() {
   // The API zeroes the count for locked profiles; keep the UI honest even if
   // a stale payload slips through.
   const visiblePostCount = locked ? 0 : profile._count.posts;
+
+  async function respondToRequest(requestId: string, accept: boolean) {
+    const res = await fetch(`/api/follow-requests/${requestId}/${accept ? "accept" : "decline"}`, {
+      method: "POST",
+    });
+    if (!res.ok) return;
+    setRequests((prev) => prev.filter((r) => r.id !== requestId));
+    if (accept) refresh(); // The new follower's count changed.
+  }
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
@@ -107,10 +133,51 @@ export default function ProfilePage() {
               Edit profile
             </Link>
           ) : (
-            <FollowButton userId={profile.id} initialFollowing={profile.isFollowing} onChange={refresh} />
+            <FollowButton
+              userId={profile.id}
+              initialFollowing={profile.isFollowing}
+              initialRequested={Boolean(profile.followRequested)}
+              onChange={refresh}
+            />
           )}
         </div>
       </div>
+
+      {isMe && requests.length > 0 && (
+        <div className="mb-6 rounded-2xl border border-[var(--border-subtle)] p-4">
+          <h2 className="font-bold mb-3">{t("followRequests")}</h2>
+          <div className="space-y-3">
+            {requests.map((r) => (
+              <div key={r.id} className="flex items-center gap-3">
+                <Avatar user={r.follower} size={40} />
+                <div className="flex-1 min-w-0">
+                  <Link
+                    href={`/profile/${r.follower.id}`}
+                    className="text-sm font-semibold hover:underline block truncate"
+                  >
+                    {r.follower.name || r.follower.username || "Someone"}
+                  </Link>
+                  {r.follower.username && (
+                    <p className="text-xs text-gray-400 truncate">@{r.follower.username}</p>
+                  )}
+                </div>
+                <button
+                  onClick={() => respondToRequest(r.id, true)}
+                  className="rounded-full bg-gold-600 text-white px-4 py-1.5 text-xs font-semibold hover:bg-gold-700"
+                >
+                  {t("accept")}
+                </button>
+                <button
+                  onClick={() => respondToRequest(r.id, false)}
+                  className="rounded-full border border-gray-300 text-gray-700 dark:text-gray-300 px-4 py-1.5 text-xs font-semibold hover:bg-gray-50 dark:hover:bg-slate-700"
+                >
+                  {t("decline")}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="mb-6">
         <h1 className="text-2xl font-bold">{profile.name || profile.username}</h1>

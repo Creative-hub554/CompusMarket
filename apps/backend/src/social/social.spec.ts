@@ -44,8 +44,16 @@ function makePrisma() {
       findUnique: vi.fn(),
       findMany: vi.fn(),
       create: vi.fn(),
+      upsert: vi.fn(),
       deleteMany: vi.fn(),
       groupBy: vi.fn(),
+    },
+    followRequest: {
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      deleteMany: vi.fn(),
     },
     groupMember: {
       findUnique: vi.fn(),
@@ -81,9 +89,11 @@ function makePrisma() {
       updateMany: vi.fn(),
     },
   };
-  db.$transaction = vi.fn(
-    async (cb: (tx: never) => unknown): Promise<unknown> => cb(db as never)
-  );
+  db.$transaction = vi.fn((arg: unknown) => {
+    // Callback form (interactive tx) and array form (batch tx) are both used.
+    if (Array.isArray(arg)) return Promise.all(arg as Promise<unknown>[]);
+    return (arg as (tx: never) => unknown)(db as never);
+  });
   return db;
 }
 
@@ -703,7 +713,8 @@ describe("FollowsService", () => {
   it("creates the follow edge and notifies", async () => {
     prisma.user.findUnique.mockResolvedValue({ id: "u2" });
     prisma.follow.create.mockResolvedValue({});
-    await service.follow("u1", "u2");
+    const result = await service.follow("u1", "u2");
+    expect(result).toEqual({ state: "following" });
     expect(prisma.follow.create).toHaveBeenCalledWith({
       data: { followerId: "u1", followingId: "u2" },
     });
@@ -712,11 +723,162 @@ describe("FollowsService", () => {
     );
   });
 
-  it("ignores duplicates silently", async () => {
+  it("ignores duplicate follows silently", async () => {
     prisma.user.findUnique.mockResolvedValue({ id: "u2" });
     prisma.follow.create.mockRejectedValue(new Error("P2002"));
-    await expect(service.follow("u1", "u2")).resolves.toBeUndefined();
+    await expect(service.follow("u1", "u2")).resolves.toEqual({ state: "following" });
     expect(notif.notify).not.toHaveBeenCalled();
+  });
+
+  describe("follow requests for private accounts", () => {
+    const privateTarget = { id: "u2", accountPrivate: true };
+
+    it("creates a PENDING request instead of a follow edge on a private account", async () => {
+      prisma.user.findUnique.mockResolvedValue(privateTarget);
+      prisma.follow.findUnique.mockResolvedValue(null);
+      prisma.followRequest.findUnique.mockResolvedValue(null);
+      prisma.followRequest.create.mockResolvedValue({ id: "fr1" });
+
+      const result = await service.follow("u1", "u2");
+
+      expect(result).toEqual({ state: "requested" });
+      expect(prisma.follow.create).not.toHaveBeenCalled();
+      expect(prisma.followRequest.create).toHaveBeenCalledWith({
+        data: { followerId: "u1", followingId: "u2" },
+      });
+      expect(notif.notify).toHaveBeenCalledWith(
+        expect.objectContaining({ userId: "u2", actorId: "u1", kind: "FOLLOW_REQUEST" })
+      );
+    });
+
+    it("does not duplicate or re-notify when a PENDING request exists", async () => {
+      prisma.user.findUnique.mockResolvedValue(privateTarget);
+      prisma.follow.findUnique.mockResolvedValue(null);
+      prisma.followRequest.findUnique.mockResolvedValue({ id: "fr1", status: "PENDING" });
+
+      const result = await service.follow("u1", "u2");
+
+      expect(result).toEqual({ state: "requested" });
+      expect(prisma.followRequest.create).not.toHaveBeenCalled();
+      expect(prisma.followRequest.update).not.toHaveBeenCalled();
+      expect(notif.notify).not.toHaveBeenCalled();
+    });
+
+    it("reopens a previously DECLINED request and alerts again", async () => {
+      prisma.user.findUnique.mockResolvedValue(privateTarget);
+      prisma.follow.findUnique.mockResolvedValue(null);
+      prisma.followRequest.findUnique.mockResolvedValue({ id: "fr1", status: "DECLINED" });
+      prisma.followRequest.update.mockResolvedValue({ id: "fr1", status: "PENDING" });
+
+      const result = await service.follow("u1", "u2");
+
+      expect(result).toEqual({ state: "requested" });
+      expect(prisma.followRequest.update).toHaveBeenCalledWith({
+        where: { id: "fr1" },
+        data: { status: "PENDING" },
+      });
+      expect(prisma.followRequest.create).not.toHaveBeenCalled();
+      expect(notif.notify).toHaveBeenCalledWith(
+        expect.objectContaining({ kind: "FOLLOW_REQUEST" })
+      );
+    });
+
+    it("reports following when the private account already accepted", async () => {
+      prisma.user.findUnique.mockResolvedValue(privateTarget);
+      prisma.follow.findUnique.mockResolvedValue({ id: "f1" });
+
+      const result = await service.follow("u1", "u2");
+
+      expect(result).toEqual({ state: "following" });
+      expect(prisma.followRequest.findUnique).not.toHaveBeenCalled();
+      expect(notif.notify).not.toHaveBeenCalled();
+    });
+
+    it("accepts a pending request, creates the follow edge, and notifies the requester", async () => {
+      prisma.followRequest.findUnique.mockResolvedValue({
+        id: "fr1",
+        followerId: "u1",
+        followingId: "u2",
+        status: "PENDING",
+      });
+
+      const result = await service.respondToFollowRequest("u2", "fr1", true);
+
+      expect(result).toEqual({ accepted: true });
+      expect(prisma.followRequest.update).toHaveBeenCalledWith({
+        where: { id: "fr1" },
+        data: { status: "ACCEPTED" },
+      });
+      expect(prisma.follow.upsert).toHaveBeenCalledWith({
+        where: {
+          followerId_followingId: { followerId: "u1", followingId: "u2" },
+        },
+        create: { followerId: "u1", followingId: "u2" },
+        update: {},
+      });
+      expect(notif.notify).toHaveBeenCalledWith(
+        expect.objectContaining({ userId: "u1", actorId: "u2", kind: "FOLLOW_ACCEPTED" })
+      );
+    });
+
+    it("declines a pending request without creating a follow edge", async () => {
+      prisma.followRequest.findUnique.mockResolvedValue({
+        id: "fr1",
+        followerId: "u1",
+        followingId: "u2",
+        status: "PENDING",
+      });
+      prisma.followRequest.update.mockResolvedValue({});
+
+      const result = await service.respondToFollowRequest("u2", "fr1", false);
+
+      expect(result).toEqual({ accepted: false });
+      expect(prisma.followRequest.update).toHaveBeenCalledWith({
+        where: { id: "fr1" },
+        data: { status: "DECLINED" },
+      });
+      expect(prisma.follow.upsert).not.toHaveBeenCalled();
+      expect(notif.notify).not.toHaveBeenCalled();
+    });
+
+    it("rejects responding to a request that targets another account", async () => {
+      prisma.followRequest.findUnique.mockResolvedValue({
+        id: "fr1",
+        followerId: "u1",
+        followingId: "u9",
+        status: "PENDING",
+      });
+
+      await expect(service.respondToFollowRequest("u2", "fr1", true)).rejects.toThrow(
+        NotFoundException
+      );
+      expect(prisma.followRequest.update).not.toHaveBeenCalled();
+    });
+
+    it("lists only the holder's pending requests with requester info", async () => {
+      prisma.followRequest.findMany.mockResolvedValue([
+        { id: "fr1", follower: { id: "u1", name: "Alice" } },
+      ]);
+
+      const rows = await service.pendingFollowRequests("u2");
+
+      expect(prisma.followRequest.findMany).toHaveBeenCalledWith({
+        where: { followingId: "u2", status: "PENDING" },
+        orderBy: { createdAt: "desc" },
+        include: { follower: { select: expect.any(Object) } },
+      });
+      expect(rows).toHaveLength(1);
+    });
+
+    it("cancels a request or removes a follow on unfollow", async () => {
+      await service.unfollow("u1", "u2");
+      expect(prisma.follow.deleteMany).toHaveBeenCalledWith({
+        where: { followerId: "u1", followingId: "u2" },
+      });
+      expect(prisma.followRequest.deleteMany).toHaveBeenCalledWith({
+        where: { followerId: "u1", followingId: "u2" },
+      });
+    });
   });
 
   it("suggests popular unfollowed users", async () => {
@@ -907,6 +1069,7 @@ describe("ProfilesService", () => {
     it("zeroes the post count for a non-follower viewer of a private account", async () => {
       prisma.user.findUnique.mockResolvedValue(privateUser);
       prisma.follow.findUnique.mockResolvedValue(null);
+      prisma.followRequest.findUnique.mockResolvedValue(null);
       const profile = await service.getProfile("u1", "u2");
       expect(profile._count.posts).toBe(0);
       expect(profile.isFollowing).toBe(false);
@@ -932,6 +1095,52 @@ describe("ProfilesService", () => {
       prisma.follow.findUnique.mockResolvedValue(null);
       const profile = await service.getProfile("u1", "u2");
       expect(profile._count.posts).toBe(7);
+    });
+  });
+
+  describe("followRequested", () => {
+    const privateUser = {
+      id: "u1",
+      name: "Alice",
+      accountPrivate: true,
+      createdAt: new Date(),
+      _count: { posts: 0, followers: 0, following: 0 },
+    };
+
+    it("reports true when the viewer's request is pending", async () => {
+      prisma.user.findUnique.mockResolvedValue(privateUser);
+      prisma.follow.findUnique.mockResolvedValue(null);
+      prisma.followRequest.findUnique.mockResolvedValue({ status: "PENDING" });
+
+      const profile = await service.getProfile("u1", "u2");
+
+      expect(profile.followRequested).toBe(true);
+      expect(prisma.followRequest.findUnique).toHaveBeenCalledWith({
+        where: {
+          followerId_followingId: { followerId: "u2", followingId: "u1" },
+        },
+        select: { status: true },
+      });
+    });
+
+    it("reports false when no request exists", async () => {
+      prisma.user.findUnique.mockResolvedValue(privateUser);
+      prisma.follow.findUnique.mockResolvedValue(null);
+      prisma.followRequest.findUnique.mockResolvedValue(null);
+
+      const profile = await service.getProfile("u1", "u2");
+
+      expect(profile.followRequested).toBe(false);
+    });
+
+    it("never reports requested on a public account", async () => {
+      prisma.user.findUnique.mockResolvedValue({ ...privateUser, accountPrivate: false });
+      prisma.follow.findUnique.mockResolvedValue(null);
+
+      const profile = await service.getProfile("u1", "u2");
+
+      expect(profile.followRequested).toBe(false);
+      expect(prisma.followRequest.findUnique).not.toHaveBeenCalled();
     });
   });
 
