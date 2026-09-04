@@ -8,6 +8,8 @@ import { useSession } from "next-auth/react";
 import { Avatar } from "@/components/social/Avatar";
 import { FollowButton } from "@/components/social/FollowButton";
 import { PostCard, FeedPost } from "@/components/social/PostCard";
+import { Lock } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 type Profile = {
   id: string;
@@ -18,10 +20,12 @@ type Profile = {
   bio: string | null;
   createdAt: string;
   isFollowing: boolean;
+  accountPrivate?: boolean;
   _count: { posts: number; followers: number; following: number };
 };
 
 export default function ProfilePage() {
+  const t = useTranslations("profile");
   const { id } = useParams<{ id: string }>();
   const { data: session, status } = useSession();
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -29,12 +33,25 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
 
   const loadPosts = useCallback(async () => {
+    // A private account the viewer does not follow answers 403; treat that
+    // as an empty (locked) feed rather than showing stale or misleading posts.
     const res = await fetch(`/api/profiles/${id}/posts`);
     if (res.ok) {
       const data = await res.json();
       setPosts(data.items ?? []);
+    } else {
+      setPosts([]);
     }
   }, [id]);
+
+  // Refresh after follow/unfollow: follow state decides what the visitor sees.
+  const refresh = useCallback(async () => {
+    const [p] = await Promise.all([
+      fetch(`/api/profiles/${id}`).then((r) => (r.ok ? r.json() : null)),
+      loadPosts(),
+    ]);
+    if (p) setProfile(p);
+  }, [id, loadPosts]);
 
   useEffect(() => {
     if (status !== "authenticated" && status !== "unauthenticated") return;
@@ -60,6 +77,8 @@ export default function ProfilePage() {
   }
 
   const isMe = session?.user?.id === profile.id;
+  // Private accounts only show posts to the account holder and their followers.
+  const locked = Boolean(profile.accountPrivate) && !isMe && !profile.isFollowing;
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
@@ -85,7 +104,7 @@ export default function ProfilePage() {
               Edit profile
             </Link>
           ) : (
-            <FollowButton userId={profile.id} initialFollowing={profile.isFollowing} />
+            <FollowButton userId={profile.id} initialFollowing={profile.isFollowing} onChange={refresh} />
           )}
         </div>
       </div>
@@ -110,11 +129,21 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <div className="space-y-5">
-        {posts.length === 0 ? (
-          <p className="text-center text-gray-400 py-10">No posts yet.</p>
-        ) : (
-          posts.map((post) => (
+      {locked ? (
+        <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)]/50 py-12 px-6 text-center">
+          <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gold-500/15 text-gold-600">
+            <Lock size={22} />
+          </span>
+          <h2 className="text-lg font-bold">{t("lockedTitle")}</h2>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {t("lockedText")}
+          </p>
+        </div>
+      ) : posts.length === 0 ? (
+        <p className="text-center text-gray-400 py-10">No posts yet.</p>
+      ) : (
+        <div className="space-y-5">
+          {posts.map((post) => (
             <PostCard
               key={post.id}
               post={post}
@@ -123,9 +152,9 @@ export default function ProfilePage() {
                 setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
               }
             />
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

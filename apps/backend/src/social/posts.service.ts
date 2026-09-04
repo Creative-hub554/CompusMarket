@@ -5,7 +5,7 @@ import { NotificationsService } from "./notifications.service";
 import { CreateCommentDto, CreatePostDto, PostMediaInputDto } from "./dto/social.dto";
 
 const LIST_POST_INCLUDE = {
-  author: { select: { id: true, name: true, username: true, image: true } },
+  author: { select: { id: true, name: true, username: true, image: true, accountPrivate: true } },
   media: { orderBy: { position: Prisma.SortOrder.asc } },
   group: { select: { id: true, name: true } },
   _count: { select: { comments: true } },
@@ -157,7 +157,11 @@ export class PostsService {
   async findOne(id: string, viewerId?: string): Promise<MappedPost> {
     const post = await this.prisma.post.findUnique({ where: { id }, include: POST_INCLUDE });
     if (!post) throw new NotFoundException("Post not found");
-    await this.assertGroupPostAccess(post, viewerId);
+    if (post.groupId) {
+      await this.assertGroupPostAccess(post, viewerId);
+    } else {
+      await this.assertAuthorAccess(post.author, viewerId);
+    }
     return mapPost(post, viewerId);
   }
 
@@ -205,6 +209,25 @@ export class PostsService {
     cursorId?: string,
     limit = 10
   ): Promise<{ items: MappedPost[]; nextCursor: string | null }> {
+    // A private account only shows its posts to followers (and itself).
+    const author = await this.prisma.user.findUnique({
+      where: { id: authorId },
+      select: { accountPrivate: true },
+    });
+    if (author?.accountPrivate && authorId !== viewerId) {
+      if (!viewerId) {
+        throw new ForbiddenException("This account is private");
+      }
+      const follows = await this.prisma.follow.findUnique({
+        where: {
+          followerId_followingId: { followerId: viewerId, followingId: authorId },
+        },
+        select: { id: true },
+      });
+      if (!follows) {
+        throw new ForbiddenException("This account is private");
+      }
+    }
     // A profile page must not leak the author's private-group posts.
     const memberGroupIds = viewerId ? await this.viewerGroupIds(viewerId) : [];
     return this.queryFeed(
@@ -236,10 +259,15 @@ export class PostsService {
   async toggleBookmark(userId: string, postId: string) {
     const post = await this.prisma.post.findUnique({
       where: { id: postId },
-      select: { id: true, groupId: true },
+      select: {
+        id: true,
+        authorId: true,
+        groupId: true,
+        author: { select: { accountPrivate: true } },
+      },
     });
     if (!post) throw new NotFoundException("Post not found");
-    await this.assertGroupPostAccess(post, userId);
+    await this.assertPostAccess(post, userId);
 
     const bookmarked = await this.prisma.$transaction(async (tx) => {
       const existing = await tx.bookmark.findUnique({
@@ -375,10 +403,14 @@ export class PostsService {
   async react(userId: string, postId: string, emoji: string) {
     const post = await this.prisma.post.findUnique({
       where: { id: postId },
-      select: { authorId: true, groupId: true },
+      select: {
+        authorId: true,
+        groupId: true,
+        author: { select: { accountPrivate: true } },
+      },
     });
     if (!post) throw new NotFoundException("Post not found");
-    await this.assertGroupPostAccess(post, userId);
+    await this.assertPostAccess(post, userId);
 
     const reacted = await this.prisma.$transaction(async (tx) => {
       const existing = await tx.reaction.findUnique({
@@ -432,10 +464,14 @@ export class PostsService {
   async comment(userId: string, postId: string, dto: CreateCommentDto) {
     const post = await this.prisma.post.findUnique({
       where: { id: postId },
-      select: { authorId: true, groupId: true },
+      select: {
+        authorId: true,
+        groupId: true,
+        author: { select: { accountPrivate: true } },
+      },
     });
     if (!post) throw new NotFoundException("Post not found");
-    await this.assertGroupPostAccess(post, userId);
+    await this.assertPostAccess(post, userId);
 
     let parentAuthorId: string | null = null;
     if (dto.parentId) {
@@ -495,10 +531,15 @@ export class PostsService {
   async listComments(postId: string, viewerId?: string) {
     const post = await this.prisma.post.findUnique({
       where: { id: postId },
-      select: { id: true, groupId: true },
+      select: {
+        id: true,
+        authorId: true,
+        groupId: true,
+        author: { select: { accountPrivate: true } },
+      },
     });
     if (!post) throw new NotFoundException("Post not found");
-    await this.assertGroupPostAccess(post, viewerId);
+    await this.assertPostAccess(post, viewerId);
     return this.prisma.comment.findMany({
       where: { postId },
       orderBy: { createdAt: "asc" },
@@ -529,6 +570,49 @@ export class PostsService {
       arms.push({ groupId: { in: memberGroupIds } });
     }
     return { OR: arms };
+  }
+
+  /**
+   * Reject reads/writes on posts that sit in a PRIVATE group the viewer is
+   * not a member of, or on wall posts of PRIVATE accounts the viewer does
+   * not follow. Group posts are governed by group visibility alone.
+   */
+  private async assertPostAccess(
+    post: {
+      groupId: string | null;
+      authorId: string;
+      author: { accountPrivate: boolean } | null;
+    },
+    userId?: string
+  ): Promise<void> {
+    if (post.groupId) {
+      await this.assertGroupPostAccess(post, userId);
+      return;
+    }
+    await this.assertAuthorAccess(
+      { id: post.authorId, accountPrivate: post.author?.accountPrivate ?? false },
+      userId
+    );
+  }
+
+  /** Wall posts of PRIVATE accounts are only for the author and followers. */
+  private async assertAuthorAccess(
+    author: { id: string; accountPrivate: boolean },
+    userId?: string
+  ): Promise<void> {
+    if (!author.accountPrivate || author.id === userId) return;
+    if (!userId) {
+      throw new ForbiddenException("This account is private");
+    }
+    const follows = await this.prisma.follow.findUnique({
+      where: {
+        followerId_followingId: { followerId: userId, followingId: author.id },
+      },
+      select: { id: true },
+    });
+    if (!follows) {
+      throw new ForbiddenException("This account is private");
+    }
   }
 
   /**

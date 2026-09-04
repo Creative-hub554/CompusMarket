@@ -294,5 +294,11 @@
     "emptyText": "Tap the bookmark on any post to save it for later.",
     "browseFeed": "Browse the feed",
     "loadMore": "Load more"
+  },
+  "profile": {
+    "privateAccount": "Private account",
+    "privateAccountHint": "Only your followers can see and interact with your posts.",
+    "lockedTitle": "This account is private",
+    "lockedText": "Follow this account to see their posts."
   }
 }

@@ -560,6 +560,125 @@ describe("PostsService", () => {
       await expect(service.removeComment("c1", "u2")).rejects.toThrow(ForbiddenException);
     });
   });
+
+  describe("private accounts", () => {
+    const privateAuthor = {
+      id: "u1",
+      name: "Alice",
+      username: "alice",
+      image: null,
+      accountPrivate: true,
+    };
+
+    it("hides a wall post from anonymous viewers", async () => {
+      prisma.post.findUnique.mockResolvedValue({ ...dbPost, author: privateAuthor });
+      await expect(service.findOne("p1")).rejects.toThrow(ForbiddenException);
+      expect(prisma.follow.findUnique).not.toHaveBeenCalled();
+    });
+
+    it("hides a wall post from a non-follower", async () => {
+      prisma.post.findUnique.mockResolvedValue({ ...dbPost, author: privateAuthor });
+      prisma.follow.findUnique.mockResolvedValue(null);
+      await expect(service.findOne("p1", "u2")).rejects.toThrow(ForbiddenException);
+      expect(prisma.follow.findUnique).toHaveBeenCalledWith({
+        where: {
+          followerId_followingId: { followerId: "u2", followingId: "u1" },
+        },
+        select: { id: true },
+      });
+    });
+
+    it("shows a wall post to a follower", async () => {
+      prisma.post.findUnique.mockResolvedValue({ ...dbPost, author: privateAuthor });
+      prisma.follow.findUnique.mockResolvedValue({ id: "f1" });
+      const result = await service.findOne("p1", "u2");
+      expect(result.id).toBe("p1");
+    });
+
+    it("shows the author their own wall posts without a follow lookup", async () => {
+      prisma.post.findUnique.mockResolvedValue({ ...dbPost, author: privateAuthor });
+      const result = await service.findOne("p1", "u1");
+      expect(result.id).toBe("p1");
+      expect(prisma.follow.findUnique).not.toHaveBeenCalled();
+    });
+
+    it("lets group members read the private account's group posts", async () => {
+      // Group posts are governed by group visibility, not author privacy.
+      prisma.post.findUnique.mockResolvedValue({
+        ...dbPost,
+        author: privateAuthor,
+        groupId: "g1",
+        group: { id: "g1", name: "G" },
+      });
+      const result = await service.findOne("p1", "u2");
+      expect(result.id).toBe("p1");
+      expect(prisma.follow.findUnique).not.toHaveBeenCalled();
+    });
+
+    it("scopes profile-post lists of a private account to followers", async () => {
+      prisma.user.findUnique.mockResolvedValue({ accountPrivate: true });
+      prisma.follow.findUnique.mockResolvedValue(null);
+      await expect(service.byAuthor("u1", "u2")).rejects.toThrow(ForbiddenException);
+      expect(prisma.post.findMany).not.toHaveBeenCalled();
+    });
+
+    it("allows a follower to list a private account's posts", async () => {
+      prisma.user.findUnique.mockResolvedValue({ accountPrivate: true });
+      prisma.follow.findUnique.mockResolvedValue({ id: "f1" });
+      prisma.groupMember.findMany.mockResolvedValue([]);
+      prisma.post.findMany.mockResolvedValue([]);
+      await service.byAuthor("u1", "u2");
+      expect(prisma.post.findMany).toHaveBeenCalled();
+    });
+
+    it("blocks reactions on a private account's wall post for non-followers", async () => {
+      prisma.post.findUnique.mockResolvedValue({
+        authorId: "u1",
+        groupId: null,
+        author: { accountPrivate: true },
+      });
+      prisma.follow.findUnique.mockResolvedValue(null);
+      await expect(service.react("u2", "p1", "👍")).rejects.toThrow(ForbiddenException);
+      expect(prisma.reaction.findUnique).not.toHaveBeenCalled();
+    });
+
+    it("blocks comments on a private account's wall post for non-followers", async () => {
+      prisma.post.findUnique.mockResolvedValue({
+        authorId: "u1",
+        groupId: null,
+        author: { accountPrivate: true },
+      });
+      prisma.follow.findUnique.mockResolvedValue(null);
+      await expect(service.comment("u2", "p1", { content: "hi" })).rejects.toThrow(
+        ForbiddenException
+      );
+      expect(prisma.comment.create).not.toHaveBeenCalled();
+    });
+
+    it("blocks bookmarking a private account's wall post for non-followers", async () => {
+      prisma.post.findUnique.mockResolvedValue({
+        id: "p1",
+        authorId: "u1",
+        groupId: null,
+        author: { accountPrivate: true },
+      });
+      prisma.follow.findUnique.mockResolvedValue(null);
+      await expect(service.toggleBookmark("u2", "p1")).rejects.toThrow(ForbiddenException);
+    });
+
+    it("allows a follower to react to a private account's wall post", async () => {
+      prisma.post.findUnique.mockResolvedValue({
+        authorId: "u1",
+        groupId: null,
+        author: { accountPrivate: true },
+      });
+      prisma.follow.findUnique.mockResolvedValue({ id: "f1" });
+      prisma.reaction.findUnique.mockResolvedValue({ id: "r1", emoji: "👍" });
+
+      const result = await service.react("u2", "p1", "👍");
+      expect(result.reacted).toBe(false);
+    });
+  });
 });
 
 describe("FollowsService", () => {

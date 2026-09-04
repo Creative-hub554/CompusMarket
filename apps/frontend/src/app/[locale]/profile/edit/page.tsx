@@ -10,6 +10,7 @@ import { useSession } from "next-auth/react";
 import { Avatar } from "@/components/social/Avatar";
 import { uploadFile } from "@/lib/social";
 import { Eye, EyeOff } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 type Me = {
   id: string;
@@ -18,12 +19,15 @@ type Me = {
   image: string | null;
   coverImage: string | null;
   bio: string | null;
+  accountPrivate?: boolean;
 };
 
 export default function EditProfilePage() {
+  const t = useTranslations("profile");
   const { data: session, status, update } = useSession();
   const router = useRouter();
   const [me, setMe] = useState<Me | null>(null);
+  const [accountPrivate, setAccountPrivate] = useState(false);
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
@@ -51,6 +55,7 @@ export default function EditProfilePage() {
         setName(p.name ?? "");
         setUsername(p.username ?? "");
         setBio(p.bio ?? "");
+        setAccountPrivate(Boolean(p.accountPrivate));
       })
       .catch(() => {});
   }, [status, session?.user?.id]);
@@ -66,6 +71,7 @@ export default function EditProfilePage() {
           name,
           username: username || undefined,
           bio,
+          accountPrivate,
         }),
       });
       if (!res.ok) {
@@ -209,6 +215,33 @@ export default function EditProfilePage() {
             placeholder="Tell the community about yourself…"
             className="w-full border border-[var(--border-subtle)] rounded-xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-gold-300"
           />
+        </div>
+
+        <div className="flex items-center justify-between gap-4 pt-2">
+          <div>
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              {t("privateAccount")}
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {t("privateAccountHint")}
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={accountPrivate}
+            aria-label={t("privateAccount")}
+            onClick={() => setAccountPrivate((v) => !v)}
+            className={`relative h-6 w-11 shrink-0 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gold-300 ${
+              accountPrivate ? "bg-gold-600" : "bg-gray-300 dark:bg-slate-600"
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                accountPrivate ? "translate-x-5" : "translate-x-0"
+              }`}
+            />
+          </button>
         </div>
 
         {error && <p className="text-sm text-red-600">{error}</p>}

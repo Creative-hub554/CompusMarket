@@ -9,6 +9,7 @@ const PUBLIC_PROFILE_SELECT = {
   image: true,
   coverImage: true,
   bio: true,
+  accountPrivate: true,
   createdAt: true,
   _count: { select: { posts: true, followers: true, following: true } },
 };
@@ -62,6 +63,7 @@ export class ProfilesService {
         ...(dto.bio !== undefined ? { bio: dto.bio } : {}),
         ...(dto.image !== undefined ? { image: dto.image } : {}),
         ...(dto.coverImage !== undefined ? { coverImage: dto.coverImage } : {}),
+        ...(dto.accountPrivate !== undefined ? { accountPrivate: dto.accountPrivate } : {}),
       },
       select: {
         id: true,
@@ -70,6 +72,7 @@ export class ProfilesService {
         image: true,
         coverImage: true,
         bio: true,
+        accountPrivate: true,
       },
     });
   }
