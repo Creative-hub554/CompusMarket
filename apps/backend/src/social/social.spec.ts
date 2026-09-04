@@ -12,6 +12,7 @@ import { ProfilesService } from "./profiles.service";
 import { NotificationsService } from "./notifications.service";
 import { notificationEvents, NOTIFICATION_CREATED } from "../realtime/notification.events";
 import { PrismaService } from "../prisma/prisma.service";
+import { Prisma } from "@theo/database";
 
 function makePrisma() {
   const db = {
@@ -498,6 +499,47 @@ describe("PostsService", () => {
         data: { postId: "p1", userId: "u1" },
       });
       expect(result).toEqual({ bookmarked: true });
+    });
+
+    it("removes an existing bookmark", async () => {
+      prisma.post.findUnique.mockResolvedValue({ id: "p1" });
+      prisma.bookmark.findUnique.mockResolvedValue({ id: "b1" });
+      prisma.bookmark.delete.mockResolvedValue({});
+
+      const result = await service.toggleBookmark("u1", "p1");
+
+      expect(prisma.bookmark.delete).toHaveBeenCalledWith({ where: { id: "b1" } });
+      expect(result).toEqual({ bookmarked: false });
+    });
+
+    it("nets two racing toggles to off when the loser's create hits the unique key", async () => {
+      prisma.post.findUnique.mockResolvedValue({ id: "p1" });
+      // Both requests read no bookmark, then the winner creates; the loser's
+      // create fails with P2002 and must undo the winner's row instead of 500ing.
+      prisma.bookmark.findUnique.mockResolvedValue(null);
+      prisma.bookmark.create.mockRejectedValue(
+        new Prisma.PrismaClientKnownRequestError("Unique constraint failed", {
+          code: "P2002",
+          clientVersion: "test",
+        })
+      );
+      prisma.bookmark.delete.mockResolvedValue({});
+
+      const result = await service.toggleBookmark("u1", "p1");
+
+      expect(prisma.bookmark.delete).toHaveBeenCalledWith({
+        where: { postId_userId: { postId: "p1", userId: "u1" } },
+      });
+      expect(result).toEqual({ bookmarked: false });
+    });
+
+    it("rethrows non-unique create failures", async () => {
+      prisma.post.findUnique.mockResolvedValue({ id: "p1" });
+      prisma.bookmark.findUnique.mockResolvedValue(null);
+      prisma.bookmark.create.mockRejectedValue(new Error("connection reset"));
+
+      await expect(service.toggleBookmark("u1", "p1")).rejects.toThrow("connection reset");
+      expect(prisma.bookmark.delete).not.toHaveBeenCalled();
     });
   });
 

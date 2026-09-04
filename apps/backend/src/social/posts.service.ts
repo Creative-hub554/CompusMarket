@@ -241,15 +241,36 @@ export class PostsService {
     if (!post) throw new NotFoundException("Post not found");
     await this.assertGroupPostAccess(post, userId);
 
-    const existing = await this.prisma.bookmark.findUnique({
-      where: { postId_userId: { postId, userId } },
+    const bookmarked = await this.prisma.$transaction(async (tx) => {
+      const existing = await tx.bookmark.findUnique({
+        where: { postId_userId: { postId, userId } },
+        select: { id: true },
+      });
+      if (existing) {
+        await tx.bookmark.delete({ where: { id: existing.id } });
+        return false;
+      }
+      const created = await tx.bookmark
+        .create({ data: { postId, userId } })
+        .catch((e: unknown) => {
+          // Concurrent toggles can both miss the row above; the loser's create
+          // hits the (postId, userId) unique key. Serialize it: undo the
+          // winner's create so two racing toggles net to "off", exactly as
+          // they would if executed in order.
+          if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+            return null;
+          }
+          throw e;
+        });
+      if (!created) {
+        await tx.bookmark.delete({
+          where: { postId_userId: { postId, userId } },
+        });
+        return false;
+      }
+      return true;
     });
-    if (existing) {
-      await this.prisma.bookmark.delete({ where: { id: existing.id } });
-      return { bookmarked: false };
-    }
-    await this.prisma.bookmark.create({ data: { postId, userId } });
-    return { bookmarked: true };
+    return { bookmarked };
   }
 
   async byGroup(
