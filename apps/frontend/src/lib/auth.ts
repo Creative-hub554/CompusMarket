@@ -30,25 +30,23 @@ const USER_SELECT = {
  * we fall back to reading the row.
  */
 async function provisionUser(userId: string): Promise<LocalUser | null> {
+  let email = `${userId}@clerk.local`;
+  let name: string | null = null;
+  let image: string | null = null;
   try {
     const client = await clerkClient();
     const clerkUser = await client.users.getUser(userId);
-    const email =
+    email =
       clerkUser.emailAddresses.find((e) => e.verification?.status === "verified")
         ?.emailAddress ??
       clerkUser.emailAddresses[0]?.emailAddress ??
       `${userId}@clerk.local`;
-    const name = [clerkUser.firstName, clerkUser.lastName]
-      .filter(Boolean)
-      .join(" ")
-      .trim();
+    name =
+      [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ").trim() ||
+      null;
+    image = clerkUser.imageUrl || null;
     const user = await prisma.user.create({
-      data: {
-        clerkId: userId,
-        email,
-        name: name || null,
-        image: clerkUser.imageUrl || null,
-      },
+      data: { clerkId: userId, email, name, image, emailVerified: new Date() },
       select: USER_SELECT,
     });
     return {
@@ -59,20 +57,45 @@ async function provisionUser(userId: string): Promise<LocalUser | null> {
       role: user.role,
     };
   } catch {
-    // Concurrent provisioning or a Clerk API hiccup: read the row if a
-    // concurrent request created it, otherwise treat as unauthenticated.
-    const existing = await prisma.user.findUnique({
+    // Concurrent provisioning or a Clerk API hiccup. Prefer the row the
+    // webhook just created; otherwise adopt a pre-Clerk account that shares
+    // the (Clerk-verified) email, linking it only when unclaimed.
+    const byClerk = await prisma.user.findUnique({
       where: { clerkId: userId },
       select: USER_SELECT,
     });
-    if (!existing) return null;
-    return {
-      sub: existing.id,
-      email: existing.email,
-      name: existing.name,
-      image: existing.image,
-      role: existing.role,
-    };
+    if (byClerk) {
+      return {
+        sub: byClerk.id,
+        email: byClerk.email,
+        name: byClerk.name,
+        image: byClerk.image,
+        role: byClerk.role,
+      };
+    }
+    const byEmail = await prisma.user.findUnique({
+      where: { email },
+      select: { ...USER_SELECT, clerkId: true, emailVerified: true },
+    });
+    if (byEmail && (byEmail.clerkId === null || byEmail.clerkId === userId)) {
+      const linked = await prisma.user.update({
+        where: { id: byEmail.id },
+        data: {
+          clerkId: userId,
+          image: byEmail.image ?? image,
+          emailVerified: byEmail.emailVerified ?? new Date(),
+        },
+        select: USER_SELECT,
+      });
+      return {
+        sub: linked.id,
+        email: linked.email,
+        name: linked.name,
+        image: linked.image,
+        role: linked.role,
+      };
+    }
+    return null;
   }
 }
 
