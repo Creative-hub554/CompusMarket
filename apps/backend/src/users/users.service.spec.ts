@@ -5,17 +5,24 @@ import { Role } from "@theo/database";
 import { UsersService } from "./users.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { pushRoleToClerk } from "./clerk-sync";
+import { notifyRoleChange } from "./role-change-notify";
 
 vi.mock("./clerk-sync", () => ({
   pushRoleToClerk: vi.fn(),
 }));
+vi.mock("./role-change-notify", () => ({
+  notifyRoleChange: vi.fn(),
+}));
 
 const mockPush = vi.mocked(pushRoleToClerk);
+const mockNotify = vi.mocked(notifyRoleChange);
 
 const ACTOR = "admin-1";
 
-function makeTarget(over: Partial<Record<"id" | "email" | "role" | "clerkId", string | null>> = {}) {
-  return { id: "u-1", email: "a@b.c", role: "CUSTOMER", clerkId: "clerk-1", ...over };
+function makeTarget(
+  over: Partial<Record<"id" | "email" | "name" | "role" | "clerkId", string | null>> = {}
+) {
+  return { id: "u-1", email: "a@b.c", name: "A B", role: "CUSTOMER", clerkId: "clerk-1", ...over };
 }
 
 describe("UsersService", () => {
@@ -127,7 +134,7 @@ describe("UsersService", () => {
       mockPrisma.user.findUnique.mockResolvedValue(makeTarget());
       mockTxnWith({ id: "u-1", email: "a@b.c", role: "ADMIN", banReason: null });
 
-      const result = await service.setRole("u-1", Role.ADMIN, ACTOR);
+      const result = await service.setRole("u-1", Role.ADMIN, ACTOR, undefined, "admin@x.io");
 
       expect(mockPrisma.user.update).toHaveBeenCalledWith({
         where: { id: "u-1" },
@@ -149,6 +156,15 @@ describe("UsersService", () => {
         expect.anything(),
       ]);
       expect(mockPush).toHaveBeenCalledWith("clerk-1", "ADMIN");
+      expect(mockNotify).toHaveBeenCalledWith({
+        actorId: ACTOR,
+        actorEmail: "admin@x.io",
+        targetName: "A B",
+        targetEmail: "a@b.c",
+        fromRole: "CUSTOMER",
+        toRole: "ADMIN",
+        reason: null,
+      });
       expect(result.role).toBe("ADMIN");
     });
 
@@ -218,6 +234,7 @@ describe("UsersService", () => {
       expect(mockPrisma.user.update).not.toHaveBeenCalled();
       expect(mockPrisma.roleChangeLog.create).not.toHaveBeenCalled();
       expect(mockPush).not.toHaveBeenCalled();
+      expect(mockNotify).not.toHaveBeenCalled();
     });
 
     it("throws NotFound for an unknown user and touches neither DB write nor Clerk", async () => {
@@ -228,6 +245,7 @@ describe("UsersService", () => {
       );
       expect(mockPrisma.$transaction).not.toHaveBeenCalled();
       expect(mockPush).not.toHaveBeenCalled();
+      expect(mockNotify).not.toHaveBeenCalled();
     });
 
     it("updates the DB only for users without a Clerk identity", async () => {

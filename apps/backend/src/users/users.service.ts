@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { Role } from "@theo/database";
 import { PrismaService } from "../prisma/prisma.service";
 import { pushRoleToClerk } from "./clerk-sync";
+import { notifyRoleChange } from "./role-change-notify";
 import { parseLimit } from "../common/pagination";
 
 export const ROLE_CHANGE_REASON_MAX = 500;
@@ -64,11 +65,20 @@ export class UsersService {
    * in the same transaction, so the trail is never out of step with the role.
    * Bans persist their reason on the user row; any non-BANNED role clears it.
    * Resubmitting the current role is a no-op and records nothing.
+   *
+   * A change is also pushed to any configured Slack/Telegram webhook so ops is
+   * alerted immediately; that push is best-effort like the Clerk mirror.
    */
-  async setRole(targetId: string, role: Role, changedById: string, reason?: string) {
+  async setRole(
+    targetId: string,
+    role: Role,
+    changedById: string,
+    reason?: string,
+    actorEmail?: string
+  ) {
     const target = await this.prisma.user.findUnique({
       where: { id: targetId },
-      select: { id: true, email: true, role: true, clerkId: true },
+      select: { id: true, email: true, name: true, role: true, clerkId: true },
     });
     if (!target) throw new NotFoundException("User not found");
 
@@ -109,6 +119,18 @@ export class UsersService {
         // Best-effort mirror: a Clerk outage must not fail the role change.
       }
     }
+
+    // Alert ops channels (no-op unless a webhook is configured).
+    await notifyRoleChange({
+      actorId: changedById,
+      actorEmail: actorEmail ?? undefined,
+      targetName: target.name ?? undefined,
+      targetEmail: target.email,
+      fromRole: target.role,
+      toRole: role,
+      reason: cleanReason,
+    });
+
     return updated;
   }
 

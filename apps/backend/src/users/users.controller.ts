@@ -30,10 +30,10 @@ export class UsersController {
   @Roles("ADMIN")
   setRole(
     @Param("id") id: string,
-    @Req() req: { user: { userId: string } },
+    @Req() req: { user: { userId: string; email: string } },
     @Body() dto: UpdateUserRoleDto
   ) {
-    return this.usersService.setRole(id, dto.role, req.user.userId, dto.reason);
+    return this.usersService.setRole(id, dto.role, req.user.userId, dto.reason, req.user.email);
   }
 
   /** Audit trail of role changes for a single user. */
