@@ -19,7 +19,10 @@ describe("UsersService", () => {
     user: {
       findUnique: vi.fn(),
       update: vi.fn(),
+      findMany: vi.fn(),
+      count: vi.fn(),
     },
+    $transaction: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -32,6 +35,73 @@ describe("UsersService", () => {
 
   it("should be defined", () => {
     expect(service).toBeDefined();
+  });
+
+  describe("list", () => {
+    function mockTxn() {
+      // Resolve the [findMany, count] array like Prisma's $transaction does.
+      mockPrisma.$transaction.mockImplementation((queries: Promise<unknown>[]) =>
+        Promise.all(queries)
+      );
+    }
+
+    it("returns a bounded, newest-first page with the matching total", async () => {
+      const items = [{ id: "u-2", email: "b@x.io", role: "CUSTOMER" }];
+      mockTxn();
+      mockPrisma.user.findMany.mockResolvedValue(items);
+      mockPrisma.user.count.mockResolvedValue(41);
+
+      const result = await service.list({ q: undefined, page: 2, limit: 20 });
+
+      expect(mockPrisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          skip: 20,
+          take: 20,
+          orderBy: { createdAt: "desc" },
+        }),
+      );
+      expect(result).toEqual({ items, total: 41, page: 2, limit: 20 });
+    });
+
+    it("searches email, name, and username case-insensitively", async () => {
+      mockTxn();
+      mockPrisma.user.findMany.mockResolvedValue([]);
+      mockPrisma.user.count.mockResolvedValue(0);
+
+      await service.list({ q: "  kim  ", page: 1, limit: 20 });
+
+      expect(mockPrisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            OR: [
+              { email: { contains: "kim", mode: "insensitive" } },
+              { name: { contains: "kim", mode: "insensitive" } },
+              { username: { contains: "kim", mode: "insensitive" } },
+            ],
+          },
+        }),
+      );
+    });
+
+    it("falls back to defaults for garbage pagination input", async () => {
+      mockTxn();
+      mockPrisma.user.findMany.mockResolvedValue([]);
+      mockPrisma.user.count.mockResolvedValue(0);
+
+      const result = await service.list({ q: undefined, page: Number.NaN, limit: -5 });
+
+      expect(result).toEqual({ items: [], total: 0, page: 1, limit: 20 });
+    });
+
+    it("clamps an oversized limit to the page maximum", async () => {
+      mockTxn();
+      mockPrisma.user.findMany.mockResolvedValue([]);
+      mockPrisma.user.count.mockResolvedValue(0);
+
+      const result = await service.list({ q: undefined, page: 1, limit: 9999 });
+
+      expect(result.limit).toBe(50);
+    });
   });
 
   describe("setRole", () => {

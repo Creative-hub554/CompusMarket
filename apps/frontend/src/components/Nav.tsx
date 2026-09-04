@@ -235,6 +235,15 @@ export function Nav() {
                     >
                       {t("savedPosts")}
                     </Link>
+                    {session.user.role === "ADMIN" && (
+                      <Link
+                        href="/admin/users"
+                        onClick={() => setMenuOpen(false)}
+                        className={itemCls}
+                      >
+                        {t("admin")}
+                      </Link>
+                    )}
                     <Link
                       href="/support"
                       onClick={() => setMenuOpen(false)}

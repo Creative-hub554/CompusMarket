@@ -27,6 +27,7 @@ const ALLOWED_PREFIXES = [
   "/api/warranties",
   "/api/upload",
   "/api/search",
+  "/api/admin",
   "/api/categories",
   "/api/products",
   "/api/orders",
