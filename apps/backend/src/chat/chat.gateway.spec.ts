@@ -27,10 +27,12 @@ function makePrisma() {
     },
     supportTicket: {
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
       update: vi.fn(),
     },
     supportMessage: {
       create: vi.fn(),
+      updateMany: vi.fn(),
     },
     user: {
       findUnique: vi.fn(),
@@ -292,6 +294,68 @@ describe("ChatGateway participant gating", () => {
         "newSupportMessage",
         expect.objectContaining({ id: "sm2" })
       );
+    });
+  });
+
+  describe("markSupportAsRead", () => {
+    it("ignores markSupportAsRead from a user who is neither the customer nor an admin", async () => {
+      prisma.user.findUnique.mockResolvedValue({ role: "CUSTOMER" });
+      prisma.supportTicket.findFirst.mockResolvedValue(null);
+      const client = makeClient("u9");
+
+      await gateway.handleMarkSupportAsRead(client as never, { ticketId: "tk1" });
+
+      // Non-admins are scoped to tickets they own, so u9 finds nothing.
+      expect(prisma.supportTicket.findFirst).toHaveBeenCalledWith({
+        where: { id: "tk1", customerId: "u9" },
+        select: { id: true },
+      });
+      expect(prisma.supportMessage.updateMany).not.toHaveBeenCalled();
+      expect(server.to).not.toHaveBeenCalled();
+    });
+
+    it("marks the ticket's messages read for the owning customer", async () => {
+      prisma.user.findUnique.mockResolvedValue({ role: "CUSTOMER" });
+      prisma.supportTicket.findFirst.mockResolvedValue({ id: "tk1" });
+      prisma.supportMessage.updateMany.mockResolvedValue({ count: 2 });
+      const client = makeClient("u1");
+
+      await gateway.handleMarkSupportAsRead(client as never, { ticketId: "tk1" });
+
+      expect(prisma.supportTicket.findFirst).toHaveBeenCalledWith({
+        where: { id: "tk1", customerId: "u1" },
+        select: { id: true },
+      });
+      expect(prisma.supportMessage.updateMany).toHaveBeenCalledWith({
+        where: { ticketId: "tk1", senderId: { not: "u1" }, readAt: null },
+        data: { readAt: expect.any(Date) },
+      });
+      expect(server.to).toHaveBeenCalledWith("support:tk1");
+      expect(room.emit).toHaveBeenCalledWith("supportMessagesRead", {
+        userId: "u1",
+        ticketId: "tk1",
+      });
+    });
+
+    it("lets an admin mark any ticket as read", async () => {
+      prisma.user.findUnique.mockResolvedValue({ role: "ADMIN" });
+      prisma.supportTicket.findUnique.mockResolvedValue({ id: "tk1" });
+      prisma.supportMessage.updateMany.mockResolvedValue({ count: 5 });
+      const client = makeClient("admin-1");
+
+      await gateway.handleMarkSupportAsRead(client as never, { ticketId: "tk1" });
+
+      expect(prisma.supportTicket.findUnique).toHaveBeenCalledWith({
+        where: { id: "tk1" },
+        select: { id: true },
+      });
+      expect(prisma.supportTicket.findFirst).not.toHaveBeenCalled();
+      expect(prisma.supportMessage.updateMany).toHaveBeenCalled();
+      expect(server.to).toHaveBeenCalledWith("support:tk1");
+      expect(room.emit).toHaveBeenCalledWith("supportMessagesRead", {
+        userId: "admin-1",
+        ticketId: "tk1",
+      });
     });
   });
 });
