@@ -157,6 +157,7 @@ export class PostsService {
   async findOne(id: string, viewerId?: string): Promise<MappedPost> {
     const post = await this.prisma.post.findUnique({ where: { id }, include: POST_INCLUDE });
     if (!post) throw new NotFoundException("Post not found");
+    await this.assertGroupPostAccess(post, viewerId);
     return mapPost(post, viewerId);
   }
 
@@ -176,12 +177,20 @@ export class PostsService {
       where: { userId },
       select: { groupId: true },
     });
+    const myGroupIds = myGroups.map((g) => g.groupId);
 
+    // Followed authors may post into PRIVATE groups the viewer does not
+    // belong to — those must not surface in the feed.
     return this.queryFeed(
       {
-        OR: [
-          { authorId: { in: authorIds } },
-          { groupId: { in: myGroups.map((g) => g.groupId) } },
+        AND: [
+          {
+            OR: [
+              { authorId: { in: authorIds } },
+              { groupId: { in: myGroupIds } },
+            ],
+          },
+          this.visiblePostsWhere(myGroupIds),
         ],
       },
       userId,
@@ -196,7 +205,14 @@ export class PostsService {
     cursorId?: string,
     limit = 10
   ): Promise<{ items: MappedPost[]; nextCursor: string | null }> {
-    return this.queryFeed({ authorId }, viewerId, cursorId, limit);
+    // A profile page must not leak the author's private-group posts.
+    const memberGroupIds = viewerId ? await this.viewerGroupIds(viewerId) : [];
+    return this.queryFeed(
+      { AND: [{ authorId }, this.visiblePostsWhere(memberGroupIds)] },
+      viewerId,
+      cursorId,
+      limit
+    );
   }
 
   /** Posts the viewer has bookmarked, newest bookmark first. */
@@ -220,9 +236,10 @@ export class PostsService {
   async toggleBookmark(userId: string, postId: string) {
     const post = await this.prisma.post.findUnique({
       where: { id: postId },
-      select: { id: true },
+      select: { id: true, groupId: true },
     });
     if (!post) throw new NotFoundException("Post not found");
+    await this.assertGroupPostAccess(post, userId);
 
     const existing = await this.prisma.bookmark.findUnique({
       where: { postId_userId: { postId, userId } },
@@ -337,9 +354,10 @@ export class PostsService {
   async react(userId: string, postId: string, emoji: string) {
     const post = await this.prisma.post.findUnique({
       where: { id: postId },
-      select: { authorId: true },
+      select: { authorId: true, groupId: true },
     });
     if (!post) throw new NotFoundException("Post not found");
+    await this.assertGroupPostAccess(post, userId);
 
     const reacted = await this.prisma.$transaction(async (tx) => {
       const existing = await tx.reaction.findUnique({
@@ -394,9 +412,10 @@ export class PostsService {
   async comment(userId: string, postId: string, dto: CreateCommentDto) {
     const post = await this.prisma.post.findUnique({
       where: { id: postId },
-      select: { authorId: true },
+      select: { authorId: true, groupId: true },
     });
     if (!post) throw new NotFoundException("Post not found");
+    await this.assertGroupPostAccess(post, userId);
 
     let parentAuthorId: string | null = null;
     if (dto.parentId) {
@@ -453,12 +472,70 @@ export class PostsService {
     await this.prisma.comment.delete({ where: { id: commentId } });
   }
 
-  listComments(postId: string) {
+  async listComments(postId: string, viewerId?: string) {
+    const post = await this.prisma.post.findUnique({
+      where: { id: postId },
+      select: { id: true, groupId: true },
+    });
+    if (!post) throw new NotFoundException("Post not found");
+    await this.assertGroupPostAccess(post, viewerId);
     return this.prisma.comment.findMany({
       where: { postId },
       orderBy: { createdAt: "asc" },
       include: { author: { select: { id: true, name: true, username: true, image: true } } },
     });
+  }
+
+  /** Groups the user belongs to, used to scope what they may read. */
+  private async viewerGroupIds(userId: string): Promise<string[]> {
+    const rows = await this.prisma.groupMember.findMany({
+      where: { userId },
+      select: { groupId: true },
+    });
+    return rows.map((r) => r.groupId);
+  }
+
+  /**
+   * Posts a viewer may see: their own wall posts, posts in PUBLIC groups,
+   * and posts in groups they belong to (public or private). Anything in a
+   * PRIVATE group they are not a member of is excluded.
+   */
+  private visiblePostsWhere(memberGroupIds: string[]): Prisma.PostWhereInput {
+    const arms: Prisma.PostWhereInput[] = [
+      { groupId: null },
+      { group: { is: { privacy: "PUBLIC" } } },
+    ];
+    if (memberGroupIds.length > 0) {
+      arms.push({ groupId: { in: memberGroupIds } });
+    }
+    return { OR: arms };
+  }
+
+  /**
+   * Reject reads/writes on posts that sit in a PRIVATE group the viewer is
+   * not a member of. Wall posts and PUBLIC-group posts pass through.
+   */
+  private async assertGroupPostAccess(
+    post: { groupId: string | null },
+    userId?: string
+  ): Promise<void> {
+    if (!post.groupId) return;
+    const group = await this.prisma.group.findUnique({
+      where: { id: post.groupId },
+      select: { privacy: true },
+    });
+    if (!group || group.privacy !== "PRIVATE") return;
+
+    if (!userId) {
+      throw new ForbiddenException("This post is in a private group");
+    }
+    const membership = await this.prisma.groupMember.findUnique({
+      where: { groupId_userId: { groupId: post.groupId, userId } },
+      select: { id: true },
+    });
+    if (!membership) {
+      throw new ForbiddenException("This post is in a private group");
+    }
   }
 
   private validateMedia(media: PostMediaInputDto[]): void {

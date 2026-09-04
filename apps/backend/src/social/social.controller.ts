@@ -96,8 +96,8 @@ export class SocialController {
 
   @Get("posts/:id/comments")
   @UseGuards(OptionalJwtGuard)
-  listComments(@Param("id") id: string) {
-    return this.posts.listComments(id);
+  listComments(@Req() req: AuthUser, @Param("id") id: string) {
+    return this.posts.listComments(id, req.user?.userId);
   }
 
   @Post("posts/:id/comments")
