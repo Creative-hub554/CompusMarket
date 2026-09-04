@@ -3,6 +3,9 @@ import { defineConfig } from "@playwright/test";
 const FRONT_PORT = process.env.E2E_FRONT_PORT ?? "3000";
 const BACK_PORT = process.env.E2E_BACK_PORT ?? "4000";
 
+// The authenticated project depends on clerk-setup, which mints the testing
+// token only when CLERK_SECRET_KEY is set (the file skips otherwise), so a
+// dev without Clerk keys still gets the guest specs and a skipped auth spec.
 export default defineConfig({
   testDir: "./e2e",
   timeout: 120_000,
@@ -29,6 +32,15 @@ export default defineConfig({
       url: `http://localhost:${FRONT_PORT}`,
       reuseExistingServer: !process.env.CI,
       timeout: 90_000,
+    },
+  ],
+  projects: [
+    { name: "clerk-setup", testMatch: /clerk\.setup\.ts$/ },
+    { name: "guest", testMatch: /(checkout|debug-auth)\.spec\.ts$/ },
+    {
+      name: "authenticated",
+      testMatch: /authenticated\.spec\.ts$/,
+      dependencies: ["clerk-setup"],
     },
   ],
 });

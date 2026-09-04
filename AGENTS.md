@@ -70,8 +70,12 @@ Backend modules: `auth`, `products`, `orders`, `cart`, `categories`, `search`, `
 
 ## Auth architecture
 
-- Frontend NextAuth (credentials → Prisma bcrypt) mints backend-compatible JWTs (`sub`/`email`/`role`, 1h) signed with the shared `AUTH_SECRET`; backend `JwtStrategy` reads those claims. `useAuthedFetch` silently re-mints via `session.update()` on a 401.
-- Refresh tokens: hashed in the `RefreshToken` table, rotated on `/auth/refresh` with reuse detection (presenting a revoked token revokes the user's whole token family).
+- **Auth is split across apps.** Storefront (`clerkMiddleware`, `ClerkProvider`, keys in `apps/frontend/.env.local`) and the NestJS backend (`@clerk/backend` verification) cut over to Clerk in commit `0a942e0`; the **admin app is still a NextAuth island** (`getToken` in `middleware.ts` + `lib/require-admin.ts`, own `/login`, `api/auth/[...nextauth]`, own `SessionProvider`). Cutover plan: `docs/superpowers/plans/2026-09-04-admin-clerk-cutover.md`.
+- Clerk SDKs are **Core 2** (`@clerk/nextjs ^7.9.1`, `@clerk/backend ^3.17.1`): no `<Show>`, no `isAuthenticated`/session tasks — use `<Protect>`, `!!userId`, `await auth()`; `has()` only supports `role`/`permission`.
+- Clerk webhook route (`apps/frontend/src/app/api/webhooks/clerk/`) is split by concern: `route.ts` = thin HTTP adapter (env guard, `verifyWebhook`, status codes), `handler.ts` = DB mutations (upsert/claim/ban/detach, `$transaction` audit, best-effort backend + metadata pings), `dedupe.ts` = per-process Svix retry cache (owns its own `Map`, remember-on-success only). Core tests drive `POST` end-to-end with `verifyWebhook`/`prisma` mocked.
+- **Svix/Clerk webhook secrets must be valid base64**: `standardwebhooks` base64-decodes the `whsec_` body and HMACs with those bytes over `id.seconds.body` (tolerance ±5 min). A hand-typed secret throws "Base64Coder: incorrect characters" → every delivery 400s. `behavior.test.ts` drives the real verifier by replicating the algorithm with `node:crypto`.
+- Admin **product create/edit pages bypass admin Next routes**: they POST straight to the Nest backend with `session?.accessToken` (a JWT the NextAuth session callback signs); the backend guards those product write endpoints with the legacy JWT. Cutting over admin auth breaks this bridge — the hidden dependency behind the plan above.
+- Legacy (pre-Clerk) surface: NextAuth credentials → Prisma bcrypt, backend `JwtStrategy` reads `sub`/`email`/`role` claims; refresh tokens hashed in `RefreshToken`, rotated on `/auth/refresh` with reuse detection; `useAuthedFetch` re-mints on 401.
 - Shared env helpers live in `apps/backend/src/common/config.ts` (`getAuthSecret`, `getCorsOrigins`) — use them instead of reading env directly.
 - Rate limiting is a fixed-window guard backed by Redis (`REDIS_URL`) with in-memory fallback (`common/rate-limit.guard.ts`).
 
@@ -79,6 +83,8 @@ Backend modules: `auth`, `products`, `orders`, `cart`, `categories`, `search`, `
 
 - **Sellers never call NestJS mutations directly.** They go through Next.js route handlers `apps/frontend/src/app/api/seller/*`, which check `getToken`, require an APPROVED `SellerProfile`, and enforce product ownership before touching Prisma.
 - NestJS `PATCH /products/:id` is `ADMIN`/`INVENTORY_MANAGER` only. `GET /products/promos` is public (shoppable-video promos: `Product.videoUrl`/`videoActive`).
+- Admin **Users-page bans** (`apps/admin/src/app/api/admin/users/[id]/route.ts`) resolve open USER reports transactionally (REMOVED + audit row + reporter notifications); **Clerk-dashboard bans (webhook) and backend `UsersService.setRole` do not** — the invariant only holds for in-app bans.
+- `Report` rows survive content takedowns (no FK to the target), but `@@unique([targetType, targetId, reporterId])` means a resolved/filed report can never be refiled against the same content.
 
 ## Frontend auth proxy
 
@@ -88,10 +94,13 @@ Writes go through `apps/frontend/src/app/api/[...proxy]/route.ts` which re-signs
 
 Shared `EventEmitter` singleton at `apps/backend/src/realtime/notification.events.ts` decouples social module notification creation from WebSocket delivery. Event constant: `NOTIFICATION_CREATED = "created"`. The `ChatGateway.onModuleInit` subscribes to this emitter and broadcasts to connected clients. **Critical**: call `notificationEvents.removeAllListeners(NOTIFICATION_CREATED)` before `.on(...)` in `onModuleInit` to avoid stacking duplicate listeners under HMR hot-reload.
 
+- **Admin → backend relay**: the admin app inserts notification rows directly into the shared DB, then pings backend `POST /api/internal/notifications/deliver` (`x-internal-token: INTERNAL_SERVICE_TOKEN`) so ChatGateway fans out live; the actor is resolved server-side from the DB, never trusted from the caller. Best-effort — without the token the call is skipped and the bell's polling covers it. Clerk-dashboard bans use the sibling `/internal/role-changes/notify`. Both sit behind `InternalTokenGuard`, which **rejects everything when `INTERNAL_SERVICE_TOKEN` is unset**.
+
 ## Test conventions
 
 - **Backend**: `vitest`, `*.spec.ts` in `src/`, `npx vitest run`. Exclude `*.e2e-spec.ts` (separate config, 30s timeout).
 - **Frontend**: `vitest` + `@testing-library/react`, jsdom, `*.test.{ts,tsx}`.
+- Frontend Playwright: the current Clerk package is **`@clerk/testing`** (the old `@clerk/testing-playwright` name is deprecated); `clerkSetup()` must be a **project-based setup** (`e2e/clerk.setup.ts`) — a function-based `globalSetup` cannot propagate `CLERK_TESTING_TOKEN`/`CLERK_FAPI` to workers. e2e TS is excluded from the frontend `tsconfig`, so `tsc --noEmit` does not typecheck it.
 - Mock pattern (backend): `vi.mock("module", () => ({...}))` before imports, Prisma via `{ provide: PrismaService, useValue: mockObject }`, `vi.clearAllMocks()` in `beforeEach`.
 - **Root `vitest.config.ts` uses `projects` (workspace mode)** so each app/package runs under its own config (admin `@` alias, frontend React plugin/jsdom, backend globals). Each per-package `vitest.config.ts` must **NOT set `root: "."`** — it resolves to the repo root when loaded as a project. Remove `root` so vitest uses each config's directory as the project root.
 - The root `projects` config (`["apps/*", "packages/*"]`) auto-excludes `.worktrees/**` and `e2e/` from discovery; Playwright specs live under `apps/frontend/e2e/` and run with `npx playwright test`, not vitest.
@@ -103,12 +112,14 @@ Shared `EventEmitter` singleton at `apps/backend/src/realtime/notification.event
 - **Meilisearch**: `http://localhost:7700`, master key `masterKey` (`meilisearch.exe --master-key masterKey` or `docker compose -f docker/compose.yml up -d`; copy `docker/.env.example` to `docker/.env` first — compose reads secrets from it; ports bound to `127.0.0.1`).
 - **MinIO**: :9000 (console :9001). **Redis**: `redis://localhost:6379`.
 - **Docker services are optional for dev**: the node apps run on SQLite alone; search falls back to Prisma when Meilisearch is down, but MinIO uploads fail without `MINIO_ACCESS_KEY`.
+- **Machine constraints**: pnpm is broken here (the `@pnpm/exe` shim in `C:\Users\theow\AppData\Local\pnpm` won't run, no corepack) — you can edit `package.json` but **cannot install deps**; don't fall back to npm in this pnpm workspace. No Docker daemon or local PostgreSQL runs, so DB-backed integration/e2e and the compose stacks can't be exercised locally. `gh` is installed but **not authenticated** — PRs can't be created until `gh auth login` runs.
 
 ## Docker builds
 
 - The canonical full-stack composition is the repo-root **`compose.yaml`** (auto-detected by `docker compose`). `docker/compose.prod.yml` is the production stack (adds monitoring/backup profiles); `docker/compose.yml` is infra-only (Postgres/MinIO/Redis/Meili) for local dev services. `compose.debug.yaml` overlays the stack with Node inspectors (frontend :9229, backend :9228). There is no repo-root `docker-compose.yml` — don't recreate it (a second root compose file triggers a Compose v2 "multiple compose files" error).
 - Each app builds via its own multi-stage Dockerfile (`apps/{backend,frontend,admin}/Dockerfile`, `turbo prune --docker` + pnpm, build context = repo root). The root `Dockerfile` builds the frontend alone (`docker build -t champey .`).
 - **`.dockerignore` must NOT exclude `**/Dockerfile*` / `**/compose*`** — removing them broke `docker build -f apps/*/Dockerfile` because Docker needs those files inside the `.` build context.
+- **Deploy-wiring gaps in `docker/compose.prod.yml`**: the frontend service gets **zero Clerk env** (no `CLERK_WEBHOOK_SECRET`, `CLERK_SECRET_KEY`, or publishable-key build arg) — in a compose deploy the Clerk webhook route returns 503 and `clerkClient` metadata sync has no secret; Clerk vars must come from outside the repo. `docker/.env.example` ships a **known default** `INTERNAL_SERVICE_TOKEN=internal-token-change-me` guarding the internal relay endpoints (prod compose defaults empty, which degrades safely). The `admin` service has **no `depends_on` on `backend-db-init`** (backend does), so on a fresh DB admin can race the Prisma `db push` for new tables.
 - **`backend-db-init` one-off service**: in `compose.yaml` + `compose.prod.yml`, before the backend starts, a `db-init` target (`apps/backend/Dockerfile`) runs `prisma db push` + idempotent `prisma db seed` against PostgreSQL. Backend `depends_on: backend-db-init: service_completed_successfully`. Schema sync uses `db push` (the `migrations/` dir is empty — there are no generated migration files, so `prisma migrate deploy` is not used). Seed creates the admin (`SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD`, defaults `admin@example.com`/`change-me`) + demo categories/products.
 
 ## Code style
