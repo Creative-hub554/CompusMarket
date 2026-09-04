@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Query, Req, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { RolesGuard } from "../auth/roles.guard";
 import { Roles } from "../auth/roles.decorator";
@@ -28,7 +28,18 @@ export class UsersController {
   /** Promote/demote a user, or ban/unban by setting BANNED / another role. */
   @Patch(":id/role")
   @Roles("ADMIN")
-  setRole(@Param("id") id: string, @Body() dto: UpdateUserRoleDto) {
-    return this.usersService.setRole(id, dto.role);
+  setRole(
+    @Param("id") id: string,
+    @Req() req: { user: { userId: string } },
+    @Body() dto: UpdateUserRoleDto
+  ) {
+    return this.usersService.setRole(id, dto.role, req.user.userId, dto.reason);
+  }
+
+  /** Audit trail of role changes for a single user. */
+  @Get(":id/changes")
+  @Roles("ADMIN")
+  history(@Param("id") id: string) {
+    return this.usersService.history(id);
   }
 }

@@ -12,6 +12,12 @@ vi.mock("./clerk-sync", () => ({
 
 const mockPush = vi.mocked(pushRoleToClerk);
 
+const ACTOR = "admin-1";
+
+function makeTarget(over: Partial<Record<"id" | "email" | "role" | "clerkId", string | null>> = {}) {
+  return { id: "u-1", email: "a@b.c", role: "CUSTOMER", clerkId: "clerk-1", ...over };
+}
+
 describe("UsersService", () => {
   let service: UsersService;
 
@@ -21,6 +27,10 @@ describe("UsersService", () => {
       update: vi.fn(),
       findMany: vi.fn(),
       count: vi.fn(),
+    },
+    roleChangeLog: {
+      create: vi.fn(),
+      findMany: vi.fn(),
     },
     $transaction: vi.fn(),
   };
@@ -105,78 +115,173 @@ describe("UsersService", () => {
   });
 
   describe("setRole", () => {
-    it("promotes a user to ADMIN and mirrors the role to Clerk metadata", async () => {
-      mockPrisma.user.findUnique.mockResolvedValue({ id: "u-1", clerkId: "clerk-1" });
-      mockPrisma.user.update.mockResolvedValue({ id: "u-1", email: "a@b.c", role: "ADMIN" });
-
-      const result = await service.setRole("u-1", Role.ADMIN);
-
-      expect(mockPrisma.user.update).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { id: "u-1" }, data: { role: "ADMIN" } }),
+    function mockTxnWith(updated: unknown) {
+      mockPrisma.$transaction.mockImplementation((queries: Promise<unknown>[]) =>
+        Promise.all(queries)
       );
+      mockPrisma.user.update.mockResolvedValue(updated);
+      mockPrisma.roleChangeLog.create.mockResolvedValue({ id: "log-1" });
+    }
+
+    it("promotes a user to ADMIN, logs the change, and mirrors the role to Clerk", async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(makeTarget());
+      mockTxnWith({ id: "u-1", email: "a@b.c", role: "ADMIN", banReason: null });
+
+      const result = await service.setRole("u-1", Role.ADMIN, ACTOR);
+
+      expect(mockPrisma.user.update).toHaveBeenCalledWith({
+        where: { id: "u-1" },
+        data: { role: "ADMIN", banReason: null },
+        select: { id: true, email: true, role: true, banReason: true },
+      });
+      expect(mockPrisma.roleChangeLog.create).toHaveBeenCalledWith({
+        data: {
+          targetId: "u-1",
+          changedById: ACTOR,
+          fromRole: "CUSTOMER",
+          toRole: "ADMIN",
+          reason: null,
+        },
+        select: { id: true },
+      });
+      expect(mockPrisma.$transaction).toHaveBeenCalledWith([
+        expect.anything(),
+        expect.anything(),
+      ]);
       expect(mockPush).toHaveBeenCalledWith("clerk-1", "ADMIN");
       expect(result.role).toBe("ADMIN");
     });
 
     it("demotes a user and mirrors the demotion", async () => {
-      mockPrisma.user.findUnique.mockResolvedValue({ id: "u-1", clerkId: "clerk-1" });
-      mockPrisma.user.update.mockResolvedValue({ id: "u-1", email: "a@b.c", role: "CUSTOMER" });
+      mockPrisma.user.findUnique.mockResolvedValue(makeTarget({ role: "ADMIN" }));
+      mockTxnWith({ id: "u-1", email: "a@b.c", role: "CUSTOMER", banReason: null });
 
-      await service.setRole("u-1", Role.CUSTOMER);
+      await service.setRole("u-1", Role.CUSTOMER, ACTOR);
 
       expect(mockPrisma.user.update).toHaveBeenCalledWith(
-        expect.objectContaining({ data: { role: "CUSTOMER" } }),
+        expect.objectContaining({ data: { role: "CUSTOMER", banReason: null } }),
+      );
+      expect(mockPrisma.roleChangeLog.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ fromRole: "ADMIN", toRole: "CUSTOMER" }),
+        }),
       );
       expect(mockPush).toHaveBeenCalledWith("clerk-1", "CUSTOMER");
     });
 
-    it("bans a user by setting BANNED and mirrors it", async () => {
-      mockPrisma.user.findUnique.mockResolvedValue({ id: "u-1", clerkId: "clerk-1" });
-      mockPrisma.user.update.mockResolvedValue({ id: "u-1", email: "a@b.c", role: "BANNED" });
+    it("bans a user with a reason, persisting it and recording it in the log", async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(makeTarget());
+      mockTxnWith({ id: "u-1", email: "a@b.c", role: "BANNED", banReason: "Fraudulent listings" });
 
-      await service.setRole("u-1", Role.BANNED);
+      await service.setRole("u-1", Role.BANNED, ACTOR, "  Fraudulent listings  ");
 
       expect(mockPrisma.user.update).toHaveBeenCalledWith(
-        expect.objectContaining({ data: { role: "BANNED" } }),
+        expect.objectContaining({
+          data: { role: "BANNED", banReason: "Fraudulent listings" },
+        }),
+      );
+      expect(mockPrisma.roleChangeLog.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            fromRole: "CUSTOMER",
+            toRole: "BANNED",
+            reason: "Fraudulent listings",
+          }),
+        }),
       );
       expect(mockPush).toHaveBeenCalledWith("clerk-1", "BANNED");
     });
 
-    it("unbans a user by restoring a non-BANNED role", async () => {
-      mockPrisma.user.findUnique.mockResolvedValue({ id: "u-1", clerkId: "clerk-1" });
-      mockPrisma.user.update.mockResolvedValue({ id: "u-1", email: "a@b.c", role: "CUSTOMER" });
+    it("unbans a user and clears the stored ban reason", async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(
+        makeTarget({ role: "BANNED", clerkId: null }),
+      );
+      mockTxnWith({ id: "u-1", email: "a@b.c", role: "SELLER", banReason: null });
 
-      await service.setRole("u-1", Role.CUSTOMER);
+      await service.setRole("u-1", Role.SELLER, ACTOR);
 
-      expect(mockPush).toHaveBeenCalledWith("clerk-1", "CUSTOMER");
+      expect(mockPrisma.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { role: "SELLER", banReason: null } }),
+      );
+      // Local-only user: role logged but nothing mirrored to Clerk.
+      expect(mockPrisma.roleChangeLog.create).toHaveBeenCalled();
+      expect(mockPush).not.toHaveBeenCalled();
+    });
+
+    it("treats resubmitting the current role as a no-op with no writes or log", async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(makeTarget({ role: "ADMIN" }));
+
+      const result = await service.setRole("u-1", Role.ADMIN, ACTOR, "retry");
+
+      expect(result).toEqual({ id: "u-1", email: "a@b.c", role: "ADMIN" });
+      expect(mockPrisma.$transaction).not.toHaveBeenCalled();
+      expect(mockPrisma.user.update).not.toHaveBeenCalled();
+      expect(mockPrisma.roleChangeLog.create).not.toHaveBeenCalled();
+      expect(mockPush).not.toHaveBeenCalled();
     });
 
     it("throws NotFound for an unknown user and touches neither DB write nor Clerk", async () => {
       mockPrisma.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.setRole("nope", Role.ADMIN)).rejects.toThrow(NotFoundException);
-      expect(mockPrisma.user.update).not.toHaveBeenCalled();
+      await expect(service.setRole("nope", Role.ADMIN, ACTOR)).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(mockPrisma.$transaction).not.toHaveBeenCalled();
       expect(mockPush).not.toHaveBeenCalled();
     });
 
     it("updates the DB only for users without a Clerk identity", async () => {
-      mockPrisma.user.findUnique.mockResolvedValue({ id: "u-1", clerkId: null });
-      mockPrisma.user.update.mockResolvedValue({ id: "u-1", email: "a@b.c", role: "SELLER" });
+      mockPrisma.user.findUnique.mockResolvedValue(makeTarget({ clerkId: null }));
+      mockTxnWith({ id: "u-1", email: "a@b.c", role: "SELLER", banReason: null });
 
-      await service.setRole("u-1", Role.SELLER);
+      await service.setRole("u-1", Role.SELLER, ACTOR);
 
       expect(mockPrisma.user.update).toHaveBeenCalled();
       expect(mockPush).not.toHaveBeenCalled();
     });
 
     it("still succeeds when the Clerk sync fails (DB is authoritative)", async () => {
-      mockPrisma.user.findUnique.mockResolvedValue({ id: "u-1", clerkId: "clerk-1" });
-      mockPrisma.user.update.mockResolvedValue({ id: "u-1", email: "a@b.c", role: "ADMIN" });
+      mockPrisma.user.findUnique.mockResolvedValue(makeTarget());
+      mockTxnWith({ id: "u-1", email: "a@b.c", role: "ADMIN", banReason: null });
       mockPush.mockRejectedValue(new Error("clerk down"));
 
-      await expect(service.setRole("u-1", Role.ADMIN)).resolves.toMatchObject({
+      await expect(service.setRole("u-1", Role.ADMIN, ACTOR)).resolves.toMatchObject({
         role: "ADMIN",
       });
+    });
+  });
+
+  describe("history", () => {
+    it("returns the user's audit trail newest-first with actor details", async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({ id: "u-1" });
+      const entries = [
+        {
+          id: "log-2",
+          fromRole: "ADMIN",
+          toRole: "BANNED",
+          reason: "spam",
+          createdAt: new Date("2026-09-01T10:00:00Z"),
+          changedBy: { id: "admin-1", name: "Kim", email: "kim@x.io", image: null },
+        },
+      ];
+      mockPrisma.roleChangeLog.findMany.mockResolvedValue(entries);
+
+      const result = await service.history("u-1");
+
+      expect(mockPrisma.roleChangeLog.findMany).toHaveBeenCalledWith({
+        where: { targetId: "u-1" },
+        orderBy: { createdAt: "desc" },
+        take: 100,
+        select: expect.anything(),
+      });
+      expect(result).toEqual(entries);
+    });
+
+    it("throws NotFound for an unknown user", async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+
+      await expect(service.history("nope")).rejects.toThrow(NotFoundException);
+      expect(mockPrisma.roleChangeLog.findMany).not.toHaveBeenCalled();
     });
   });
 });

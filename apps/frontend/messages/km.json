@@ -334,6 +334,16 @@
     "role_ADMIN": "អ្នកគ្រប់គ្រង",
     "role_CUSTOMER": "អតិថិជន",
     "role_SELLER": "អ្នកលក់",
-    "role_INVENTORY_MANAGER": "អ្នកគ្រប់គ្រងស្តុក"
+    "role_INVENTORY_MANAGER": "អ្នកគ្រប់គ្រងស្តុក",
+    "reasonLabel": "មូលហេតុនៃការរារាំង",
+    "reasonPlaceholder": "មូលហេតុនៃការរារាំង (ស្រេចចិត្ត)",
+    "confirmBan": "បញ្ជាក់ការរារាំង",
+    "cancel": "បោះបង់",
+    "noReason": "គ្មានមូលហេតុ",
+    "history": "ប្រវត្តិ",
+    "loadingHistory": "កំពុងផ្ទុកប្រវត្តិ...",
+    "historyEmpty": "មិនទាន់មានកំណត់ត្រាផ្លាស់ប្តូរតួនាទី",
+    "byActor": "ដោយ {name}",
+    "you": "អ្នក"
   }
 }

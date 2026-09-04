@@ -334,6 +334,16 @@
     "role_ADMIN": "Admin",
     "role_CUSTOMER": "Customer",
     "role_SELLER": "Seller",
-    "role_INVENTORY_MANAGER": "Inventory manager"
+    "role_INVENTORY_MANAGER": "Inventory manager",
+    "reasonLabel": "Reason for ban",
+    "reasonPlaceholder": "Reason for ban (optional)",
+    "confirmBan": "Confirm ban",
+    "cancel": "Cancel",
+    "noReason": "No reason given",
+    "history": "History",
+    "loadingHistory": "Loading history...",
+    "historyEmpty": "No role changes recorded",
+    "byActor": "by {name}",
+    "you": "You"
   }
 }

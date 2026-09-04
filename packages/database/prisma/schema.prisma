@@ -153,6 +153,7 @@ model User {
   credits       Int       @default(0)
   autoReplyEnabled Boolean @default(false)
   autoReplyText    String?
+  banReason     String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -191,6 +192,8 @@ model User {
   groupJoinRequests   GroupJoinRequest[]  @relation("GroupJoinRequests")
   followRequestsSent     FollowRequest[]     @relation("FollowRequestsSent")
   followRequestsReceived FollowRequest[]     @relation("FollowRequestsReceived")
+  roleChangesReceived    RoleChangeLog[]      @relation("RoleChangeTargets")
+  roleChangesMade        RoleChangeLog[]      @relation("RoleChangeActors")
   jobAlerts           JobAlert[]          @relation("JobAlerts")
 
   documentFolders DocumentFolder[]
@@ -1073,4 +1076,25 @@ model Report {
   @@index([targetType, targetId])
   @@index([status])
   @@index([reporterId])
+}
+
+// ── Admin: role-change audit ──
+
+model RoleChangeLog {
+  id          String   @id @default(uuid())
+  targetId    String
+  changedById String
+  fromRole    Role
+  toRole      Role
+  reason      String?
+  createdAt   DateTime @default(now())
+
+  // The target's log follows the account (content gone when the user is gone),
+  // but the actor relation is restricted so audit entries survive even if an
+  // admin row is ever removed.
+  target    User @relation("RoleChangeTargets", fields: [targetId], references: [id], onDelete: Cascade)
+  changedBy User @relation("RoleChangeActors", fields: [changedById], references: [id], onDelete: Restrict)
+
+  @@index([targetId, createdAt])
+  @@index([changedById, createdAt])
 }
