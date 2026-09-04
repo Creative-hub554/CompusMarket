@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 
-vi.mock("next-auth/react", () => ({
+vi.mock("@/lib/session-client", () => ({
   useSession: vi.fn(() => ({ data: null, status: "unauthenticated" })),
 }));
 

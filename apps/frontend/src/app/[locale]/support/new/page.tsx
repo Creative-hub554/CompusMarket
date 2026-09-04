@@ -4,7 +4,7 @@ import { Suspense, useState, useEffect } from "react";
 import { Link } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/session-client";
 
 function NewTicketForm() {
   const { data: session } = useSession();

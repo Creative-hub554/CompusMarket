@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "@/i18n/navigation";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/session-client";
 import { Avatar } from "./Avatar";
 import { timeAgo, useAuthSocket } from "@/lib/social";
 

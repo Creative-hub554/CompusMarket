@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { useRouter } from "@/i18n/navigation";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/session-client";
 import { Avatar } from "@/components/social/Avatar";
 import { Users, Bot, UserPlus, X } from "lucide-react";
 import { timeAgo, useAuthSocket } from "@/lib/social";

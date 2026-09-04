@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/session-client";
 import { toast } from "@/components/ui/toast";
 import { jobsApi, type Job, type JobType } from "@/services/jobs";
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/session-client";
 import { useTranslations } from "next-intl";
 import { jobsApi, type JobType } from "@/services/jobs";
 

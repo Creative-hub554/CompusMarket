@@ -9,7 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/session-client";
 import { Minus, Send, X } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Avatar } from "@/components/social/Avatar";

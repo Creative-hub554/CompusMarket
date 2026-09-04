@@ -1,4 +1,4 @@
-import { getServerSession } from "next-auth";
+import { getToken } from "@/lib/auth";
 import { prisma } from "@theo/database";
 import { NextResponse } from "next/server";
 
@@ -7,18 +7,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const session = await getServerSession();
-  if (!session?.user?.email)
+  const token = await getToken();
+  if (!token)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  });
-  if (!user)
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
-
   const resume = await prisma.resume.findUnique({ where: { id } });
-  if (!resume || resume.userId !== user.id)
+  if (!resume || resume.userId !== token.sub)
     return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   return NextResponse.json(resume);
@@ -29,18 +23,12 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const session = await getServerSession();
-  if (!session?.user?.email)
+  const token = await getToken();
+  if (!token)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  });
-  if (!user)
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
-
   const resume = await prisma.resume.findUnique({ where: { id } });
-  if (!resume || resume.userId !== user.id)
+  if (!resume || resume.userId !== token.sub)
     return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   let body;
@@ -61,18 +49,12 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const session = await getServerSession();
-  if (!session?.user?.email)
+  const token = await getToken();
+  if (!token)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  });
-  if (!user)
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
-
   const resume = await prisma.resume.findUnique({ where: { id } });
-  if (!resume || resume.userId !== user.id)
+  if (!resume || resume.userId !== token.sub)
     return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   await prisma.resume.delete({ where: { id } });

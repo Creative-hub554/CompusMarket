@@ -6,7 +6,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { Avatar } from "./Avatar";
 import { uploadFile, useAuthSocket } from "@/lib/social";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/session-client";
 
 type MediaInput = { url: string; kind: "IMAGE" | "VIDEO" };
 

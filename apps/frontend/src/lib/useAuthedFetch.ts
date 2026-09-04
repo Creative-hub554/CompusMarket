@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef } from "react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/session-client";
 
 /**
  * Fetch wrapper that attaches the session access token and retries once with a

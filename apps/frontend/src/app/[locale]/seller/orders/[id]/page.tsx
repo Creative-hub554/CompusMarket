@@ -7,7 +7,7 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { useParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/session-client";
 import OrderItemTimeline from "@/components/OrderItemTimeline";
 
 type OrderItem = {

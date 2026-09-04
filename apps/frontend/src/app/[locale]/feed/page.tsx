@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, usePathname } from "@/i18n/navigation";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/session-client";
 import { useTranslations } from "next-intl";
 import { Bookmark, Store, Briefcase } from "lucide-react";
 import { Composer } from "@/components/social/Composer";

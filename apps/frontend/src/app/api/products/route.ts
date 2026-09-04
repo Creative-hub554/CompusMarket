@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { getToken } from "@/lib/auth";
 import { prisma, ProductCondition } from "@theo/database";
 
 export async function POST(req: NextRequest) {

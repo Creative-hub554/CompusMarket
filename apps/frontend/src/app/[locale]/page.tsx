@@ -1,7 +1,7 @@
 import { Link } from "@/i18n/navigation";
 import { getTranslations } from "next-intl/server";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
 import {
   ShieldCheck,
   Handshake,
@@ -18,11 +18,8 @@ export const dynamic = "force-dynamic";
 
 export default async function Home() {
   // Social-first: signed-in users land on their feed, guests see the landing.
-  const jar = await cookies();
-  const hasSession =
-    jar.has("next-auth.session-token") ||
-    jar.has("__Secure-next-auth.session-token");
-  if (hasSession) redirect("/feed");
+  const { userId } = await auth();
+  if (userId) redirect("/feed");
 
   const t = await getTranslations("home");
   const nav = await getTranslations("nav");

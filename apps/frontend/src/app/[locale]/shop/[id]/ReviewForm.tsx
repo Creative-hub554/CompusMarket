@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/session-client";
 import { useTranslations } from "next-intl";
 
 type EligibleItem = { orderItemId: string; createdAt: string };

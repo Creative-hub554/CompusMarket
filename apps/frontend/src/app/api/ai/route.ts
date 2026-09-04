@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { getToken } from "@/lib/auth";
 import OpenAI from "openai";
 
 function getClient(): OpenAI | null {

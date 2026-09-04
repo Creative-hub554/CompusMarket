@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/session-client";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { PostCard, type FeedPost } from "@/components/social/PostCard";

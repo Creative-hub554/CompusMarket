@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Link, useRouter } from "@/i18n/navigation";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "@/lib/session-client";
 import { useTranslations } from "next-intl";
 import { SearchBar } from "./SearchBar";
 import { LocaleSwitcher } from "./LocaleSwitcher";
@@ -27,23 +27,21 @@ export function Nav() {
   const [open, setOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [msgUnread, setMsgUnread] = useState(0);
-  const { data: session } = useSession();
+  const { data: session, status, signOut } = useSession();
   const cartItems = useCartStore((s) => s.items);
   const initialized = useCartStore((s) => s.initialized);
   const fetchCart = useCartStore((s) => s.fetchCart);
   const itemCount = cartItems.reduce((sum, i) => sum + i.quantity, 0);
 
-  const sessionCookie =
-    typeof document !== "undefined" &&
-    document.cookie.includes("next-auth.session-token");
+  const signedIn = status === "authenticated";
 
   useEffect(() => {
-    if (!initialized && sessionCookie) {
+    if (!initialized && signedIn) {
       fetchCart();
     } else if (!initialized) {
       useCartStore.setState({ initialized: true });
     }
-  }, [initialized, sessionCookie, fetchCart]);
+  }, [initialized, signedIn, fetchCart]);
 
   useEffect(() => {
     if (!session?.user?.id) return;

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { useParams } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/session-client";
 import { Avatar } from "@/components/social/Avatar";
 import { FollowButton } from "@/components/social/FollowButton";
 import { PostCard, FeedPost } from "@/components/social/PostCard";

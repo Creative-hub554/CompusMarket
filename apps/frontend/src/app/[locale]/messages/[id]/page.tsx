@@ -6,7 +6,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { useParams } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/session-client";
 import { Avatar } from "@/components/social/Avatar";
 import { Users, Smile, Sticker as StickerIcon } from "lucide-react";
 import { ChatPicker } from "@/components/chat/ChatPicker";

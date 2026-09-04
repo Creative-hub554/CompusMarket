@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Avatar } from "./Avatar";
 import { uploadFile } from "@/lib/social";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/session-client";
 
 type Story = {
   id: string;

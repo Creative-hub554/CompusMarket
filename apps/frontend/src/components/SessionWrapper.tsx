@@ -1,7 +1,12 @@
 "use client";
 
-import { SessionProvider } from "next-auth/react";
+import { ClerkProvider } from "@clerk/nextjs";
+import { SessionBridge } from "@/lib/session-client";
 
 export default function SessionWrapper({ children }: { children: React.ReactNode }) {
-  return <SessionProvider>{children}</SessionProvider>;
+  return (
+    <ClerkProvider>
+      <SessionBridge>{children}</SessionBridge>
+    </ClerkProvider>
+  );
 }
