@@ -348,4 +348,39 @@ describe("GroupsService", () => {
     );
     expect(result).toEqual({ accepted: true });
   });
+
+  it("adds an accepted member to the group chat thread roster when the thread exists", async () => {
+    mockPrisma.group.findUnique.mockResolvedValue({ creatorId: "u1" });
+    mockPrisma.groupMember.findUnique.mockResolvedValue({ role: "ADMIN" });
+    mockPrisma.groupJoinRequest = {
+      findUnique: vi.fn().mockResolvedValue({ id: "r1", status: "PENDING" }),
+      update: vi.fn().mockResolvedValue({}),
+      create: vi.fn(),
+      findFirst: vi.fn(),
+      deleteMany: vi.fn(),
+    };
+    mockPrisma.groupMember.upsert.mockResolvedValue({});
+    mockPrisma.thread.findUnique.mockResolvedValue({ id: "t1" });
+    mockPrisma.threadParticipant.upsert.mockResolvedValue({});
+
+    const result = await service.respondToJoinRequest("g1", "u1", "u2", true);
+
+    expect(mockPrisma.groupJoinRequest.update).toHaveBeenCalledWith({
+      where: { id: "r1" },
+      data: { status: "ACCEPTED" },
+    });
+    expect(mockPrisma.groupMember.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { groupId_userId: { groupId: "g1", userId: "u2" } },
+      })
+    );
+    // Adding the ThreadParticipant row is what grants the new member read/send
+    // access to the group chat.
+    expect(mockPrisma.threadParticipant.upsert).toHaveBeenCalledWith({
+      where: { threadId_userId: { threadId: "t1", userId: "u2" } },
+      create: { threadId: "t1", userId: "u2" },
+      update: {},
+    });
+    expect(result).toEqual({ accepted: true });
+  });
 });
