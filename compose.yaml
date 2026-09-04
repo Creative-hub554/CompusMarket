@@ -159,6 +159,9 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3001
+      # Server-to-server URL for the backend socket relay (the browser-facing
+      # NEXT_PUBLIC_API_URL build arg is localhost, which is wrong in-container).
+      INTERNAL_API_URL: ${INTERNAL_API_URL:-http://backend:4000}
     ports:
       - "3001:3001"
     restart: unless-stopped

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest, NextResponse } from "next/server";
 
 const requireAdminMock = vi.hoisted(() => vi.fn());
@@ -11,6 +11,10 @@ const prismaMock = vi.hoisted(() => ({
   refreshToken: {
     updateMany: vi.fn().mockResolvedValue({ count: 1 }),
   },
+  notification: {
+    create: vi.fn(),
+  },
+  $transaction: vi.fn(),
   post: {
     findMany: vi.fn(),
     findUnique: vi.fn(),
@@ -45,9 +49,30 @@ function req(url: string, init?: RequestInit) {
   return new NextRequest(`http://localhost${url}`, init);
 }
 
+// Real-time relay: role/ban changes push to the backend's socket-relay endpoint.
+const fetchMock = vi.fn();
+const RELAY_URL = "http://localhost:4000/api/internal/notifications/deliver";
+
 beforeEach(() => {
   vi.clearAllMocks();
   requireAdminMock.mockResolvedValue(adminGuard);
+  prismaMock.notification.create.mockResolvedValue({ id: "n-1" });
+  // Interactive-transaction support: the route handler calls
+  // prisma.$transaction(async (tx) => …); the tx delegate is the same mock
+  // object, so every call is observable on prismaMock.
+  prismaMock.$transaction.mockImplementation((arg: unknown) => {
+    if (typeof arg === "function") return Promise.resolve(arg(prismaMock));
+    return Promise.all(arg as Promise<unknown>[]);
+  });
+  vi.stubEnv("INTERNAL_SERVICE_TOKEN", "test-token");
+  vi.stubEnv("NEXT_PUBLIC_API_URL", "http://localhost:4000");
+  fetchMock.mockResolvedValue({ ok: true, status: 204 } as unknown as Response);
+  vi.stubGlobal("fetch", fetchMock);
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
 });
 
 describe("GET /api/admin/users", () => {
@@ -164,6 +189,75 @@ describe("PATCH /api/admin/users/[id]", () => {
       where: { userId: "u2", revokedAt: null },
       data: { revokedAt: expect.any(Date) },
     });
+  });
+
+  it("notifies the user when banning, and relays it for instant delivery", async () => {
+    prismaMock.user.findUnique.mockResolvedValue({ id: "u2", role: "CUSTOMER" });
+    prismaMock.user.update.mockResolvedValue({ id: "u2", email: "u2@x.y", role: "BANNED" });
+
+    const res = await updateUser(patchReq({ role: "BANNED" }), params);
+
+    expect(res.status).toBe(200);
+    expect(prismaMock.notification.create).toHaveBeenCalledWith({
+      data: {
+        userId: "u2",
+        actorId: "admin-1",
+        kind: "ACCOUNT_BANNED",
+        message: "banned your account.",
+      },
+    });
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe(RELAY_URL);
+    expect(JSON.parse(String((init as RequestInit).body))).toEqual({
+      userId: "u2",
+      actorId: "admin-1",
+      kind: "ACCOUNT_BANNED",
+      message: "banned your account.",
+    });
+  });
+
+  it("notifies the user when their role changes to something else", async () => {
+    prismaMock.user.findUnique.mockResolvedValue({ id: "u2", role: "CUSTOMER" });
+    prismaMock.user.update.mockResolvedValue({ id: "u2", email: "u2@x.y", role: "SELLER" });
+
+    const res = await updateUser(patchReq({ role: "SELLER" }), params);
+
+    expect(res.status).toBe(200);
+    expect(prismaMock.notification.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        userId: "u2",
+        kind: "ROLE_CHANGED",
+        message: "set your role to Seller.",
+      }),
+    });
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+  });
+
+  it("frames an unban as a restore, not a generic role change", async () => {
+    prismaMock.user.findUnique.mockResolvedValue({ id: "u2", role: "BANNED" });
+    prismaMock.user.update.mockResolvedValue({ id: "u2", email: "u2@x.y", role: "CUSTOMER" });
+
+    const res = await updateUser(patchReq({ role: "CUSTOMER" }), params);
+
+    expect(res.status).toBe(200);
+    expect(prismaMock.notification.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        kind: "ROLE_CHANGED",
+        message: "restored your account.",
+      }),
+    });
+  });
+
+  it("does not notify when the role is resubmitted unchanged", async () => {
+    prismaMock.user.findUnique.mockResolvedValue({ id: "u2", role: "CUSTOMER" });
+    prismaMock.user.update.mockResolvedValue({ id: "u2", email: "u2@x.y", role: "CUSTOMER" });
+
+    const res = await updateUser(patchReq({ role: "CUSTOMER" }), params);
+
+    expect(res.status).toBe(200);
+    expect(prismaMock.notification.create).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
 

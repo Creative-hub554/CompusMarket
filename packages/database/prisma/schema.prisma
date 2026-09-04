@@ -104,6 +104,9 @@ enum NotificationKind {
   JOIN_REQUEST
   MENTION
   JOB_ALERT
+  REPORT_RESOLVED
+  ROLE_CHANGED
+  ACCOUNT_BANNED
 }
 
 model JobAlert {
@@ -194,6 +197,7 @@ model User {
   followRequestsReceived FollowRequest[]     @relation("FollowRequestsReceived")
   roleChangesReceived    RoleChangeLog[]      @relation("RoleChangeTargets")
   roleChangesMade        RoleChangeLog[]      @relation("RoleChangeActors")
+  reportResolutions      ReportResolutionLog[] @relation("ReportResolutionActors")
   jobAlerts           JobAlert[]          @relation("JobAlerts")
 
   documentFolders DocumentFolder[]
@@ -1055,6 +1059,7 @@ enum ReportStatus {
   PENDING
   REVIEWED
   DISMISSED
+  REMOVED
 }
 
 model Report {
@@ -1071,11 +1076,46 @@ model Report {
   updatedAt   DateTime         @updatedAt
 
   reporter User @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  resolutions ReportResolutionLog[]
 
   @@unique([targetType, targetId, reporterId])
   @@index([targetType, targetId])
   @@index([status])
   @@index([reporterId])
+}
+
+// ── Admin: audit logs ──
+
+enum ReportResolutionAction {
+  // The reported content was reviewed and judged fine — no takedown.
+  APPROVED
+  // The report itself was dismissed as unfounded or unactionable.
+  DISMISSED
+  // The reported content was taken down (deleted or hidden) and the
+  // report(s) against it were resolved as a result.
+  CONTENT_REMOVED
+}
+
+model ReportResolutionLog {
+  id           String   @id @default(uuid())
+  reportId     String
+  resolvedById String?
+  action       ReportResolutionAction
+  fromStatus   ReportStatus
+  toStatus     ReportStatus
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  // The audit trail follows the report; the report row itself is not deleted
+  // when its target content is removed, so the record survives a takedown.
+  // resolvedBy is the acting app admin — null keeps the entry readable if the
+  // admin row is ever removed (mirrors RoleChangeLog).
+  report     Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  resolvedBy User?  @relation("ReportResolutionActors", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  @@index([reportId, createdAt])
+  @@index([createdAt])
+  @@index([resolvedById, createdAt])
 }
 
 // ── Admin: role-change audit ──
