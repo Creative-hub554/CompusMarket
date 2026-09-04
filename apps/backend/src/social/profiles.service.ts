@@ -25,16 +25,28 @@ export class ProfilesService {
     });
     if (!user) throw new NotFoundException("User not found");
 
-    const isFollowing = viewerId
-      ? await this.prisma.follow
-          .findUnique({
-            where: { followerId_followingId: { followerId: viewerId, followingId: profileId } },
-            select: { followerId: true },
-          })
-          .then((r) => !!r)
-      : false;
+    // Viewing your own profile never needs a self-follow lookup.
+    const isFollowing =
+      viewerId && viewerId !== user.id
+        ? await this.prisma.follow
+            .findUnique({
+              where: { followerId_followingId: { followerId: viewerId, followingId: profileId } },
+              select: { followerId: true },
+            })
+            .then((r) => !!r)
+        : false;
 
-    return { ...user, isFollowing };
+    // A private account's post count is only visible to the account holder and
+    // their followers; everyone else sees zero so the count cannot be inferred
+    // from a locked profile. Follower/following counts stay public.
+    const canSeePostCount =
+      !user.accountPrivate || viewerId === user.id || isFollowing;
+
+    return {
+      ...user,
+      isFollowing,
+      ...(canSeePostCount ? {} : { _count: { ...user._count, posts: 0 } }),
+    };
   }
 
   async getProfileByUsername(username: string, viewerId?: string) {

@@ -79,6 +79,9 @@ export default function ProfilePage() {
   const isMe = session?.user?.id === profile.id;
   // Private accounts only show posts to the account holder and their followers.
   const locked = Boolean(profile.accountPrivate) && !isMe && !profile.isFollowing;
+  // The API zeroes the count for locked profiles; keep the UI honest even if
+  // a stale payload slips through.
+  const visiblePostCount = locked ? 0 : profile._count.posts;
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
@@ -115,7 +118,7 @@ export default function ProfilePage() {
         {profile.bio && <p className="mt-2 text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{profile.bio}</p>}
         <div className="flex gap-5 mt-3 text-sm">
           <span>
-            <strong>{profile._count.posts}</strong> <span className="text-gray-500 dark:text-gray-400">posts</span>
+            <strong>{visiblePostCount}</strong> <span className="text-gray-500 dark:text-gray-400">posts</span>
           </span>
           <span>
             <strong>{profile._count.followers}</strong>{" "}

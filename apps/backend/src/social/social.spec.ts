@@ -881,6 +881,60 @@ describe("ProfilesService", () => {
     expect(profile.isFollowing).toBe(true);
   });
 
+  describe("post-count privacy", () => {
+    const privateUser = {
+      id: "u1",
+      name: "Alice",
+      username: "alice",
+      image: null,
+      coverImage: null,
+      bio: null,
+      accountPrivate: true,
+      createdAt: new Date(),
+      _count: { posts: 7, followers: 3, following: 2 },
+    };
+
+    it("zeroes the post count for anonymous viewers of a private account", async () => {
+      prisma.user.findUnique.mockResolvedValue(privateUser);
+      const profile = await service.getProfile("u1");
+      expect(profile._count.posts).toBe(0);
+      // Follower/following counts stay public.
+      expect(profile._count.followers).toBe(3);
+      expect(profile._count.following).toBe(2);
+      expect(prisma.follow.findUnique).not.toHaveBeenCalled();
+    });
+
+    it("zeroes the post count for a non-follower viewer of a private account", async () => {
+      prisma.user.findUnique.mockResolvedValue(privateUser);
+      prisma.follow.findUnique.mockResolvedValue(null);
+      const profile = await service.getProfile("u1", "u2");
+      expect(profile._count.posts).toBe(0);
+      expect(profile.isFollowing).toBe(false);
+    });
+
+    it("keeps the post count for a follower of a private account", async () => {
+      prisma.user.findUnique.mockResolvedValue(privateUser);
+      prisma.follow.findUnique.mockResolvedValue({ followerId: "u2" });
+      const profile = await service.getProfile("u1", "u2");
+      expect(profile._count.posts).toBe(7);
+      expect(profile.isFollowing).toBe(true);
+    });
+
+    it("keeps the post count for the account holder themselves", async () => {
+      prisma.user.findUnique.mockResolvedValue(privateUser);
+      const profile = await service.getProfile("u1", "u1");
+      expect(profile._count.posts).toBe(7);
+      expect(prisma.follow.findUnique).not.toHaveBeenCalled();
+    });
+
+    it("keeps the post count for anyone viewing a public account", async () => {
+      prisma.user.findUnique.mockResolvedValue({ ...privateUser, accountPrivate: false });
+      prisma.follow.findUnique.mockResolvedValue(null);
+      const profile = await service.getProfile("u1", "u2");
+      expect(profile._count.posts).toBe(7);
+    });
+  });
+
   it("rejects a taken username", async () => {
     prisma.user.findFirst.mockResolvedValue({ id: "someone-else" });
     await expect(service.updateMe("u1", { username: "taken" })).rejects.toThrow(ConflictException);
