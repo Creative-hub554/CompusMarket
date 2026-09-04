@@ -238,9 +238,28 @@ describe("GroupsService", () => {
     expect(mockPrisma.groupMember.delete).toHaveBeenCalledWith({
       where: { groupId_userId: { groupId: "g1", userId: "u3" } },
     });
+    // Purge the ThreadParticipant row so the removed member can no longer
+    // read or send in the group chat.
     expect(mockPrisma.threadParticipant.deleteMany).toHaveBeenCalledWith({
       where: { threadId: "t1", userId: "u3" },
     });
+    expect(result).toEqual({ removed: "u3" });
+  });
+
+  it("removes a member cleanly when the group chat thread has not been created yet", async () => {
+    mockPrisma.group.findUnique.mockResolvedValue({ creatorId: "u1" });
+    mockPrisma.groupMember.findUnique
+      .mockResolvedValueOnce({ role: "ADMIN" })
+      .mockResolvedValueOnce({ role: "MEMBER", id: "gm2" });
+    mockPrisma.groupMember.delete.mockResolvedValue({});
+    mockPrisma.thread.findUnique.mockResolvedValue(null);
+
+    const result = await service.removeMember("g1", "u1", "u3");
+
+    expect(mockPrisma.groupMember.delete).toHaveBeenCalledWith({
+      where: { groupId_userId: { groupId: "g1", userId: "u3" } },
+    });
+    expect(mockPrisma.threadParticipant.deleteMany).not.toHaveBeenCalled();
     expect(result).toEqual({ removed: "u3" });
   });
 
