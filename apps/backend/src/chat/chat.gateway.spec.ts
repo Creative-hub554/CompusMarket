@@ -25,6 +25,16 @@ function makePrisma() {
     thread: {
       update: vi.fn(),
     },
+    supportTicket: {
+      findUnique: vi.fn(),
+      update: vi.fn(),
+    },
+    supportMessage: {
+      create: vi.fn(),
+    },
+    user: {
+      findUnique: vi.fn(),
+    },
   };
 }
 
@@ -175,6 +185,113 @@ describe("ChatGateway participant gating", () => {
       });
       expect(server.to).toHaveBeenCalledWith("t1");
       expect(room.emit).toHaveBeenCalledWith("messagesRead", { userId: "u1" });
+    });
+  });
+
+  describe("joinSupportTicket", () => {
+    it("does not join a user who is neither the customer nor an admin", async () => {
+      prisma.supportTicket.findUnique.mockResolvedValue({ customerId: "u1" });
+      prisma.user.findUnique.mockResolvedValue({ role: "CUSTOMER" });
+      const client = makeClient("u9");
+
+      await gateway.handleJoinSupportTicket(client as never, { ticketId: "tk1" });
+
+      expect(prisma.supportTicket.findUnique).toHaveBeenCalledWith({
+        where: { id: "tk1" },
+        select: { customerId: true },
+      });
+      expect(client.join).not.toHaveBeenCalled();
+    });
+
+    it("joins the ticket customer to the support room", async () => {
+      prisma.supportTicket.findUnique.mockResolvedValue({ customerId: "u1" });
+      prisma.user.findUnique.mockResolvedValue({ role: "CUSTOMER" });
+      const client = makeClient("u1");
+
+      await gateway.handleJoinSupportTicket(client as never, { ticketId: "tk1" });
+
+      expect(client.join).toHaveBeenCalledWith("support:tk1");
+    });
+
+    it("joins an admin to the support room even when they are not the customer", async () => {
+      prisma.supportTicket.findUnique.mockResolvedValue({ customerId: "u1" });
+      prisma.user.findUnique.mockResolvedValue({ role: "ADMIN" });
+      const client = makeClient("admin-1");
+
+      await gateway.handleJoinSupportTicket(client as never, { ticketId: "tk1" });
+
+      expect(client.join).toHaveBeenCalledWith("support:tk1");
+    });
+  });
+
+  describe("sendSupportMessage", () => {
+    it("ignores a message from a user who is neither the customer nor an admin", async () => {
+      prisma.supportTicket.findUnique.mockResolvedValue({ customerId: "u1" });
+      prisma.user.findUnique.mockResolvedValue({ role: "CUSTOMER" });
+      const client = makeClient("u9");
+
+      await gateway.handleSendSupportMessage(client as never, {
+        ticketId: "tk1",
+        content: "hello?",
+      });
+
+      expect(prisma.supportMessage.create).not.toHaveBeenCalled();
+      expect(prisma.supportTicket.update).not.toHaveBeenCalled();
+      expect(server.to).not.toHaveBeenCalled();
+    });
+
+    it("persists and broadcasts a message from the ticket customer", async () => {
+      prisma.supportTicket.findUnique.mockResolvedValue({ customerId: "u1" });
+      prisma.user.findUnique.mockResolvedValue({ role: "CUSTOMER" });
+      prisma.supportMessage.create.mockResolvedValue({
+        id: "sm1",
+        ticketId: "tk1",
+        senderId: "u1",
+        content: "I need help",
+        sender: { id: "u1", name: "Cust", role: "CUSTOMER" },
+      });
+      prisma.supportTicket.update.mockResolvedValue({});
+      const client = makeClient("u1");
+
+      await gateway.handleSendSupportMessage(client as never, {
+        ticketId: "tk1",
+        content: "I need help",
+      });
+
+      expect(prisma.supportMessage.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ ticketId: "tk1", senderId: "u1", content: "I need help" }),
+        })
+      );
+      expect(prisma.supportTicket.update).toHaveBeenCalledWith({
+        where: { id: "tk1" },
+        data: { updatedAt: expect.any(Date) },
+      });
+      expect(server.to).toHaveBeenCalledWith("support:tk1");
+      expect(room.emit).toHaveBeenCalledWith(
+        "newSupportMessage",
+        expect.objectContaining({ id: "sm1" })
+      );
+    });
+
+    it("allows an admin to reply even when they are not the customer", async () => {
+      prisma.supportTicket.findUnique.mockResolvedValue({ customerId: "u1" });
+      prisma.user.findUnique.mockResolvedValue({ role: "ADMIN" });
+      prisma.supportMessage.create.mockResolvedValue({ id: "sm2", senderId: "admin-1" });
+      prisma.supportTicket.update.mockResolvedValue({});
+      const client = makeClient("admin-1");
+
+      await gateway.handleSendSupportMessage(client as never, {
+        ticketId: "tk1",
+        content: "We'll look into it",
+      });
+
+      expect(prisma.supportMessage.create).toHaveBeenCalled();
+      expect(server.to).toHaveBeenCalledWith("support:tk1");
+      expect(room.emit).toHaveBeenCalledWith(
+        "newSupportMessage",
+        expect.objectContaining({ id: "sm2" })
+      );
     });
   });
 });
