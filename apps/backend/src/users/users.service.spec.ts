@@ -284,4 +284,56 @@ describe("UsersService", () => {
       expect(mockPrisma.roleChangeLog.findMany).not.toHaveBeenCalled();
     });
   });
+
+  describe("recentChanges", () => {
+    it("returns the newest role changes across users with actor and target", async () => {
+      const entries = [
+        {
+          id: "log-9",
+          fromRole: "CUSTOMER",
+          toRole: "BANNED",
+          reason: "spam",
+          createdAt: new Date("2026-09-02T09:00:00Z"),
+          changedBy: { id: "admin-1", name: "Kim", email: "kim@x.io", image: null },
+          target: { id: "u-7", name: "Sok", email: "sok@x.io", image: null },
+        },
+      ];
+      mockPrisma.roleChangeLog.findMany.mockResolvedValue(entries);
+
+      const result = await service.recentChanges(10);
+
+      expect(mockPrisma.roleChangeLog.findMany).toHaveBeenCalledWith({
+        orderBy: { createdAt: "desc" },
+        take: 10,
+        select: expect.anything(),
+      });
+      expect(result).toEqual(entries);
+    });
+
+    it("clamps an oversized feed limit to the maximum", async () => {
+      mockPrisma.roleChangeLog.findMany.mockResolvedValue([]);
+
+      await service.recentChanges(9999);
+
+      expect(mockPrisma.roleChangeLog.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ take: 50 }),
+      );
+    });
+
+    it("falls back to the default feed size when the limit is missing or garbage", async () => {
+      mockPrisma.roleChangeLog.findMany.mockResolvedValue([]);
+
+      await service.recentChanges();
+      await service.recentChanges(Number.NaN);
+
+      expect(mockPrisma.roleChangeLog.findMany).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ take: 10 }),
+      );
+      expect(mockPrisma.roleChangeLog.findMany).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ take: 10 }),
+      );
+    });
+  });
 });

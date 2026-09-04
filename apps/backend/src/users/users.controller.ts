@@ -42,4 +42,11 @@ export class UsersController {
   history(@Param("id") id: string) {
     return this.usersService.history(id);
   }
+
+  /** Global feed of the most recent role changes across all users. */
+  @Get("changes")
+  @Roles("ADMIN")
+  recentChanges(@Query("limit") limit?: string) {
+    return this.usersService.recentChanges(limit ? Number(limit) : undefined);
+  }
 }

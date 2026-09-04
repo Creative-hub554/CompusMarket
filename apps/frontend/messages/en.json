@@ -344,6 +344,7 @@
     "loadingHistory": "Loading history...",
     "historyEmpty": "No role changes recorded",
     "byActor": "by {name}",
-    "you": "You"
+    "you": "You",
+    "recentChanges": "Recent role changes"
   }
 }

@@ -27,6 +27,7 @@ type RoleChange = {
   reason: string | null;
   createdAt: string;
   changedBy: { id: string; name: string | null; email: string; image: string | null } | null;
+  target?: { id: string; name: string | null; email: string; image: string | null } | null;
 };
 
 const PAGE_SIZE = 20;
@@ -50,6 +51,8 @@ export default function AdminUsersPage() {
   const [historyFor, setHistoryFor] = useState<string | null>(null);
   const [history, setHistory] = useState<RoleChange[] | null>(null);
   const [historyError, setHistoryError] = useState("");
+  const [recent, setRecent] = useState<RoleChange[] | null>(null);
+  const [recentError, setRecentError] = useState("");
 
   const load = useCallback(
     async (query: string, p: number) => {
@@ -81,6 +84,24 @@ export default function AdminUsersPage() {
     }
     load(q, page);
   }, [isAdmin, q, page, load]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/admin/users/changes?limit=10");
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.error || body.message || t("error"));
+        if (!cancelled) setRecent(Array.isArray(body) ? body : []);
+      } catch (e) {
+        if (!cancelled) setRecentError(e instanceof Error ? e.message : t("error"));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isAdmin, t]);
 
   function mergeUser(u: AdminUser, patch: Partial<AdminUser>) {
     setUsers((prev) => prev.map((x) => (x.id === u.id ? { ...x, ...patch } : x)));
@@ -150,6 +171,10 @@ export default function AdminUsersPage() {
     setQ(draft.trim());
   }
 
+  function roleLabel(r: string) {
+    return t(`role_${r}`) || r;
+  }
+
   if (!isAdmin) {
     return (
       <div className="max-w-xl mx-auto px-4 py-16 text-center">
@@ -196,6 +221,8 @@ export default function AdminUsersPage() {
         </div>
       )}
 
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="min-w-0">
       {loading ? (
         <p className="py-10 text-center text-slate-500 dark:text-slate-400">{t("loading")}</p>
       ) : users.length === 0 ? (
@@ -418,6 +445,69 @@ export default function AdminUsersPage() {
           </button>
         </div>
       )}
+        </div>
+
+        <aside className="min-w-0">
+          <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-4">
+            <h2 className="text-sm font-bold mb-3">{t("recentChanges")}</h2>
+            {recentError ? (
+              <p className="text-xs text-red-600 dark:text-red-400">{recentError}</p>
+            ) : recent === null ? (
+              <p className="text-xs text-slate-500 dark:text-slate-400 animate-pulse">
+                {t("loadingHistory")}
+              </p>
+            ) : recent.length === 0 ? (
+              <p className="text-xs text-slate-500 dark:text-slate-400">{t("historyEmpty")}</p>
+            ) : (
+              <ul className="-my-1 divide-y divide-slate-100 dark:divide-slate-800 max-h-[26rem] overflow-y-auto">
+                {recent.map((e) => {
+                  const actorIsSelf = e.changedBy?.id === session?.user?.id;
+                  const actor = actorIsSelf
+                    ? t("you")
+                    : e.changedBy?.name || e.changedBy?.email || "—";
+                  const targetName = e.target?.name || e.target?.email || "—";
+                  return (
+                    <li key={e.id} className="py-2 flex gap-2.5">
+                      <Avatar
+                        user={{
+                          name: e.target?.name ?? undefined,
+                          image: e.target?.image ?? undefined,
+                        }}
+                        size={30}
+                      />
+                      <div className="min-w-0 flex-1 text-xs leading-snug">
+                        <p className="truncate font-medium text-slate-700 dark:text-slate-200">
+                          {targetName}
+                        </p>
+                        <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-1">
+                          <span className="inline-block rounded bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 font-medium">
+                            {roleLabel(e.fromRole)}
+                          </span>
+                          <span className="text-slate-400">→</span>
+                          <span className="inline-block rounded bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 font-medium">
+                            {roleLabel(e.toRole)}
+                          </span>
+                        </p>
+                        {e.reason && (
+                          <p
+                            className="mt-0.5 italic text-slate-600 dark:text-slate-400 truncate"
+                            title={e.reason}
+                          >
+                            “{e.reason}”
+                          </p>
+                        )}
+                        <p className="mt-0.5 text-slate-400">
+                          {t("byActor", { name: actor })} · {new Date(e.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        </aside>
+      </div>
     </div>
   );
 }

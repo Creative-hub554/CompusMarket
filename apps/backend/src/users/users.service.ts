@@ -139,4 +139,29 @@ export class UsersService {
       },
     });
   }
+
+  /**
+   * Global activity feed: the most recent role changes across all users with
+   * both the actor and the affected user, for the admin activity panel.
+   */
+  async recentChanges(limit?: number) {
+    const take = parseLimit(limit !== undefined ? String(limit) : undefined, 10, 50);
+    return this.prisma.roleChangeLog.findMany({
+      orderBy: { createdAt: "desc" },
+      take,
+      select: {
+        id: true,
+        fromRole: true,
+        toRole: true,
+        reason: true,
+        createdAt: true,
+        changedBy: {
+          select: { id: true, name: true, email: true, image: true },
+        },
+        target: {
+          select: { id: true, name: true, email: true, image: true },
+        },
+      },
+    });
+  }
 }
