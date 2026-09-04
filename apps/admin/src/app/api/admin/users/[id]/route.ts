@@ -22,6 +22,10 @@ const ROLE_LABELS: Record<string, string> = {
   BANNED: "Banned",
 };
 
+// Sentence shown to each reporter whose report was closed by an account ban,
+// phrased to read after the acting admin's name in the notification bell.
+const BAN_RESOLUTION_MESSAGE = "banned the account you reported.";
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -68,6 +72,14 @@ export async function PATCH(
     kind: "ACCOUNT_BANNED" | "ROLE_CHANGED";
     message: string;
   } | null = null;
+  // Notices for reporters whose open reports are closed by this ban; pushed
+  // to live sockets after commit, like the notice to the banned user.
+  let reporterRelays: {
+    userId: string;
+    actorId: string;
+    kind: "REPORT_RESOLVED";
+    message: string;
+  }[] = [];
 
   const user = await prisma.$transaction(async (tx) => {
     const updated = await tx.user.update({
@@ -83,6 +95,57 @@ export async function PATCH(
         where: { userId: id, revokedAt: null },
         data: { revokedAt: new Date() },
       });
+    }
+
+    // A fresh ban also resolves every open report against the account — the
+    // same rule as a content takedown closing reports on its target. Each
+    // report is closed as REMOVED with an audit entry in the same transaction,
+    // and its reporter is notified. Resubmitting BANNED is a no-op, so only an
+    // actual transition to BANNED triggers this.
+    if (toRole === "BANNED" && fromRole !== toRole) {
+      const open = await tx.report.findMany({
+        where: { targetType: "USER", targetId: id, status: "PENDING" },
+        select: { id: true, reporterId: true },
+      });
+      if (open.length > 0) {
+        const ids = open.map((r) => r.id);
+        await tx.report.updateMany({
+          where: { id: { in: ids } },
+          data: { status: "REMOVED", reviewedBy: guard.user.id },
+        });
+        await tx.reportResolutionLog.createMany({
+          data: ids.map((reportId) => ({
+            reportId,
+            resolvedById: guard.user.id,
+            action: "CONTENT_REMOVED",
+            fromStatus: "PENDING",
+            toStatus: "REMOVED",
+            notes: null,
+          })),
+        });
+        // Tell each reporter their report is closed; skip reports filed by the
+        // acting admin or by the banned user themselves (they get their own
+        // ACCOUNT_BANNED notice instead).
+        const reporters = open.filter(
+          (r) => r.reporterId !== guard.user.id && r.reporterId !== id,
+        );
+        if (reporters.length > 0) {
+          await tx.notification.createMany({
+            data: reporters.map((r) => ({
+              userId: r.reporterId,
+              actorId: guard.user.id,
+              kind: "REPORT_RESOLVED",
+              message: BAN_RESOLUTION_MESSAGE,
+            })),
+          });
+          reporterRelays = reporters.map((r) => ({
+            userId: r.reporterId,
+            actorId: guard.user.id,
+            kind: "REPORT_RESOLVED" as const,
+            message: BAN_RESOLUTION_MESSAGE,
+          }));
+        }
+      }
     }
 
     // Keep the affected user in the loop when their role actually changed. The
@@ -108,6 +171,7 @@ export async function PATCH(
 
   // Best-effort: push to live sockets only after the rows are committed.
   if (notify) void pushNotificationDeliveries([notify]);
+  if (reporterRelays.length > 0) void pushNotificationDeliveries(reporterRelays);
 
   return NextResponse.json(user);
 }

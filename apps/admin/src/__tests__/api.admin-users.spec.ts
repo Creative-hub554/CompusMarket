@@ -13,6 +13,14 @@ const prismaMock = vi.hoisted(() => ({
   },
   notification: {
     create: vi.fn(),
+    createMany: vi.fn(),
+  },
+  report: {
+    findMany: vi.fn(),
+    updateMany: vi.fn(),
+  },
+  reportResolutionLog: {
+    createMany: vi.fn(),
   },
   $transaction: vi.fn(),
   post: {
@@ -64,6 +72,9 @@ beforeEach(() => {
     if (typeof arg === "function") return Promise.resolve(arg(prismaMock));
     return Promise.all(arg as Promise<unknown>[]);
   });
+  // No open reports by default, so unrelated tests exercise the ban path
+  // without touching report-resolution writes.
+  prismaMock.report.findMany.mockResolvedValue([]);
   vi.stubEnv("INTERNAL_SERVICE_TOKEN", "test-token");
   vi.stubEnv("NEXT_PUBLIC_API_URL", "http://localhost:4000");
   fetchMock.mockResolvedValue({ ok: true, status: 204 } as unknown as Response);
@@ -215,6 +226,93 @@ describe("PATCH /api/admin/users/[id]", () => {
       kind: "ACCOUNT_BANNED",
       message: "banned your account.",
     });
+  });
+
+  it("skips report resolution when the banned account has no open reports", async () => {
+    prismaMock.user.findUnique.mockResolvedValue({ id: "u2", role: "CUSTOMER" });
+    prismaMock.user.update.mockResolvedValue({ id: "u2", email: "u2@x.y", role: "BANNED" });
+
+    const res = await updateUser(patchReq({ role: "BANNED" }), params);
+
+    expect(res.status).toBe(200);
+    expect(prismaMock.report.updateMany).not.toHaveBeenCalled();
+    expect(prismaMock.reportResolutionLog.createMany).not.toHaveBeenCalled();
+    expect(prismaMock.notification.createMany).not.toHaveBeenCalled();
+  });
+
+  it("resolves open reports against a banned account with audit entries and reporter notices", async () => {
+    prismaMock.user.findUnique.mockResolvedValue({ id: "u2", role: "CUSTOMER" });
+    prismaMock.user.update.mockResolvedValue({ id: "u2", email: "u2@x.y", role: "BANNED" });
+    prismaMock.report.findMany.mockResolvedValue([
+      { id: "r1", reporterId: "rep-1" },
+      { id: "r2", reporterId: "rep-2" },
+      { id: "r3", reporterId: "admin-1" }, // the acting admin's own report — no self-notice
+    ]);
+    prismaMock.report.updateMany.mockResolvedValue({ count: 3 });
+    prismaMock.reportResolutionLog.createMany.mockResolvedValue({ count: 3 });
+    prismaMock.notification.createMany.mockResolvedValue({ count: 2 });
+
+    const res = await updateUser(patchReq({ role: "BANNED" }), params);
+
+    expect(res.status).toBe(200);
+    expect(prismaMock.report.findMany).toHaveBeenCalledWith({
+      where: { targetType: "USER", targetId: "u2", status: "PENDING" },
+      select: { id: true, reporterId: true },
+    });
+    expect(prismaMock.report.updateMany).toHaveBeenCalledWith({
+      where: { id: { in: ["r1", "r2", "r3"] } },
+      data: { status: "REMOVED", reviewedBy: "admin-1" },
+    });
+    expect(prismaMock.reportResolutionLog.createMany).toHaveBeenCalledWith({
+      data: ["r1", "r2", "r3"].map((reportId) => ({
+        reportId,
+        resolvedById: "admin-1",
+        action: "CONTENT_REMOVED",
+        fromStatus: "PENDING",
+        toStatus: "REMOVED",
+        notes: null,
+      })),
+    });
+    expect(prismaMock.notification.createMany).toHaveBeenCalledWith({
+      data: [
+        {
+          userId: "rep-1",
+          actorId: "admin-1",
+          kind: "REPORT_RESOLVED",
+          message: "banned the account you reported.",
+        },
+        {
+          userId: "rep-2",
+          actorId: "admin-1",
+          kind: "REPORT_RESOLVED",
+          message: "banned the account you reported.",
+        },
+      ],
+    });
+
+    // The banned user's own notice plus one relay per notified reporter.
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(3));
+    const payloads = fetchMock.mock.calls.map(([, init]) =>
+      JSON.parse(String((init as RequestInit).body)),
+    );
+    expect(payloads).toEqual(
+      expect.arrayContaining([
+        { userId: "u2", actorId: "admin-1", kind: "ACCOUNT_BANNED", message: "banned your account." },
+        { userId: "rep-1", actorId: "admin-1", kind: "REPORT_RESOLVED", message: "banned the account you reported." },
+        { userId: "rep-2", actorId: "admin-1", kind: "REPORT_RESOLVED", message: "banned the account you reported." },
+      ]),
+    );
+  });
+
+  it("leaves reports open on non-ban role changes", async () => {
+    prismaMock.user.findUnique.mockResolvedValue({ id: "u2", role: "CUSTOMER" });
+    prismaMock.user.update.mockResolvedValue({ id: "u2", email: "u2@x.y", role: "SELLER" });
+
+    const res = await updateUser(patchReq({ role: "SELLER" }), params);
+
+    expect(res.status).toBe(200);
+    expect(prismaMock.report.findMany).not.toHaveBeenCalled();
+    expect(prismaMock.reportResolutionLog.createMany).not.toHaveBeenCalled();
   });
 
   it("notifies the user when their role changes to something else", async () => {
