@@ -194,6 +194,36 @@ describe("GroupsService", () => {
     );
   });
 
+  it("removes a leaving member from the group chat roster so they lose read/send access", async () => {
+    mockPrisma.group.findUnique.mockResolvedValue({ creatorId: "u1" });
+    mockPrisma.groupMember.deleteMany.mockResolvedValue({ count: 1 });
+    mockPrisma.thread.findUnique.mockResolvedValue({ id: "t1" });
+    mockPrisma.threadParticipant.deleteMany.mockResolvedValue({ count: 1 });
+
+    const result = await service.leave("g1", "u2");
+
+    expect(mockPrisma.groupMember.deleteMany).toHaveBeenCalledWith({
+      where: { groupId: "g1", userId: "u2" },
+    });
+    // Deleting the ThreadParticipant row is what makes assertParticipant and
+    // the chat gateway reject the leaver's subsequent reads and sends.
+    expect(mockPrisma.threadParticipant.deleteMany).toHaveBeenCalledWith({
+      where: { threadId: "t1", userId: "u2" },
+    });
+    expect(result).toEqual({ joined: false });
+  });
+
+  it("leaves cleanly when the group chat thread has not been created yet", async () => {
+    mockPrisma.group.findUnique.mockResolvedValue({ creatorId: "u1" });
+    mockPrisma.groupMember.deleteMany.mockResolvedValue({ count: 1 });
+    mockPrisma.thread.findUnique.mockResolvedValue(null);
+
+    const result = await service.leave("g1", "u2");
+
+    expect(mockPrisma.threadParticipant.deleteMany).not.toHaveBeenCalled();
+    expect(result).toEqual({ joined: false });
+  });
+
   it("lets an admin remove a MEMBER and syncs the thread roster", async () => {
     mockPrisma.group.findUnique.mockResolvedValue({ creatorId: "u1" });
     mockPrisma.groupMember.findUnique
