@@ -80,6 +80,29 @@ export class StoriesService {
   }
 
   async view(storyId: string, userId: string): Promise<void> {
+    const story = await this.prisma.story.findUnique({
+      where: { id: storyId },
+      select: { id: true, authorId: true, expiresAt: true },
+    });
+    // The feed only surfaces live stories, so expired ones read as gone too.
+    if (!story || story.expiresAt <= new Date()) {
+      throw new NotFoundException("Story not found");
+    }
+
+    // Only the author and their followers can ever see the story in a feed,
+    // so a view from anyone else is fabricated and must be rejected.
+    if (story.authorId !== userId) {
+      const follows = await this.prisma.follow.findUnique({
+        where: {
+          followerId_followingId: { followerId: userId, followingId: story.authorId },
+        },
+        select: { followerId: true },
+      });
+      if (!follows) {
+        throw new ForbiddenException("You can only view stories from people you follow");
+      }
+    }
+
     await this.prisma.storyView
       .create({ data: { storyId, userId } })
       .catch(() => null);

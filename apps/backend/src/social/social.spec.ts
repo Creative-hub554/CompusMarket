@@ -654,6 +654,68 @@ describe("StoriesService", () => {
     prisma.story.findUnique.mockResolvedValue({ authorId: "u2" });
     await expect(service.remove("s1", "u1")).rejects.toThrow(ForbiddenException);
   });
+
+  describe("view", () => {
+    const liveStory = (authorId: string) => ({
+      id: "s1",
+      authorId,
+      expiresAt: new Date(Date.now() + 60_000),
+    });
+
+    it("404s an unknown story id", async () => {
+      prisma.story.findUnique.mockResolvedValue(null);
+      await expect(service.view("missing", "u1")).rejects.toThrow(NotFoundException);
+      expect(prisma.storyView.create).not.toHaveBeenCalled();
+    });
+
+    it("404s an expired story", async () => {
+      prisma.story.findUnique.mockResolvedValue({
+        id: "s1",
+        authorId: "u2",
+        expiresAt: new Date(Date.now() - 1000),
+      });
+      await expect(service.view("s1", "u1")).rejects.toThrow(NotFoundException);
+      expect(prisma.storyView.create).not.toHaveBeenCalled();
+    });
+
+    it("records a view of your own story", async () => {
+      prisma.story.findUnique.mockResolvedValue(liveStory("u1"));
+      prisma.storyView.create.mockResolvedValue({});
+
+      await service.view("s1", "u1");
+
+      expect(prisma.storyView.create).toHaveBeenCalledWith({
+        data: { storyId: "s1", userId: "u1" },
+      });
+      expect(prisma.follow.findUnique).not.toHaveBeenCalled();
+    });
+
+    it("records a view of a followed author's story", async () => {
+      prisma.story.findUnique.mockResolvedValue(liveStory("u2"));
+      prisma.follow.findUnique.mockResolvedValue({ followerId: "u1" });
+      prisma.storyView.create.mockResolvedValue({});
+
+      await service.view("s1", "u1");
+
+      expect(prisma.follow.findUnique).toHaveBeenCalledWith({
+        where: {
+          followerId_followingId: { followerId: "u1", followingId: "u2" },
+        },
+        select: { followerId: true },
+      });
+      expect(prisma.storyView.create).toHaveBeenCalledWith({
+        data: { storyId: "s1", userId: "u1" },
+      });
+    });
+
+    it("forbids a stranger from viewing a story they were never shown", async () => {
+      prisma.story.findUnique.mockResolvedValue(liveStory("u2"));
+      prisma.follow.findUnique.mockResolvedValue(null);
+
+      await expect(service.view("s1", "outsider")).rejects.toThrow(ForbiddenException);
+      expect(prisma.storyView.create).not.toHaveBeenCalled();
+    });
+  });
 });
 
 describe("ProfilesService", () => {
