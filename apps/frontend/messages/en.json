@@ -345,6 +345,7 @@
     "historyEmpty": "No role changes recorded",
     "byActor": "by {name}",
     "you": "You",
+    "systemActor": "System",
     "recentChanges": "Recent role changes"
   }
 }

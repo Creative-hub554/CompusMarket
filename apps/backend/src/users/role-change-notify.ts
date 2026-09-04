@@ -14,6 +14,8 @@ import { Logger } from "@nestjs/common";
 
 export interface RoleChangeNotice {
   actorId: string;
+  /** Human-readable actor when no app user caused the change (e.g. "Clerk dashboard"). */
+  actorLabel?: string;
   actorEmail?: string;
   targetName?: string;
   targetEmail: string;
@@ -51,7 +53,7 @@ function buildTargets(): WebhookTarget[] {
 }
 
 export function renderNotice(n: RoleChangeNotice): string {
-  const who = n.actorEmail ? n.actorEmail : `user ${n.actorId}`;
+  const who = n.actorLabel ?? n.actorEmail ?? `user ${n.actorId}`;
   const target = n.targetName ? `${n.targetName} (${n.targetEmail})` : n.targetEmail;
   const lines = [`Role change: ${who} changed ${target}`, `${n.fromRole} → ${n.toRole}`];
   if (n.reason) lines.push(`Reason: ${n.reason}`);

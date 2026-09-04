@@ -41,6 +41,11 @@ describe("role-change-notify", () => {
     expect(renderNotice({ ...NOTICE, actorEmail: undefined })).toContain("user admin-1");
   });
 
+  it("prefers an explicit actor label (system-originated changes)", () => {
+    const text = renderNotice({ ...NOTICE, actorEmail: undefined, actorLabel: "Clerk dashboard" });
+    expect(text).toContain("Clerk dashboard changed");
+  });
+
   it("does nothing when no webhook is configured", async () => {
     await notifyRoleChange(NOTICE);
     expect(fetchMock).not.toHaveBeenCalled();

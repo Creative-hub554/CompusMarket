@@ -1081,19 +1081,20 @@ model Report {
 // ── Admin: role-change audit ──
 
 model RoleChangeLog {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   targetId    String
-  changedById String
+  changedById String?
   fromRole    Role
   toRole      Role
   reason      String?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
 
-  // The target's log follows the account (content gone when the user is gone),
-  // but the actor relation is restricted so audit entries survive even if an
-  // admin row is ever removed.
-  target    User @relation("RoleChangeTargets", fields: [targetId], references: [id], onDelete: Cascade)
-  changedBy User @relation("RoleChangeActors", fields: [changedById], references: [id], onDelete: Restrict)
+  // The target's log follows the account (content gone when the user is gone).
+  // changedBy is the acting app admin — null means the change came from outside
+  // the app (e.g. a Clerk-dashboard ban). App-admin actors are restricted from
+  // deletion so audit entries survive even if an admin row is ever removed.
+  target    User  @relation("RoleChangeTargets", fields: [targetId], references: [id], onDelete: Cascade)
+  changedBy User? @relation("RoleChangeActors", fields: [changedById], references: [id], onDelete: SetNull)
 
   @@index([targetId, createdAt])
   @@index([changedById, createdAt])

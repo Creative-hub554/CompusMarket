@@ -387,7 +387,7 @@ export default function AdminUsersPage() {
                                   const actorIsSelf = e.changedBy?.id === session?.user?.id;
                                   const actor = actorIsSelf
                                     ? t("you")
-                                    : e.changedBy?.name || e.changedBy?.email || "—";
+                                    : e.changedBy?.name || e.changedBy?.email || t("systemActor");
                                   return (
                                     <li key={e.id} className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
                                       <span className="inline-block rounded bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 font-medium">
@@ -464,7 +464,7 @@ export default function AdminUsersPage() {
                   const actorIsSelf = e.changedBy?.id === session?.user?.id;
                   const actor = actorIsSelf
                     ? t("you")
-                    : e.changedBy?.name || e.changedBy?.email || "—";
+                    : e.changedBy?.name || e.changedBy?.email || t("systemActor");
                   const targetName = e.target?.name || e.target?.email || "—";
                   return (
                     <li key={e.id} className="py-2 flex gap-2.5">

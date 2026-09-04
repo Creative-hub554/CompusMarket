@@ -4,6 +4,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { pushRoleToClerk } from "./clerk-sync";
 import { notifyRoleChange } from "./role-change-notify";
 import { parseLimit } from "../common/pagination";
+import type { NotifyRoleChangeDto } from "./dto/notify-role-change.dto";
 
 export const ROLE_CHANGE_REASON_MAX = 500;
 
@@ -159,6 +160,32 @@ export class UsersService {
           select: { id: true, name: true, email: true, image: true },
         },
       },
+    });
+  }
+
+  /**
+   * Alert ops channels about a role change that happened outside the app (a
+   * Clerk-dashboard ban). The audit row is written by the caller; the backend
+   * only resolves the target for a readable message and pushes the notice.
+   * Never throws — alerting is best-effort like the Clerk mirror.
+   */
+  async notifyExternalChange(dto: NotifyRoleChangeDto): Promise<void> {
+    const target = await this.prisma.user.findUnique({
+      where: { id: dto.targetId },
+      select: { id: true, email: true, name: true },
+    });
+    if (!target) {
+      // Nothing left to alert about; the change is already recorded elsewhere.
+      return;
+    }
+    await notifyRoleChange({
+      actorId: "system",
+      actorLabel: "Clerk dashboard",
+      targetName: target.name ?? undefined,
+      targetEmail: target.email,
+      fromRole: dto.fromRole,
+      toRole: dto.toRole,
+      reason: dto.reason ?? null,
     });
   }
 

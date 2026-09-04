@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { Webhook } from "svix";
 import { clerkClient } from "@clerk/nextjs/server";
-import { prisma } from "@theo/database";
+import { prisma, Role } from "@theo/database";
+import { getApiBase } from "@/lib/apiBase";
 
 /**
  * Clerk user lifecycle events synced into the local database. Roles remain
@@ -9,6 +10,11 @@ import { prisma } from "@theo/database";
  * identity fields — and Clerk bans, which map onto the BANNED role. Unbanning
  * is deliberately NOT automatic: only an admin changing the role in the app
  * can restore access.
+ *
+ * A ban that flips an existing account writes the same audit trail as the
+ * admin PATCH endpoint (a RoleChangeLog entry with a null actor, since the
+ * change came from the Clerk dashboard, not an app admin) in one transaction.
+ * It then pings the backend internal endpoint so ops channels are alerted.
  */
 type ClerkEmail = { id: string; email_address: string };
 type ClerkUserEvent = {
@@ -63,9 +69,64 @@ async function syncBanMetadata(clerkId: string) {
   }
 }
 
+/**
+ * Alert ops channels about a Clerk-dashboard ban. The audit row is already
+ * committed locally by the caller; the backend internal endpoint only resolves
+ * the target and pushes the Slack/Telegram notice. Best-effort with a short
+ * timeout — a backend blip must never fail the webhook or lose the audit.
+ */
+async function notifyInternalBan(targetId: string, fromRole: string) {
+  const token = process.env.INTERNAL_SERVICE_TOKEN;
+  if (!token) return;
+  try {
+    const res = await fetch(`${getApiBase()}/internal/role-changes/notify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-internal-token": token },
+      body: JSON.stringify({ targetId, fromRole, toRole: "BANNED" }),
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!res.ok) {
+      console.error("clerk ban notify failed", res.status);
+    }
+  } catch (err) {
+    console.error("clerk ban notify error", (err as Error).message);
+  }
+}
+
+/**
+ * Apply an identity update together with a ban: flips the role to BANNED and
+ * records the transition (actor null = Clerk dashboard) in one transaction.
+ */
+async function updateWithBan(
+  row: { id: string; email: string; role: string; clerkId: string | null; emailVerified: Date | null },
+  identity: { email: string | null; name: string | null; image: string | null },
+  extra: { clerkId?: string; emailVerified?: Date } = {}
+) {
+  const base = {
+    ...(identity.email ? { email: identity.email } : {}),
+    ...(identity.name ? { name: identity.name } : {}),
+    ...(identity.image ? { image: identity.image } : {}),
+    emailVerified: extra.emailVerified ?? row.emailVerified ?? new Date(),
+  };
+  const fromRole = row.role;
+  const [updated] = await prisma.$transaction([
+    prisma.user.update({
+      where: { id: row.id },
+      data: { ...extra, ...base, role: "BANNED" },
+      select: USER_SELECT,
+    }),
+    prisma.roleChangeLog.create({
+      data: { targetId: row.id, changedById: null, fromRole: fromRole as Role, toRole: "BANNED", reason: null },
+    }),
+  ]);
+  void notifyInternalBan(row.id, fromRole);
+  return updated;
+}
+
 async function upsertFromClerk(data: ClerkUserEvent["data"]) {
-  const { email, name, image } = identityOf(data);
-  if (data.banned) {
+  const identity = identityOf(data);
+  const banned = Boolean(data.banned);
+  if (banned) {
     void syncBanMetadata(data.id);
   }
   const existing = await prisma.user.findUnique({
@@ -74,45 +135,55 @@ async function upsertFromClerk(data: ClerkUserEvent["data"]) {
   });
 
   if (existing) {
+    if (banned && existing.role !== "BANNED") {
+      return updateWithBan(existing, identity);
+    }
     return prisma.user.update({
       where: { id: existing.id },
       data: {
-        ...(email ? { email } : {}),
-        ...(name ? { name } : {}),
-        ...(image ? { image } : {}),
+        ...(identity.email ? { email: identity.email } : {}),
+        ...(identity.name ? { name: identity.name } : {}),
+        ...(identity.image ? { image: identity.image } : {}),
         emailVerified: existing.emailVerified ?? new Date(),
-        ...(data.banned ? { role: "BANNED" } : {}),
       },
+      select: USER_SELECT,
     });
   }
 
   // No local row yet: create it, or claim a pre-Clerk account with the same
   // (Clerk-verified) email when it is not already linked elsewhere.
-  if (email) {
+  if (identity.email) {
     const byEmail = await prisma.user.findUnique({
-      where: { email },
+      where: { email: identity.email },
       select: USER_SELECT,
     });
     if (byEmail) {
-      if (byEmail.clerkId === null) {
-        return prisma.user.update({
-          where: { id: byEmail.id },
-          data: { clerkId: data.id, emailVerified: new Date() },
-        });
+      if (byEmail.clerkId !== null) {
+        // Linked to another Clerk user: leave it; provisioning will resolve.
+        return byEmail;
       }
-      // Linked to another Clerk user: leave it; provisioning will resolve.
-      return byEmail;
+      if (banned && byEmail.role !== "BANNED") {
+        return updateWithBan(byEmail, identity, { clerkId: data.id, emailVerified: new Date() });
+      }
+      return prisma.user.update({
+        where: { id: byEmail.id },
+        data: { clerkId: data.id, emailVerified: new Date() },
+        select: USER_SELECT,
+      });
     }
   }
   return prisma.user.create({
     data: {
       clerkId: data.id,
-      email: email ?? `${data.id}@clerk.local`,
-      name,
-      image,
+      email: identity.email ?? `${data.id}@clerk.local`,
+      name: identity.name,
+      image: identity.image,
       emailVerified: new Date(),
-      ...(data.banned ? { role: "BANNED" } : {}),
+      // A brand-new account that is already banned has no prior role to log,
+      // so no RoleChangeLog entry is written for the create itself.
+      ...(banned ? { role: "BANNED" } : {}),
     },
+    select: USER_SELECT,
   });
 }
 

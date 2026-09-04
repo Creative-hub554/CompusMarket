@@ -303,6 +303,58 @@ describe("UsersService", () => {
     });
   });
 
+  describe("notifyExternalChange", () => {
+    it("alerts with the resolved target and a Clerk-dashboard label", async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({ id: "u-1", email: "a@b.c", name: "A B" });
+
+      await service.notifyExternalChange({
+        targetId: "u-1",
+        fromRole: "CUSTOMER",
+        toRole: "BANNED",
+      });
+
+      expect(mockNotify).toHaveBeenCalledWith({
+        actorId: "system",
+        actorLabel: "Clerk dashboard",
+        targetName: "A B",
+        targetEmail: "a@b.c",
+        fromRole: "CUSTOMER",
+        toRole: "BANNED",
+        reason: null,
+      });
+    });
+
+    it("skips the alert when the target user no longer exists", async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+
+      await service.notifyExternalChange({
+        targetId: "gone",
+        fromRole: "CUSTOMER",
+        toRole: "BANNED",
+      });
+
+      expect(mockNotify).not.toHaveBeenCalled();
+    });
+
+    it("passes the reason through when present", async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({ id: "u-1", email: "a@b.c", name: null });
+
+      await service.notifyExternalChange({
+        targetId: "u-1",
+        fromRole: "SELLER",
+        toRole: "BANNED",
+        reason: "chargebacks",
+      });
+
+      expect(mockNotify).toHaveBeenCalledWith(
+        expect.objectContaining({
+          targetName: undefined,
+          reason: "chargebacks",
+        }),
+      );
+    });
+  });
+
   describe("recentChanges", () => {
     it("returns the newest role changes across users with actor and target", async () => {
       const entries = [
