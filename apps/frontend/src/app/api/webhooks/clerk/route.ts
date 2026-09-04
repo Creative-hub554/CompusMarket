@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { Webhook } from "svix";
+import { clerkClient } from "@clerk/nextjs/server";
 import { prisma } from "@theo/database";
 
 /**
@@ -46,8 +47,27 @@ function identityOf(data: ClerkUserEvent["data"]) {
   };
 }
 
+/**
+ * A Clerk-dashboard ban also lands here (Clerk -> DB); mirror it into
+ * publicMetadata.role so the metadata claim agrees with the DB role, matching
+ * what the admin role endpoint pushes. Best-effort: never fail the webhook.
+ */
+async function syncBanMetadata(clerkId: string) {
+  try {
+    const client = await clerkClient();
+    await client.users.updateUserMetadata(clerkId, {
+      publicMetadata: { role: "BANNED" },
+    });
+  } catch {
+    // DB role stays authoritative; a later admin role change re-syncs.
+  }
+}
+
 async function upsertFromClerk(data: ClerkUserEvent["data"]) {
   const { email, name, image } = identityOf(data);
+  if (data.banned) {
+    void syncBanMetadata(data.id);
+  }
   const existing = await prisma.user.findUnique({
     where: { clerkId: data.id },
     select: USER_SELECT,

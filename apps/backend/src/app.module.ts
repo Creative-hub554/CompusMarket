@@ -30,6 +30,7 @@ import { HealthModule } from "./health/health.module";
 import { MetricsModule } from "./metrics/metrics.module";
 import { ReportsModule } from "./reports/reports.module";
 import { SentryModule } from "./sentry/sentry.module";
+import { UsersModule } from "./users/users.module";
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ SearchModule,
     MetricsModule,
     ReportsModule,
     SentryModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [

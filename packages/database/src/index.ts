@@ -18,6 +18,7 @@ export const Role = {
   INVENTORY_MANAGER: "INVENTORY_MANAGER",
   ADMIN: "ADMIN",
   SELLER: "SELLER",
+  BANNED: "BANNED",
 } as const;
 export type Role = (typeof Role)[keyof typeof Role];
 

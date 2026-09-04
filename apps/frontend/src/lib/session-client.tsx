@@ -6,10 +6,11 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
-import { useAuth, useClerk } from "@clerk/nextjs";
+import { useAuth, useClerk, useUser } from "@clerk/nextjs";
 
 export type BridgeUser = {
   id: string;
@@ -55,13 +56,19 @@ async function fetchBridgeSession(): Promise<BridgeSession | null> {
  */
 export function SessionBridge({ children }: { children: ReactNode }) {
   const { isLoaded, isSignedIn } = useAuth();
+  const { user } = useUser();
   const clerk = useClerk();
   const [session, setSession] = useState<BridgeSession | null>(null);
   const [ready, setReady] = useState(false);
+  const loadedOnce = useRef(false);
+  // Role changes made server-side (admin promote/demote/ban) are mirrored into
+  // Clerk publicMetadata; the metadata claim is how this client notices them.
+  const metadataRole = (user?.publicMetadata as { role?: string } | undefined)?.role;
 
   useEffect(() => {
     if (!isLoaded) return;
     if (!isSignedIn) {
+      loadedOnce.current = false;
       setSession(null);
       setReady(true);
       return;
@@ -71,11 +78,13 @@ export function SessionBridge({ children }: { children: ReactNode }) {
     fetchBridgeSession()
       .then((s) => {
         if (cancelled) return;
+        loadedOnce.current = true;
         setSession(s);
         setReady(true);
       })
       .catch(() => {
         if (!cancelled) {
+          loadedOnce.current = true;
           setSession(null);
           setReady(true);
         }
@@ -91,6 +100,16 @@ export function SessionBridge({ children }: { children: ReactNode }) {
     setReady(true);
     return s;
   }, []);
+
+  // When the Clerk client observes a publicMetadata.role change, re-fetch the
+  // DB session so session.user.role (the authoritative value) flips without a
+  // page reload. The first evaluation coincides with the initial load, so it
+  // is skipped.
+  useEffect(() => {
+    if (!isSignedIn || !metadataRole) return;
+    if (!loadedOnce.current) return;
+    void update();
+  }, [metadataRole, isSignedIn, update]);
 
   const signOut = useCallback(async () => {
     await clerk.signOut();
