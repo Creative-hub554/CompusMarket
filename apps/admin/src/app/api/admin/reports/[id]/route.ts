@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/require-admin";
 import { pushNotificationDeliveries } from "@/lib/notification-push";
+import { closeOpenReports } from "@/lib/report-resolution";
 import { prisma } from "@theo/database";
 
 /**
@@ -38,9 +39,10 @@ export async function PATCH(
   if (!guard.ok) return guard.response;
 
   const { id } = await params;
-  const body = (await req.json().catch(() => null)) as
-    | { action?: string; adminNotes?: string }
-    | null;
+  const body = (await req.json().catch(() => null)) as {
+    action?: string;
+    adminNotes?: string;
+  } | null;
 
   const rawAction = body?.action;
   if (
@@ -87,17 +89,7 @@ export async function PATCH(
   // Removing content resolves every open report against the same target, not
   // just this one: once the item is gone the other reports are moot too.
   if (action === "CONTENT_REMOVED") {
-    const { resolved, relays } = await prisma.$transaction(async (tx) => {
-      const open = await tx.report.findMany({
-        where: {
-          targetType: report.targetType,
-          targetId: report.targetId,
-          status: "PENDING",
-        },
-        select: { id: true, reporterId: true },
-      });
-      const ids = open.map((r) => r.id);
-
+    const { resolvedCount, relays } = await prisma.$transaction(async (tx) => {
       // Take the content down. Deletes are idempotent (deleteMany) so a target
       // already removed elsewhere does not fail the resolution. Products are
       // hidden instead of hard-deleted because order items reference them.
@@ -116,52 +108,20 @@ export async function PATCH(
           break;
       }
 
-      await tx.report.updateMany({
-        where: { id: { in: ids } },
-        data: {
-          status: "REMOVED",
-          reviewedBy: resolvedById,
-          ...(notes !== null ? { adminNotes: notes } : {}),
-        },
+      return closeOpenReports({
+        tx,
+        targetType: report.targetType,
+        targetId: report.targetId,
+        resolvedById,
+        notes,
+        message: OUTCOME_MESSAGES.CONTENT_REMOVED,
+        excludeReporterIds: [resolvedById],
       });
-      await tx.reportResolutionLog.createMany({
-        data: ids.map((reportId) => ({
-          reportId,
-          resolvedById,
-          action: "CONTENT_REMOVED",
-          fromStatus: "PENDING",
-          toStatus: "REMOVED",
-          notes,
-        })),
-      });
-
-      // Tell every reporter whose report was closed by this takedown.
-      const toNotify = open.filter((r) => r.reporterId !== resolvedById);
-      if (toNotify.length > 0) {
-        await tx.notification.createMany({
-          data: toNotify.map((r) => ({
-            userId: r.reporterId,
-            actorId: resolvedById,
-            kind: "REPORT_RESOLVED",
-            message: OUTCOME_MESSAGES.CONTENT_REMOVED,
-          })),
-        });
-      }
-
-      return {
-        resolved: ids.length,
-        relays: toNotify.map((r) => ({
-          userId: r.reporterId,
-          actorId: resolvedById,
-          kind: "REPORT_RESOLVED",
-          message: OUTCOME_MESSAGES.CONTENT_REMOVED,
-        })),
-      };
     });
 
     // Push to live sockets only after the rows are committed; best-effort.
     void pushNotificationDeliveries(relays);
-    return NextResponse.json({ ok: true, resolved });
+    return NextResponse.json({ ok: true, resolved: resolvedCount });
   }
 
   const updated = await prisma.$transaction(async (tx) => {

@@ -84,6 +84,7 @@ Backend modules: `auth`, `products`, `orders`, `cart`, `categories`, `search`, `
 - **Sellers never call NestJS mutations directly.** They go through Next.js route handlers `apps/frontend/src/app/api/seller/*`, which check `getToken`, require an APPROVED `SellerProfile`, and enforce product ownership before touching Prisma.
 - NestJS `PATCH /products/:id` is `ADMIN`/`INVENTORY_MANAGER` only. `GET /products/promos` is public (shoppable-video promos: `Product.videoUrl`/`videoActive`).
 - Admin **Users-page bans** (`apps/admin/src/app/api/admin/users/[id]/route.ts`) resolve open USER reports transactionally (REMOVED + audit row + reporter notifications); **Clerk-dashboard bans (webhook) and backend `UsersService.setRole` do not** — the invariant only holds for in-app bans.
+- **Closing open reports on a target has one owner**: `apps/admin/src/lib/report-resolution.ts` (`closeOpenReports`), used by the reports CONTENT_REMOVED branch and the users ban branch. It flips statuses, writes `ReportResolutionLog` rows (CONTENT_REMOVED/PENDING→REMOVED), creates REPORTER notifications, and returns relay payloads — all inside the caller's tx.
 - `Report` rows survive content takedowns (no FK to the target), but `@@unique([targetType, targetId, reporterId])` means a resolved/filed report can never be refiled against the same content.
 
 ## Frontend auth proxy

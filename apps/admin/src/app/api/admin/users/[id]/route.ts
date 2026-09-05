@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/require-admin";
 import { pushNotificationDeliveries } from "@/lib/notification-push";
+import { closeOpenReports, type ReportRelay } from "@/lib/report-resolution";
 import { prisma } from "@theo/database";
 
 const ROLES = [
@@ -74,12 +75,7 @@ export async function PATCH(
   } | null = null;
   // Notices for reporters whose open reports are closed by this ban; pushed
   // to live sockets after commit, like the notice to the banned user.
-  let reporterRelays: {
-    userId: string;
-    actorId: string;
-    kind: "REPORT_RESOLVED";
-    message: string;
-  }[] = [];
+  let reporterRelays: ReportRelay[] = [];
 
   const user = await prisma.$transaction(async (tx) => {
     const updated = await tx.user.update({
@@ -98,54 +94,22 @@ export async function PATCH(
     }
 
     // A fresh ban also resolves every open report against the account — the
-    // same rule as a content takedown closing reports on its target. Each
-    // report is closed as REMOVED with an audit entry in the same transaction,
-    // and its reporter is notified. Resubmitting BANNED is a no-op, so only an
-    // actual transition to BANNED triggers this.
+    // same rule as a content takedown closing reports on its target: closed as
+    // REMOVED with audit entries + reporter notices in the same transaction.
+    // Resubmitting BANNED is a no-op, so only an actual transition to BANNED
+    // triggers this. Reporters who are the acting admin or the banned user
+    // themselves are skipped (the latter get their own ACCOUNT_BANNED notice).
     if (toRole === "BANNED" && fromRole !== toRole) {
-      const open = await tx.report.findMany({
-        where: { targetType: "USER", targetId: id, status: "PENDING" },
-        select: { id: true, reporterId: true },
+      const { relays } = await closeOpenReports({
+        tx,
+        targetType: "USER",
+        targetId: id,
+        resolvedById: guard.user.id,
+        notes: null,
+        message: BAN_RESOLUTION_MESSAGE,
+        excludeReporterIds: [guard.user.id, id],
       });
-      if (open.length > 0) {
-        const ids = open.map((r) => r.id);
-        await tx.report.updateMany({
-          where: { id: { in: ids } },
-          data: { status: "REMOVED", reviewedBy: guard.user.id },
-        });
-        await tx.reportResolutionLog.createMany({
-          data: ids.map((reportId) => ({
-            reportId,
-            resolvedById: guard.user.id,
-            action: "CONTENT_REMOVED",
-            fromStatus: "PENDING",
-            toStatus: "REMOVED",
-            notes: null,
-          })),
-        });
-        // Tell each reporter their report is closed; skip reports filed by the
-        // acting admin or by the banned user themselves (they get their own
-        // ACCOUNT_BANNED notice instead).
-        const reporters = open.filter(
-          (r) => r.reporterId !== guard.user.id && r.reporterId !== id,
-        );
-        if (reporters.length > 0) {
-          await tx.notification.createMany({
-            data: reporters.map((r) => ({
-              userId: r.reporterId,
-              actorId: guard.user.id,
-              kind: "REPORT_RESOLVED",
-              message: BAN_RESOLUTION_MESSAGE,
-            })),
-          });
-          reporterRelays = reporters.map((r) => ({
-            userId: r.reporterId,
-            actorId: guard.user.id,
-            kind: "REPORT_RESOLVED" as const,
-            message: BAN_RESOLUTION_MESSAGE,
-          }));
-        }
-      }
+      reporterRelays = relays;
     }
 
     // Keep the affected user in the loop when their role actually changed. The
@@ -171,7 +135,8 @@ export async function PATCH(
 
   // Best-effort: push to live sockets only after the rows are committed.
   if (notify) void pushNotificationDeliveries([notify]);
-  if (reporterRelays.length > 0) void pushNotificationDeliveries(reporterRelays);
+  if (reporterRelays.length > 0)
+    void pushNotificationDeliveries(reporterRelays);
 
   return NextResponse.json(user);
 }
