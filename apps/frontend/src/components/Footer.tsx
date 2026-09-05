@@ -35,7 +35,7 @@ export function Footer() {
   ];
 
   return (
-    <footer className="border-t border-[rgba(212,160,39,0.35)] bg-slate-900 text-white shadow-[0_-6px_28px_-14px_rgba(212,160,39,0.45)]">
+    <footer className="border-t border-[rgba(255,107,94,0.35)] bg-slate-900 text-white shadow-[0_-6px_28px_-14px_rgba(255,107,94,0.45)]">
       <div className="mx-auto max-w-7xl px-4 py-12">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
           <div className="col-span-2">
@@ -73,7 +73,7 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="mt-10 pt-6 border-t border-[rgba(212,160,39,0.2)] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+        <div className="mt-10 pt-6 border-t border-[rgba(255,107,94,0.2)] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
           <p>
             © {new Date().getFullYear()} Champey. {t("footerRights")}
           </p>

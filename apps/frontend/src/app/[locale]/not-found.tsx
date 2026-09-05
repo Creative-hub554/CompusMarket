@@ -9,7 +9,7 @@ export default function NotFound() {
         alt=""
         width={72}
         height={72}
-        className="animate-temple-float drop-shadow-[0_0_24px_rgba(212,160,39,0.45)] mb-6"
+        className="animate-temple-float drop-shadow-[0_0_24px_rgba(255,107,94,0.45)] mb-6"
       />
       <p className="text-sm tracking-[0.3em] text-gold-500 dark:text-gold-400 font-semibold uppercase mb-3">
         404

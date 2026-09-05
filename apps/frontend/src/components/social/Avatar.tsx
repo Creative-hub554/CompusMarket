@@ -24,7 +24,7 @@ export function Avatar({
         />
       ) : (
         <span
-          className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-gold-500 to-purple-500 font-semibold text-white"
+          className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-gold to-gold-light font-semibold text-white"
           style={{ fontSize: size * 0.42 }}
         >
           {label.charAt(0).toUpperCase()}

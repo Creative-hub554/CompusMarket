@@ -310,7 +310,7 @@ function ChatWindow({
         className="relative rounded-full transition-transform hover:-translate-y-1 focus:outline-none"
         title={displayName(chat.participant)}
       >
-        <span className="block rounded-full ring-2 ring-gold-400 shadow-[0_6px_20px_-6px_rgba(212,160,39,0.55)]">
+        <span className="block rounded-full ring-2 ring-gold-400 shadow-[0_6px_20px_-6px_rgba(255,107,94,0.55)]">
           <Avatar user={chat.participant} size={52} online={isOnline} />
         </span>
         {chat.unread > 0 && (

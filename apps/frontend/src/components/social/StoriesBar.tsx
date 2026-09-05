@@ -126,7 +126,7 @@ export function StoriesBar() {
               className={`p-[2px] rounded-full ${
                 group.allViewed
                   ? "bg-gray-200"
-                  : "bg-gradient-to-tr from-yellow-400 via-pink-500 to-gold-500"
+                  : "bg-gradient-to-tr from-gold to-gold-light"
               }`}
             >
               <span className="block p-[2px] bg-[var(--surface)] rounded-full">

@@ -5,73 +5,73 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-ink: #0f172a;
-  --color-accent: #d4a027;
-  --color-accent-dark: #b8860b;
-  --color-accent2: #f0c040;
-  --color-accent2-dark: #d4a027;
+  --color-ink: #17171f;
+  --color-accent: #ff6b5e;
+  --color-accent-dark: #f0554a;
+  --color-accent2: #ff9a3d;
+  --color-accent2-dark: #ff6b5e;
 
   /* Khmer gold palette */
-  --color-gold: #d4a027;
-  --color-gold-light: #f0c040;
-  --color-gold-dark: #b8860b;
-  --color-gold-50: #fdfaef;
-  --color-gold-100: #f9f1d6;
-  --color-gold-200: #f3e2ab;
-  --color-gold-300: #eccd77;
-  --color-gold-400: #e5b84a;
-  --color-gold-500: #d4a027;
-  --color-gold-600: #b8860b;
-  --color-gold-700: #96690d;
-  --color-gold-800: #7a5410;
-  --color-gold-900: #654613;
-  --color-gold-950: #392405;
+  --color-gold: #ff6b5e;
+  --color-gold-light: #ff9a3d;
+  --color-gold-dark: #f0554a;
+  --color-gold-50: #fff2f0;
+  --color-gold-100: #ffe4df;
+  --color-gold-200: #ffc8c0;
+  --color-gold-300: #ffa79b;
+  --color-gold-400: #ff8574;
+  --color-gold-500: #ff6b5e;
+  --color-gold-600: #f0554a;
+  --color-gold-700: #c9433a;
+  --color-gold-800: #a83a32;
+  --color-gold-900: #8a352d;
+  --color-gold-950: #4c1512;
 
   --radius-xl: 0.75rem;
   --radius-2xl: 1rem;
   --radius-3xl: 1.5rem;
 
-  --shadow-soft: 0 2px 12px -2px rgb(212 160 39 / 0.12);
-  --shadow-lift: 0 16px 32px -12px rgb(212 160 39 / 0.32);
-  --shadow-glow: 0 8px 30px -6px rgb(212 160 39 / 0.45);
+  --shadow-soft: 0 2px 12px -2px rgb(255 107 94 / 0.12);
+  --shadow-lift: 0 16px 32px -12px rgb(255 107 94 / 0.32);
+  --shadow-glow: 0 8px 30px -6px rgb(255 107 94 / 0.45);
   --shadow-gold:
-    0 1px 2px rgb(15 23 42 / 0.06),
-    0 0 0 1px rgb(212 160 39 / 0.14),
-    0 10px 32px -12px rgb(212 160 39 / 0.35);
+    0 1px 2px rgb(23 23 31 / 0.06),
+    0 0 0 1px rgb(255 107 94 / 0.14),
+    0 10px 32px -12px rgb(255 107 94 / 0.35);
 
   /* Legacy aliases — keep existing pages compiling during migration */
-  --color-khmer-blue: #0f172a;
-  --color-khmer-blue-light: #4338ca;
+  --color-khmer-blue: #ff6b5e;
+  --color-khmer-blue-light: #ff8f6b;
   --color-khmer-red: #dc2626;
   --color-khmer-red-light: #e53935;
-  --color-khmer-gold: #d4a027;
-  --color-khmer-gold-light: #f0c040;
+  --color-khmer-gold: #ff6b5e;
+  --color-khmer-gold-light: #ff9a3d;
 }
 
 /* ---- Semantic surface tokens (flip in dark mode) ---- */
 
 :root {
-  --bg-body: #f6f3ea;
-  --text-body: #111827;
+  --bg-body: #f6f7fb;
+  --text-body: #17171f;
   --surface: #ffffff;
-  --surface-2: #f4f1e8;
-  --border-subtle: #e7e1d2;
-  --border-gold: rgba(212, 160, 39, 0.28);
-  --text-muted: #64748b;
+  --surface-2: #eef0f6;
+  --border-subtle: #e8e9f2;
+  --border-gold: rgba(255, 107, 94, 0.28);
+  --text-muted: #8a8b9c;
   --glass-bg: rgba(255, 255, 255, 0.72);
-  --glass-border: rgba(212, 160, 39, 0.25);
+  --glass-border: rgba(255, 107, 94, 0.25);
 }
 
 .dark {
-  --bg-body: #0b1120;
-  --text-body: #e2e8f0;
-  --surface: #111a2e;
-  --surface-2: #1a2439;
-  --border-subtle: #26334d;
-  --border-gold: rgba(212, 160, 39, 0.22);
-  --text-muted: #94a3b8;
-  --glass-bg: rgba(17, 26, 46, 0.72);
-  --glass-border: rgba(212, 160, 39, 0.18);
+  --bg-body: #0f0f17;
+  --text-body: #efeff6;
+  --surface: #171721;
+  --surface-2: #1f1f2c;
+  --border-subtle: #252532;
+  --border-gold: rgba(255, 107, 94, 0.22);
+  --text-muted: #9b9bac;
+  --glass-bg: rgba(23, 23, 33, 0.72);
+  --glass-border: rgba(255, 107, 94, 0.18);
 }
 
 * {
@@ -90,7 +90,7 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: var(--font-inter), var(--font-khmer), sans-serif;
+  font-family: var(--font-display), var(--font-inter), var(--font-khmer), sans-serif;
   letter-spacing: -0.02em;
 }
 
@@ -128,10 +128,10 @@ h4 {
 @keyframes pulseGlow {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(212, 160, 39, 0.4);
+    box-shadow: 0 0 0 0 rgba(255, 107, 94, 0.4);
   }
   50% {
-    box-shadow: 0 0 0 8px rgba(212, 160, 39, 0);
+    box-shadow: 0 0 0 8px rgba(255, 107, 94, 0);
   }
 }
 
@@ -260,20 +260,20 @@ h4 {
 }
 .dark .section-box {
   background:
-    linear-gradient(180deg, rgb(212 160 39 / 0.04), transparent 40%),
+    linear-gradient(180deg, rgb(255 107 94 / 0.04), transparent 40%),
     var(--surface);
 }
 
 /* Navy/gold hero gradient (was the Khmer flag banner) */
 .banner-flag {
-  background: linear-gradient(135deg, #0b1120 0%, #17203a 55%, #6b5510 130%);
+  background: linear-gradient(135deg, #0b1120 0%, #17203a 55%, #5a241d 130%);
 }
 
 /* Animated navy/gold mesh backdrop for heroes */
 .gradient-mesh {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #0b1120 0%, #131c33 55%, #2b230a 130%);
+  background: linear-gradient(135deg, #0b1120 0%, #131c33 55%, #2a1410 130%);
 }
 .gradient-mesh::before,
 .gradient-mesh::after {
@@ -289,7 +289,7 @@ h4 {
   height: 480px;
   left: -120px;
   top: -160px;
-  background: radial-gradient(circle, #d4a027 0%, transparent 65%);
+  background: radial-gradient(circle, #ff6b5e 0%, transparent 65%);
   animation: meshDrift 14s ease-in-out infinite;
 }
 .gradient-mesh::after {
@@ -297,7 +297,7 @@ h4 {
   height: 520px;
   right: -140px;
   bottom: -200px;
-  background: radial-gradient(circle, #f0c040 0%, transparent 65%);
+  background: radial-gradient(circle, #ff9a3d 0%, transparent 65%);
   animation: meshDrift 18s ease-in-out infinite reverse;
 }
 
@@ -332,7 +332,7 @@ h4 {
 }
 
 .text-gradient {
-  background: linear-gradient(90deg, #d4a027, #f0c040, #d4a027);
+  background: linear-gradient(90deg, #ff6b5e, #ff9a3d, #ff6b5e);
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
@@ -343,13 +343,13 @@ h4 {
 
 .btn-primary {
   @apply rounded-lg px-4 py-2 text-sm font-medium transition disabled:opacity-40;
-  color: #241b02;
-  background: linear-gradient(135deg, #d4a027, #f0c040);
-  box-shadow: 0 4px 14px -4px rgb(212 160 39 / 0.55);
+  color: #fff;
+  background: linear-gradient(135deg, #ff6b5e, #ff9a3d);
+  box-shadow: 0 4px 14px -4px rgb(255 107 94 / 0.55);
 }
 .btn-primary:hover {
-  background: linear-gradient(135deg, #c8941f, #e6b434);
-  box-shadow: 0 6px 20px -4px rgb(212 160 39 / 0.7);
+  background: linear-gradient(135deg, #f0554a, #ff8a2e);
+  box-shadow: 0 6px 20px -4px rgb(255 107 94 / 0.7);
   transform: translateY(-1px);
 }
 
@@ -436,7 +436,7 @@ h4 {
   left: 0;
   width: 48px;
   height: 3px;
-  background: linear-gradient(90deg, #d4a027, #f0c040);
+  background: linear-gradient(90deg, #ff6b5e, #ff9a3d);
   border-radius: 2px;
 }
 
@@ -523,7 +523,7 @@ img {
   left: 0;
   width: 48px;
   height: 3px;
-  background: linear-gradient(90deg, #d4a027, #f0c040);
+  background: linear-gradient(90deg, #ff6b5e, #ff9a3d);
   border-radius: 2px;
 }
 
@@ -538,7 +538,7 @@ img {
   left: 0;
   width: 0;
   height: 2px;
-  background: linear-gradient(90deg, #d4a027, #f0c040);
+  background: linear-gradient(90deg, #ff6b5e, #ff9a3d);
   transition: width 0.3s ease;
 }
 .nav-link:hover::after {

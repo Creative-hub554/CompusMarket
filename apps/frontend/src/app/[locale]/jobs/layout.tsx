@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SectionShell } from "@/components/SectionShell";
 
 export const metadata: Metadata = {
   title: "Jobs",
@@ -12,5 +13,5 @@ export default function JobsLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return <SectionShell section="jobs">{children}</SectionShell>;
 }

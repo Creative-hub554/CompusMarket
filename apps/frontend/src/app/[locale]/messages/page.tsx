@@ -224,7 +224,7 @@ export default function MessagesPage() {
           onClick={openBotChat}
           className="w-full text-left rounded-xl border border-gold-500/40 bg-gradient-to-r from-gold-500/10 to-transparent p-4 hover:border-gold-500/70 transition-all flex items-center gap-3 mb-3"
         >
-          <span className="w-12 h-12 shrink-0 rounded-full bg-gradient-to-br from-gold-500 to-gold-600 flex items-center justify-center shadow-[0_6px_18px_-6px_rgba(212,160,39,0.6)]">
+          <span className="w-12 h-12 shrink-0 rounded-full bg-gradient-to-br from-gold-500 to-gold-600 flex items-center justify-center shadow-[0_6px_18px_-6px_rgba(255,107,94,0.6)]">
             <Bot size={22} className="text-white" />
           </span>
           <span className="flex-1 min-w-0">

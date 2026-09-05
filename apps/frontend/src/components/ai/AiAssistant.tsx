@@ -170,7 +170,7 @@ export function AiAssistant() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="w-14 h-14 rounded-full shadow-[0_8px_30px_-6px_rgba(212,160,39,0.6)] flex items-center justify-center bg-gradient-to-br from-gold-500 to-gold-600 hover:scale-105 active:scale-95 transition-transform"
+          className="w-14 h-14 rounded-full shadow-[0_8px_30px_-6px_rgba(255,107,94,0.6)] flex items-center justify-center bg-gradient-to-br from-gold-500 to-gold-600 hover:scale-105 active:scale-95 transition-transform"
           aria-label={t.aiAssistant.title}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
