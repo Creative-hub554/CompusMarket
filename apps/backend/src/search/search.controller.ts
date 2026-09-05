@@ -15,6 +15,8 @@ export class SearchController {
     @Query("minPrice") minPrice?: string,
     @Query("maxPrice") maxPrice?: string,
     @Query("condition") condition?: string,
+    @Query("sort") sort?: string,
+    @Query("inStock") inStock?: string,
   ) {
     const parsedMin = minPrice ? Number(minPrice) : undefined;
     const parsedMax = maxPrice ? Number(maxPrice) : undefined;
@@ -29,6 +31,8 @@ export class SearchController {
       minPrice: parsedMin,
       maxPrice: parsedMax,
       condition,
+      sort,
+      inStock: inStock === "true",
     });
   }
 

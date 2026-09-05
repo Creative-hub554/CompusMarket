@@ -9,6 +9,28 @@ function escapeFilterValue(value: string): string {
   return value.replace(/["\\]/g, "\\$&");
 }
 
+const SORT_ORDERS: Record<string, Prisma.ProductOrderByWithRelationInput> = {
+  newest: { createdAt: "desc" },
+  oldest: { createdAt: "asc" },
+  price_asc: { price: "asc" },
+  price_desc: { price: "desc" },
+};
+
+function meiliSort(sort?: string): string[] | undefined {
+  switch (sort) {
+    case "oldest":
+      return ["createdAt:asc"];
+    case "price_asc":
+      return ["price:asc"];
+    case "price_desc":
+      return ["price:desc"];
+    case "newest":
+      return ["createdAt:desc"];
+    default:
+      return undefined;
+  }
+}
+
 @Injectable()
 export class SearchService implements OnModuleInit {
   constructor(private prisma: PrismaService) {}
@@ -56,11 +78,16 @@ export class SearchService implements OnModuleInit {
         "condition",
         "status",
         "price",
+        "stock",
       ]);
       await this.client!.index(INDEX_NAME).updateSearchableAttributes([
         "name",
         "description",
         "categoryName",
+      ]);
+      await this.client!.index(INDEX_NAME).updateSortableAttributes([
+        "createdAt",
+        "price",
       ]);
       this.logger.log(`Index "${INDEX_NAME}" created`);
     } catch (e) {
@@ -86,6 +113,7 @@ export class SearchService implements OnModuleInit {
           price: Number(product.price),
           condition: product.condition,
           status: product.status,
+          stock: product.stock,
           categoryId: product.categoryId,
           categoryName: product.category.name,
           images: product.images,
@@ -132,6 +160,7 @@ export class SearchService implements OnModuleInit {
           price: Number(p.price),
           condition: p.condition,
           status: p.status,
+          stock: p.stock,
           categoryId: p.categoryId,
           categoryName: p.category.name,
           images: p.images,
@@ -147,7 +176,14 @@ export class SearchService implements OnModuleInit {
 
   async search(
     query: string,
-    filters?: { categoryId?: string; minPrice?: number; maxPrice?: number; condition?: string },
+    filters?: {
+      categoryId?: string;
+      minPrice?: number;
+      maxPrice?: number;
+      condition?: string;
+      sort?: string;
+      inStock?: boolean;
+    },
   ) {
     if (!this.isAvailable()) {
       return this.fallbackSearch(query, filters);
@@ -167,10 +203,15 @@ export class SearchService implements OnModuleInit {
       if (filters?.condition) {
         filterParts.push(`condition = "${escapeFilterValue(filters.condition)}"`);
       }
+      if (filters?.inStock) {
+        filterParts.push("stock > 0");
+      }
 
+      const sort = meiliSort(filters?.sort);
       const result = await this.client!.index(INDEX_NAME).search(query, {
         limit: 50,
         filter: filterParts.length > 0 ? filterParts : undefined,
+        ...(sort ? { sort } : {}),
       });
 
       return {
@@ -187,7 +228,14 @@ export class SearchService implements OnModuleInit {
 
   private async fallbackSearch(
     query: string,
-    filters?: { categoryId?: string; minPrice?: number; maxPrice?: number; condition?: string },
+    filters?: {
+      categoryId?: string;
+      minPrice?: number;
+      maxPrice?: number;
+      condition?: string;
+      sort?: string;
+      inStock?: boolean;
+    },
   ) {
     const where: Prisma.ProductWhereInput = {
       status: "ACTIVE",
@@ -197,6 +245,7 @@ export class SearchService implements OnModuleInit {
       ],
       ...(filters?.categoryId ? { categoryId: filters.categoryId } : {}),
       ...(filters?.condition ? { condition: filters.condition as ProductCondition } : {}),
+      ...(filters?.inStock ? { stock: { gt: 0 } } : {}),
       ...(filters?.minPrice !== undefined || filters?.maxPrice !== undefined
         ? {
             price: {
@@ -210,7 +259,9 @@ export class SearchService implements OnModuleInit {
     const products = await this.prisma.product.findMany({
       where,
       include: { category: true },
-      orderBy: { createdAt: "desc" },
+      orderBy: filters?.sort
+        ? SORT_ORDERS[filters.sort] ?? { createdAt: "desc" }
+        : { createdAt: "desc" },
       take: 50,
     });
 

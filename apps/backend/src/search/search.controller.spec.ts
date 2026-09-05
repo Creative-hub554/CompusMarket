@@ -26,6 +26,8 @@ describe("SearchController", () => {
       minPrice: 10,
       maxPrice: 100,
       condition: undefined,
+      sort: undefined,
+      inStock: false,
     });
   });
 
@@ -39,6 +41,23 @@ describe("SearchController", () => {
       minPrice: undefined,
       maxPrice: undefined,
       condition: undefined,
+      sort: undefined,
+      inStock: false,
+    });
+  });
+
+  it("forwards sort and inStock to the service", async () => {
+    mockSearch.search.mockResolvedValue({ hits: [], total: 0 });
+
+    await controller.search("laptop", undefined, undefined, undefined, undefined, "price_asc", "true");
+
+    expect(mockSearch.search).toHaveBeenCalledWith("laptop", {
+      categoryId: undefined,
+      minPrice: undefined,
+      maxPrice: undefined,
+      condition: undefined,
+      sort: "price_asc",
+      inStock: true,
     });
   });
 

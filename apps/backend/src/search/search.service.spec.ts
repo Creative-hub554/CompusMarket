@@ -7,6 +7,7 @@ const h = vi.hoisted(() => ({
   mockIndex: {
     updateFilterableAttributes: vi.fn(),
     updateSearchableAttributes: vi.fn(),
+    updateSortableAttributes: vi.fn(),
     addDocuments: vi.fn(),
     deleteDocument: vi.fn(),
     search: vi.fn(),
@@ -74,6 +75,7 @@ describe("SearchService", () => {
       expect(client().createIndex).toHaveBeenCalledWith("products", { primaryKey: "id" });
       expect(h.mockIndex.updateFilterableAttributes).toHaveBeenCalled();
       expect(h.mockIndex.updateSearchableAttributes).toHaveBeenCalled();
+      expect(h.mockIndex.updateSortableAttributes).toHaveBeenCalledWith(["createdAt", "price"]);
     });
 
     it("recreates an existing index that has no primary key", async () => {
@@ -96,6 +98,7 @@ describe("SearchService", () => {
         price: new Prisma.Decimal("10.00"),
         condition: "A",
         status: "ACTIVE",
+        stock: 5,
         categoryId: "c-1",
         images: [],
         createdAt: new Date("2026-01-01"),
@@ -111,6 +114,7 @@ describe("SearchService", () => {
           name: "Watch",
           categoryName: "Watches",
           price: 10,
+          stock: 5,
         }),
       ]);
     });
@@ -143,6 +147,23 @@ describe("SearchService", () => {
             "price >= 5",
             "price <= 100",
           ],
+        })
+      );
+    });
+
+    it("applies in-stock filter and sort", async () => {
+      client().getIndexes.mockResolvedValue({
+        results: [{ uid: "products", primaryKey: "id" }],
+      });
+      h.mockIndex.search.mockResolvedValue({ hits: [], estimatedTotalHits: 0 });
+
+      await service.search("watch", { sort: "price_asc", inStock: true });
+
+      expect(h.mockIndex.search).toHaveBeenCalledWith(
+        "watch",
+        expect.objectContaining({
+          filter: ["stock > 0"],
+          sort: ["price:asc"],
         })
       );
     });
