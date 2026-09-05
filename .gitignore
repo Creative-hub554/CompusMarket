@@ -25,3 +25,13 @@ apps/backend/test*.txt
 apps/backend/version.txt
 apps/backend/*-output.txt
 apps/frontend/*-output.txt
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Local agent/tooling scratch (not project source)
+.freebuff/
+temp/
+.agents/
+.opencode/
