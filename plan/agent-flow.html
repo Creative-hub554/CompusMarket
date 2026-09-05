@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Champey Assistant — flow</title>
+<style>
+  :root {
+    --coral: #ff6b5e;
+    --orange: #ff9a3d;
+    --ink: #17171f;
+    --muted: #9b9bac;
+    --line: #e7e8f0;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", system-ui, -apple-system, sans-serif; background: #f6f7fb; color: var(--ink); }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 28px 16px 40px; }
+  h1 { font-size: 20px; margin: 0 0 2px; }
+  .sub { color: #6b6d80; font-size: 13px; margin: 0 0 20px; }
+  .canvas { position: relative; height: 680px; }
+  .edge { fill: none; stroke: #c7c9d6; stroke-width: 2; }
+  .edge.dash { stroke-dasharray: 5 5; }
+  .edge.ret { stroke: var(--coral); }
+  .node {
+    position: absolute; background: #fff; border: 1px solid #e4e5ee;
+    border-radius: 12px; padding: 10px 12px; box-shadow: 0 8px 22px -14px rgba(23,23,31,.35);
+  }
+  .node .t { font-weight: 700; font-size: 13px; }
+  .node .s { font-size: 11px; color: #6b6d80; margin-top: 2px; line-height: 1.35; }
+  .node.coral { background: linear-gradient(135deg,#ff6b5e,#ff9a3d); border: none; color: #fff; }
+  .node.coral .s { color: rgba(255,255,255,.85); }
+  .node.ink { background: var(--ink); border: 1px solid rgba(255,107,94,.4); color: #fff; }
+  .node.ink .s { color: #b9bccd; }
+  .node.tool .t { color: var(--coral); }
+  .legend { display: flex; gap: 16px; margin-top: 14px; font-size: 12px; color: #6b6d80; flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Champey Assistant — data flow</h1>
+  <p class="sub">User message → OpenHands agent (auto-detected skill) → read-only Champey API → reply.</p>
+
+  <div class="canvas" id="canvas">
+    <svg width="100%" height="680" id="svg"></svg>
+  </div>
+
+  <div class="legend">
+    <span><i class="dot" style="background:var(--coral)"></i> request path</span>
+    <span><i class="dot" style="background:#c7c9d6"></i> reply path</span>
+    <span><i class="dot" style="background:#c7c9d6; border:1px dashed #aaa"></i> session</span>
+  </div>
+</div>
+
+<script>
+const NODES = [
+  { id:'user', x:300, y:16,  w:300, h:60, cls:'ink',
+    t:'👤 User — Champey chat widget',
+    s:'picks language (km / en) · types question · optional skill override' },
+  { id:'post', x:300, y:112, w:300, h:50, cls:'',
+    t:'POST /chat',
+    s:'{ message, language, session_id, skill? }' },
+  { id:'svc',  x:300, y:198, w:300, h:60, cls:'coral',
+    t:'champey_assistant.py',
+    s:'single-file FastAPI service · OpenHands SDK · logs to stdout' },
+  { id:'sess', x:40,  y:296, w:210, h:54, cls:'',
+    t:'Session store',
+    s:'one Conversation per session_id' },
+  { id:'agent',x:300, y:296, w:300, h:60, cls:'ink',
+    t:'OpenHands Agent (LLM)',
+    s:'system prompt: 4 skills · read-only · bilingual' },
+  { id:'skill',x:340, y:392, w:220, h:50, cls:'',
+    t:'Skill router',
+    s:'auto-detect (override wins)' },
+  { id:'t1', x:30,  y:478, w:195, h:64, cls:'tool',
+    t:'🔎 search_products',
+    s:'GET /api/search · /products · /categories' },
+  { id:'t2', x:258, y:478, w:195, h:64, cls:'tool',
+    t:'📰 browse_feed',
+    s:'GET /api/feed · /suggestions · /stories' },
+  { id:'t3', x:486, y:478, w:195, h:64, cls:'tool',
+    t:'💼 search_jobs',
+    s:'GET /api/jobs' },
+  { id:'t4', x:714, y:478, w:195, h:64, cls:'tool',
+    t:'📄 get_resume_templates',
+    s:'GET /api/resumes' },
+  { id:'api', x:300, y:588, w:300, h:56, cls:'ink',
+    t:'Champey NestJS API',
+    s:'http://localhost:4000/api (read-only)' },
+];
+
+const EDGES = [
+  { a:'user', b:'post' },
+  { a:'post', b:'svc' },
+  { a:'svc',  b:'agent' },
+  { a:'svc',  b:'sess', dash:true },
+  { a:'agent',b:'skill' },
+  { a:'skill',b:'t1' },
+  { a:'skill',b:'t2' },
+  { a:'skill',b:'t3' },
+  { a:'skill',b:'t4' },
+  { a:'t1', b:'api' },
+  { a:'t2', b:'api' },
+  { a:'t3', b:'api' },
+  { a:'t4', b:'api' },
+];
+
+const NS = 'http://www.w3.org/2000/svg';
+const svg = document.getElementById('svg');
+const canvas = document.getElementById('canvas');
+
+const defs = document.createElementNS(NS,'defs');
+defs.innerHTML = `<marker id="arr" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+  <path d="M0,0 L0,6 L9,3 z" fill="#c7c9d6"></path></marker>
+  <marker id="arrC" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+  <path d="M0,0 L0,6 L9,3 z" fill="#ff6b5e"></path></marker>`;
+svg.appendChild(defs);
+
+const byId = Object.fromEntries(NODES.map(n => [n.id, n]));
+function center(n){ return { x: n.x + n.w/2, y: n.y + n.h/2 }; }
+function port(n, side){ const c = center(n); if(side==='top') return {x:c.x,y:n.y}; if(side==='bottom') return {x:c.x,y:n.y+n.h}; if(side==='left') return {x:n.x,y:c.y}; return {x:n.x+n.w,y:c.y}; }
+
+// reply loop (api -> user, right side)
+const p1 = port(byId.api,'right');
+const p2 = port(byId.user,'right');
+const path = document.createElementNS(NS,'path');
+path.setAttribute('d', `M ${p1.x} ${p1.y} C ${p1.x+70} ${p1.y}, ${p2.x+70} ${p2.y}, ${p2.x} ${p2.y}`);
+path.setAttribute('class','edge ret');
+path.setAttribute('marker-end','url(#arrC)');
+svg.appendChild(path);
+const rl = document.createElementNS(NS,'text');
+rl.setAttribute('x', p1.x + 76); rl.setAttribute('y', 380); rl.setAttribute('fill','#ff6b5e');
+rl.setAttribute('font-size','11'); rl.textContent = 'reply + detected skill';
+svg.appendChild(rl);
+
+EDGES.forEach(e => {
+  const a = byId[e.a], b = byId[e.b];
+  const from = port(a, 'bottom');
+  const to = port(b, 'top');
+  const path = document.createElementNS(NS,'path');
+  if (a.id === 'svc' && b.id === 'sess') {
+    // left branch
+    const p1 = port(a,'left'); const p2 = port(b,'right');
+    path.setAttribute('d', `M ${p1.x} ${p1.y} C ${p1.x-40} ${p1.y}, ${p2.x+40} ${p2.y}, ${p2.x} ${p2.y}`);
+  } else if (a.id === 'skill') {
+    const mx = center(a).x, bx = center(b).x;
+    path.setAttribute('d', `M ${from.x} ${from.y} C ${from.x} ${from.y+20}, ${bx} ${to.y-20}, ${bx} ${to.y}`);
+  } else {
+    path.setAttribute('d', `M ${from.x} ${from.y} C ${from.x} ${from.y+16}, ${to.x} ${to.y-16}, ${to.x} ${to.y}`);
+  }
+  path.setAttribute('class','edge' + (e.dash ? ' dash' : ''));
+  path.setAttribute('marker-end','url(#arr)');
+  svg.appendChild(path);
+});
+
+// node divs
+NODES.forEach(n => {
+  const d = document.createElement('div');
+  d.className = 'node ' + (n.cls || '');
+  d.style.left = n.x + 'px'; d.style.top = n.y + 'px';
+  d.style.width = n.w + 'px'; d.style.height = n.h + 'px';
+  d.innerHTML = `<div class="t">${n.t}</div><div class="s">${n.s}</div>`;
+  canvas.appendChild(d);
+});
+</script>
+</body>
+</html>

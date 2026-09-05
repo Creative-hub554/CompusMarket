@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Noto_Sans_Khmer } from "next/font/google";
+import { Inter, Noto_Sans_Khmer, Space_Grotesk } from "next/font/google";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
@@ -9,7 +9,7 @@ import { Footer } from "@/components/Footer";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/toast";
 import SessionWrapper from "@/components/SessionWrapper";
-import { AiAssistant } from "@/components/ai/AiAssistant";
+import { AssistantWidget } from "@/components/AssistantWidget";
 import { ChatDockProvider } from "@/components/chat/ChatDock";
 import { SentryInit } from "@/components/SentryInit";
 import { OrganizationJsonLd } from "@/components/OrganizationJsonLd";
@@ -25,6 +25,12 @@ const inter = Inter({
 const notoSansKhmer = Noto_Sans_Khmer({
   subsets: ["khmer"],
   variable: "--font-khmer",
+  display: "swap",
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-display",
   display: "swap",
 });
 
@@ -88,7 +94,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className={`${inter.variable} ${notoSansKhmer.variable}`} suppressHydrationWarning>
+    <html lang={locale} className={`${inter.variable} ${notoSansKhmer.variable} ${spaceGrotesk.variable}`} suppressHydrationWarning>
       <body className="min-h-screen text-gray-900 dark:text-slate-200 antialiased">
         <OrganizationJsonLd />
         <ThemeProvider>
@@ -98,7 +104,7 @@ export default async function LocaleLayout({ children, params }: Props) {
                 <Nav />
                 <main className="min-h-[calc(100vh-4rem)]">{children}</main>
                 <Footer />
-                <AiAssistant />
+                <AssistantWidget />
                 <ChatDockProvider />
                 <SentryInit />
               </NextIntlClientProvider>
