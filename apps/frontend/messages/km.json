@@ -7,6 +7,7 @@
     "warranties": "ការធានា",
     "community": "សហគមន៍",
     "messages": "សារ",
+    "more": "បន្ថែម",
     "support": "ជំនួយ",
     "seller": "អ្នកលក់",
     "terms": "លក្ខខណ្ឌ",
@@ -149,6 +150,8 @@
   "market": {
     "title": "ផ្សារអនឡាញ",
     "subtitle": "ស្វែងរកហាងទំនិញពីអ្នកលក់ដែលបានអនុម័តរបស់យើង",
+    "seeAll": "មើលទាំងអស់",
+    "sponsored": "ឧបត្ថម្ភ",
     "sellersCount": "មានហាង {count}",
     "productsCount": "មានផលិតផល {count}",
     "visitShop": "ចូលមើលហាង",

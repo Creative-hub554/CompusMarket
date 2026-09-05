@@ -7,6 +7,7 @@
     "warranties": "Warranties",
     "community": "Community",
     "messages": "Messages",
+    "more": "More",
     "support": "Support",
     "seller": "Seller",
     "terms": "Terms",
@@ -149,6 +150,8 @@
   "market": {
     "title": "Marketplace",
     "subtitle": "Search and filter products across our marketplace",
+    "seeAll": "See all",
+    "sponsored": "Sponsored",
     "sellersCount": "{count} shops",
     "productsCount": "{count} products",
     "visitShop": "Visit shop",

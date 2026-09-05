@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
 import { useTranslations } from "next-intl";
@@ -11,6 +11,7 @@ import { StoriesBar } from "@/components/social/StoriesBar";
 import { FollowButton } from "@/components/social/FollowButton";
 import { Avatar } from "@/components/social/Avatar";
 import { OnlineContacts } from "@/components/chat/ChatDock";
+import { MarketplaceListing, MarketplaceListingProduct } from "@/components/market/MarketplaceListing";
 
 type Suggestion = {
   id: string;
@@ -21,6 +22,8 @@ type Suggestion = {
   _count: { followers: number };
 };
 
+const INTERSPERSE_EVERY = 3;
+
 export default function FeedPage() {
   const nav = useTranslations("nav");
   const pathname = usePathname();
@@ -30,6 +33,7 @@ export default function FeedPage() {
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [products, setProducts] = useState<MarketplaceListingProduct[]>([]);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   const loadPage = useCallback(async (cursorId?: string | null) => {
@@ -48,6 +52,10 @@ export default function FeedPage() {
     fetch("/api/suggestions")
       .then((r) => r.json())
       .then((data) => setSuggestions(Array.isArray(data) ? data : []))
+      .catch(() => {});
+    fetch("/api/search")
+      .then((r) => r.json())
+      .then((data) => setProducts(Array.isArray(data?.hits) ? data.hits.slice(0, 12) : []))
       .catch(() => {});
   }, [session?.user?.id, loadPage]);
 
@@ -157,16 +165,24 @@ export default function FeedPage() {
             </div>
           ) : (
             <>
-              {posts.map((post) => (
-                <PostCard
-                  key={post.id}
-                  post={post}
-                  onDeleted={(id) => setPosts((prev) => prev.filter((p) => p.id !== id))}
-                  onEdited={(updated) =>
-                    setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
-                  }
-                />
-              ))}
+              {posts.map((post, index) => {
+                const product =
+                  products.length > 0 && (index + 1) % INTERSPERSE_EVERY === 0
+                    ? products[Math.floor(index / INTERSPERSE_EVERY) % products.length]
+                    : null;
+                return (
+                  <Fragment key={post.id}>
+                    <PostCard
+                      post={post}
+                      onDeleted={(id) => setPosts((prev) => prev.filter((p) => p.id !== id))}
+                      onEdited={(updated) =>
+                        setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
+                      }
+                    />
+                    {product && <MarketplaceListing product={product} />}
+                  </Fragment>
+                );
+              })}
               <div ref={sentinelRef} />
               {!hasMore && posts.length > 0 && (
                 <p className="text-center text-gray-400 text-sm py-4">You&apos;re all caught up ✨</p>
