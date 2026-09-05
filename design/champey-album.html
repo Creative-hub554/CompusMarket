@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>champey — album</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+Khmer:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #f6f7fb;
+    --surface: #ffffff;
+    --surface-2: #eef0f6;
+    --ink: #17171f;
+    --muted: #8a8b9c;
+    --line: #e8e9f2;
+    --accent: #ff6b5e;
+    --accent-deep: #f0554a;
+    --grad: linear-gradient(135deg, #ff6b5e, #ff9a3d);
+    --font-display: "Space Grotesk", "Noto Sans Khmer", system-ui, sans-serif;
+    --font-body: "Inter", "Noto Sans Khmer", system-ui, sans-serif;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --r-lg: 24px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: var(--font-body); background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; }
+  button { font-family: inherit; }
+  a { color: inherit; text-decoration: none; }
+
+  .wrap { max-width: 780px; margin: 0 auto; padding: 0 18px 72px; }
+
+  .topbar {
+    position: sticky; top: 0; z-index: 30;
+    backdrop-filter: blur(14px) saturate(1.3);
+    -webkit-backdrop-filter: blur(14px) saturate(1.3);
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar-inner { height: 56px; display: flex; align-items: center; justify-content: space-between; }
+  .icon-btn {
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: transform .2s var(--ease), background .2s var(--ease);
+  }
+  .icon-btn:hover { background: var(--surface-2); }
+  .icon-btn:active { transform: scale(.92); }
+  .icon-btn svg { width: 20px; height: 20px; }
+  .topbar .title { font: 600 15px/1 var(--font-body); }
+
+  .photo-stage { margin-top: 22px; }
+  .photo {
+    position: relative;
+    height: min(64vh, 560px);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 30% 22%, rgba(255,255,255,.4), transparent 45%),
+      linear-gradient(135deg, #ff6b5e, #ff9a3d 55%, #ff8f6b);
+    box-shadow: 0 34px 70px -32px rgba(23,23,31,.5);
+    animation: photoIn .8s var(--ease) both;
+  }
+  .photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 55%, rgba(23,23,31,.35)); }
+  .photo .place { position: absolute; left: 22px; bottom: 18px; z-index: 2; color: #fff; font: 500 13.5px/1.4 var(--font-body); text-shadow: 0 1px 8px rgba(0,0,0,.4); }
+  .photo .time { position: absolute; right: 22px; bottom: 18px; z-index: 2; color: #fff; font: 500 12.5px/1.4 var(--font-body); text-shadow: 0 1px 8px rgba(0,0,0,.4); }
+
+  .header { padding-top: 24px; }
+  .header h1 { margin: 0; font: 700 clamp(30px, 5vw, 44px)/1.08 var(--font-display); letter-spacing: -0.02em; }
+  .header .meta { margin-top: 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font: 500 14px/1.4 var(--font-body); color: var(--muted); }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; font: 700 13px/1 var(--font-body); color: #fff; background: var(--grad); }
+  .header .meta b { font-weight: 600; color: var(--ink); }
+  .header .desc { margin: 16px 0 0; max-width: 46ch; font: 400 15.5px/1.65 var(--font-body); color: var(--muted); }
+
+  .actions { margin-top: 22px; display: flex; align-items: center; gap: 12px; }
+  .like-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 20px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+    cursor: pointer; font: 600 14px/1 var(--font-body);
+    transition: transform .2s var(--ease), border-color .2s var(--ease), background .2s var(--ease);
+  }
+  .like-btn:hover { background: var(--surface-2); }
+  .like-btn:active { transform: scale(.93); }
+  .like-btn.liked { color: #ff6b5e; border-color: rgba(255,107,94,.4); }
+  .like-btn svg { width: 17px; height: 17px; }
+  .like-btn.liked svg { fill: #ff6b5e; }
+  .action-btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; font: 600 14px/1 var(--font-body); transition: background .2s var(--ease); }
+  .action-btn:hover { background: var(--surface-2); color: var(--ink); }
+  .action-btn svg { width: 17px; height: 17px; }
+
+  .reveal { opacity: 0; transform: translateY(16px); transition: opacity .55s var(--ease), transform .55s var(--ease); }
+  .reveal.in { opacity: 1; transform: none; }
+
+  @keyframes photoIn { from { opacity: 0; transform: translateY(14px) scale(.985); } to { opacity: 1; transform: none; } }
+  @keyframes pop { 0% { transform: scale(1); } 45% { transform: scale(1.3); } 100% { transform: scale(1); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+    .reveal { opacity: 1; transform: none; }
+  }
+  @media (max-width: 640px) { .photo { height: 46vh; } }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <button class="icon-btn" aria-label="Back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <span class="title">Album</span>
+    <button class="icon-btn" aria-label="Menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="photo-stage">
+    <div class="photo">
+      <span class="place">📍 Kampot, Cambodia</span>
+      <span class="time">Mar 14, 2025</span>
+    </div>
+  </section>
+
+  <section class="header">
+    <h1 class="reveal">Weekend in Kampot</h1>
+    <div class="meta reveal">
+      <span class="avatar">S</span>
+      <span><b>Sophea</b> · @sophea.makes</span>
+      <span>·</span>
+      <span>March 2025</span>
+    </div>
+    <p class="desc reveal">Two days by the river — the market at dawn, salt fields, and the best crab in Kep.</p>
+    <div class="actions reveal">
+      <button class="like-btn" id="likeBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 21s-7-4.6-9.3-9A5.4 5.4 0 0 1 12 6.6 5.4 5.4 0 0 1 21.3 12C19 16.4 12 21 12 21Z"/></svg>
+        <span id="likeCount">340</span>
+      </button>
+      <button class="action-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>24</span>
+      </button>
+      <button class="action-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/></svg>
+        <span>Share</span>
+      </button>
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var els = document.querySelectorAll(".reveal");
+  if (reduceMotion || !("IntersectionObserver" in window)) {
+    els.forEach(function (el) { el.classList.add("in"); });
+  } else {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
+    }, { threshold: 0.1 });
+    els.forEach(function (el) { io.observe(el); });
+  }
+
+  var likeBtn = document.getElementById("likeBtn");
+  var likeCount = document.getElementById("likeCount");
+  var liked = false;
+  likeBtn.addEventListener("click", function () {
+    liked = !liked;
+    likeBtn.classList.toggle("liked", liked);
+    likeCount.textContent = 340 + (liked ? 1 : 0);
+    if (!reduceMotion) {
+      var svg = likeBtn.querySelector("svg");
+      svg.style.animation = "none"; void svg.offsetWidth;
+      svg.style.animation = "pop .4s var(--ease)";
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>champey — profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+Khmer:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #f6f7fb;
+    --surface: #ffffff;
+    --surface-2: #eef0f6;
+    --ink: #17171f;
+    --muted: #8a8b9c;
+    --line: #e8e9f2;
+    --accent: #ff6b5e;
+    --accent-deep: #f0554a;
+    --grad: linear-gradient(135deg, #ff6b5e, #ff9a3d);
+    --font-display: "Space Grotesk", "Noto Sans Khmer", system-ui, sans-serif;
+    --font-body: "Inter", "Noto Sans Khmer", system-ui, sans-serif;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --r-lg: 20px;
+    --r-sm: 14px;
+  }
+  html.dark {
+    --bg: #0f0f17;
+    --surface: #171721;
+    --surface-2: #1f1f2c;
+    --ink: #efeff6;
+    --muted: #9b9bac;
+    --line: #252532;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body);
+    background: var(--bg); color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    transition: background-color .4s var(--ease), color .4s var(--ease);
+  }
+  button { font-family: inherit; }
+
+  .page { max-width: 700px; margin: 0 auto; padding: 20px 16px 72px; }
+
+  .theme-toggle {
+    position: fixed; top: 16px; right: 16px; z-index: 50;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+    cursor: pointer; font: 600 13px/1 var(--font-body);
+    box-shadow: 0 8px 24px -12px rgba(23,23,31,.5);
+    transition: transform .2s var(--ease);
+  }
+  .theme-toggle:hover { transform: translateY(-1px); }
+  .theme-toggle .swatch { width: 10px; height: 10px; border-radius: 50%; background: var(--grad); }
+
+  .cover { position: relative; height: 220px; border-radius: var(--r-lg); overflow: hidden; background: linear-gradient(135deg, #1d1d2e, #3a2430 55%, #5f2a22 150%); transition: background .4s var(--ease); }
+  html:not(.dark) .cover { background: linear-gradient(135deg, #ff6b5e, #ff9a3d 55%, #ff8f6b 150%); }
+  .aurora { position: absolute; inset: 0; filter: blur(36px); opacity: .9; pointer-events: none; }
+  .aurora i { position: absolute; border-radius: 50%; }
+  .aurora i:nth-child(1) { width: 280px; height: 280px; left: -70px; top: -110px; background: radial-gradient(circle, rgba(255,107,94,.5), transparent 70%); animation: drift 12s ease-in-out infinite alternate; }
+  .aurora i:nth-child(2) { width: 320px; height: 320px; right: -80px; bottom: -150px; background: radial-gradient(circle, rgba(255,154,61,.5), transparent 70%); animation: drift 15s ease-in-out infinite alternate-reverse; }
+
+  .body { padding: 0 4px; }
+  .avatar-wrap { position: relative; width: 104px; height: 104px; margin: -52px 0 0 10px; }
+  .avatar-wrap::before {
+    content: ""; position: absolute; inset: -7px; border-radius: 50%;
+    background: conic-gradient(from var(--a, 0deg), #ff6b5e, #ff9a3d, #ff6b5e);
+    filter: blur(9px); opacity: .85;
+    animation: spinAngle 5s linear infinite;
+  }
+  .avatar {
+    position: relative; width: 100%; height: 100%; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+    border: 3px solid var(--surface);
+    box-shadow: 0 12px 28px -14px rgba(23,23,31,.6);
+    background: linear-gradient(var(--surface), var(--surface)) padding-box, var(--grad) border-box;
+    z-index: 1;
+  }
+  .avatar .initial { font: 700 36px/1 var(--font-display); background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .badge-check { position: absolute; right: -2px; bottom: -2px; width: 30px; height: 30px; border-radius: 50%; background: var(--grad); display: flex; align-items: center; justify-content: center; color: #fff; border: 3px solid var(--surface); z-index: 3; }
+  .badge-check svg { width: 15px; height: 15px; }
+
+  .name-row { margin-top: 14px; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+  .name { margin: 0; font: 700 clamp(28px, 6vw, 36px)/1.05 var(--font-display); letter-spacing: -0.02em; }
+  .username { margin: 5px 0 0; font: 500 14px/1.4 var(--font-body); color: var(--muted); }
+  .bio { margin: 14px 0 0; max-width: 50ch; font: 400 15px/1.65 var(--font-body); }
+  .bio-expand { display: inline; border: none; background: none; padding: 0; cursor: pointer; font: 600 14px/1 var(--font-body); color: var(--accent); }
+  .bio-more { max-height: 0; overflow: hidden; transition: max-height .4s var(--ease); }
+  .bio.expanded .bio-more { max-height: 160px; }
+
+  .meta { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px 16px; font: 500 13px/1.4 var(--font-body); color: var(--muted); }
+  .meta b { font-weight: 600; color: var(--ink); }
+
+  .stats { margin-top: 18px; display: flex; gap: 30px; }
+  .stat .num { font: 700 25px/1 var(--font-display); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+  .stat .label { margin-top: 4px; font: 500 12px/1 var(--font-body); color: var(--muted); }
+
+  .follow-btn {
+    position: relative; display: inline-flex; align-items: center; justify-content: center;
+    min-width: 100px; height: 40px; padding: 0 22px;
+    border: none; border-radius: 999px; cursor: pointer;
+    font: 700 14px/1 var(--font-body); color: #fff; background: var(--grad);
+    box-shadow: 0 10px 24px -10px rgba(255,107,94,.7);
+    transition: transform .2s var(--ease), box-shadow .25s var(--ease), background .25s var(--ease);
+    overflow: hidden; flex: none;
+  }
+  .follow-btn:active { transform: scale(.93); }
+  .follow-btn span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 6px; opacity: 0; transform: translateY(7px); transition: opacity .24s var(--ease), transform .24s var(--ease); }
+  .follow-btn span.show { opacity: 1; transform: translateY(0); }
+  .follow-btn.is-following { background: transparent; color: var(--ink); border: 1px solid var(--line); box-shadow: none; }
+  .follow-btn.is-following:hover { border-color: rgba(255,107,94,.5); color: var(--accent); }
+  .follow-btn.is-requested { background: transparent; color: var(--muted); border: 1px dashed var(--line); box-shadow: none; cursor: default; }
+  .follow-btn.small { min-width: 82px; height: 32px; padding: 0 16px; font-size: 13px; }
+
+  .tabs { position: relative; display: inline-flex; gap: 2px; margin-top: 22px; padding: 4px; border-radius: 999px; background: var(--surface-2); max-width: 100%; overflow-x: auto; }
+  .tab { position: relative; z-index: 1; padding: 9px 18px; border: none; background: none; cursor: pointer; border-radius: 999px; font: 600 13.5px/1 var(--font-body); color: var(--muted); white-space: nowrap; transition: color .25s var(--ease); }
+  .tab.active { color: var(--ink); }
+  .tab-indicator { position: absolute; top: 4px; bottom: 4px; left: 0; border-radius: 999px; background: var(--surface); box-shadow: 0 4px 14px -6px rgba(23,23,31,.3); transition: transform .35s var(--ease), width .35s var(--ease); }
+
+  .panels { position: relative; }
+  .tab-panel { display: none; padding-top: 16px; }
+  .tab-panel.active { display: block; animation: panelIn .4s var(--ease); }
+
+  .feed { display: grid; gap: 14px; }
+  .card { border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface); padding: 16px; transition: transform .3s var(--ease), box-shadow .3s var(--ease), border-color .3s var(--ease); }
+  .card:hover { transform: translateY(-3px); border-color: rgba(255,107,94,.4); box-shadow: 0 18px 40px -22px rgba(23,23,31,.5); }
+  .card-head { display: flex; align-items: center; gap: 10px; }
+  .mini-avatar { width: 38px; height: 38px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; font: 700 14px/1 var(--font-body); color: #fff; }
+  .mini-avatar.g1 { background: linear-gradient(135deg, #ff6b5e, #ff8f6b); }
+  .mini-avatar.g2 { background: linear-gradient(135deg, #ff9a3d, #ff6b5e); }
+  .mini-avatar.g3 { background: linear-gradient(135deg, #f2709c, #ff6b5e); }
+  .card-head .who { font: 600 14px/1.3 var(--font-body); }
+  .card-head .when { font: 400 12px/1.3 var(--font-body); color: var(--muted); }
+  .card p.body-text { margin: 12px 0 0; font: 400 14.5px/1.6 var(--font-body); }
+  .card .media { margin-top: 12px; height: 180px; border-radius: var(--r-sm); overflow: hidden; position: relative; }
+  .card .media .img { position: absolute; inset: 0; transition: transform .6s var(--ease); }
+  .card:hover .media .img { transform: scale(1.05); }
+  .media-1 { background: linear-gradient(135deg, #ff6b5e, #ff8f6b); }
+  .media-2 { background: linear-gradient(135deg, #ff9a3d, #ff6b5e); }
+  .media-3 { background: linear-gradient(135deg, #f2709c, #ff6b5e); }
+  .media-4 { background: linear-gradient(135deg, #e05545, #b03a30); }
+  .media .caption { position: absolute; left: 13px; bottom: 11px; font: 600 12.5px/1.4 var(--font-body); color: #fff; text-shadow: 0 1px 8px rgba(0,0,0,.4); }
+  .card-foot { margin-top: 14px; display: flex; gap: 18px; font: 600 13px/1 var(--font-body); color: var(--muted); }
+
+  .mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .product .media { height: 150px; }
+  .price { margin-top: 10px; font: 700 18px/1 var(--font-display); color: var(--accent); }
+  .product .pname { font: 600 14px/1.35 var(--font-body); margin-top: 4px; }
+  .pill { display: inline-block; margin-top: 10px; padding: 4px 11px; border-radius: 999px; font: 600 11.5px/1 var(--font-body); color: var(--accent); background: rgba(255,107,94,.14); }
+
+  .suggested { margin-top: 28px; }
+  .suggested h3 { margin: 0 0 8px; font: 700 17px/1.3 var(--font-display); }
+  .suggest-row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+  .suggest-row:last-child { border-bottom: none; }
+  .suggest-row .who { font: 600 14px/1.3 var(--font-body); }
+  .suggest-row .handle { font: 400 12.5px/1.3 var(--font-body); color: var(--muted); }
+  .suggest-row .grow { flex: 1; min-width: 0; }
+
+  .reveal { opacity: 0; transform: translateY(14px); transition: opacity .5s var(--ease), transform .5s var(--ease); }
+  .reveal.in { opacity: 1; transform: none; }
+
+  @property --a { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+  @keyframes spinAngle { to { --a: 360deg; } }
+  @keyframes drift { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(5%, -6%) scale(1.15); } }
+  @keyframes panelIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+    .reveal { opacity: 1; transform: none; }
+  }
+  @media (max-width: 480px) { .mini-grid { grid-template-columns: 1fr; } .stats { gap: 22px; } }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff6b5e"/>
+      <stop offset="1" stop-color="#ff9a3d"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+  <span class="swatch"></span>
+  <span id="themeLabel">Light</span>
+</button>
+
+<main class="page">
+  <article class="profile">
+    <header class="cover"><div class="aurora"><i></i><i></i></div></header>
+
+    <div class="body">
+      <div class="avatar-wrap reveal">
+        <div class="avatar"><span class="initial">S</span></div>
+        <span class="badge-check" title="Verified creator">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </span>
+      </div>
+
+      <div class="name-row reveal">
+        <div>
+          <h1 class="name">Sophea</h1>
+          <p class="username">@sophea.makes</p>
+        </div>
+        <button class="follow-btn" id="mainFollow" data-follow>
+          <span class="show">Follow</span>
+          <span>Following ✓</span>
+          <span>Unfollow</span>
+        </button>
+      </div>
+
+      <p class="bio reveal">
+        Weaving the river into cloth — hand-dyed silk &amp; krama, made slowly in Kampot.
+        <span class="bio-more">&nbsp;Every piece is dyed in small batches with plants, not synthetics. Drop by the studio when you're in town.</span>
+        <button class="bio-expand" data-bio>more</button>
+      </p>
+
+      <div class="meta reveal">
+        <span>📍 <b>Kampot</b>, Cambodia</span>
+        <span>Joined <b>2024</b></span>
+      </div>
+
+      <div class="stats reveal">
+        <div class="stat"><div class="num" data-count="212">0</div><div class="label">posts</div></div>
+        <div class="stat"><div class="num" data-count="8420">0</div><div class="label">followers</div></div>
+        <div class="stat"><div class="num" data-count="341">0</div><div class="label">following</div></div>
+      </div>
+
+      <nav class="tabs reveal" id="tabs">
+        <button class="tab active" data-tab="posts">Posts</button>
+        <button class="tab" data-tab="market">Market</button>
+        <button class="tab" data-tab="jobs">Jobs</button>
+        <button class="tab" data-tab="groups">Groups</button>
+        <span class="tab-indicator"></span>
+      </nav>
+
+      <div class="panels">
+        <section class="tab-panel active" data-tab="posts">
+          <div class="feed">
+            <article class="card reveal">
+              <div class="card-head">
+                <span class="mini-avatar g1">S</span>
+                <div><div class="who">Sophea</div><div class="when">2h · Kampot</div></div>
+              </div>
+              <p class="body-text">Morning light on the loom — indigo warp, two dips.</p>
+              <div class="media media-2"><div class="img"></div><span class="caption">indigo · small batch</span></div>
+              <div class="card-foot"><span>♥ 214</span><span>12 replies</span></div>
+            </article>
+            <article class="card reveal">
+              <div class="card-head">
+                <span class="mini-avatar g1">S</span>
+                <div><div class="who">Sophea</div><div class="when">1d</div></div>
+              </div>
+              <p class="body-text">Marigold silk off the frame — it shifts in the afternoon light.</p>
+              <div class="media media-1"><div class="img"></div><span class="caption">marigold · fresh</span></div>
+              <div class="card-foot"><span>♥ 186</span><span>9 replies</span></div>
+            </article>
+            <article class="card reveal">
+              <div class="card-head">
+                <span class="mini-avatar g1">S</span>
+                <div><div class="who">Sophea</div><div class="when">3d</div></div>
+              </div>
+              <p class="body-text">The first metre is never perfect. Keep it — it's the one that teaches you everything.</p>
+              <div class="card-foot"><span>♥ 402</span><span>31 replies</span></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-tab="market">
+          <div class="mini-grid">
+            <article class="card product reveal">
+              <div class="media media-2"><div class="img"></div></div>
+              <div class="price">$18</div>
+              <div class="pname">Indigo krama — hand-dyed</div>
+            </article>
+            <article class="card product reveal">
+              <div class="media media-1"><div class="img"></div></div>
+              <div class="price">$34</div>
+              <div class="pname">Silk scarf — marigold</div>
+            </article>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-tab="jobs">
+          <article class="card reveal">
+            <div class="card-head">
+              <span class="mini-avatar g2">S</span>
+              <div><div class="who">Apprentice weaver</div><div class="when">Kampot · Full-time</div></div>
+            </div>
+            <p class="body-text">One patient pair of hands to learn the loom, the dye bath, and the quiet maths of a warp.</p>
+            <span class="pill">Craft &amp; textiles</span>
+          </article>
+        </section>
+
+        <section class="tab-panel" data-tab="groups">
+          <article class="card reveal">
+            <div class="card-head">
+              <span class="mini-avatar g3">KC</span>
+              <div><div class="who">Khmer Textile Circle</div><div class="when">1,204 members</div></div>
+            </div>
+            <p class="body-text">A circle for weavers, dyers, and collectors across Cambodia — swap techniques and stories.</p>
+            <span class="pill">Community</span>
+          </article>
+        </section>
+      </div>
+
+      <section class="suggested reveal">
+        <h3>People you may know</h3>
+        <div class="suggest-row">
+          <span class="mini-avatar g2">D</span>
+          <div class="grow"><div class="who">Dara</div><div class="handle">@dara.crafts</div></div>
+          <button class="follow-btn small" data-follow><span class="show">Follow</span><span>Following ✓</span><span>Unfollow</span></button>
+        </div>
+        <div class="suggest-row">
+          <span class="mini-avatar g3">M</span>
+          <div class="grow"><div class="who">Malis</div><div class="handle">@malis.ceramics</div></div>
+          <button class="follow-btn small is-requested" disabled><span class="show">Requested</span></button>
+        </div>
+        <div class="suggest-row">
+          <span class="mini-avatar g1">R</span>
+          <div class="grow"><div class="who">Rithy</div><div class="handle">@rithy.wood</div></div>
+          <button class="follow-btn small" data-follow><span class="show">Follow</span><span>Following ✓</span><span>Unfollow</span></button>
+        </div>
+      </section>
+    </div>
+  </article>
+</main>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var toggle = document.getElementById("themeToggle");
+  var themeLabel = document.getElementById("themeLabel");
+  var saved = null;
+  try { saved = localStorage.getItem("champey-theme"); } catch (e) {}
+  if (saved) { root.classList.toggle("dark", saved === "dark"); } else { root.classList.add("dark"); }
+  function syncLabel() { themeLabel.textContent = root.classList.contains("dark") ? "Light" : "Dark"; }
+  syncLabel();
+  toggle.addEventListener("click", function () {
+    var dark = root.classList.toggle("dark");
+    try { localStorage.setItem("champey-theme", dark ? "dark" : "light"); } catch (e) {}
+    syncLabel();
+  });
+
+  function countUp(el) {
+    var target = parseInt(el.getAttribute("data-count"), 10) || 0;
+    if (reduceMotion) { el.textContent = target.toLocaleString("en-US"); return; }
+    var dur = 1100, start = null;
+    function frame(now) {
+      if (!start) start = now;
+      var p = Math.min((now - start) / dur, 1);
+      var eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(target * eased).toLocaleString("en-US");
+      if (p < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+  function runCounters() { document.querySelectorAll("[data-count]").forEach(countUp); }
+
+  var revealEls = document.querySelectorAll(".reveal");
+  if (reduceMotion || !("IntersectionObserver" in window)) {
+    revealEls.forEach(function (el) { el.classList.add("in"); });
+  } else {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
+    }, { threshold: 0.1 });
+    revealEls.forEach(function (el) { io.observe(el); });
+  }
+
+  var tabs = Array.prototype.slice.call(document.querySelectorAll(".tab"));
+  var indicator = document.querySelector(".tab-indicator");
+  var panels = document.querySelectorAll(".tab-panel");
+  function layoutIndicator() {
+    var active = document.querySelector(".tab.active") || tabs[0];
+    indicator.style.transform = "translateX(" + active.offsetLeft + "px)";
+    indicator.style.width = active.offsetWidth + "px";
+  }
+  function setTab(tab) {
+    tabs.forEach(function (t) { t.classList.toggle("active", t === tab); });
+    indicator.style.transform = "translateX(" + tab.offsetLeft + "px)";
+    indicator.style.width = tab.offsetWidth + "px";
+    panels.forEach(function (p) { p.classList.toggle("active", p.getAttribute("data-tab") === tab.getAttribute("data-tab")); });
+  }
+  tabs.forEach(function (tab) { tab.addEventListener("click", function () { setTab(tab); }); });
+
+  document.querySelectorAll("[data-follow]").forEach(function (btn) {
+    var spans = btn.querySelectorAll("span");
+    btn.addEventListener("click", function () {
+      var following = btn.classList.toggle("is-following");
+      btn.setAttribute("aria-pressed", following ? "true" : "false");
+      spans.forEach(function (s) { s.classList.remove("show"); });
+      (following ? spans[1] : spans[0]).classList.add("show");
+    });
+    btn.addEventListener("mouseenter", function () {
+      if (btn.classList.contains("is-following")) { spans[1].classList.remove("show"); spans[2].classList.add("show"); }
+    });
+    btn.addEventListener("mouseleave", function () {
+      if (btn.classList.contains("is-following")) { spans[2].classList.remove("show"); spans[1].classList.add("show"); }
+    });
+  });
+
+  var bioToggle = document.querySelector("[data-bio]");
+  var bio = document.querySelector(".bio");
+  bioToggle.addEventListener("click", function () {
+    var expanded = bio.classList.toggle("expanded");
+    bioToggle.textContent = expanded ? "less" : "more";
+  });
+
+  runCounters();
+  layoutIndicator();
+  window.addEventListener("load", function () { layoutIndicator(); runCounters(); });
+  setTimeout(function () { layoutIndicator(); runCounters(); }, 500);
+})();
+</script>
+</body>
+</html>

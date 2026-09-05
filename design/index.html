@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>champey — design mockups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0f0f17; --surface: #171721; --ink: #efeff6; --muted: #9b9bac; --line: #252532;
+    --coral: #ff6b5e; --gold: #e6b84a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Inter", sans-serif; }
+  .bar {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center; gap: 18px;
+    padding: 12px 20px;
+    background: rgba(15,15,23,.85); backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--line);
+  }
+  .bar .logo { font: 700 17px/1 "Space Grotesk", sans-serif; letter-spacing: -0.02em; }
+  .bar nav { display: flex; gap: 6px; margin-left: auto; }
+  .bar a {
+    color: var(--muted); text-decoration: none;
+    font: 600 13px/1 sans-serif; padding: 8px 14px; border-radius: 999px;
+  }
+  .bar a:hover { color: var(--ink); background: var(--surface); }
+  .stage { border-bottom: 1px solid var(--line); }
+  .stage-label {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 20px; font: 600 13px/1 sans-serif; color: var(--muted);
+  }
+  .stage-label .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .d-coral { background: var(--coral); }
+  .d-gold  { background: var(--gold); }
+  iframe { width: 100%; height: 100vh; border: 0; display: block; background: #fff; }
+</style>
+</head>
+<body>
+  <header class="bar">
+    <span class="logo">champey · mockups</span>
+    <nav>
+      <a href="#home">Home</a>
+      <a href="#feed">Feed</a>
+      <a href="#album">Album</a>
+      <a href="#profile">Profile</a>
+    </nav>
+  </header>
+
+  <section class="stage" id="home">
+    <div class="stage-label"><span class="dot d-coral"></span> Home — coral palette</div>
+    <iframe src="champey-home.html" title="Home mockup"></iframe>
+  </section>
+
+  <section class="stage" id="feed">
+    <div class="stage-label"><span class="dot d-coral"></span> Feed — coral (dark)</div>
+    <iframe src="champey-feed.html" title="Feed mockup"></iframe>
+  </section>
+
+  <section class="stage" id="album">
+    <div class="stage-label"><span class="dot d-coral"></span> Album — single photo (coral)</div>
+    <iframe src="champey-album.html" title="Album mockup"></iframe>
+  </section>
+
+  <section class="stage" id="profile">
+    <div class="stage-label"><span class="dot d-coral"></span> Profile — coral (dark)</div>
+    <iframe src="champey-profile.html" title="Profile mockup"></iframe>
+  </section>
+</body>
+</html>

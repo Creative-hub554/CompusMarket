@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>champey — feed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+Khmer:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #f6f7fb;
+    --surface: #ffffff;
+    --surface-2: #eef0f6;
+    --ink: #17171f;
+    --muted: #8a8b9c;
+    --line: #e8e9f2;
+    --accent: #ff6b5e;
+    --accent-deep: #f0554a;
+    --grad: linear-gradient(135deg, #ff6b5e, #ff9a3d);
+    --font-display: "Space Grotesk", "Noto Sans Khmer", system-ui, sans-serif;
+    --font-body: "Inter", "Noto Sans Khmer", system-ui, sans-serif;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  html.dark {
+    --bg: #0f0f17;
+    --surface: #171721;
+    --surface-2: #1f1f2c;
+    --ink: #efeff6;
+    --muted: #9b9bac;
+    --line: #252532;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body);
+    background: var(--bg); color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    transition: background-color .4s var(--ease), color .4s var(--ease);
+  }
+  button { font-family: inherit; }
+
+  .page { max-width: 620px; margin: 0 auto; padding: 0 14px 80px; }
+
+  .topbar {
+    position: sticky; top: 0; z-index: 30;
+    backdrop-filter: blur(14px) saturate(1.3);
+    -webkit-backdrop-filter: blur(14px) saturate(1.3);
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar-inner { height: 56px; display: flex; align-items: center; gap: 14px; }
+  .brand { display: flex; align-items: center; gap: 8px; font: 700 18px/1 var(--font-display); letter-spacing: -0.02em; }
+  .brand .flower { width: 22px; height: 22px; }
+  .tabs { display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--surface-2); margin: 0 auto; }
+  .tab { padding: 7px 16px; border: none; background: none; border-radius: 999px; cursor: pointer; font: 600 13px/1 var(--font-body); color: var(--muted); transition: color .2s var(--ease), background .2s var(--ease); }
+  .tab.active { color: var(--ink); background: var(--surface); box-shadow: 0 3px 10px -4px rgba(23,23,31,.4); }
+  .icon-btn {
+    width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line);
+    background: var(--surface); color: var(--ink); cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: transform .2s var(--ease), background .2s var(--ease);
+  }
+  .icon-btn:hover { background: var(--surface-2); }
+  .icon-btn svg { width: 18px; height: 18px; }
+
+  .stories { display: flex; gap: 18px; overflow-x: auto; padding: 18px 2px 8px; scrollbar-width: none; }
+  .stories::-webkit-scrollbar { display: none; }
+  .story { display: flex; flex-direction: column; align-items: center; gap: 7px; flex: none; }
+  .story .ring { position: relative; width: 62px; height: 62px; border-radius: 50%; padding: 3px; background: var(--grad); transition: transform .2s var(--ease); }
+  .story:hover .ring { transform: scale(1.05); }
+  .story .ring .core { width: 100%; height: 100%; border-radius: 50%; border: 2.5px solid var(--bg); display: flex; align-items: center; justify-content: center; font: 700 18px/1 var(--font-body); color: #fff; }
+  .story.me .ring { background: var(--line); }
+  .story.me .ring .plus { position: absolute; right: -2px; bottom: -2px; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font: 700 14px/1 var(--font-body); }
+  .story .name { font: 500 12px/1.3 var(--font-body); color: var(--muted); }
+  .g1 { background: linear-gradient(135deg, #ff6b5e, #ff8f6b); }
+  .g2 { background: linear-gradient(135deg, #ff9a3d, #ff6b5e); }
+  .g3 { background: linear-gradient(135deg, #f2709c, #ff6b5e); }
+  .g4 { background: linear-gradient(135deg, #ff8f6b, #ffb03a); }
+
+  .composer {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px; border-radius: 18px;
+    background: var(--surface); border: 1px solid var(--line);
+    margin: 10px 0 18px;
+  }
+  .composer .avatar { width: 42px; height: 42px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; font: 700 16px/1 var(--font-body); color: #fff; background: var(--grad); }
+  .composer input { flex: 1; border: none; outline: none; background: transparent; font: 400 14.5px/1.5 var(--font-body); color: var(--ink); }
+  .composer input::placeholder { color: var(--muted); }
+  .composer .post-btn { padding: 9px 18px; border-radius: 999px; border: none; cursor: pointer; background: var(--grad); color: #fff; font: 700 13.5px/1 var(--font-body); box-shadow: 0 8px 18px -8px rgba(255,107,94,.7); transition: transform .2s var(--ease); }
+  .composer .post-btn:active { transform: scale(.94); }
+
+  .feed { display: grid; gap: 14px; }
+  .post { border: 1px solid var(--line); border-radius: 18px; background: var(--surface); padding: 16px; transition: transform .3s var(--ease), box-shadow .3s var(--ease), border-color .3s var(--ease); }
+  .post:hover { transform: translateY(-3px); border-color: rgba(255,107,94,.4); box-shadow: 0 18px 40px -22px rgba(23,23,31,.5); }
+  .post-head { display: flex; align-items: center; gap: 10px; }
+  .post-head .avatar { width: 40px; height: 40px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; font: 700 15px/1 var(--font-body); color: #fff; }
+  .post-head .who { font: 600 14px/1.3 var(--font-body); }
+  .post-head .when { font: 400 12px/1.3 var(--font-body); color: var(--muted); }
+  .post-head .more { margin-left: auto; color: var(--muted); cursor: pointer; font-size: 16px; line-height: 1; }
+  .post .body-text { margin: 12px 0 0; font: 400 14.5px/1.6 var(--font-body); }
+  .post .media { margin-top: 12px; height: 200px; border-radius: 14px; overflow: hidden; position: relative; }
+  .post .media .img { position: absolute; inset: 0; transition: transform .6s var(--ease); }
+  .post:hover .media .img { transform: scale(1.05); }
+  .post .media .tag { position: absolute; left: 12px; bottom: 10px; color: #fff; font: 600 12px/1.4 var(--font-body); text-shadow: 0 1px 8px rgba(0,0,0,.4); }
+  .media-1 { background: linear-gradient(135deg, #ff6b5e, #ff8f6b); }
+  .media-2 { background: linear-gradient(135deg, #ff9a3d, #ff6b5e); }
+  .media-3 { background: linear-gradient(135deg, #f2709c, #ff6b5e); }
+  .media-4 { background: linear-gradient(135deg, #e05545, #b03a30); }
+  .post-actions { margin-top: 14px; display: flex; gap: 20px; }
+  .act { display: inline-flex; align-items: center; gap: 6px; border: none; background: none; cursor: pointer; font: 600 13px/1 var(--font-body); color: var(--muted); transition: color .2s var(--ease); }
+  .act:hover { color: var(--ink); }
+  .act svg { width: 18px; height: 18px; }
+  .act.liked { color: #ff6b5e; }
+  .act.liked svg { fill: #ff6b5e; }
+
+  .reveal { opacity: 0; transform: translateY(14px); transition: opacity .5s var(--ease), transform .5s var(--ease); }
+  .reveal.in { opacity: 1; transform: none; }
+
+  @keyframes pop { 0% { transform: scale(1); } 45% { transform: scale(1.3); } 100% { transform: scale(1); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+    .reveal { opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff6b5e"/>
+      <stop offset="1" stop-color="#ff9a3d"/>
+    </linearGradient>
+    <path id="petal" d="M0,-4 C-15,-15 -24,-40 -13,-58 C-6,-70 6,-70 13,-58 C24,-40 15,-15 0,-4 Z"/>
+  </defs>
+</svg>
+
+<header class="topbar">
+  <div class="page topbar-inner">
+    <div class="brand">
+      <svg class="flower" viewBox="0 0 200 200" aria-hidden="true">
+        <g transform="translate(100,100)">
+          <g fill="url(#brandGrad)">
+            <use href="#petal"/><use href="#petal" transform="rotate(72)"/><use href="#petal" transform="rotate(144)"/><use href="#petal" transform="rotate(216)"/><use href="#petal" transform="rotate(288)"/>
+          </g>
+          <circle r="11" fill="url(#brandGrad)"/>
+        </g>
+      </svg>
+      <span>champey</span>
+    </div>
+    <div class="tabs">
+      <button class="tab active">For you</button>
+      <button class="tab">Following</button>
+    </div>
+    <div style="display:flex; gap:8px">
+      <button class="icon-btn" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+      <button class="icon-btn" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main class="page">
+  <div class="stories reveal">
+    <div class="story me">
+      <div class="ring"><div class="core g1">S</div><span class="plus">+</span></div>
+      <span class="name">Your story</span>
+    </div>
+    <div class="story"><div class="ring"><div class="core g2">D</div></div><span class="name">Dara</span></div>
+    <div class="story"><div class="ring"><div class="core g3">M</div></div><span class="name">Malis</span></div>
+    <div class="story"><div class="ring"><div class="core g4">R</div></div><span class="name">Rithy</span></div>
+    <div class="story"><div class="ring"><div class="core g1">V</div></div><span class="name">Vichara</span></div>
+    <div class="story"><div class="ring"><div class="core g2">C</div></div><span class="name">Chann</span></div>
+    <div class="story"><div class="ring"><div class="core g3">K</div></div><span class="name">Kimly</span></div>
+  </div>
+
+  <div class="composer reveal">
+    <div class="avatar">S</div>
+    <input type="text" placeholder="What's new, Sophea?" />
+    <button class="post-btn">Post</button>
+  </div>
+
+  <div class="feed">
+    <article class="post reveal">
+      <div class="post-head">
+        <span class="avatar g2">D</span>
+        <div><div class="who">Dara</div><div class="when">@dara.crafts · 2h</div></div>
+        <span class="more">⋯</span>
+      </div>
+      <p class="body-text">Selling my MacBook Air M2 — barely used, battery at 96%. $820 or best offer. Chat me.</p>
+      <div class="media media-4"><div class="img"></div><span class="tag">MacBook Air M2 · $820</span></div>
+      <div class="post-actions">
+        <button class="act like" data-like="86"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 21s-7-4.6-9.3-9A5.4 5.4 0 0 1 12 6.6 5.4 5.4 0 0 1 21.3 12C19 16.4 12 21 12 21Z"/></svg><span>86</span></button>
+        <button class="act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>14</span></button>
+        <button class="act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/></svg></button>
+      </div>
+    </article>
+
+    <article class="post reveal">
+      <div class="post-head">
+        <span class="avatar g3">M</span>
+        <div><div class="who">Malis</div><div class="when">@malis.ceramics · 5h</div></div>
+        <span class="more">⋯</span>
+      </div>
+      <p class="body-text">New ceramics drop this weekend at the riverside night market 🏺 come say hi.</p>
+      <div class="media media-1"><div class="img"></div><span class="tag">night market · Sat 6pm</span></div>
+      <div class="post-actions">
+        <button class="act like" data-like="142"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 21s-7-4.6-9.3-9A5.4 5.4 0 0 1 12 6.6 5.4 5.4 0 0 1 21.3 12C19 16.4 12 21 12 21Z"/></svg><span>142</span></button>
+        <button class="act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>9</span></button>
+        <button class="act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/></svg></button>
+      </div>
+    </article>
+
+    <article class="post reveal">
+      <div class="post-head">
+        <span class="avatar g4">R</span>
+        <div><div class="who">Rithy</div><div class="when">@rithy.wood · 1d</div></div>
+        <span class="more">⋯</span>
+      </div>
+      <p class="body-text">Looking for a studio helper in Phnom Penh — part time, no experience needed, just good energy. DM me or check the jobs tab.</p>
+      <div class="post-actions">
+        <button class="act like" data-like="53"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 21s-7-4.6-9.3-9A5.4 5.4 0 0 1 12 6.6 5.4 5.4 0 0 1 21.3 12C19 16.4 12 21 12 21Z"/></svg><span>53</span></button>
+        <button class="act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>11</span></button>
+        <button class="act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/></svg></button>
+      </div>
+    </article>
+
+    <article class="post reveal">
+      <div class="post-head">
+        <span class="avatar g1">S</span>
+        <div><div class="who">Sophea</div><div class="when">@sophea.makes · 1d</div></div>
+        <span class="more">⋯</span>
+      </div>
+      <p class="body-text">Marigold silk off the frame — it shifts in the afternoon light. Two pieces left.</p>
+      <div class="media media-2"><div class="img"></div><span class="tag">marigold silk · 2 left</span></div>
+      <div class="post-actions">
+        <button class="act like" data-like="186"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 21s-7-4.6-9.3-9A5.4 5.4 0 0 1 12 6.6 5.4 5.4 0 0 1 21.3 12C19 16.4 12 21 12 21Z"/></svg><span>186</span></button>
+        <button class="act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>22</span></button>
+        <button class="act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/></svg></button>
+      </div>
+    </article>
+  </div>
+</main>
+
+<script>
+(function () {
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var els = document.querySelectorAll(".reveal");
+  if (reduceMotion || !("IntersectionObserver" in window)) {
+    els.forEach(function (el) { el.classList.add("in"); });
+  } else {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
+    }, { threshold: 0.1 });
+    els.forEach(function (el) { io.observe(el); });
+  }
+
+  var tabs = Array.prototype.slice.call(document.querySelectorAll(".tab"));
+  tabs.forEach(function (tab) {
+    tab.addEventListener("click", function () {
+      tabs.forEach(function (t) { t.classList.toggle("active", t === tab); });
+    });
+  });
+
+  document.querySelectorAll(".act.like").forEach(function (btn) {
+    var label = btn.querySelector("span");
+    var count = parseInt(btn.getAttribute("data-like"), 10);
+    var liked = false;
+    btn.addEventListener("click", function () {
+      liked = !liked;
+      btn.classList.toggle("liked", liked);
+      label.textContent = count + (liked ? 1 : 0);
+      if (!reduceMotion) {
+        var svg = btn.querySelector("svg");
+        svg.style.animation = "none"; void svg.offsetWidth;
+        svg.style.animation = "pop .4s var(--ease)";
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>
