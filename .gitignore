@@ -15,6 +15,7 @@ apps/*/node_modules/
 *.tsbuildinfo
 .aider*
 .worktrees/
+.freebuff/
 
 # deepwork state (git-local)
 .slim/deepwork/
