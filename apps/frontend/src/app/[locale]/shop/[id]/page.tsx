@@ -124,7 +124,10 @@ export default async function ProductDetailPage({ params }: Props) {
       {/* Gallery + buying box */}
       <div className="grid md:grid-cols-2 gap-8 mb-10">
         <div className="space-y-4">
-          <div className="aspect-square rounded-2xl bg-[var(--surface-2)] flex items-center justify-center overflow-hidden shadow-sm ring-1 ring-[var(--border-subtle)]">
+          <div
+            className="product-morph aspect-square rounded-2xl bg-[var(--surface-2)] flex items-center justify-center overflow-hidden shadow-sm ring-1 ring-[var(--border-subtle)]"
+            style={{ viewTransitionName: `product-${product.id}` }}
+          >
             {product.images?.[0] ? (
               <Image
                 src={product.images[0]}

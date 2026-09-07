@@ -552,3 +552,112 @@ img {
     animation: none;
   }
 }
+
+/* =====================================================================
+   View Transitions (native document.startViewTransition)
+   Chromium 125+ gets typed/directional + shared-element morphs; older
+   browsers degrade to a plain cross-fade or no animation. Reduced motion
+   is respected at the bottom.
+   ===================================================================== */
+:root {
+  --duration-exit: 150ms;
+  --duration-enter: 210ms;
+  --duration-move: 400ms;
+}
+
+@keyframes vt-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes vt-slide {
+  from {
+    translate: var(--vt-offset, 40px);
+  }
+  to {
+    translate: 0;
+  }
+}
+@keyframes vt-blur {
+  30% {
+    filter: blur(3px);
+  }
+}
+
+/* Untyped navigations (browser back, plain links): quiet cross-fade. */
+::view-transition-old(root) {
+  animation: var(--duration-exit) ease-in both vt-fade reverse;
+}
+::view-transition-new(root) {
+  animation: var(--duration-enter) ease-out var(--duration-exit) both vt-fade;
+}
+
+/* Directional navigation — slides only when the navigation carries a type. */
+:active-view-transition-type(nav-forward)::view-transition-old(root) {
+  --vt-offset: -40px;
+  animation:
+    var(--duration-exit) ease-in both vt-fade reverse,
+    var(--duration-move) ease-in-out both vt-slide reverse;
+}
+:active-view-transition-type(nav-forward)::view-transition-new(root) {
+  --vt-offset: 40px;
+  animation:
+    var(--duration-enter) ease-out var(--duration-exit) both vt-fade,
+    var(--duration-move) ease-in-out both vt-slide;
+}
+:active-view-transition-type(nav-back)::view-transition-old(root) {
+  --vt-offset: 40px;
+  animation:
+    var(--duration-exit) ease-in both vt-fade reverse,
+    var(--duration-move) ease-in-out both vt-slide reverse;
+}
+:active-view-transition-type(nav-back)::view-transition-new(root) {
+  --vt-offset: -40px;
+  animation:
+    var(--duration-enter) ease-out var(--duration-exit) both vt-fade,
+    var(--duration-move) ease-in-out both vt-slide;
+}
+
+/* Shared element morph (product thumbnail <-> detail hero). The element sets
+   `view-transition-class: product-morph` via this class so the pseudo-selectors
+   below can target it (view-transition-class can't be set through React's style
+   object). */
+.product-morph {
+  view-transition-class: product-morph;
+}
+::view-transition-group(.product-morph) {
+  animation-duration: var(--duration-move);
+}
+::view-transition-image-pair(.product-morph) {
+  animation-name: vt-blur;
+}
+
+/* Persistent top chrome stays put while the page slides. The backdrop-blur
+   workaround hides the old snapshot so the glass nav doesn't flash. */
+::view-transition-group(site-header) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(site-header) {
+  display: none;
+}
+::view-transition-new(site-header) {
+  animation: none;
+}
+
+/* Let clicks pass through while snapshots are mid-flight. */
+::view-transition {
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
