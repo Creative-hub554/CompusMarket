@@ -23,6 +23,10 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: "http", hostname: "localhost" },
       { protocol: minioProtocol as "http" | "https", hostname: minioHost.split(":")[0] },
+      // Clerk-hosted avatars: the proxy serves dev and prod images alike.
+      { protocol: "https", hostname: "img.clerk.com" },
+      { protocol: "https", hostname: "images.clerk.com" },
+      { protocol: "https", hostname: "images.clerk.dev" },
       ...(process.env.IMAGE_HOSTS || "")
         .split(",")
         .map((host) => host.trim())
