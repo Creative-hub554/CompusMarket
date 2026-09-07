@@ -5,7 +5,7 @@ import {
   ConflictException,
 } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import type { Product, Category, Review } from "@theo/database";
+import type { Product, Category, Review, ProductCondition } from "@theo/database";
 import { CreateProductDto } from "./dto/create-product.dto";
 import { UpdateProductDto } from "./dto/update-product.dto";
 import { CreateReviewDto } from "./dto/create-review.dto";
@@ -58,13 +58,27 @@ export class ProductsService {
     q?: string;
     page?: number;
     limit?: number;
+    condition?: string;
+    minPrice?: number;
+    maxPrice?: number;
   }): Promise<{ items: ProductWithCategory[]; total: number; page: number; limit: number }> {
     const limit = Number.isFinite(opts.limit) ? Math.min(Math.max(opts.limit as number, 1), 48) : 12;
     const page = Number.isFinite(opts.page) ? Math.max(opts.page as number, 1) : 1;
     const q = typeof opts.q === "string" ? opts.q.trim() : undefined;
+    const minPrice = Number.isFinite(opts.minPrice) ? (opts.minPrice as number) : undefined;
+    const maxPrice = Number.isFinite(opts.maxPrice) ? (opts.maxPrice as number) : undefined;
     const where = {
       status: "ACTIVE" as const,
       ...(opts.category ? { category: { slug: opts.category } } : {}),
+      ...(opts.condition ? { condition: opts.condition as ProductCondition } : {}),
+      ...(minPrice !== undefined || maxPrice !== undefined
+        ? {
+            price: {
+              ...(minPrice !== undefined ? { gte: minPrice } : {}),
+              ...(maxPrice !== undefined ? { lte: maxPrice } : {}),
+            },
+          }
+        : {}),
       ...(q
         ? {
             OR: [
@@ -87,6 +101,63 @@ export class ProductsService {
     ]);
 
     return { items, total, page, limit };
+  }
+
+  /**
+   * Active shops (sellers with at least one live product), newest first —
+   * used by the Home hub's shop directory.
+   */
+  async findShops() {
+    const shops = await this.prisma.sellerProfile.findMany({
+      where: { products: { some: { status: "ACTIVE" } } },
+      include: {
+        user: { select: { id: true, name: true, image: true } },
+        _count: { select: { products: { where: { status: "ACTIVE" } } } },
+      },
+      orderBy: { createdAt: "asc" },
+      take: 24,
+    });
+    return shops.map((shop) => ({
+      id: shop.id,
+      userId: shop.userId,
+      name: shop.user.name || "Shop",
+      image: shop.user.image,
+      accountType: shop.accountType,
+      productCount: shop._count.products,
+    }));
+  }
+
+  /**
+   * Public storefront for one shop: seller profile + their live products.
+   */
+  async findSellerStorefront(sellerId: string) {
+    const seller = await this.prisma.sellerProfile.findUnique({
+      where: { id: sellerId },
+      include: {
+        user: { select: { id: true, name: true, image: true, bio: true, username: true } },
+        _count: { select: { products: { where: { status: "ACTIVE" } } } },
+      },
+    });
+    if (!seller) throw new NotFoundException("Shop not found");
+    const products = await this.prisma.product.findMany({
+      where: { sellerId, status: "ACTIVE" },
+      include: { category: true },
+      orderBy: { createdAt: "desc" },
+      take: 48,
+    });
+    return {
+      shop: {
+        id: seller.id,
+        userId: seller.userId,
+        name: seller.user.name || "Shop",
+        image: seller.user.image,
+        bio: seller.user.bio,
+        username: seller.user.username,
+        accountType: seller.accountType,
+        productCount: seller._count.products,
+      },
+      products,
+    };
   }
 
   async findAllAdmin(): Promise<ProductWithCategory[]> {

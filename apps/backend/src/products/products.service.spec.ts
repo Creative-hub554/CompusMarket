@@ -25,6 +25,10 @@ describe("ProductsService", () => {
       create: vi.fn(),
       aggregate: vi.fn(),
     },
+    sellerProfile: {
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+    },
   };
 
   beforeEach(async () => {
@@ -120,6 +124,99 @@ describe("ProductsService", () => {
       expect(mockPrisma.product.findMany).toHaveBeenCalledWith(
         expect.objectContaining({ skip: 0, take: 48 }),
       );
+    });
+
+    it("applies condition and price range filters when requested", async () => {
+      mockPrisma.product.findMany.mockResolvedValue([]);
+      mockPrisma.product.count.mockResolvedValue(0);
+      mockPrisma.$transaction.mockResolvedValue([[], 0]);
+
+      await service.browse({
+        category: "phones",
+        condition: "B",
+        minPrice: 10,
+        maxPrice: 90,
+        limit: 12,
+      });
+
+      expect(mockPrisma.product.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            status: "ACTIVE",
+            category: { slug: "phones" },
+            condition: "B",
+            price: { gte: 10, lte: 90 },
+          },
+        }),
+      );
+    });
+  });
+
+  describe("findShops", () => {
+    it("lists active shops with live product counts", async () => {
+      mockPrisma.sellerProfile.findMany.mockResolvedValue([
+        {
+          id: "sp1",
+          userId: "u1",
+          accountType: "BUSINESS",
+          user: { id: "u1", name: "Reaksmey", image: "a.jpg" },
+          _count: { products: 5 },
+        },
+      ]);
+
+      const result = await service.findShops();
+
+      expect(mockPrisma.sellerProfile.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { products: { some: { status: "ACTIVE" } } },
+        }),
+      );
+      expect(result).toEqual([
+        {
+          id: "sp1",
+          userId: "u1",
+          name: "Reaksmey",
+          image: "a.jpg",
+          accountType: "BUSINESS",
+          productCount: 5,
+        },
+      ]);
+    });
+  });
+
+  describe("findSellerStorefront", () => {
+    const shop = {
+      id: "sp1",
+      userId: "u1",
+      accountType: "PERSONAL",
+      user: { id: "u1", name: "Dara", image: null, bio: null, username: null },
+      _count: { products: 2 },
+    };
+
+    it("returns the shop profile and its live products", async () => {
+      mockPrisma.sellerProfile.findUnique.mockResolvedValue(shop);
+      mockPrisma.product.findMany.mockResolvedValue([{ id: "p1" }, { id: "p2" }]);
+
+      const result = await service.findSellerStorefront("sp1");
+
+      expect(mockPrisma.sellerProfile.findUnique).toHaveBeenCalledWith({
+        where: { id: "sp1" },
+        include: expect.anything(),
+      });
+      expect(mockPrisma.product.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { sellerId: "sp1", status: "ACTIVE" },
+        }),
+      );
+      expect(result.shop.name).toBe("Dara");
+      expect(result.products).toHaveLength(2);
+    });
+
+    it("throws a 404 when the shop does not exist", async () => {
+      mockPrisma.sellerProfile.findUnique.mockResolvedValue(null);
+
+      await expect(service.findSellerStorefront("missing")).rejects.toThrow("Shop not found");
+      expect(mockPrisma.product.findMany).not.toHaveBeenCalled();
     });
   });
 
