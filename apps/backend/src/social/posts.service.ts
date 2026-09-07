@@ -349,8 +349,8 @@ export class PostsService {
         },
         select: { id: true, postId: true, dailyBudget: true, startAt: true },
       });
-      const campaignByPost = new Map<string, { id: string; dailyBudget: any; startAt: Date | null }>();
-      for (const c of campaigns) campaignByPost.set(c.postId!, { id: c.id, dailyBudget: c.dailyBudget, startAt: (c as any).startAt ?? null });
+      const campaignByPost = new Map<string, { id: string; dailyBudget: Prisma.Decimal; startAt: Date | null }>();
+      for (const c of campaigns) campaignByPost.set(c.postId!, { id: c.id, dailyBudget: c.dailyBudget, startAt: c.startAt });
 
       const boosted: ListPost[] = [];
       const regular: ListPost[] = [];
@@ -365,7 +365,9 @@ export class PostsService {
         const aBudget = Number(ca.dailyBudget ?? 0);
         const bBudget = Number(cb.dailyBudget ?? 0);
         if (bBudget !== aBudget) return bBudget - aBudget;
-        return (campaignByPost.get(b.id)!.startAt as any) - (campaignByPost.get(a.id)!.startAt as any);
+        const bStart = campaignByPost.get(b.id)!.startAt?.getTime() ?? 0;
+        const aStart = campaignByPost.get(a.id)!.startAt?.getTime() ?? 0;
+        return bStart - aStart;
       });
 
       // new page order: boosted first

@@ -1,11 +1,12 @@
 import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import Stripe from "stripe";
+import { CampaignObjective } from "@theo/database";
 import { PrismaService } from "../prisma/prisma.service";
 import { StripeService } from "./stripe.service";
 
-interface CreateCampaignDto {
+export interface CreateCampaignDto {
   postId?: string;
-  objective?: string;
+  objective?: CampaignObjective;
   dailyBudget: string | number;
   lifetimeBudget?: string | number;
   currency?: string;
@@ -13,7 +14,7 @@ interface CreateCampaignDto {
   endAt?: Date;
 }
 
-interface CreateBannerDto {
+export interface CreateBannerDto {
   slot: "LEFT" | "RIGHT" | "BOTTOM";
   startAt?: Date;
   durationMinutes: number;
@@ -34,15 +35,7 @@ export class AdsService {
   constructor(private prisma: PrismaService, private stripe: StripeService) {}
 
   /** Create a daily-budget campaign. Charges are performed via Stripe when configured, otherwise simulated. */
-  async createCampaign(userId: string, dto: {
-    postId?: string;
-    objective?: string;
-    dailyBudget: string | number;
-    lifetimeBudget?: string | number;
-    currency?: string;
-    startAt?: Date;
-    endAt?: Date;
-  }) {
+  async createCampaign(userId: string, dto: CreateCampaignDto) {
     const dailyNumber = Number(dto.dailyBudget);
     if (!Number.isFinite(dailyNumber) || dailyNumber <= 0) {
       throw new BadRequestException("A positive daily budget is required");
@@ -58,14 +51,14 @@ export class AdsService {
     // Use StripeService to create a payment intent (simulated when no keys present)
     const amountMinor = this.amountToMinorUnits(currency, toChargeNumber);
     const pi = await this.stripe.createPaymentIntent(Math.max(1, amountMinor), currency.toLowerCase(), { type: "campaign", userId });
-    const stripePaymentId = (pi as any).id ?? `simulated:${Date.now()}`;
+    const stripePaymentId = pi.id ?? `simulated:${Date.now()}`;
 
     const simulated = stripePaymentId.startsWith("pi_sim_");
     const campaign = await this.prisma.campaign.create({
       data: {
         userId,
         postId: dto.postId,
-        objective: dto.objective as any,
+        objective: dto.objective,
         campaignType: "DAILY_BUDGET",
         dailyBudget: dailyStr,
         lifetimeBudget: lifetimeStr ?? undefined,
@@ -79,7 +72,7 @@ export class AdsService {
       },
     });
 
-    return { ...campaign, clientSecret: (pi as any).client_secret ?? null };
+    return { ...campaign, clientSecret: pi.client_secret ?? null };
   }
 
   private amountToMinorUnits(currency: string, amount: number) {
@@ -95,7 +88,7 @@ export class AdsService {
     return `sim_${Date.now()}`;
   }
 
-  async createBannerPurchase(userId: string, dto: { slot: "LEFT" | "RIGHT" | "BOTTOM"; startAt?: Date; durationMinutes: number; totalPrice: string | number; currency?: string; imageUrl?: string; videoUrl?: string; clickUrl?: string; altText?: string; title?: string; description?: string }) {
+  async createBannerPurchase(userId: string, dto: CreateBannerDto) {
     // Price is derived server-side from AdSlotPricing so callers cannot set
     // their own totalPrice. Falls back to the submitted amount only when no
     // pricing is configured yet (pre-seed/dev), so a spoofed price never wins
@@ -116,7 +109,7 @@ export class AdsService {
     }
     const amountMinor = this.amountToMinorUnits(currency, totalNumber);
     const pi = await this.stripe.createPaymentIntent(Math.max(1, amountMinor), currency.toLowerCase(), { type: "banner", userId });
-    const stripePaymentId = (pi as any).id ?? `simulated:${Date.now()}`;
+    const stripePaymentId = pi.id ?? `simulated:${Date.now()}`;
 
     const simulated = stripePaymentId.startsWith("pi_sim_");
     const banner = await this.prisma.bannerAd.create({
@@ -139,7 +132,7 @@ export class AdsService {
           description: dto.description,
         },
       });
-      return { ...banner, clientSecret: (pi as any).client_secret ?? null };
+      return { ...banner, clientSecret: pi.client_secret ?? null };
     }
 
   /** Return the currently active banner for a slot using 5-minute rotation among active banners. */
@@ -202,7 +195,7 @@ export class AdsService {
       const currency = ad.currency ?? "USD";
       const amountMinor = this.amountToMinorUnits(currency, cpv);
       const pi = await this.stripe.createPaymentIntent(Math.max(1, amountMinor), (currency || "USD").toLowerCase(), { type: "video_view", videoAdId: ad.id });
-      const stripePaymentId = (pi as any).id ?? `simulated_view_${Date.now()}`;
+      const stripePaymentId = pi.id ?? `simulated_view_${Date.now()}`;
       await this.prisma.videoAdView.update({ where: { id: view.id }, data: { billed: true, billedAt: new Date() } });
 
       // Log a lightweight charge record in Prisma via Campaign (optional) — omitted for now.
