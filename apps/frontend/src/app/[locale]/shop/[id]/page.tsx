@@ -43,6 +43,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductDetailPage({ params }: Props) {
   const t = await getTranslations("product");
+  const market = await getTranslations("market");
   const { id } = await params;
   let product;
   try {
@@ -174,9 +175,17 @@ export default async function ProductDetailPage({ params }: Props) {
           </div>
 
           {product.sellerId && (
-            <p className="text-sm text-slate-600 flex items-center gap-1">
-              {t("soldByVerified")}
-            </p>
+            <Link
+              href={`/store/${product.sellerId}`}
+              className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 transition-colors hover:border-gold-400 hover:bg-gold-50 dark:border-[var(--border-subtle)] dark:bg-[var(--surface)] dark:hover:bg-[var(--surface-2)]"
+            >
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                {t("soldByVerified")}
+              </span>
+              <span className="text-sm font-semibold text-gold-600 hover:underline dark:text-gold-400">
+                {market("visitShop")} →
+              </span>
+            </Link>
           )}
 
           <Link

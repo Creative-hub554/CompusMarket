@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { Play, X } from "lucide-react";
-import { api, type PromoProduct } from "@/services/api";
+import type { PromoProduct } from "@/services/api";
 import { useCartStore } from "@/stores/cart";
 import { toast } from "@/components/ui/toast";
 
@@ -16,9 +16,11 @@ export function ReelsStrip() {
 
   useEffect(() => {
     let activeReq = true;
-    api.products
-      .promos()
-      .then((p) => {
+    // Same-origin proxy (direct calls to the backend origin are CORS-blocked in
+    // the browser); the Next route forwards to /api/products/promos.
+    fetch("/api/products/promos")
+      .then((r) => r.json())
+      .then((p: PromoProduct[]) => {
         if (activeReq && Array.isArray(p)) setPromos(p);
       })
       .catch(() => {});

@@ -1,39 +1,21 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useRef, useState } from "react";
-import { Link, usePathname } from "@/i18n/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Link } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
-import { useTranslations } from "next-intl";
-import { Bookmark, Store, Briefcase } from "lucide-react";
 import { Composer } from "@/components/social/Composer";
 import { PostCard, FeedPost } from "@/components/social/PostCard";
 import { StoriesBar } from "@/components/social/StoriesBar";
-import { FollowButton } from "@/components/social/FollowButton";
-import { Avatar } from "@/components/social/Avatar";
-import { OnlineContacts } from "@/components/chat/ChatDock";
-import { MarketplaceListing, MarketplaceListingProduct } from "@/components/market/MarketplaceListing";
-
-type Suggestion = {
-  id: string;
-  name: string | null;
-  username: string | null;
-  image: string | null;
-  bio: string | null;
-  _count: { followers: number };
-};
-
-const INTERSPERSE_EVERY = 3;
+import { ReelsStrip } from "@/components/market/ReelsStrip";
+import { HomeMarketplace } from "@/components/market/HomeMarketplace";
+import { HomeShops } from "@/components/market/HomeShops";
 
 export default function FeedPage() {
-  const nav = useTranslations("nav");
-  const pathname = usePathname();
   const { data: session } = useSession();
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [products, setProducts] = useState<MarketplaceListingProduct[]>([]);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   const loadPage = useCallback(async (cursorId?: string | null) => {
@@ -49,14 +31,6 @@ export default function FeedPage() {
   useEffect(() => {
     if (!session?.user?.id) return;
     loadPage();
-    fetch("/api/suggestions")
-      .then((r) => r.json())
-      .then((data) => setSuggestions(Array.isArray(data) ? data : []))
-      .catch(() => {});
-    fetch("/api/search")
-      .then((r) => r.json())
-      .then((data) => setProducts(Array.isArray(data?.hits) ? data.hits.slice(0, 12) : []))
-      .catch(() => {});
   }, [session?.user?.id, loadPage]);
 
   useEffect(() => {
@@ -85,137 +59,62 @@ export default function FeedPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
-      <div className="grid xl:grid-cols-[220px_minmax(0,1fr)_300px] gap-6">
-        {/* Left rail: shortcuts (Facebook-style) */}
-        <aside className="hidden xl:block">
-          <div className="sticky top-20 space-y-1">
-            <Link
-              href={`/profile/${session.user.id}`}
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-[var(--surface-2)] transition-colors font-medium text-slate-800 dark:text-slate-200"
-            >
-              <Avatar user={{ name: session.user.name, image: (session.user as { image?: string | null }).image }} size={32} />
-              <span className="truncate">{session.user.name || nav("feed")}</span>
-            </Link>
-            {[
-              { href: "/community/groups", label: nav("groups"), img: "/champey-mark.svg" },
-              { href: "/saved", label: nav("savedPosts"), Icon: Bookmark },
-              { href: "/market", label: nav("market"), Icon: Store },
-              { href: "/jobs", label: nav("jobs"), Icon: Briefcase },
-            ].map(({ href, label, Icon, img }) => {
-              const active = pathname === href || pathname.startsWith(href + "/");
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors text-sm font-medium ${
-                    active
-                      ? "bg-gold-500/10 text-gold-600 dark:text-gold-300"
-                      : "hover:bg-[var(--surface-2)] text-slate-700 dark:text-slate-300"
-                  }`}
-                >
-                  {img ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={img} alt="" width={26} height={26} className="rounded-lg" />
-                  ) : Icon ? (
-                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-gold-500/15 to-gold-500/15 text-gold-500 dark:text-gold-300">
-                      <Icon size={16} />
-                    </span>
-                  ) : null}
-                  <span className="truncate">{label}</span>
-                </Link>
-              );
-            })}
-            {/* Online people, most interacted first */}
-            <div className="mt-4 pt-4 border-t border-[var(--border-subtle)]">
-              <OnlineContacts />
-            </div>
-          </div>
-        </aside>
+    <div className="mx-auto max-w-6xl px-4 py-6 space-y-6">
+      {/* Shorts / watch & shop */}
+      <ReelsStrip />
 
-        {/* Center: stories, composer, posts */}
-        <div className="space-y-5 min-w-0">
-          <StoriesBar />
-          <Composer
-            onPosted={(post) => setPosts((prev) => [post as FeedPost, ...prev])}
-          />
+      {/* Every shop in the marketplace */}
+      <HomeShops />
 
-          {loading ? (
-            <div className="space-y-5">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="bg-[var(--surface)] rounded-2xl border border-[var(--border-subtle)] p-4 animate-pulse">
-                  <div className="flex gap-3 items-center mb-4">
-                    <div className="w-11 h-11 rounded-full bg-gray-200" />
-                    <div className="space-y-2">
-                      <div className="w-32 h-3 bg-gray-200 rounded" />
-                      <div className="w-20 h-2 bg-[var(--surface-2)] rounded" />
-                    </div>
-                  </div>
+      {/* Marketplace discovery: search + category filter + products */}
+      <HomeMarketplace />
+
+      {/* News feed */}
+      <div className="mx-auto max-w-3xl space-y-5">
+        <StoriesBar />
+        <Composer onPosted={(post) => setPosts((prev) => [post as FeedPost, ...prev])} />
+
+        {loading ? (
+          <div className="space-y-5">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="bg-[var(--surface)] rounded-2xl border border-[var(--border-subtle)] p-4 animate-pulse">
+                <div className="flex gap-3 items-center mb-4">
+                  <div className="w-11 h-11 rounded-full bg-gray-200" />
                   <div className="space-y-2">
-                    <div className="w-full h-3 bg-[var(--surface-2)] rounded" />
-                    <div className="w-2/3 h-3 bg-[var(--surface-2)] rounded" />
+                    <div className="w-32 h-3 bg-gray-200 rounded" />
+                    <div className="w-20 h-2 bg-[var(--surface-2)] rounded" />
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : posts.length === 0 ? (
-            <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border-subtle)] p-10 text-center text-gray-500 dark:text-gray-400">
-              <p className="font-medium text-slate-800 dark:text-slate-200 mb-1">Your feed is empty</p>
-              <p className="text-sm">Follow people from the suggestions to fill it up.</p>
-            </div>
-          ) : (
-            <>
-              {posts.map((post, index) => {
-                const product =
-                  products.length > 0 && (index + 1) % INTERSPERSE_EVERY === 0
-                    ? products[Math.floor(index / INTERSPERSE_EVERY) % products.length]
-                    : null;
-                return (
-                  <Fragment key={post.id}>
-                    <PostCard
-                      post={post}
-                      onDeleted={(id) => setPosts((prev) => prev.filter((p) => p.id !== id))}
-                      onEdited={(updated) =>
-                        setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
-                      }
-                    />
-                    {product && <MarketplaceListing product={product} />}
-                  </Fragment>
-                );
-              })}
-              <div ref={sentinelRef} />
-              {!hasMore && posts.length > 0 && (
-                <p className="text-center text-gray-400 text-sm py-4">You&apos;re all caught up ✨</p>
-              )}
-            </>
-          )}
-        </div>
-
-        <aside className="hidden lg:block">
-          <div className="sticky top-20 space-y-4">
-            <h2 className="font-semibold text-slate-800 dark:text-slate-200">Suggested for you</h2>
-            {suggestions.length === 0 ? (
-              <p className="text-sm text-gray-400">No suggestions right now.</p>
-            ) : (
-              suggestions.map((user) => (
-                <div key={user.id} className="flex items-center gap-3">
-                  <Link href={`/profile/${user.id}`}>
-                    <Avatar user={user} size={40} />
-                  </Link>
-                  <div className="flex-1 min-w-0">
-                    <Link href={`/profile/${user.id}`} className="text-sm font-semibold hover:underline block truncate">
-                      {user.name || user.username}
-                    </Link>
-                    <p className="text-xs text-gray-400 truncate">
-                      {user._count.followers} followers
-                    </p>
-                  </div>
-                  <FollowButton userId={user.id} initialFollowing={false} size="sm" />
+                <div className="space-y-3">
+                  <div className="w-full h-3 bg-[var(--surface-2)] rounded" />
+                  <div className="w-2/3 h-3 bg-[var(--surface-2)] rounded" />
                 </div>
-              ))
-            )}
+              </div>
+            ))}
           </div>
-        </aside>
+        ) : posts.length === 0 ? (
+          <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border-subtle)] p-10 text-center text-gray-500 dark:text-gray-400">
+            <p className="font-medium text-slate-800 dark:text-slate-200 mb-1">Your feed is empty</p>
+            <p className="text-sm">Follow people to fill it up — or browse the shops above.</p>
+          </div>
+        ) : (
+          <>
+            {posts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                onDeleted={(id) => setPosts((prev) => prev.filter((p) => p.id !== id))}
+                onEdited={(updated) =>
+                  setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
+                }
+              />
+            ))}
+            <div ref={sentinelRef} />
+            {!hasMore && posts.length > 0 && (
+              <p className="text-center text-gray-400 text-sm py-4">You&apos;re all caught up ✨</p>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

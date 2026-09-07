@@ -9,11 +9,16 @@ type SearchHit = {
   id: string;
   name: string;
   description: string;
-  price: number;
+  price: number | string;
   condition: string;
   status: string;
   categoryName: string;
   images: string[];
+};
+
+type BrowseItem = SearchHit & {
+  images: unknown;
+  category?: { name: string } | null;
 };
 
 export function SearchBar() {
@@ -56,9 +61,23 @@ export function SearchBar() {
     debounceRef.current = setTimeout(async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(value)}`);
+        const res = await fetch(
+          `/api/products/browse?q=${encodeURIComponent(value)}&limit=8`
+        );
         const data = await res.json();
-        setResults(data.hits || []);
+        const items: BrowseItem[] = Array.isArray(data?.items) ? data.items : [];
+        setResults(
+          items.map((item) => ({
+            id: item.id,
+            name: item.name,
+            description: item.description ?? "",
+            price: item.price,
+            condition: item.condition,
+            status: item.status,
+            categoryName: item.category?.name ?? "",
+            images: Array.isArray(item.images) ? (item.images as string[]) : [],
+          }))
+        );
         setOpen(true);
       } catch {
         setResults([]);
@@ -102,7 +121,7 @@ export function SearchBar() {
     <div ref={ref} className="relative">
       <div className="relative">
         <svg
-          className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50"
+          className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-white/50"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -130,7 +149,7 @@ export function SearchBar() {
           onChange={(e) => handleChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={nav("searchPlaceholder")}
-          className="w-64 pl-10 pr-4 py-2 text-sm bg-white/15 text-white placeholder-white/50 border border-white/20 rounded-full focus:outline-none focus:border-gold-400 focus:bg-white/20 transition-all"
+          className="w-64 pl-10 pr-4 py-2 text-sm bg-slate-100 text-slate-800 placeholder-slate-400 border border-slate-200 rounded-full focus:outline-none focus:border-gold-400 focus:bg-white transition-all dark:bg-white/15 dark:text-white dark:placeholder-white/50 dark:border-white/20 dark:focus:bg-white/20"
           onFocus={() => results.length > 0 && setOpen(true)}
           aria-label={nav("searchPlaceholder")}
         />

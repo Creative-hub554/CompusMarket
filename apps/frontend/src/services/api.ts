@@ -133,10 +133,24 @@ export type Article = {
 export type PromoProduct = {
   id: string;
   name: string;
-  price: number;
+  price: number | string;
   images: string[];
   videoUrl: string;
   condition: string;
+};
+
+export type ShopSummary = {
+  id: string;
+  userId: string;
+  name: string;
+  image: string | null;
+  accountType: string;
+  productCount: number;
+};
+
+export type StorefrontData = {
+  shop: ShopSummary & { bio: string | null; username: string | null };
+  products: Product[];
 };
 
 export const api = {
@@ -160,6 +174,9 @@ export const api = {
     byCategory: (slug: string) =>
       fetchApi<Product[]>(`/products/category/${slug}`),
     promos: () => fetchApi<PromoProduct[]>("/products/promos"),
+    shops: () => fetchApi<ShopSummary[]>("/products/shops"),
+    storefront: (sellerId: string) =>
+      fetchApi<StorefrontData>(`/products/storefront/${sellerId}`),
     related: (id: string) => fetchApi<Product[]>(`/products/${id}/related`),
   },
   categories: {
