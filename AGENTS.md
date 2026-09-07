@@ -131,7 +131,9 @@ Shared `EventEmitter` singleton at `apps/backend/src/realtime/notification.event
 ## Git workflow
 
 - Conventional Commits (`fix:`, `feat:`); branches `feature/*`, `fix/*`, `refactor/*`.
-- CI (`.github/workflows/ci.yml`, pnpm 9 + Node 20): `prisma generate` → `pnpm build` → lint → `turbo run test` on PRs and pushes to `main`/`develop`. Set dummy `AUTH_SECRET`/`JWT_SECRET`/`DATABASE_URL=postgresql://postgres:postgres@localhost:5432/theo_platform` when running locally.
+- CI (`.github/workflows/ci.yml`, pnpm 9 + **Node 22**): `prisma generate` → `pnpm build` → lint → `turbo run test` on PRs and pushes to `main`/`develop`. **Node 20 does NOT work**: `jsdom@30` (declared in `apps/frontend/package.json`) requires Node `^22.22.2`, and vitest's optional jsdom peer (resolved to jsdom@30) crashes under Node20 with `webidl.util.markAsUncloneable is not a function` in the forks worker. Set dummy `AUTH_SECRET`/`JWT_SECRET`/`DATABASE_URL=postgresql://postgres:postgres@localhost:5432/theo_platform` when running locally.
+- CI `docker` job must not write the registry cache on PRs (no Docker creds → 401); keep `cache-to` empty on `pull_request` like `docker-build.yml` does.
+- `dependency-review` step has `continue-on-error: true`:the action needs the GitHub **Dependency Graph** enabled in repo settings, which can't be toggled from CI/the API.
 - Remote: `github.com/Creative-hub554/CompusMarket`. On this machine plain `git push` fails (blank `credential.helper` in `~/.gitconfig` disables the system credential manager) — use `git -c credential.helper=manager push`.
 - Never force-push without explicit user confirmation; `origin/main` has history that was rewritten once already.
 

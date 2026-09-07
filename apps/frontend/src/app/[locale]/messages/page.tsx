@@ -5,14 +5,19 @@ import { Link } from "@/i18n/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
 import { Avatar } from "@/components/social/Avatar";
-import { Users, Bot, UserPlus, X } from "lucide-react";
+import { Bot, UserPlus, MessageSquare, X } from "lucide-react";
 import { timeAgo, useAuthSocket } from "@/lib/social";
+import { ConversationAvatar } from "@/components/chat/ConversationAvatar";
+import { PeoplePicker, PeopleSearchResult } from "@/components/chat/PeoplePicker";
+import { ChatPerson, chatPersonName, conversationTitle, isGroupish, memberCount } from "@/components/chat/threadMeta";
 
 type Thread = {
   id: string;
-  participants: { id: string; name: string | null; username: string | null; image: string | null }[];
+  kind?: "DM" | "GROUP_CHAT" | "GROUP";
+  participants: ChatPerson[];
   product: { id: string; name: string; price: unknown; images: unknown } | null;
   group: { id: string; name: string } | null;
+  participantCount?: number;
   lastMessage: { id: string; content: string; senderId: string; createdAt: string } | null;
   lastMessageAt: string | null;
   unreadCount: number;
@@ -38,7 +43,44 @@ export default function MessagesPage() {
   const [contactList, setContactList] = useState("");
   const [syncing, setSyncing] = useState(false);
   const [matches, setMatches] = useState<MatchedUser[]>([]);
+  const [newChatOpen, setNewChatOpen] = useState(false);
+  const [picked, setPicked] = useState<ChatPerson[]>([]);
+  const [starting, setStarting] = useState(false);
+  const [chatError, setChatError] = useState<string | null>(null);
   const socketRef = useAuthSocket(session?.user?.id);
+
+  const pickedIds = new Set(picked.map((p) => p.id));
+
+  const togglePicked = (person: PeopleSearchResult) => {
+    setPicked((prev) =>
+      prev.some((p) => p.id === person.id)
+        ? prev.filter((p) => p.id !== person.id)
+        : prev.length >= 20
+          ? prev
+          : [...prev, person]
+    );
+    setChatError(null);
+  };
+
+  const startConversation = () => {
+    const ids = picked.map((p) => p.id);
+    if (ids.length === 0 || starting) return;
+    setStarting(true);
+    setChatError(null);
+    fetch("/api/threads/conversation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userIds: ids }),
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("Could not start the conversation"))))
+      .then(({ id }: { id: string }) => {
+        setNewChatOpen(false);
+        setPicked([]);
+        router.push(`/messages/${id}`);
+      })
+      .catch((e) => setChatError(e instanceof Error ? e.message : "Something went wrong"))
+      .finally(() => setStarting(false));
+  };
 
   useEffect(() => {
     if (!session?.user?.id) return;
@@ -143,17 +185,96 @@ export default function MessagesPage() {
     <div className="max-w-2xl mx-auto px-4 py-10">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Messages</h1>
-        <button
-          onClick={() => {
-            setSyncOpen((v) => !v);
-            setMatches([]);
-          }}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-gold-500/40 text-gold-700 dark:text-gold-light px-3 py-1.5 text-xs font-semibold hover:bg-gold-500/10 transition-colors"
-        >
-          <UserPlus size={14} />
-          Sync contacts
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              setSyncOpen(false);
+              setNewChatOpen((v) => !v);
+              setPicked([]);
+              setChatError(null);
+            }}
+            className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
+              newChatOpen
+                ? "border-gold-500 bg-gold-500/15 text-gold-700 dark:text-gold-light"
+                : "border-gold-500/40 text-gold-700 dark:text-gold-light hover:bg-gold-500/10"
+            }`}
+          >
+            <MessageSquare size={14} />
+            New message
+          </button>
+          <button
+            onClick={() => {
+              setNewChatOpen(false);
+              setSyncOpen((v) => !v);
+              setMatches([]);
+            }}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-gold-500/40 text-gold-700 dark:text-gold-light px-3 py-1.5 text-xs font-semibold hover:bg-gold-500/10 transition-colors"
+          >
+            <UserPlus size={14} />
+            Sync contacts
+          </button>
+        </div>
       </div>
+
+      {newChatOpen && (
+        <div className="section-box p-4 mb-5 animate-slide-down">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-semibold">New message</p>
+            <button
+              onClick={() => {
+                setNewChatOpen(false);
+                setPicked([]);
+                setChatError(null);
+              }}
+              className="text-gray-400 hover:text-slate-600 dark:hover:text-slate-300"
+              title="Close"
+            >
+              <X size={15} />
+            </button>
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+            Pick one person for a private chat, or two or more people to start a group conversation.
+          </p>
+          {picked.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {picked.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => togglePicked(p)}
+                  title="Remove"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-gold-500/40 bg-gold-500/10 pl-1 pr-2 py-1 text-xs font-medium hover:bg-gold-500/20 transition-colors"
+                >
+                  <Avatar user={p} size={18} />
+                  {chatPersonName(p)}
+                  <X size={11} />
+                </button>
+              ))}
+            </div>
+          )}
+          <PeoplePicker selected={pickedIds} onToggle={togglePicked} />
+          {chatError && <p className="text-xs text-red-500 mt-2">{chatError}</p>}
+          <div className="flex items-center justify-between mt-3 gap-3">
+            <span className="text-[11px] text-gray-400">
+              {picked.length === 0
+                ? "Search by name or @username above"
+                : picked.length === 1
+                  ? "1 person → private chat"
+                  : `${picked.length + 1} people including you → group conversation`}
+            </span>
+            <button
+              onClick={startConversation}
+              disabled={picked.length === 0 || starting}
+              className="btn-primary !py-2 text-xs disabled:opacity-50"
+            >
+              {starting
+                ? "Starting…"
+                : picked.length >= 2
+                  ? "Create group chat"
+                  : "Start chat"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {syncOpen && (
         <div className="section-box p-4 mb-5 animate-slide-down">
@@ -253,42 +374,54 @@ export default function MessagesPage() {
           ))}
         </div>
       ) : threads.length === 0 ? (
-        <div className="text-center py-16 text-gray-500 dark:text-gray-400">
-          <p className="mb-2">No conversations yet.</p>
-          <p className="text-sm">
-            Start one from a{" "}
-            <Link href="/market" className="text-gold-600 hover:underline">
-              seller&apos;s shop
-            </Link>{" "}
-            or say hi on the{" "}
-            <Link href="/feed" className="text-gold-600 hover:underline">
-              feed
-            </Link>
-            .
+        <div className="text-center py-16">
+          <p className="text-lg font-semibold mb-1.5">No conversations yet.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
+            Message a seller about a listing, or pull friends into a group chat.
           </p>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <button
+              onClick={() => {
+                setNewChatOpen(true);
+                setPicked([]);
+                setChatError(null);
+              }}
+              className="btn-primary !py-2 text-xs"
+            >
+              Start a conversation
+            </button>
+            {botId && (
+              <button
+                onClick={openBotChat}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gold-500/40 text-gold-700 dark:text-gold-light px-3 py-2 text-xs font-semibold hover:bg-gold-500/10 transition-colors"
+              >
+                <Bot size={14} />
+                Chat with Champey Bot
+              </button>
+            )}
+          </div>
         </div>
       ) : (
         <div className="space-y-2">
           {threads.map((thread) => {
+            const groupish = isGroupish(thread.kind);
             const other = thread.participants[0];
-            const isOnline = other ? online.has(other.id) : false;
+            const isOnline = !groupish && other ? online.has(other.id) : false;
             return (
               <button
                 key={thread.id}
                 onClick={() => router.push(`/messages/${thread.id}`)}
                 className="w-full text-left rounded-xl border border-[var(--border-subtle)] p-4 hover:bg-[var(--surface-2)] hover:border-gold-200 transition-all flex items-center gap-3"
               >
-                {thread.group ? (
-                  <span className="w-12 h-12 shrink-0 rounded-full bg-gradient-to-br from-gold-500 to-gold-600 flex items-center justify-center">
-                    <Users size={20} className="text-white" />
-                  </span>
+                {groupish ? (
+                  <ConversationAvatar members={thread.participants} size={48} />
                 ) : (
                   <Avatar user={other ?? {}} size={48} online={isOnline} />
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <p className="font-semibold truncate">
-                      {thread.group ? thread.group.name : other?.name || other?.username || "Unknown"}
+                      {groupish ? conversationTitle(thread) : other?.name || other?.username || "Unknown"}
                     </p>
                     {thread.lastMessageAt && (
                       <span className="text-xs text-gray-400 shrink-0">
@@ -296,11 +429,15 @@ export default function MessagesPage() {
                       </span>
                     )}
                   </div>
-                  {thread.product && (
+                  {groupish ? (
+                    <span className="inline-block mt-0.5 text-xs bg-gold-50 dark:bg-gold-950/40 text-gold-600 rounded-full px-2 py-0.5">
+                      {memberCount(thread)} members
+                    </span>
+                  ) : thread.product ? (
                     <span className="inline-block mt-0.5 text-xs bg-gold-50 dark:bg-gold-950/40 text-gold-600 rounded-full px-2 py-0.5 truncate max-w-full">
                       {thread.product.name}
                     </span>
-                  )}
+                  ) : null}
                   <p className={`text-sm truncate mt-1 ${thread.unreadCount > 0 ? "font-semibold text-slate-900 dark:text-slate-100" : "text-gray-500 dark:text-gray-400"}`}>
                     {thread.lastMessage?.content || "No messages yet"}
                   </p>

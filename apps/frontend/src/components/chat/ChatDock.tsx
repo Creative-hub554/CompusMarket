@@ -201,9 +201,10 @@ export function ChatDockProvider({ children }: { children?: React.ReactNode }) {
         return;
       }
 
-      // Otherwise pop a bubble — private threads only.
+      // Otherwise pop a bubble — personal DMs only (community groups and
+      // 3+ person conversations stay in the full Messages list).
       const meta = threadsRef.current.get(msg.threadId);
-      if (meta?.group) return;
+      if (meta && (meta.group || meta.participants.length > 1)) return;
       const participant =
         meta?.participants[0] ?? { id: msg.senderId, name: null, username: null, image: null };
       upsertChat({
