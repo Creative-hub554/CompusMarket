@@ -4,6 +4,7 @@ import { ThreadsService } from "./threads.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { ChatGateway } from "./chat.gateway";
 import { ChatBotService } from "./chat-bot.service";
+import { NotificationsService } from "../social/notifications.service";
 
 // Importing the real gateway runs module-level getAuthSecret(); stub it out.
 vi.mock("./chat.gateway", () => ({
@@ -14,17 +15,25 @@ function makeBot() {
   return { getBotUserId: vi.fn(async () => "bot-id"), shouldRespond: vi.fn(async () => false), buildReplies: vi.fn(async () => []) };
 }
 
+function makeNotifications() {
+  return { notify: vi.fn(async () => ({})) };
+}
+
 function makePrisma() {
   return {
     thread: {
       findFirst: vi.fn(),
       findUnique: vi.fn(),
+      findMany: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      delete: vi.fn(),
     },
     threadParticipant: {
       findUnique: vi.fn(),
       findMany: vi.fn(),
+      create: vi.fn(),
+      deleteMany: vi.fn(),
       update: vi.fn(),
     },
     message: {
@@ -35,6 +44,7 @@ function makePrisma() {
     },
     user: {
       findUnique: vi.fn(),
+      findMany: vi.fn(),
     },
   };
 }
@@ -53,7 +63,8 @@ describe("ThreadsService", () => {
     service = new ThreadsService(
       prisma as unknown as PrismaService,
       makeGateway() as unknown as ChatGateway,
-        makeBot() as unknown as ChatBotService
+        makeBot() as unknown as ChatBotService,
+        makeNotifications() as unknown as NotificationsService
       );
   });
 
@@ -194,7 +205,8 @@ describe("ThreadsService", () => {
       const svc = new ThreadsService(
         prisma as unknown as PrismaService,
         makeGateway([]) as unknown as ChatGateway,
-        makeBot() as unknown as ChatBotService
+        makeBot() as unknown as ChatBotService,
+        makeNotifications() as unknown as NotificationsService
       );
 
       await expect(svc.listOnlineContacts("me")).resolves.toEqual([]);
@@ -205,7 +217,8 @@ describe("ThreadsService", () => {
       const svc = new ThreadsService(
         prisma as unknown as PrismaService,
         makeGateway(["u2", "u3"]) as unknown as ChatGateway,
-        makeBot() as unknown as ChatBotService
+        makeBot() as unknown as ChatBotService,
+        makeNotifications() as unknown as NotificationsService
       );
       prisma.threadParticipant.findMany.mockResolvedValue([
         {
@@ -257,6 +270,232 @@ describe("ThreadsService", () => {
       expect(contacts[0].messageCount).toBe(15);
       expect(contacts[1].user.id).toBe("u3");
       expect(contacts[1].messageCount).toBe(7);
+    });
+  });
+
+  describe("searchPeople", () => {
+    it("returns nothing for queries shorter than 2 characters", async () => {
+      await expect(service.searchPeople("me", "a")).resolves.toEqual([]);
+      expect(prisma.user.findMany).not.toHaveBeenCalled();
+    });
+
+    it("matches by name/username case-insensitively, excluding self and the bot", async () => {
+      prisma.user.findMany.mockResolvedValue([
+        { id: "me", name: "Me", username: "me", image: null },
+        { id: "bot-id", name: "Champey Bot", username: "champeybot", image: null },
+        { id: "u2", name: "Bobby", username: "bob", image: null },
+        { id: "u3", name: "ALICE", username: "alice", image: null },
+      ]);
+      const svc = new ThreadsService(
+        prisma as unknown as PrismaService,
+        makeGateway(["u2", "bot-id"]) as unknown as ChatGateway,
+        makeBot() as unknown as ChatBotService,
+        makeNotifications() as unknown as NotificationsService
+      );
+
+      const results = await svc.searchPeople("me", "BOB");
+
+      expect(results).toHaveLength(1);
+      expect(results[0]).toMatchObject({ id: "u2", name: "Bobby", online: true });
+      expect(prisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ id: { notIn: ["me", "bot-id"] } }),
+        })
+      );
+    });
+  });
+
+  describe("createConversation", () => {
+    it("rejects an empty or self-only/bot-only selection", async () => {
+      await expect(service.createConversation("me", [])).rejects.toThrow(BadRequestException);
+      await expect(
+        service.createConversation("me", ["me", "bot-id"])
+      ).rejects.toThrow(BadRequestException);
+      expect(prisma.thread.create).not.toHaveBeenCalled();
+    });
+
+    it("routes a single peer to the existing DM find-or-create", async () => {
+      prisma.user.findMany.mockResolvedValue([{ id: "u2" }]);
+      prisma.user.findUnique.mockResolvedValue({ id: "u2" });
+      prisma.thread.findFirst.mockResolvedValue({ id: "t-dm" });
+
+      const result = await service.createConversation("me", ["u2"]);
+
+      expect(result).toEqual({ id: "t-dm", kind: "DM", created: false });
+      expect(prisma.thread.create).not.toHaveBeenCalled();
+    });
+
+    it("creates a 3+ person group conversation when none exists", async () => {
+      prisma.user.findMany.mockResolvedValue([{ id: "u2" }, { id: "u3" }]);
+      prisma.thread.findMany.mockResolvedValue([]);
+      prisma.thread.create.mockResolvedValue({ id: "t-new" });
+
+      const result = await service.createConversation("me", ["u2", "u3"]);
+
+      expect(result).toEqual({ id: "t-new", kind: "GROUP_CHAT", created: true });
+      expect(prisma.thread.create).toHaveBeenCalledWith({
+        data: {
+          participants: {
+            create: [{ userId: "me" }, { userId: "u2" }, { userId: "u3" }],
+          },
+        },
+        select: { id: true },
+      });
+    });
+
+    it("reuses an existing conversation with the exact same member set", async () => {
+      prisma.user.findMany.mockResolvedValue([{ id: "u2" }, { id: "u3" }]);
+      prisma.thread.findMany.mockResolvedValue([
+        {
+          id: "t-existing",
+          participants: [
+            { userId: "me" },
+            { userId: "u2" },
+            { userId: "u3" },
+          ],
+        },
+      ]);
+
+      const result = await service.createConversation("me", ["u2", "u3"]);
+
+      expect(result).toEqual({ id: "t-existing", kind: "GROUP_CHAT", created: false });
+      expect(prisma.thread.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("addParticipants", () => {
+    it("forbids non-participants", async () => {
+      prisma.threadParticipant.findUnique.mockResolvedValue(null);
+      await expect(service.addParticipants("me", "t1", ["u2"])).rejects.toThrow(
+        ForbiddenException
+      );
+    });
+
+    it("refuses to mutate product or community-group threads", async () => {
+      prisma.threadParticipant.findUnique.mockResolvedValue({ id: "tp1" });
+      prisma.thread.findUnique.mockResolvedValue({
+        id: "t1",
+        productId: "p1",
+        groupId: null,
+        participants: [{ userId: "me" }],
+      });
+      await expect(service.addParticipants("me", "t1", ["u2"])).rejects.toThrow(
+        BadRequestException
+      );
+    });
+
+    it("adds valid new members and notifies each of them", async () => {
+      prisma.threadParticipant.findUnique.mockResolvedValue({ id: "tp1" });
+      prisma.thread.findUnique.mockResolvedValue({
+        id: "t1",
+        productId: null,
+        groupId: null,
+        participants: [{ userId: "me" }, { userId: "u2" }],
+      });
+      prisma.user.findMany.mockResolvedValue([{ id: "u3" }, { id: "u4" }]);
+      prisma.threadParticipant.create.mockResolvedValue({ id: "new" });
+      const notifications = makeNotifications();
+      const svc = new ThreadsService(
+        prisma as unknown as PrismaService,
+        makeGateway() as unknown as ChatGateway,
+        makeBot() as unknown as ChatBotService,
+        notifications as unknown as NotificationsService
+      );
+
+      const result = await svc.addParticipants("me", "t1", ["u3", "u4"]);
+
+      expect(result).toEqual({ added: 2, participantCount: 4 });
+      expect(prisma.threadParticipant.create).toHaveBeenCalledTimes(2);
+      expect(notifications.notify).toHaveBeenCalledWith(
+        expect.objectContaining({ userId: "u3", kind: "MESSAGE", entityId: "t1" })
+      );
+      expect(notifications.notify).toHaveBeenCalledWith(
+        expect.objectContaining({ userId: "u4", kind: "MESSAGE", entityId: "t1" })
+      );
+    });
+  });
+
+  describe("leaveConversation", () => {
+    it("keeps the conversation when at least two people remain", async () => {
+      prisma.threadParticipant.findUnique.mockResolvedValue({ id: "tp1" });
+      prisma.thread.findUnique.mockResolvedValue({
+        id: "t1",
+        productId: null,
+        groupId: null,
+      });
+      prisma.threadParticipant.findMany.mockResolvedValue([
+        { userId: "me" },
+        { userId: "u2" },
+        { userId: "u3" },
+      ]);
+      prisma.threadParticipant.deleteMany.mockResolvedValue({ count: 1 });
+
+      const result = await service.leaveConversation("me", "t1");
+
+      expect(result).toEqual({ left: true, deleted: false, participantCount: 2 });
+      expect(prisma.threadParticipant.deleteMany).toHaveBeenCalledWith({
+        where: { threadId: "t1", userId: "me" },
+      });
+      expect(prisma.thread.delete).not.toHaveBeenCalled();
+    });
+
+    it("deletes a 2-person chat when one person leaves", async () => {
+      prisma.threadParticipant.findUnique.mockResolvedValue({ id: "tp1" });
+      prisma.thread.findUnique.mockResolvedValue({
+        id: "t1",
+        productId: null,
+        groupId: null,
+      });
+      prisma.threadParticipant.findMany.mockResolvedValue([
+        { userId: "me" },
+        { userId: "u2" },
+      ]);
+      prisma.threadParticipant.deleteMany.mockResolvedValue({ count: 1 });
+
+      const result = await service.leaveConversation("me", "t1");
+
+      expect(result).toEqual({ left: true, deleted: true });
+      expect(prisma.thread.delete).toHaveBeenCalledWith({ where: { id: "t1" } });
+    });
+
+    it("refuses to leave product or community-group threads", async () => {
+      prisma.threadParticipant.findUnique.mockResolvedValue({ id: "tp1" });
+      prisma.thread.findUnique.mockResolvedValue({
+        id: "t1",
+        productId: null,
+        groupId: "g1",
+      });
+      await expect(service.leaveConversation("me", "t1")).rejects.toThrow(
+        BadRequestException
+      );
+    });
+  });
+
+  describe("listThreads kinds", () => {
+    it("labels multi-person personal threads as GROUP_CHAT", async () => {
+      prisma.threadParticipant.findMany.mockResolvedValue([
+        {
+          threadId: "t-g",
+          lastReadAt: null,
+          thread: {
+            lastMessageAt: new Date("2026-01-01T10:00:00Z"),
+            participants: [
+              { userId: "me", user: { id: "me", name: "Me", username: null, image: null } },
+              { userId: "u2", user: { id: "u2", name: "Bob", username: null, image: null } },
+              { userId: "u3", user: { id: "u3", name: "Cara", username: null, image: null } },
+            ],
+            messages: [],
+            product: null,
+          },
+        },
+      ]);
+      prisma.message.groupBy.mockResolvedValue([]);
+
+      const threads = await service.listThreads("me");
+
+      expect(threads[0].kind).toBe("GROUP_CHAT");
+      expect(threads[0].participantCount).toBe(3);
+      expect(threads[0].participants.map((p) => p.id)).toEqual(["u2", "u3"]);
     });
   });
 });
