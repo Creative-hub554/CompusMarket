@@ -11,7 +11,6 @@ on:
 
 env:
   REGISTRY: docker.io
-  IMAGE_NAME: ${{ lower(github.repository) }}
 
 jobs:
   # ============================================================================
@@ -26,6 +25,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Lowercase image name
+        run: echo "IMAGE_NAME=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -101,6 +103,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Lowercase image name
+        run: echo "IMAGE_NAME=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
 
       - name: Run Docker Scout on backend
         uses: docker/scout-action@v1
