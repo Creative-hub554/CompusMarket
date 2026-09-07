@@ -4,12 +4,15 @@
 import { toast } from "@/components/ui/toast";
 import { useEffect, useState, useRef, useCallback } from "react";
 import Image from "next/image";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { useParams } from "next/navigation";
 import { useSession } from "@/lib/session-client";
 import { Avatar } from "@/components/social/Avatar";
-import { Users, Smile, Sticker as StickerIcon } from "lucide-react";
+import { Users, Smile, Sticker as StickerIcon, UserPlus, LogOut, X } from "lucide-react";
 import { ChatPicker } from "@/components/chat/ChatPicker";
+import { ConversationAvatar } from "@/components/chat/ConversationAvatar";
+import { PeoplePicker, PeopleSearchResult } from "@/components/chat/PeoplePicker";
+import { chatPersonName, conversationTitle, isGroupish } from "@/components/chat/threadMeta";
 import { timeAgo, uploadFile, useAuthSocket } from "@/lib/social";
 
 type Attachment = { url: string; kind: "IMAGE" | "VIDEO" };
@@ -26,10 +29,14 @@ type ChatMessage = {
 
 type ThreadInfo = {
   id: string;
+  kind?: "DM" | "GROUP_CHAT" | "GROUP";
   participants: { id: string; name: string | null; username: string | null; image: string | null }[];
   product: { id: string; name: string; price: unknown; images: unknown } | null;
   group: { id: string; name: string } | null;
+  participantCount?: number;
 };
+
+type ChatPerson = ThreadInfo["participants"][number];
 
 const CHAT_COMMANDS = [
   { cmd: "/shrug", out: "¯\\_(ツ)_/¯", hint: "Shrug it off" },
@@ -82,7 +89,24 @@ export default function ChatPage() {
   const [online, setOnline] = useState(false);
   const [picker, setPicker] = useState<"emoji" | "sticker" | null>(null);
   const [commandIndex, setCommandIndex] = useState(0);
+  const [rosterOpen, setRosterOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const [addPicked, setAddPicked] = useState<ChatPerson[]>([]);
+  const [adding, setAdding] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+  const [chatError, setChatError] = useState<string | null>(null);
+  const router = useRouter();
   const socketRef = useAuthSocket(session?.user?.id);
+
+  const addPickedIds = new Set(addPicked.map((p) => p.id));
+  const toggleAddPerson = (person: PeopleSearchResult) =>
+    setAddPicked((prev) =>
+      prev.some((p) => p.id === person.id)
+        ? prev.filter((p) => p.id !== person.id)
+        : prev.length >= 20
+          ? prev
+          : [...prev, person]
+    );
   const bottomRef = useRef<HTMLDivElement>(null);
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -96,6 +120,10 @@ export default function ChatPage() {
         }
       })
       .catch(() => {});
+  }, [id, session?.user?.id]);
+
+  const loadThread = useCallback(() => {
+    if (!session?.user?.id) return;
     fetch("/api/threads")
       .then((r) => r.json())
       .then((threads: ThreadInfo[]) => {
@@ -104,6 +132,44 @@ export default function ChatPage() {
       })
       .catch(() => {});
   }, [id, session?.user?.id]);
+
+  useEffect(() => {
+    loadThread();
+  }, [loadThread]);
+
+  const addPeople = () => {
+    const ids = addPicked.map((p) => p.id);
+    if (ids.length === 0 || adding) return;
+    setAdding(true);
+    setChatError(null);
+    fetch(`/api/threads/${id}/participants`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userIds: ids }),
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("Could not add people"))))
+      .then(() => {
+        setAddOpen(false);
+        setAddPicked([]);
+        loadThread();
+      })
+      .catch((e) => setChatError(e instanceof Error ? e.message : "Something went wrong"))
+      .finally(() => setAdding(false));
+  };
+
+  const leaveChat = () => {
+    if (leaving) return;
+    if (!window.confirm("Leave this conversation? The chat stays for the others.")) return;
+    setLeaving(true);
+    setChatError(null);
+    fetch(`/api/threads/${id}/leave`, { method: "POST" })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("Could not leave"))))
+      .then(() => router.replace("/messages"))
+      .catch((e) => {
+        setChatError(e instanceof Error ? e.message : "Something went wrong");
+        setLeaving(false);
+      });
+  };
 
   useEffect(() => {
     const socket = socketRef.current;
@@ -224,6 +290,10 @@ export default function ChatPage() {
       : [];
 
   const other = thread?.participants[0];
+  const groupish = isGroupish(thread?.kind);
+  const roster = thread?.participants ?? [];
+  const memberTotal =
+    thread?.participantCount ?? roster.length + 1;
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 flex flex-col h-[calc(100vh-4rem)]">
@@ -231,35 +301,123 @@ export default function ChatPage() {
         <Link href="/messages" className="text-gray-500 dark:text-gray-400 hover:text-slate-900 dark:text-slate-100 text-xl leading-none">
           ←
         </Link>
-        {thread?.group ? (
-          <span className="w-10 h-10 shrink-0 rounded-full bg-gradient-to-br from-gold-500 to-gold-600 flex items-center justify-center">
-            <Users size={18} className="text-white" />
-          </span>
+        {groupish ? (
+          <ConversationAvatar members={roster} size={40} />
         ) : (
           <Avatar user={other ?? {}} size={40} online={online} />
         )}
         <div className="flex-1 min-w-0">
           <p className="font-semibold truncate">
-            {thread?.group
-              ? thread.group.name
+            {groupish
+              ? thread
+                ? conversationTitle(thread)
+                : "Chat"
               : other?.name || other?.username || "Chat"}
           </p>
           {peerTyping ? (
             <p className="text-xs text-gold-500">typing…</p>
-          ) : thread?.group ? (
+          ) : groupish ? (
             <p className="text-xs text-gray-400">
-              {thread.participants.length + 1} members
+              {memberTotal} members
             </p>
           ) : (
             <p className="text-xs text-gray-400">{online ? "Online" : "Offline"}</p>
           )}
         </div>
+        {thread?.kind === "GROUP_CHAT" && (
+          <button
+            onClick={() => setRosterOpen((v) => !v)}
+            aria-expanded={rosterOpen}
+            className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors ${
+              rosterOpen
+                ? "bg-gold-500/15 text-gold-700 dark:text-gold-light"
+                : "text-gray-500 dark:text-gray-400 hover:bg-[var(--surface-2)]"
+            }`}
+          >
+            <Users size={14} />
+            <span className="hidden sm:inline">People</span>
+          </button>
+        )}
         {thread?.product && (
           <span className="hidden sm:inline-block text-xs bg-gold-50 dark:bg-gold-950/40 text-gold-600 rounded-full px-3 py-1 truncate max-w-[180px]">
             {thread.product.name}
           </span>
         )}
       </div>
+
+      {rosterOpen && thread?.kind === "GROUP_CHAT" && (
+        <div className="section-box p-4 mb-4 animate-slide-down">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-semibold">People in this chat · {memberTotal}</p>
+            <button
+              onClick={() => {
+                setRosterOpen(false);
+                setAddOpen(false);
+                setAddPicked([]);
+              }}
+              className="text-gray-400 hover:text-slate-600 dark:hover:text-slate-300"
+              title="Close"
+            >
+              <X size={15} />
+            </button>
+          </div>
+          {chatError && <p className="text-xs text-red-500 mb-2">{chatError}</p>}
+          {addOpen ? (
+            <div className="mb-3">
+              <PeoplePicker selected={addPickedIds} onToggle={toggleAddPerson} autoFocus />
+              <div className="flex items-center gap-2 mt-3">
+                <button
+                  onClick={addPeople}
+                  disabled={addPicked.length === 0 || adding}
+                  className="btn-primary !py-2 text-xs disabled:opacity-50"
+                >
+                  {adding ? "Adding…" : `Add ${addPicked.length > 0 ? addPicked.length : ""} person${addPicked.length === 1 ? "" : "s"}`}
+                </button>
+                <button
+                  onClick={() => {
+                    setAddOpen(false);
+                    setAddPicked([]);
+                  }}
+                  className="text-xs text-gray-500 dark:text-gray-400 hover:underline"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <ul className="divide-y divide-[var(--border-subtle)] max-h-52 overflow-y-auto mb-3">
+              {roster.map((p) => (
+                <li key={p.id} className="flex items-center gap-2.5 py-2">
+                  <Avatar user={p} size={32} />
+                  <span className="text-sm font-medium truncate">{chatPersonName(p)}</span>
+                  {p.username && (
+                    <span className="text-[11px] text-gray-400 truncate">@{p.username}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+          {!addOpen && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => setAddOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gold-500/40 text-gold-700 dark:text-gold-light px-3 py-1.5 text-xs font-semibold hover:bg-gold-500/10 transition-colors"
+              >
+                <UserPlus size={14} />
+                Add people
+              </button>
+              <button
+                onClick={leaveChat}
+                disabled={leaving}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-red-300 dark:border-red-900 text-red-600 dark:text-red-400 px-3 py-1.5 text-xs font-semibold hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors disabled:opacity-50"
+              >
+                <LogOut size={14} />
+                {leaving ? "Leaving…" : "Leave chat"}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto py-4 space-y-3">
         {messages.length === 0 && (
@@ -271,12 +429,24 @@ export default function ChatPage() {
           return (
             <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
               <div
-                className={`max-w-[75%] rounded-2xl px-4 py-2 ${
-                  isMe
-                    ? "bg-gold-600 text-white rounded-br-sm"
-                    : "bg-[var(--surface)] border border-[var(--border-subtle)] rounded-bl-sm"
-                }`}
+                className={
+                  groupish && !isMe
+                    ? "flex flex-col items-start max-w-[75%]"
+                    : "max-w-[75%]"
+                }
               >
+                {groupish && !isMe && msg.sender && (
+                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1 ml-1 truncate max-w-full">
+                    {msg.sender.name || "Member"}
+                  </span>
+                )}
+                <div
+                  className={`rounded-2xl px-4 py-2 ${
+                    isMe
+                      ? "bg-gold-600 text-white rounded-br-sm"
+                      : "bg-[var(--surface)] border border-[var(--border-subtle)] rounded-bl-sm"
+                  }`}
+                >
                 {attachments.length > 0 && (
                   <div className={`grid gap-1 mb-1 ${attachments.length > 1 ? "grid-cols-2" : ""}`}>
                     {attachments.map((a, i) =>
@@ -299,6 +469,7 @@ export default function ChatPage() {
                 <p className={`text-[10px] mt-1 ${isMe ? "text-gold-200" : "text-gray-400"}`}>
                   {timeAgo(msg.createdAt)}
                 </p>
+                </div>
               </div>
             </div>
           );
