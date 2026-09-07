@@ -17,6 +17,8 @@
     "@imgly/background-removal": "1.7.0",
     "@react-pdf/renderer": "^4.5.1",
     "@sentry/nextjs": "^10.71.0",
+    "@stripe/react-stripe-js": "^6.8.2",
+    "@stripe/stripe-js": "^9.14.0",
     "@theo/database": "workspace:*",
     "@theo/ui": "workspace:*",
     "@tiptap/extension-underline": "^3.29.1",

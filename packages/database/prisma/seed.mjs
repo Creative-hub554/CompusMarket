@@ -691,6 +691,25 @@ async function main() {
     console.log(`  verified legacy accounts: ${legacyUsers.length}`);
   }
 
+  // Ad slot pricing (used by the ads module) — upsert keeps re-runs safe.
+  const AD_SLOT_PRICING = [
+    { slot: "LEFT", price: 10.0, currency: "USD", durationMinutes: 1440 }, // 24 hours
+    { slot: "RIGHT", price: 10.0, currency: "USD", durationMinutes: 1440 }, // 24 hours
+    { slot: "BOTTOM", price: 15.0, currency: "USD", durationMinutes: 1440 }, // 24 hours
+  ];
+  for (const pricing of AD_SLOT_PRICING) {
+    await prisma.adSlotPricing.upsert({
+      where: { slot: pricing.slot },
+      update: {
+        price: pricing.price,
+        currency: pricing.currency,
+        durationMinutes: pricing.durationMinutes,
+        isActive: true,
+      },
+      create: pricing,
+    });
+  }
+
   const productCount = await prisma.product.count();
   console.log("Seed complete.");
   console.log(`  admin:    ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}`);
@@ -700,6 +719,7 @@ async function main() {
   console.log(`  orders:     ${orderCount} created this run`);
   console.log("  group:      Champey Community (+ pinned welcome post)");
   console.log("  job:        Sales Associate (Part-time)");
+  console.log("  ad slot pricing: LEFT, RIGHT, BOTTOM");
   console.log("  ▶ reindex Meilisearch: POST /api/search/reindex (see .freebuff/run.md)");
 }
 
