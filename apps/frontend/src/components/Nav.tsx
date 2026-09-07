@@ -77,10 +77,9 @@ export function Nav() {
   const groupLabelCls =
     "px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]";
 
-  // Core destinations shown in the top bar.
+  // Core destinations shown in the top bar. Shop lives in the More menu.
   const tabs = [
     { href: "/feed", label: t("home"), Icon: Home, isActive: (p: string) => p.startsWith("/feed") || p === "/" },
-    { href: "/shop", label: t("shop"), Icon: Store, isActive: (p: string) => p.startsWith("/shop") || p.startsWith("/market") || p.startsWith("/store") },
     { href: "/jobs", label: t("jobs"), Icon: Briefcase, isActive: (p: string) => p.startsWith("/jobs") },
   ];
 
@@ -96,6 +95,7 @@ export function Nav() {
     {
       label: t("buying"),
       items: [
+        { href: "/shop", label: t("shop") },
         { href: "/orders", label: t("orders") },
         { href: "/warranties", label: t("warranties") },
       ],
