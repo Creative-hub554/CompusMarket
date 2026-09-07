@@ -46,6 +46,16 @@ export class ProductsController {
     return this.productsService.findPromos();
   }
 
+  @Get("shops")
+  findShops() {
+    return this.productsService.findShops();
+  }
+
+  @Get("storefront/:sellerId")
+  findSellerStorefront(@Param("sellerId") sellerId: string) {
+    return this.productsService.findSellerStorefront(sellerId);
+  }
+
   @Get(":id/related")
   findRelated(@Param("id") id: string) {
     return this.productsService.findRelated(id);
@@ -56,13 +66,21 @@ export class ProductsController {
     @Query("category") category?: string,
     @Query("q") q?: string,
     @Query("page") page?: string,
-    @Query("limit") limit?: string
+    @Query("limit") limit?: string,
+    @Query("condition") condition?: string,
+    @Query("minPrice") minPrice?: string,
+    @Query("maxPrice") maxPrice?: string
   ) {
+    const parsedMin = minPrice ? Number(minPrice) : undefined;
+    const parsedMax = maxPrice ? Number(maxPrice) : undefined;
     return this.productsService.browse({
       category: category || undefined,
       q: q || undefined,
       page: page ? Number(page) : undefined,
       limit: limit ? parseLimit(limit, 12, 48) : undefined,
+      condition: condition === "A" || condition === "B" || condition === "C" ? condition : undefined,
+      minPrice: Number.isFinite(parsedMin) ? parsedMin : undefined,
+      maxPrice: Number.isFinite(parsedMax) ? parsedMax : undefined,
     });
   }
 

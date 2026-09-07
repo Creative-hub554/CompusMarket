@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
 import { useTranslations } from "next-intl";
-import { Home, Store, ShoppingBag, Briefcase, MessageCircle } from "lucide-react";
+import { Home, Store, Briefcase, MessageCircle, Menu, X } from "lucide-react";
 import { SearchBar } from "./SearchBar";
 import { LocaleSwitcher } from "./LocaleSwitcher";
 import { ThemeToggle } from "./ThemeToggle";
@@ -28,7 +28,7 @@ export function Nav() {
   const t = useTranslations("nav");
   const router = useRouter();
   const pathname = usePathname();
-  const [open, setOpen] = useState(false); // mobile drawer
+  const [open, setOpen] = useState(false); // "More" menu / mobile drawer
   const [accountOpen, setAccountOpen] = useState(false); // avatar menu
   const [msgUnread, setMsgUnread] = useState(0);
   const { data: session, status, signOut } = useSession();
@@ -73,19 +73,17 @@ export function Nav() {
   }, [session?.user?.id]);
 
   const itemCls =
-    "block px-4 py-2 text-sm text-gray-700 dark:text-slate-200 hover:bg-gold hover:text-slate-900 transition-colors whitespace-nowrap";
+    "block px-4 py-2 text-sm text-slate-700 hover:bg-gold hover:text-slate-900 dark:text-slate-200 dark:hover:bg-gold/90 transition-colors whitespace-nowrap rounded-lg";
   const groupLabelCls =
     "px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]";
 
-  // Center icon tabs — the 4 core destinations.
+  // Core destinations shown in the top bar. Shop lives in the More menu.
   const tabs = [
-    { href: "/feed", label: t("feed"), Icon: Home, isActive: (p: string) => p.startsWith("/feed") },
-    { href: "/shop", label: t("shop"), Icon: Store, isActive: (p: string) => p.startsWith("/shop") },
-    { href: "/market", label: t("market"), Icon: ShoppingBag, isActive: (p: string) => p.startsWith("/market") },
+    { href: "/feed", label: t("home"), Icon: Home, isActive: (p: string) => p.startsWith("/feed") || p === "/" },
     { href: "/jobs", label: t("jobs"), Icon: Briefcase, isActive: (p: string) => p.startsWith("/jobs") },
   ];
 
-  // Secondary links shown in the mobile drawer (desktop uses sidebars).
+  // Secondary links (previously in the section sidebars) live behind the menu.
   const moreGroups: { label: string; items: NavItem[] }[] = [
     {
       label: t("community"),
@@ -95,18 +93,19 @@ export function Nav() {
       ],
     },
     {
+      label: t("buying"),
+      items: [
+        { href: "/shop", label: t("shop") },
+        { href: "/orders", label: t("orders") },
+        { href: "/warranties", label: t("warranties") },
+      ],
+    },
+    {
       label: t("selling"),
       items: [
         { href: "/seller/dashboard", label: t("seller") },
         { href: "/seller/products", label: t("products") },
         { href: "/seller/orders", label: t("sellerOrders") },
-      ],
-    },
-    {
-      label: t("buying"),
-      items: [
-        { href: "/orders", label: t("orders") },
-        { href: "/warranties", label: t("warranties") },
       ],
     },
     {
@@ -120,24 +119,79 @@ export function Nav() {
   ];
 
   const panelCls =
-    "absolute right-0 top-full mt-2 rounded-xl border border-[rgba(255,107,94,0.3)] dark:border-[rgba(255,107,94,0.22)] bg-white dark:bg-slate-900 shadow-xl z-50";
+    "rounded-xl border border-slate-200 bg-white/95 shadow-xl backdrop-blur dark:border-[rgba(255,107,94,0.22)] dark:bg-slate-900/95";
+
+  const rightIconCls =
+    "p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-[rgba(255,107,94,0.15)] transition-colors text-slate-700 dark:text-slate-300";
 
   return (
     <nav className="sticky top-0 z-40 px-3 pt-3 sm:px-4">
-      <div className="mx-auto flex max-w-6xl items-center gap-2 rounded-2xl border border-[rgba(255,107,94,0.22)] bg-slate-900/85 px-3 py-2.5 text-white shadow-[0_12px_40px_-16px_rgba(255,107,94,0.5)] backdrop-blur-xl sm:px-4">
-        {/* Left: logo + search */}
-        <Link href="/" className="shrink-0 no-underline flex items-center gap-2.5">
+      <div className="mx-auto flex max-w-6xl items-center gap-1.5 rounded-2xl border border-slate-200/90 bg-white/85 px-2.5 py-2 text-slate-900 shadow-[0_12px_34px_-22px_rgba(23,23,31,0.35)] backdrop-blur-xl sm:gap-2 sm:px-3 dark:border-[rgba(255,107,94,0.22)] dark:bg-slate-900/85 dark:text-white dark:shadow-[0_12px_40px_-16px_rgba(255,107,94,0.5)]">
+        {/* Menu (secondary links) + logo */}
+        <div className="relative">
+          <button
+            onClick={() => setOpen((v) => !v)}
+            className={`md:hidden p-2 -ml-0.5 rounded-xl transition-colors ${
+              open ? "bg-slate-100 dark:bg-[rgba(255,107,94,0.15)]" : "hover:bg-slate-100 dark:hover:bg-[rgba(255,107,94,0.15)]"
+            }`}
+            aria-label={t("toggleMenu")}
+            aria-expanded={open}
+          >
+            {open ? <X size={22} /> : <Menu size={22} />}
+          </button>
+
+          {/* Desktop secondary menu */}
+          <button
+            onClick={() => setOpen((v) => !v)}
+            className={`hidden md:flex items-center gap-1.5 h-10 px-2.5 rounded-xl text-sm font-semibold transition-colors ${
+              open
+                ? "bg-slate-100 text-gold-600 dark:bg-[rgba(255,107,94,0.15)] dark:text-gold-300"
+                : "hover:bg-slate-100 dark:hover:bg-[rgba(255,107,94,0.15)]"
+            }`}
+            aria-label={t("more")}
+            aria-expanded={open}
+          >
+            <Menu size={20} />
+            <span className="hidden lg:inline">{t("more")}</span>
+          </button>
+
+          {open && (
+            <div className={`absolute left-0 top-full mt-2 hidden min-w-56 py-1 md:block ${panelCls}`}>
+              {moreGroups.map((g) => (
+                <div key={g.label}>
+                  <p className={groupLabelCls}>{g.label}</p>
+                  {g.items.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setOpen(false)}
+                      className={itemCls}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <Link href="/" className="shrink-0 no-underline flex items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/champey-mark.svg" alt="" width={38} height={38} className="drop-shadow-[0_0_10px_rgba(255,107,94,0.5)]" />
-          <span className="text-lg font-bold tracking-tight" style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.02em" }}>
+          <img src="/champey-mark.svg" alt="" width={36} height={36} />
+          <span
+            className="text-lg font-bold tracking-tight"
+            style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.02em" }}
+          >
             champey
           </span>
         </Link>
+
         <div className="hidden flex-1 max-w-xs md:block">
           <SearchBar />
         </div>
 
-        {/* Center: icon tabs */}
+        {/* Center: core destinations */}
         <div className="mx-auto hidden items-center gap-1 md:flex">
           {tabs.map(({ href, label, Icon, isActive }) => {
             const active = isActive(pathname);
@@ -147,25 +201,26 @@ export function Nav() {
                 href={href}
                 aria-label={label}
                 title={label}
-                className={`relative flex h-11 w-16 items-center justify-center rounded-xl transition-all duration-200 lg:w-20 ${
+                className={`flex h-10 items-center gap-2 rounded-xl px-2.5 transition-all duration-200 sm:px-3 lg:px-4 ${
                   active
                     ? "bg-gradient-to-br from-gold to-gold-light text-white shadow-[0_6px_18px_-6px_rgba(255,107,94,0.7)]"
-                    : "text-slate-300 hover:bg-[rgba(255,107,94,0.15)] hover:text-white"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-[rgba(255,107,94,0.15)] dark:hover:text-white"
                 }`}
               >
-                <Icon size={24} strokeWidth={active ? 2.4 : 2} />
+                <Icon size={21} strokeWidth={active ? 2.4 : 2} />
+                <span className="hidden text-sm font-semibold lg:inline">{label}</span>
               </Link>
             );
           })}
         </div>
 
         {/* Right: cart, messages, notifications, theme, locale, account */}
-        <div className="ml-auto flex items-center gap-1">
+        <div className="ml-auto flex items-center gap-0.5 sm:gap-1">
           <Link
             href="/cart"
             aria-label={t("cart")}
             title={t("cart")}
-            className="relative p-2 rounded-xl hover:bg-[rgba(255,107,94,0.15)] transition-colors"
+            className={`relative ${rightIconCls}`}
           >
             <svg className="w-[22px] h-[22px]" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.3 2.3c-.6.6-.2 1.7.7 1.7H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -177,7 +232,7 @@ export function Nav() {
             href="/messages"
             aria-label={t("messages")}
             title={t("messages")}
-            className="relative p-2 rounded-xl hover:bg-[rgba(255,107,94,0.15)] transition-colors"
+            className={`relative ${rightIconCls}`}
           >
             <MessageCircle size={22} />
             {msgUnread > 0 && (
@@ -195,7 +250,7 @@ export function Nav() {
             <div className="relative">
               <button
                 onClick={() => setAccountOpen((v) => !v)}
-                className="flex items-center p-1 rounded-xl hover:bg-[rgba(255,107,94,0.15)] transition-colors"
+                className="flex items-center p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-[rgba(255,107,94,0.15)] transition-colors"
                 aria-label="Account menu"
               >
                 <Avatar
@@ -207,7 +262,7 @@ export function Nav() {
                 />
               </button>
               {accountOpen && (
-                <div className={`${panelCls} min-w-52 py-1`}>
+                <div className={`absolute right-0 top-full mt-2 min-w-52 py-1 ${panelCls}`}>
                   <Link href={`/profile/${session.user.id}`} onClick={() => setAccountOpen(false)} className={itemCls}>
                     {t("myProfile")}
                   </Link>
@@ -230,7 +285,7 @@ export function Nav() {
                       setAccountOpen(false);
                       signOut();
                     }}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-600 hover:text-white transition-colors"
+                    className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-red-600 hover:text-white dark:text-slate-200 transition-colors rounded-lg"
                   >
                     {t("signOut")}
                   </button>
@@ -241,27 +296,16 @@ export function Nav() {
             <Button onClick={() => router.push("/login")}>{t("signIn")}</Button>
           )}
         </div>
-
-        {/* Mobile hamburger */}
-        <button
-          onClick={() => setOpen(!open)}
-          className="md:hidden p-2 -mr-2 rounded-xl hover:bg-[rgba(255,107,94,0.15)] transition-colors"
-          aria-label={t("toggleMenu")}
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            {open ? (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            )}
-          </svg>
-        </button>
       </div>
 
-      {/* Mobile drawer */}
+      {/* Mobile drawer (full secondary menu) */}
       {open && (
-        <div className="md:hidden mt-2 rounded-2xl border border-[var(--border-subtle)] px-4 py-3 space-y-1 animate-slide-down" style={{ background: "var(--surface)" }}>
-          <SearchBar />
+        <div className="md:hidden mt-2 rounded-2xl border px-3 py-2 space-y-1 animate-slide-down"
+          style={{ background: "var(--surface)", borderColor: "var(--border-subtle)" }}
+        >
+          <div className="py-1">
+            <SearchBar />
+          </div>
 
           {tabs.map(({ href, label }) => (
             <Link
@@ -309,20 +353,15 @@ export function Nav() {
                   href={`/profile/${session.user.id}`}
                   onClick={() => setOpen(false)}
                   className="rounded-lg px-3 py-2 hover:bg-[var(--surface-2)] transition-colors block"
+                  style={{ color: "var(--text-body)" }}
                 >
                   {t("myProfile")}
-                </Link>
-                <Link
-                  href="/profile/edit"
-                  onClick={() => setOpen(false)}
-                  className="rounded-lg px-3 py-2 hover:bg-[var(--surface-2)] transition-colors block"
-                >
-                  {t("editProfile")}
                 </Link>
                 <Link
                   href="/support"
                   onClick={() => setOpen(false)}
                   className="rounded-lg px-3 py-2 hover:bg-[var(--surface-2)] transition-colors block"
+                  style={{ color: "var(--text-body)" }}
                 >
                   {t("helpSupport")}
                 </Link>

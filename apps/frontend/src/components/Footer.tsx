@@ -16,11 +16,11 @@ export function Footer() {
       ],
     },
     {
-      title: t("market"),
+      title: t("shop"),
       links: [
         { href: "/shop", label: t("shop") },
-        { href: "/market", label: t("market") },
         { href: "/orders", label: t("orders") },
+        { href: "/warranties", label: t("warranties") },
         { href: "/seller/dashboard", label: t("seller") },
       ],
     },

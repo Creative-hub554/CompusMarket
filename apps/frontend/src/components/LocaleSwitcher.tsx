@@ -16,16 +16,20 @@ export function LocaleSwitcher() {
       <button
         onClick={() => switchLocale("km")}
         className={`px-1.5 py-0.5 rounded transition-colors ${
-          locale === "km" ? "text-amber-500" : "text-white/60 hover:text-white"
+          locale === "km"
+            ? "text-amber-500"
+            : "text-slate-500 hover:text-slate-800 dark:text-white/60 dark:hover:text-white"
         }`}
       >
         ខ្មែរ
       </button>
-      <span className="text-white/30">|</span>
+      <span className="text-slate-300 dark:text-white/30">|</span>
       <button
         onClick={() => switchLocale("en")}
         className={`px-1.5 py-0.5 rounded transition-colors ${
-          locale === "en" ? "text-amber-500" : "text-white/60 hover:text-white"
+          locale === "en"
+            ? "text-amber-500"
+            : "text-slate-500 hover:text-slate-800 dark:text-white/60 dark:hover:text-white"
         }`}
       >
         EN
