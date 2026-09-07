@@ -183,13 +183,16 @@ pnpm --filter admin dev --port 3001 # http://localhost:3001
 
 ### Frontend (`apps/frontend/.env`)
 - `DATABASE_URL` - PostgreSQL for direct DB access (used in API routes)
-- `AUTH_SECRET` / `NEXTAUTH_SECRET` - Auth encryption key
-- `AUTH_URL` / `NEXTAUTH_URL` - Public URL (default: `http://localhost:3000`)
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` - Clerk auth keys
+- `CLERK_WEBHOOK_SECRET` - Clerk webhook signing secret (user lifecycle sync)
+- `AUTH_SECRET` / `JWT_SECRET` - legacy seller-proxy JWT signing (same values as backend)
 - `OPENAI_API_KEY` - OpenAI key for AI features (optional)
 
 ### Admin (`apps/admin/.env`)
 - `DATABASE_URL` - PostgreSQL for direct DB access
-- `AUTH_SECRET` / `NEXTAUTH_SECRET` - Auth encryption key
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` - Clerk auth keys
+- `INTERNAL_API_URL` - server-to-server backend origin (default: `http://localhost:4000`)
+- `INTERNAL_SERVICE_TOKEN` - shared secret for internal backend relays (notification push, product writes)
 - `NEXT_PUBLIC_API_URL` - Backend API URL (default: `http://localhost:4000/api`)
 - `OPENAI_API_KEY` - OpenAI key for AI features (optional)
 

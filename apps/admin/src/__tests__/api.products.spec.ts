@@ -24,32 +24,44 @@ describe("api.products", () => {
     return new Headers(init?.headers);
   }
 
-  it("create attaches the Authorization Bearer header when a token is provided", async () => {
-    fetchMock.mockResolvedValue(okResponse({ id: "p1" }, 201));
-
-    await api.products.create({ name: "Laptop" }, "TOKEN-123");
-
-    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(url).toBe("http://localhost:4000/api/products");
-    expect(capturedHeaders(init).get("Authorization")).toBe("Bearer TOKEN-123");
-  });
-
-  it("update attaches the Authorization Bearer header when a token is provided", async () => {
-    fetchMock.mockResolvedValue(okResponse({ id: "p1" }));
-
-    await api.products.update("p1", { price: 200 }, "TOKEN-123");
-
-    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(url).toBe("http://localhost:4000/api/products/p1");
-    expect(capturedHeaders(init).get("Authorization")).toBe("Bearer TOKEN-123");
-  });
-
-  it("does not attach Authorization when no token is provided", async () => {
+  it("create posts to the admin-local route without an Authorization header", async () => {
     fetchMock.mockResolvedValue(okResponse({ id: "p1" }, 201));
 
     await api.products.create({ name: "Laptop" });
 
-    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("/api/admin/products");
+    expect(init?.method).toBe("POST");
     expect(capturedHeaders(init).get("Authorization")).toBeNull();
   });
-});
+
+  it("update patches the admin-local route without an Authorization header", async () => {
+    fetchMock.mockResolvedValue(okResponse({ id: "p1" }));
+
+    await api.products.update("p1", { price: 200 });
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("/api/admin/products/p1");
+    expect(init?.method).toBe("PATCH");
+    expect(capturedHeaders(init).get("Authorization")).toBeNull();
+  });
+
+  it("delete hits the admin-local route without an Authorization header", async () => {
+    fetchMock.mockResolvedValue(okResponse({ success: true }));
+
+    await api.products.delete("p1");
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("/api/admin/products/p1");
+    expect(init?.method).toBe("DELETE");
+    expect(capturedHeaders(init).get("Authorization")).toBeNull();
+  });
+
+  it("throws when the admin-local route returns a non-ok status", async () => {
+    fetchMock.mockResolvedValue(okResponse({ error: "Forbidden" }, 403));
+
+    await expect(api.products.create({ name: "Laptop" })).rejects.toThrow(
+      "API error: 403",
+    );
+  });
+});
