@@ -5,11 +5,10 @@ export const SITE_DESCRIPTION =
   "Social · Market · Careers — Cambodia's all-in-one platform";
 
 export function getSiteUrl(): string {
-  return (
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    process.env.NEXTAUTH_URL ||
-    "http://localhost:3000"
-  ).replace(/\/$/, "");
+  return (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(
+    /\/$/,
+    "",
+  );
 }
 
 export function localePath(locale: string, path: string): string {

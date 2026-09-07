@@ -79,7 +79,10 @@ export async function PATCH(
     if (isNaN(price) || price <= 0) {
       return NextResponse.json({ error: "Valid price is required" }, { status: 400 });
     }
-    data.price = price;
+    // Exact-decimal string like the backend ProductsService.update: a raw JS
+    // number would let the query engine expand the f64 (99.99 -> 99.98999999999999)
+    // into the numeric column. Only written when price is present.
+    data.price = price.toFixed(2);
   }
 
   if (body.stock !== undefined) {

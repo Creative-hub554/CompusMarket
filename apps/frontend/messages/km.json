@@ -57,6 +57,11 @@
     "applyNow": "ដាក់ពាក្យឥឡូវនេះ",
     "allRightsReserved": "រក្សាសិទ្ធិគ្រប់យ៉ាង។"
   },
+  "greeting": {
+    "title": "សូមស្វាគមន៍",
+    "message": "សូមស្វាគមន៍ {name}",
+    "defaultName": "ភ្ញៀវ"
+  },
   "shop": {
     "title": "ហាង",
     "productsCount": "{count} ផលិតផល",
@@ -94,6 +99,9 @@
     "submitReview": "ដាក់ស្នើការវាយតម្លៃ",
     "related": "អ្នកក៏អាចចូលចិត្ត",
     "recentlyViewed": "មើលថ្មីៗនេះ"
+  },
+  "price": {
+    "currencyKHR": "រៀល"
   },
   "cart": {
     "loading": "កំពុងផ្ទុក...",
@@ -145,6 +153,7 @@
     "adding": "កំពុងបន្ថែម...",
     "added": "បានបន្ថែមទៅកន្ត្រក!",
     "add": "បន្ថែមទៅកន្ត្រក",
+    "buyNow": "ទិញឥឡូវនេះ",
     "loginRequired": "សូមចូលគណនីដើម្បីបន្ថែមទំនិញទៅកន្ត្រក"
   },
   "market": {

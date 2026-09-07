@@ -31,6 +31,7 @@ import { MetricsModule } from "./metrics/metrics.module";
 import { ReportsModule } from "./reports/reports.module";
 import { SentryModule } from "./sentry/sentry.module";
 import { UsersModule } from "./users/users.module";
+import { AdsModule } from "./ads/ads.module";
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ SearchModule,
     ReportsModule,
     SentryModule,
     UsersModule,
+    AdsModule,
   ],
   controllers: [AppController],
   providers: [

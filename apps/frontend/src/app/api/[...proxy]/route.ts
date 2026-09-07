@@ -34,6 +34,8 @@ const ALLOWED_PREFIXES = [
   "/api/jobs",
   "/api/cart",
   "/api/health",
+  // Added ads proxy
+  "/api/ads",
 ];
 
 const HOP_BY_HOP_HEADERS = [
@@ -75,9 +77,14 @@ async function proxy(req: NextRequest) {
   const targetPath = path.replace(/^\/api/, "");
   const target = `${getApiBase()}${targetPath}${req.nextUrl.search}`;
 
+  // Clone request headers but drop hop-by-hop and cookies. Then set our authorization.
   const headers = new Headers();
-  ["cookie"].forEach((h) => headers.delete(h));
-  HOP_BY_HOP_HEADERS.forEach((h) => headers.delete(h));
+  for (const [k, v] of req.headers) {
+    const key = k.toLowerCase();
+    if (key === "cookie") continue;
+    if (HOP_BY_HOP_HEADERS.includes(key)) continue;
+    headers.set(k, v as string);
+  }
   if (authHeader) headers.set("authorization", authHeader);
 
   let res: Response;
@@ -90,7 +97,7 @@ async function proxy(req: NextRequest) {
         : await req.arrayBuffer(),
       cache: "no-store",
     });
-  } catch {
+  } catch (e) {
     return NextResponse.json({ error: "Upstream service unavailable" }, { status: 502 });
   }
 

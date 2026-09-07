@@ -11,7 +11,6 @@ on:
 
 env:
   REGISTRY: docker.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   # ============================================================================
@@ -26,6 +25,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Lowercase image name
+        run: echo "IMAGE_NAME=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -59,7 +61,7 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ github.sha }}
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:buildcache
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:buildcache,mode=max
+          cache-to: ${{ github.event_name != 'pull_request' && format('type=registry,ref={0}/{1}/backend:buildcache,mode=max', env.REGISTRY, env.IMAGE_NAME) || '' }}
 
       # ---- Frontend ----
       - name: Build and push frontend image
@@ -75,7 +77,7 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }}
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:buildcache
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:buildcache,mode=max
+          cache-to: ${{ github.event_name != 'pull_request' && format('type=registry,ref={0}/{1}/frontend:buildcache,mode=max', env.REGISTRY, env.IMAGE_NAME) || '' }}
 
       # ---- Admin ----
       - name: Build and push admin image
@@ -88,7 +90,7 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/admin:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/admin:${{ github.sha }}
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/admin:buildcache
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/admin:buildcache,mode=max
+          cache-to: ${{ github.event_name != 'pull_request' && format('type=registry,ref={0}/{1}/admin:buildcache,mode=max', env.REGISTRY, env.IMAGE_NAME) || '' }}
 
   # ============================================================================
   # Security scanning
@@ -101,6 +103,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Lowercase image name
+        run: echo "IMAGE_NAME=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
 
       - name: Run Docker Scout on backend
         uses: docker/scout-action@v1

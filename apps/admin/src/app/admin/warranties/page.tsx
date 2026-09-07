@@ -31,11 +31,27 @@ const claimStatusColors: Record<string, string> = {
   REJECTED: "bg-red-100 text-red-800",
 };
 
+const warrantyFilters: Array<WarrantyStatus | "all"> = [
+  "all",
+  WarrantyStatus.ACTIVE,
+  WarrantyStatus.EXPIRED,
+  WarrantyStatus.CLAIMED,
+  WarrantyStatus.VOID,
+];
+
+const claimStatusFilters: Array<WarrantyClaimStatus | "all"> = [
+  "all",
+  WarrantyClaimStatus.PENDING,
+  WarrantyClaimStatus.APPROVED,
+  WarrantyClaimStatus.REJECTED,
+];
+
 export default function AdminWarrantiesPage() {
   const [warranties, setWarranties] = useState<Warranty[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [filter, setFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<WarrantyStatus | "all">("all");
+  const [claimStatusFilter, setClaimStatusFilter] = useState<WarrantyClaimStatus | "all">("all");
 
   useEffect(() => {
     fetch("/api/admin/warranties")
@@ -48,7 +64,11 @@ export default function AdminWarrantiesPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const filtered = filter === "all" ? warranties : warranties.filter((w) => w.status === filter);
+  const filtered = warranties.filter(
+    (w) =>
+      (statusFilter === "all" || w.status === statusFilter) &&
+      (claimStatusFilter === "all" || w.claimStatus === claimStatusFilter)
+  );
 
   if (loading) return <div>Loading warranties...</div>;
 
@@ -60,20 +80,38 @@ export default function AdminWarrantiesPage() {
     <div>
       <h1 className="text-2xl font-bold mb-6">Warranty Management</h1>
 
-      <div className="flex gap-2 mb-6">
-        {["all", "ACTIVE", "EXPIRED", "CLAIMED", "VOID"].map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-3 py-1 text-sm rounded-full border transition-colors ${
-              filter === f
-                ? "bg-gray-900 text-white border-gray-900"
-                : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
-            }`}
-          >
-            {f === "all" ? "All" : f.charAt(0) + f.slice(1).toLowerCase()}
-          </button>
-        ))}
+      <div className="space-y-3 mb-6">
+        <div className="flex flex-wrap gap-2">
+          {warrantyFilters.map((f) => (
+            <button
+              key={f}
+              onClick={() => setStatusFilter(f)}
+              className={`px-3 py-1 text-sm rounded-full border transition-colors ${
+                statusFilter === f
+                  ? "bg-gray-900 text-white border-gray-900"
+                  : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
+              }`}
+            >
+              {f === "all" ? "All" : f.charAt(0) + f.slice(1).toLowerCase()}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {claimStatusFilters.map((f) => (
+            <button
+              key={f}
+              onClick={() => setClaimStatusFilter(f)}
+              className={`px-3 py-1 text-sm rounded-full border transition-colors ${
+                claimStatusFilter === f
+                  ? "bg-gray-900 text-white border-gray-900"
+                  : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
+              }`}
+            >
+              {f === "all" ? "All claims" : `Claims: ${f.charAt(0) + f.slice(1).toLowerCase()}`}
+            </button>
+          ))}
+        </div>
       </div>
 
       {filtered.length === 0 ? (

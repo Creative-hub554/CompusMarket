@@ -88,6 +88,9 @@ function makePrisma() {
       update: vi.fn(),
       updateMany: vi.fn(),
     },
+    campaign: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
   };
   db.$transaction = vi.fn((arg: unknown) => {
     // Callback form (interactive tx) and array form (batch tx) are both used.

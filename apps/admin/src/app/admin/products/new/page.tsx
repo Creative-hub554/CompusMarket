@@ -2,12 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { api, type Category } from "@/services/api";
 
 export default function NewProductPage() {
   const router = useRouter();
-  const { data: session } = useSession();
   const [categories, setCategories] = useState<Category[]>([]);
   const [uploading, setUploading] = useState(false);
   const [images, setImages] = useState<string[]>([]);
@@ -49,12 +47,13 @@ export default function NewProductPage() {
     await api.products.create({
       ...form,
       images,
-      price: parseFloat(form.price),
+      // Round to cents so the wire value matches what the backend stores.
+      price: Math.round(parseFloat(form.price) * 100) / 100,
       stock: parseInt(form.stock),
       warrantyMonths: form.warrantyMonths
         ? parseInt(form.warrantyMonths)
         : undefined,
-    }, session?.accessToken);
+    });
     router.push("/admin/products");
   }
 

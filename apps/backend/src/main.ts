@@ -11,7 +11,8 @@ import { initSentry } from "./sentry/sentry.module";
 
 async function bootstrap() {
   initSentry();
-  const app = await NestFactory.create(AppModule);
+  // rawBody keeps the unparsed payload for Stripe webhook signature checks.
+  const app = await NestFactory.create(AppModule, { rawBody: true });
   app.setGlobalPrefix("api");
 
   // Explicit allow-list of origins (comma-separated via CORS_ORIGIN env).

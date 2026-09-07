@@ -57,6 +57,11 @@
     "applyNow": "Apply Now",
     "allRightsReserved": "All rights reserved."
   },
+  "greeting": {
+    "title": "Welcome",
+    "message": "Hello {name}",
+    "defaultName": "Guest"
+  },
   "shop": {
     "title": "Shop",
     "productsCount": "{count} products",
@@ -94,6 +99,9 @@
     "submitReview": "Submit review",
     "related": "You may also like",
     "recentlyViewed": "Recently viewed"
+  },
+  "price": {
+    "currencyKHR": "KHR"
   },
   "cart": {
     "loading": "Loading...",
@@ -145,6 +153,7 @@
     "adding": "Adding...",
     "added": "Added to Cart!",
     "add": "Add to Cart",
+    "buyNow": "Buy Now",
     "loginRequired": "Please log in to add items to cart"
   },
   "market": {

@@ -21,7 +21,9 @@ cp .env.example .env
 # Edit .env and set:
 #   AUTH_SECRET=<32+ char random string>
 #   JWT_SECRET=<32+ char random string>
-#   NEXTAUTH_SECRET=<32+ char random string>
+#   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=<Clerk publishable key>
+#   CLERK_SECRET_KEY=<Clerk secret key>
+#   CLERK_WEBHOOK_SECRET=<Clerk webhook signing secret (storefront only)>
 #   OPENAI_API_KEY=<your-key> (or OPENROUTER_API_KEY)
 #   MINIO_ACCESS_KEY=<same as MINIO_ROOT_USER>
 #   MINIO_SECRET_KEY=<same as MINIO_ROOT_PASSWORD>
@@ -48,11 +50,7 @@ This brings up:
 
 All three services depend on healthy infra, so they wait for database/cache/search to be ready.
 
-On first boot a one-off **`backend-db-init`** container automatically applies the Prisma schema (`prisma db push`) and runs the idempotent demo seed (`prisma db seed`) before the backend starts, so the stack works out-of-the-box on a fresh PostgreSQL volume. The seed creates the admin user plus demo categories/products:
-
-- **Admin login**: `SEED_ADMIN_EMAIL` (default `admin@example.com`), `SEED_ADMIN_PASSWORD` (default `change-me`)
-
-The seed is upsert-based, so it is safe to re-run on every boot. Set `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` in `.env` to change the initial admin credentials.
+On first boot a one-off **`backend-db-init`** container automatically applies the Prisma schema (`prisma db push`) and runs the idempotent demo seed (`prisma db seed`) before the backend starts, so the stack works out-of-the-box on a fresh PostgreSQL volume. The seed creates the admin user row plus demo categories/products (upsert-based, safe to re-run on every boot; set `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` in `.env` to change it).
 
 ### 3. Access the apps
 
@@ -61,15 +59,20 @@ The seed is upsert-based, so it is safe to re-run on every boot. Set `SEED_ADMIN
 - Backend API: http://localhost:4000/api
 - MinIO Console: http://localhost:9001
 
-### 4. Initial admin (automatic in Docker)
+### 4. Initial admin
 
-In Docker the schema + seed are applied automatically by the `backend-db-init` container
-on first boot, so no manual step is needed. Log in with `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`.
+Auth is **Clerk** (admin console + storefront); authorization is DB-first (`User.role`).
+The seed only creates the **DB row** — it no longer provisions login credentials, so to
+sign in as admin you must also have a Clerk account for `SEED_ADMIN_EMAIL`:
 
-For local (non-Docker) dev, run the seed manually:
-```bash
-pnpm --filter @theo/database exec prisma db seed
-```
+1. Invite/create the user in the Clerk Dashboard (Users → Invite), or via the Backend API
+   (`POST /v1/users`), using the same email as `SEED_ADMIN_EMAIL`.
+2. When that user first signs in, the Clerk webhook creates/links the local DB user
+   (matched by `clerkId`, with an email fallback) and the existing `ADMIN` role applies.
+
+Every DB user with role `ADMIN`/`CONTENT_EDITOR` needs a matching Clerk account before
+the admin console can be used. (See `docs/superpowers/plans/2026-09-04-admin-clerk-cutover.md`
+Phase 4 for the full checklist.)
 
 ## Build Details
 
@@ -84,14 +87,17 @@ Each Dockerfile uses `turbo prune --docker` to extract only required workspace p
 ### Environment Variables at Build vs. Runtime
 
 **Build-time only** (via ARG in Dockerfile):
-- `NEXT_PUBLIC_API_URL` (frontend)
-- `NEXT_PUBLIC_SITE_URL` (frontend)
+- `NEXT_PUBLIC_API_URL` (frontend/admin)
+- `NEXT_PUBLIC_SITE_URL` (frontend/admin)
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` (frontend/admin)
 
 **Runtime** (loaded from `compose.yaml` `environment`, sourcing the root `.env`):
 - `DATABASE_URL` (backend, frontend, admin)
-- `AUTH_SECRET`, `JWT_SECRET`, `NEXTAUTH_SECRET`
+- `AUTH_SECRET`, `JWT_SECRET` (backend + frontend legacy seller bridge; **not** the admin)
+- `CLERK_SECRET_KEY` (frontend/admin), `CLERK_WEBHOOK_SECRET` (frontend)
 - `REDIS_URL`, `MEILI_HOST`, `MEILI_API_KEY`
 - `MINIO_*` credentials
+- `INTERNAL_API_URL`, `INTERNAL_SERVICE_TOKEN` (admin)
 - All `NEXT_PUBLIC_*` vars (frontend/admin)
 
 Runtime secrets override .env files via the compose file's `env_file` directive.

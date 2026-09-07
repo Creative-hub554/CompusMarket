@@ -115,6 +115,7 @@ services:
       METRICS_TOKEN: ${METRICS_TOKEN:-metrics-token-change-me}
       AUTH_SECRET: ${AUTH_SECRET}
       JWT_SECRET: ${JWT_SECRET}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:-}
       CORS_ORIGIN: ${CORS_ORIGIN}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
@@ -147,12 +148,15 @@ services:
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://backend:4000}
         NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
     restart: unless-stopped
     environment:
       NODE_ENV: production
       PORT: 3000
       DATABASE_URL: postgresql://theo:${POSTGRES_PASSWORD}@postgres:5432/theo_platform
-      NEXTAUTH_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:-}
+      CLERK_WEBHOOK_SECRET: ${CLERK_WEBHOOK_SECRET:-}
       AUTH_SECRET: ${AUTH_SECRET}
       JWT_SECRET: ${JWT_SECRET}
       SENTRY_DSN: ${SENTRY_DSN:-}
@@ -172,14 +176,14 @@ services:
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://backend:4000}
         NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
     restart: unless-stopped
     environment:
       NODE_ENV: production
       PORT: 3001
       DATABASE_URL: postgresql://theo:${POSTGRES_PASSWORD}@postgres:5432/theo_platform
-      AUTH_SECRET: ${AUTH_SECRET}
-      NEXTAUTH_SECRET: ${AUTH_SECRET}
-      NEXTAUTH_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:-}
       SENTRY_DSN: ${SENTRY_DSN:-}
       # Server-to-server backend calls (real-time notification relay).
       INTERNAL_API_URL: ${INTERNAL_API_URL:-http://backend:4000}

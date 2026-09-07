@@ -1,26 +1,21 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-const ADMIN_ROLES = ["ADMIN", "CONTENT_EDITOR"];
+// Authentication only — authorization is done server-side against the
+// database (requireAdmin / the admin layout guard), never here in the edge
+// runtime where Postgres is unavailable.
+const isProtectedRoute = createRouteMatcher(["/admin(.*)"]);
 
-export async function middleware(req: NextRequest) {
-  const token = await getToken({ req });
-  const { pathname } = req.nextUrl;
-
-  if (!token?.sub) {
-    const loginUrl = new URL("/login", req.url);
-    return NextResponse.redirect(loginUrl);
+export default clerkMiddleware(async (auth, req) => {
+  const { userId, redirectToSignIn } = await auth();
+  if (isProtectedRoute(req) && !userId) {
+    return redirectToSignIn({ returnBackUrl: req.nextUrl.toString() });
   }
-
-  const role = typeof token.role === "string" ? token.role : "";
-  if (!ADMIN_ROLES.includes(role)) {
-    // Authenticated but lacking an admin role: send to the storefront.
-    return NextResponse.redirect(new URL("/", req.url));
-  }
-
-  return NextResponse.next();
-}
+});
 
 export const config = {
-  matcher: ["/admin/:path*"],
-};
+  // Run on every request except static assets so that `auth()` works in all
+  // route handlers (e.g. /api/admin/*, /api/auth/session).
+  matcher: [
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+  ],
+};
