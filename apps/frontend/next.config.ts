@@ -12,6 +12,10 @@ const nextConfig: NextConfig = {
   output: "standalone",
   outputFileTracingRoot: path.join(__dirname, "../../"),
   transpilePackages: ["@react-pdf/renderer", "@theo/ui"],
+  // Keep Prisma external to the server bundle: the query engine DLL is resolved
+  // at runtime from node_modules (the store's .prisma/client), and bundling it
+  // makes the client look for the engine next to .next/server, which fails.
+  serverExternalPackages: ["@prisma/client", "@prisma/engines", "@theo/database"],
   images: {
     // Allow-list only: localhost dev servers and the MinIO upload endpoint.
     // Never use hostname "**" here — it turns the image optimizer into an
