@@ -13,7 +13,7 @@ import {
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { Request } from "express";
-import { AdsService } from "./ads.service";
+import { AdsService, CreateBannerDto, CreateCampaignDto } from "./ads.service";
 import { RolesGuard } from "../auth/roles.guard";
 import { Roles } from "../auth/roles.decorator";
 
@@ -25,13 +25,13 @@ export class AdsController {
 
   @Post("/campaigns")
   @UseGuards(AuthGuard("jwt"))
-  async createCampaign(@Req() req: AuthedReq, @Body() body: any) {
+  async createCampaign(@Req() req: AuthedReq, @Body() body: CreateCampaignDto) {
     return this.ads.createCampaign(req.user.userId, body);
   }
 
   @Post("/banner-purchase")
   @UseGuards(AuthGuard("jwt"))
-  async createBanner(@Req() req: AuthedReq, @Body() body: any) {
+  async createBanner(@Req() req: AuthedReq, @Body() body: CreateBannerDto) {
     return this.ads.createBannerPurchase(req.user.userId, body);
   }
 

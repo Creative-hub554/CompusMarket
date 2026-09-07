@@ -11,17 +11,40 @@ export class StripeService {
     if (key) this.stripe = new Stripe(key, { apiVersion: "2022-11-15" });
   }
 
-  async createPaymentIntent(amountCents: number, currency = "usd", metadata?: Record<string, string>) {
+  async createPaymentIntent(amountCents: number, currency = "usd", metadata?: Record<string, string>): Promise<Stripe.PaymentIntent> {
     if (!this.stripe) {
       this.logger.log(`Stripe not configured; simulate payment intent for ${amountCents} ${currency}`);
-      return { id: `pi_sim_${Date.now()}`, client_secret: `secret_sim_${Date.now()}`, status: "requires_payment_method" } as any;
+      return {
+        id: `pi_sim_${Date.now()}`,
+        object: "payment_intent",
+        amount: amountCents,
+        created: Math.floor(Date.now() / 1000),
+        currency,
+        livemode: false,
+        metadata: metadata ?? {},
+        status: "requires_payment_method",
+        client_secret: `secret_sim_${Date.now()}`,
+        payment_method_types: ["card"],
+      } as unknown as Stripe.PaymentIntent;
     }
     const pi = await this.stripe.paymentIntents.create({ amount: amountCents, currency, metadata });
     return pi;
   }
 
-  async capturePaymentIntent(id: string) {
-    if (!this.stripe) return { id: `sim_capture_${Date.now()}` } as any;
+  async capturePaymentIntent(id: string): Promise<Stripe.PaymentIntent> {
+    if (!this.stripe) {
+      return {
+        id: `sim_capture_${Date.now()}`,
+        object: "payment_intent",
+        amount: 0,
+        created: Math.floor(Date.now() / 1000),
+        currency: "usd",
+        livemode: false,
+        metadata: {},
+        status: "succeeded",
+        payment_method_types: [],
+      } as unknown as Stripe.PaymentIntent;
+    }
     const pi = await this.stripe.paymentIntents.capture(id);
     return pi;
   }
