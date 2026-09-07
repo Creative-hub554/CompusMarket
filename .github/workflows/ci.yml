@@ -151,7 +151,7 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ github.sha }}
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:buildcache
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:buildcache,mode=max
+          cache-to: ${{ github.event_name != 'pull_request' && format('type=registry,ref={0}/{1}-backend:buildcache,mode=max', env.REGISTRY, env.IMAGE_NAME) || '' }}
 
       - name: Build and push frontend
         uses: docker/build-push-action@v5
@@ -166,7 +166,7 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ github.sha }}
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:buildcache
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:buildcache,mode=max
+          cache-to: ${{ github.event_name != 'pull_request' && format('type=registry,ref={0}/{1}-frontend:buildcache,mode=max', env.REGISTRY, env.IMAGE_NAME) || '' }}
 
       - name: Build and push admin
         uses: docker/build-push-action@v5
@@ -178,21 +178,21 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-admin:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-admin:${{ github.sha }}
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-admin:buildcache
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-admin:buildcache,mode=max
+          cache-to: ${{ github.event_name != 'pull_request' && format('type=registry,ref={0}/{1}-admin:buildcache,mode=max', env.REGISTRY, env.IMAGE_NAME) || '' }}
 
   dependency-review:
     runs-on: ubuntu-latest
     # The Dependency Review action requires the GitHub Dependency Graph,
     # which is a repository-level setting that cannot be enabled from CI or
-    # the API. Keep the check advisory but don't block merges until it's
+    # the API. Keep the step advisory but don't fail the job until it's
     # enabled in the repo settings.
-    continue-on-error: true
     if: github.event_name == 'pull_request'
     permissions:
       contents: read
     steps:
       - uses: actions/checkout@v4
       - name: Dependency Review
+        continue-on-error: true
         uses: actions/dependency-review-action@v4
         with:
           config-file: '.github/dependency-review-config.yml'
