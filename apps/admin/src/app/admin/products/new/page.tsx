@@ -47,7 +47,8 @@ export default function NewProductPage() {
     await api.products.create({
       ...form,
       images,
-      price: parseFloat(form.price),
+      // Round to cents so the wire value matches what the backend stores.
+      price: Math.round(parseFloat(form.price) * 100) / 100,
       stock: parseInt(form.stock),
       warrantyMonths: form.warrantyMonths
         ? parseInt(form.warrantyMonths)

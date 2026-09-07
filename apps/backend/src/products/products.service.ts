@@ -26,7 +26,10 @@ export class ProductsService {
 
   async create(dto: CreateProductDto): Promise<Product> {
     const product = await this.prisma.product.create({
-      data: { ...dto, images: dto.images ?? [] },
+      // toFixed(2) yields an exact decimal string; passing the raw JS number
+      // makes the query engine expand the f64 (e.g. 99.99 -> 99.98999999999999)
+      // into the numeric column.
+      data: { ...dto, price: dto.price.toFixed(2), images: dto.images ?? [] },
     });
     await this.searchService.indexProduct(product.id);
     return this.generateQr(product.id);
@@ -173,7 +176,14 @@ export class ProductsService {
 
   async update(id: string, dto: UpdateProductDto): Promise<Product> {
     await this.findOne(id);
-    const product = await this.prisma.product.update({ where: { id }, data: dto });
+    const product = await this.prisma.product.update({
+      where: { id },
+      data: {
+        ...dto,
+        // Same exact-decimal normalization as create(): keep numeric columns clean.
+        ...(dto.price !== undefined ? { price: dto.price.toFixed(2) } : {}),
+      },
+    });
     await this.searchService.indexProduct(id);
     return product;
   }

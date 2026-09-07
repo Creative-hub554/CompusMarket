@@ -23,6 +23,7 @@ describe("ProductsService", () => {
     },
     review: {
       create: vi.fn(),
+      aggregate: vi.fn(),
     },
   };
 
@@ -119,6 +120,51 @@ describe("ProductsService", () => {
       expect(mockPrisma.product.findMany).toHaveBeenCalledWith(
         expect.objectContaining({ skip: 0, take: 48 }),
       );
+    });
+  });
+
+  describe("price normalization", () => {
+    it("create stores price as an exact 2-dp decimal string", async () => {
+      mockPrisma.product.create.mockResolvedValue({ id: "p1" });
+      mockPrisma.product.update.mockResolvedValue({ id: "p1", qrCode: "data:image/png;base64,x" });
+
+      await service.create({
+        name: "x",
+        description: "y",
+        price: 99.99,
+        condition: "A",
+        categoryId: "c1",
+      });
+
+      expect(mockPrisma.product.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ price: "99.99" }),
+        }),
+      );
+    });
+
+    it("update stores price as an exact 2-dp decimal string when provided", async () => {
+      mockPrisma.product.findUnique.mockResolvedValue({ id: "p1" });
+      mockPrisma.review.aggregate.mockResolvedValue({ _avg: { rating: null }, _count: { rating: 0 } });
+      mockPrisma.product.update.mockResolvedValue({ id: "p1" });
+
+      await service.update("p1", { price: 42.5 });
+
+      expect(mockPrisma.product.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ price: "42.50" }),
+        }),
+      );
+    });
+
+    it("update leaves price untouched when not provided", async () => {
+      mockPrisma.product.findUnique.mockResolvedValue({ id: "p1" });
+      mockPrisma.review.aggregate.mockResolvedValue({ _avg: { rating: null }, _count: { rating: 0 } });
+      mockPrisma.product.update.mockResolvedValue({ id: "p1" });
+
+      await service.update("p1", { name: "renamed" });
+
+      expect(mockPrisma.product.update.mock.calls[0][0].data.price).toBeUndefined();
     });
   });
 
