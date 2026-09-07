@@ -1,6 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
+import { useTransitionNavigation } from "@/lib/use-transition-navigation";
 
 type ProductCardProps = {
   id: string;
@@ -28,6 +31,7 @@ export function ProductCard({
   sellerBadge,
 }: ProductCardProps) {
   const t = useTranslations("product");
+  const navigate = useTransitionNavigation();
   const conditionLabels: Record<string, string> = {
     A: t("conditionA"),
     B: t("conditionB"),
@@ -37,13 +41,27 @@ export function ProductCard({
   return (
     <Link
       href={`/shop/${id}`}
+      onClick={(e) => {
+        // Let the browser handle modified clicks (new tab, etc.) untouched.
+        if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
+          return;
+        }
+        e.preventDefault();
+        navigate(`/shop/${id}`, "nav-forward");
+      }}
       className="group block rounded-2xl border overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lift)]"
       style={{
         background: "var(--surface)",
         borderColor: "var(--border-subtle)",
       }}
     >
-      <div className="aspect-square w-full flex items-center justify-center overflow-hidden" style={{ background: "var(--surface-2)" }}>
+      <div
+        className="product-morph aspect-square w-full flex items-center justify-center overflow-hidden"
+        style={{
+          background: "var(--surface-2)",
+          viewTransitionName: `product-${id}`,
+        }}
+      >
         {images?.[0] ? (
           <Image
             src={images[0]}

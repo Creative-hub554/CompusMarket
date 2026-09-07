@@ -124,7 +124,10 @@ export function Nav() {
 
   return (
     <nav className="sticky top-0 z-40 px-3 pt-3 sm:px-4">
-      <div className="mx-auto flex max-w-6xl items-center gap-2 rounded-2xl border border-[rgba(255,107,94,0.22)] bg-slate-900/85 px-3 py-2.5 text-white shadow-[0_12px_40px_-16px_rgba(255,107,94,0.5)] backdrop-blur-xl sm:px-4">
+      <div
+        className="mx-auto flex max-w-6xl items-center gap-2 rounded-2xl border border-[rgba(255,107,94,0.22)] bg-slate-900/85 px-3 py-2.5 text-white shadow-[0_12px_40px_-16px_rgba(255,107,94,0.5)] backdrop-blur-xl sm:px-4"
+        style={{ viewTransitionName: "site-header" }}
+      >
         {/* Left: logo + search */}
         <Link href="/" className="shrink-0 no-underline flex items-center gap-2.5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
