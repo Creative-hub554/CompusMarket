@@ -42,4 +42,7 @@ COPY --from=installer --chown=nextjs:nextjs /app/node_modules/.pnpm/@prisma+clie
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000
+# Docker injects HOSTNAME (container id) and Next.js binds to it, so the app is
+# unreachable on 127.0.0.1 and in-container healthchecks fail. Bind all interfaces.
+ENV HOSTNAME=0.0.0.0
 CMD ["node", "apps/frontend/server.js"]

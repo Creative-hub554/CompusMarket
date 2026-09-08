@@ -1,0 +1,4 @@
+# Shell scripts must stay LF even on Windows checkouts (autocrlf would emit
+# CRLF, which makes `sh` die with "illegal option" when they are bind-mounted
+# into containers, e.g. docker/nginx/entrypoint.sh).
+*.sh text eol=lf
