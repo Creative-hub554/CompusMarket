@@ -153,6 +153,7 @@ model User {
   bio           String?
   coverImage    String?
   accountPrivate Boolean  @default(false)
+  theme         String?   @default("gold")
   credits       Int       @default(0)
   autoReplyEnabled Boolean @default(false)
   autoReplyText    String?

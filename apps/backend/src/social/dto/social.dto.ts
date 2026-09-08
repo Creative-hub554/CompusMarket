@@ -122,4 +122,18 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsBoolean()
   accountPrivate?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  theme?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  autoReplyEnabled?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  autoReplyText?: string;
 }

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
 import { useTranslations } from "next-intl";
-import { Home, Store, ShoppingBag, Briefcase, MessageCircle, Users } from "lucide-react";
+import { Home, Store, Briefcase, MessageCircle } from "lucide-react";
 import { SearchBar } from "./SearchBar";
 import { LocaleSwitcher } from "./LocaleSwitcher";
 import { ThemeToggle } from "./ThemeToggle";
@@ -77,12 +77,11 @@ export function Nav() {
   const groupLabelCls =
     "px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]";
 
-  // Center icon tabs — the 4 core destinations.
+  // Center icon tabs — the core destinations. People lives inside the
+  // Notifications panel (follow requests + suggestions); Market is Shop.
   const tabs = [
     { href: "/feed", label: t("feed"), Icon: Home, isActive: (p: string) => p.startsWith("/feed") },
-    { href: "/people", label: t("people"), Icon: Users, isActive: (p: string) => p.startsWith("/people") },
     { href: "/shop", label: t("shop"), Icon: Store, isActive: (p: string) => p.startsWith("/shop") },
-    { href: "/market", label: t("market"), Icon: ShoppingBag, isActive: (p: string) => p.startsWith("/market") },
     { href: "/jobs", label: t("jobs"), Icon: Briefcase, isActive: (p: string) => p.startsWith("/jobs") },
   ];
 
@@ -212,6 +211,9 @@ export function Nav() {
               </button>
               {accountOpen && (
                 <div className={`${panelCls} min-w-52 py-1`}>
+                  <Link href="/account" onClick={() => setAccountOpen(false)} className={itemCls}>
+                    {t("dashboard")}
+                  </Link>
                   <Link href={`/profile/${session.user.id}`} onClick={() => setAccountOpen(false)} className={itemCls}>
                     {t("myProfile")}
                   </Link>
@@ -309,6 +311,13 @@ export function Nav() {
           <div className="pt-1 border-t" style={{ borderColor: "var(--border-subtle)" }}>
             {session?.user ? (
               <>
+                <Link
+                  href="/account"
+                  onClick={() => setOpen(false)}
+                  className="rounded-lg px-3 py-2 hover:bg-[var(--surface-2)] transition-colors block"
+                >
+                  {t("dashboard")}
+                </Link>
                 <Link
                   href={`/profile/${session.user.id}`}
                   onClick={() => setOpen(false)}

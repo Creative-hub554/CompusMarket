@@ -8,7 +8,6 @@ const API_BASE = getApiBase();
 const STATIC_PATHS = [
   "/",
   "/shop",
-  "/market",
   "/community",
   "/community/careers",
   "/community/notes",

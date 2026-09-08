@@ -45,7 +45,7 @@ export default async function Home() {
   const tiles = categories.slice(0, 8);
   const pillars = [
     { href: "/feed", label: nav("social"), Icon: MessagesSquare },
-    { href: "/market", label: nav("market"), Icon: Store },
+    { href: "/shop", label: nav("shop"), Icon: Store },
     { href: "/jobs", label: nav("jobs"), Icon: Briefcase },
   ];
 

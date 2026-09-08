@@ -48,6 +48,112 @@
   --color-khmer-gold-light: #ff9a3d;
 }
 
+/* ---- Personal account themes (scoped gold-palette overrides) ----
+   Tailwind v4 utilities compile to var(--color-gold-*), so overriding the
+   variables inside a `theme-<name>` wrapper retints the accent everywhere
+   inside it (profile page, account dashboard picker). "gold" is the default
+   palette and needs no overrides. */
+.theme-emerald {
+  --color-gold: #10b981;
+  --color-gold-light: #34d399;
+  --color-gold-dark: #059669;
+  --color-gold-50: #ecfdf5;
+  --color-gold-100: #d1fae5;
+  --color-gold-200: #a7f3d0;
+  --color-gold-300: #6ee7b7;
+  --color-gold-400: #34d399;
+  --color-gold-500: #10b981;
+  --color-gold-600: #059669;
+  --color-gold-700: #047857;
+  --color-gold-800: #065f46;
+  --color-gold-900: #064e3b;
+  --color-gold-950: #022c22;
+  --color-accent: #10b981;
+  --color-accent-dark: #059669;
+  --color-accent2: #34d399;
+  --color-accent2-dark: #10b981;
+}
+.theme-ocean {
+  --color-gold: #0ea5e9;
+  --color-gold-light: #38bdf8;
+  --color-gold-dark: #0284c7;
+  --color-gold-50: #f0f9ff;
+  --color-gold-100: #e0f2fe;
+  --color-gold-200: #bae6fd;
+  --color-gold-300: #7dd3fc;
+  --color-gold-400: #38bdf8;
+  --color-gold-500: #0ea5e9;
+  --color-gold-600: #0284c7;
+  --color-gold-700: #0369a1;
+  --color-gold-800: #075985;
+  --color-gold-900: #0c4a6e;
+  --color-gold-950: #082f49;
+  --color-accent: #0ea5e9;
+  --color-accent-dark: #0284c7;
+  --color-accent2: #38bdf8;
+  --color-accent2-dark: #0ea5e9;
+}
+.theme-violet {
+  --color-gold: #8b5cf6;
+  --color-gold-light: #a78bfa;
+  --color-gold-dark: #7c3aed;
+  --color-gold-50: #f5f3ff;
+  --color-gold-100: #ede9fe;
+  --color-gold-200: #ddd6fe;
+  --color-gold-300: #c4b5fd;
+  --color-gold-400: #a78bfa;
+  --color-gold-500: #8b5cf6;
+  --color-gold-600: #7c3aed;
+  --color-gold-700: #6d28d9;
+  --color-gold-800: #5b21b6;
+  --color-gold-900: #4c1d95;
+  --color-gold-950: #2e1065;
+  --color-accent: #8b5cf6;
+  --color-accent-dark: #7c3aed;
+  --color-accent2: #a78bfa;
+  --color-accent2-dark: #8b5cf6;
+}
+.theme-rose {
+  --color-gold: #f43f5e;
+  --color-gold-light: #fb7185;
+  --color-gold-dark: #e11d48;
+  --color-gold-50: #fff1f2;
+  --color-gold-100: #ffe4e6;
+  --color-gold-200: #fecdd3;
+  --color-gold-300: #fda4af;
+  --color-gold-400: #fb7185;
+  --color-gold-500: #f43f5e;
+  --color-gold-600: #e11d48;
+  --color-gold-700: #be123c;
+  --color-gold-800: #9f1239;
+  --color-gold-900: #881337;
+  --color-gold-950: #4c0519;
+  --color-accent: #f43f5e;
+  --color-accent-dark: #e11d48;
+  --color-accent2: #fb7185;
+  --color-accent2-dark: #f43f5e;
+}
+.theme-slate {
+  --color-gold: #64748b;
+  --color-gold-light: #94a3b8;
+  --color-gold-dark: #475569;
+  --color-gold-50: #f8fafc;
+  --color-gold-100: #f1f5f9;
+  --color-gold-200: #e2e8f0;
+  --color-gold-300: #cbd5e1;
+  --color-gold-400: #94a3b8;
+  --color-gold-500: #64748b;
+  --color-gold-600: #475569;
+  --color-gold-700: #334155;
+  --color-gold-800: #1e293b;
+  --color-gold-900: #0f172a;
+  --color-gold-950: #020617;
+  --color-accent: #64748b;
+  --color-accent-dark: #475569;
+  --color-accent2: #94a3b8;
+  --color-accent2-dark: #64748b;
+}
+
 /* ---- Semantic surface tokens (flip in dark mode) ---- */
 
 :root {

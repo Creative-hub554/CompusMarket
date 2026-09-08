@@ -16,13 +16,12 @@ export async function SectionShell({
   let groups: SidebarGroup[] = [];
 
   if (section === "market") {
-    title = t("market");
+    title = t("shop");
     groups = [
       {
         label: t("buying"),
         items: [
           { href: "/shop", label: t("shop") },
-          { href: "/market", label: t("market") },
           { href: "/orders", label: t("orders") },
           { href: "/warranties", label: t("warranties") },
         ],
