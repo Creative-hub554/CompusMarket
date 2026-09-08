@@ -216,6 +216,7 @@ model User {
   bannerAds       BannerAd[]
   videoAds        VideoAd[]
   videoAdViews    VideoAdView[]
+  albums          ProfileAlbum[]
 }
 
 model Account {
@@ -1285,7 +1286,6 @@ model VideoAd {
 
   @@index([userId])
 }
-
 model VideoAdView {
   id            String   @id @default(uuid())
   videoAdId     String
@@ -1301,4 +1301,30 @@ model VideoAdView {
   @@index([videoAdId])
   @@index([viewerId])
   @@index([billed])
+}
+
+model ProfileAlbum {
+  id          String             @id @default(uuid())
+  ownerId     String
+  title       String
+  description String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  owner  User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  images ProfileAlbumImage[]
+
+  @@index([ownerId, createdAt])
+}
+
+model ProfileAlbumImage {
+  id        String       @id @default(uuid())
+  albumId   String
+  url       String
+  position  Int          @default(0)
+  createdAt DateTime     @default(now())
+
+  album ProfileAlbum @relation(fields: [albumId], references: [id], onDelete: Cascade)
+
+  @@index([albumId, position])
 }

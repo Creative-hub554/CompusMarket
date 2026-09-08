@@ -25,6 +25,8 @@ import {
   ReactDto,
   UpdatePostDto,
   UpdateProfileDto,
+  CreateProfileAlbumDto,
+  AddProfileAlbumImageDto,
 } from "./dto/social.dto";
 
 type AuthUser = { user: { userId: string; role?: string } };
@@ -120,7 +122,31 @@ export class SocialController {
     return this.profiles.updateMe(req.user.userId, dto);
   }
 
-  @Get("profiles/username/:username")
+  @Get("profiles/:id/albums")
+  @UseGuards(OptionalJwtGuard)
+  listAlbums(@Req() req: AuthUser, @Param("id") id: string) {
+    return this.profiles.listAlbums(id, req.user?.userId);
+  }
+
+  @Post("profiles/me/albums")
+  @UseGuards(AuthGuard("jwt"))
+  createAlbum(@Req() req: AuthUser, @Body() dto: CreateProfileAlbumDto) {
+    return this.profiles.createAlbum(req.user.userId, dto.title, dto.description);
+  }
+
+  @Delete("profiles/me/albums/:id")
+  @UseGuards(AuthGuard("jwt"))
+  deleteAlbum(@Req() req: AuthUser, @Param("id") id: string) {
+    return this.profiles.deleteAlbum(req.user.userId, id);
+  }
+
+  @Post("profiles/me/albums/:id/images")
+  @UseGuards(AuthGuard("jwt"))
+  addAlbumImage(@Req() req: AuthUser, @Param("id") id: string, @Body() dto: AddProfileAlbumImageDto) {
+    return this.profiles.addAlbumImage(req.user.userId, id, dto.url);
+  }
+
+
   @UseGuards(OptionalJwtGuard)
   getProfileByUsername(@Req() req: AuthUser, @Param("username") username: string) {
     return this.profiles.getProfileByUsername(username, req.user?.userId);
@@ -183,6 +209,22 @@ export class SocialController {
   @Get("users/:id/following")
   following(@Param("id") id: string) {
     return this.follows.following(id);
+  }
+
+  @Get("people/directory")
+  @UseGuards(AuthGuard("jwt"))
+  browsePeople(
+    @Req() req: AuthUser,
+    @Query("cursor") cursor?: string,
+    @Query("limit") limit?: string
+  ) {
+    return this.follows.browsePeople(req.user.userId, cursor, limit ? parseLimit(limit, 10) : undefined);
+  }
+
+  @Get("people")
+  @UseGuards(AuthGuard("jwt"))
+  searchPeople(@Req() req: AuthUser, @Query("q") q = "") {
+    return this.follows.searchPeople(req.user.userId, q);
   }
 
   @Get("suggestions")

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
 import { useTranslations } from "next-intl";
-import { Home, Store, ShoppingBag, Briefcase, MessageCircle } from "lucide-react";
+import { Home, Store, ShoppingBag, Briefcase, MessageCircle, Users } from "lucide-react";
 import { SearchBar } from "./SearchBar";
 import { LocaleSwitcher } from "./LocaleSwitcher";
 import { ThemeToggle } from "./ThemeToggle";
@@ -80,6 +80,7 @@ export function Nav() {
   // Center icon tabs — the 4 core destinations.
   const tabs = [
     { href: "/feed", label: t("feed"), Icon: Home, isActive: (p: string) => p.startsWith("/feed") },
+    { href: "/people", label: t("people"), Icon: Users, isActive: (p: string) => p.startsWith("/people") },
     { href: "/shop", label: t("shop"), Icon: Store, isActive: (p: string) => p.startsWith("/shop") },
     { href: "/market", label: t("market"), Icon: ShoppingBag, isActive: (p: string) => p.startsWith("/market") },
     { href: "/jobs", label: t("jobs"), Icon: Briefcase, isActive: (p: string) => p.startsWith("/jobs") },
