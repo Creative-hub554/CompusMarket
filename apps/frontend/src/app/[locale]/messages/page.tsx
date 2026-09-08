@@ -257,7 +257,7 @@ export default function MessagesPage() {
           <p className="mb-2">No conversations yet.</p>
           <p className="text-sm">
             Start one from a{" "}
-            <Link href="/market" className="text-gold-600 hover:underline">
+            <Link href="/shop" className="text-gold-600 hover:underline">
               seller&apos;s shop
             </Link>{" "}
             or say hi on the{" "}

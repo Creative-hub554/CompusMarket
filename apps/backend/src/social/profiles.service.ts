@@ -10,6 +10,9 @@ const PUBLIC_PROFILE_SELECT = {
   coverImage: true,
   bio: true,
   accountPrivate: true,
+  theme: true,
+  autoReplyEnabled: true,
+  autoReplyText: true,
   createdAt: true,
   _count: { select: { posts: true, followers: true, following: true } },
 };
@@ -158,6 +161,9 @@ export class ProfilesService {
         ...(dto.image !== undefined ? { image: dto.image } : {}),
         ...(dto.coverImage !== undefined ? { coverImage: dto.coverImage } : {}),
         ...(dto.accountPrivate !== undefined ? { accountPrivate: dto.accountPrivate } : {}),
+        ...(dto.theme !== undefined ? { theme: dto.theme } : {}),
+        ...(dto.autoReplyEnabled !== undefined ? { autoReplyEnabled: dto.autoReplyEnabled } : {}),
+        ...(dto.autoReplyText !== undefined ? { autoReplyText: dto.autoReplyText } : {}),
       },
       select: {
         id: true,
@@ -167,6 +173,9 @@ export class ProfilesService {
         coverImage: true,
         bio: true,
         accountPrivate: true,
+        theme: true,
+        autoReplyEnabled: true,
+        autoReplyText: true,
       },
     });
   }
