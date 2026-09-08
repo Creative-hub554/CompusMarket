@@ -179,6 +179,52 @@ export class FollowsService {
     });
   }
 
+  async browsePeople(userId: string, cursor?: string, limit = 20) {
+    const followed = await this.prisma.follow.findMany({
+      where: { followerId: userId },
+      select: { followingId: true },
+    });
+    const exclude = [userId, ...followed.map((f) => f.followingId)];
+    const rows = await this.prisma.user.findMany({
+      where: { id: { notIn: exclude } },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: limit + 1,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      select: {
+        ...USER_CARD_SELECT,
+        _count: { select: { followers: true } },
+      },
+    });
+    const hasMore = rows.length > limit;
+    const items = hasMore ? rows.slice(0, limit) : rows;
+    return { items, nextCursor: hasMore ? items[items.length - 1].id : null };
+  }  async searchPeople(userId: string, query: string, limit = 20) {
+    const q = query.trim();
+    if (!q) return [];
+
+    const followed = await this.prisma.follow.findMany({
+      where: { followerId: userId },
+      select: { followingId: true },
+    });
+    const exclude = [userId, ...followed.map((f) => f.followingId)];
+
+    return this.prisma.user.findMany({
+      where: {
+        id: { notIn: exclude },
+        OR: [
+          { name: { contains: q, mode: "insensitive" } },
+          { username: { contains: q, mode: "insensitive" } },
+        ],
+      },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      select: {
+        ...USER_CARD_SELECT,
+        _count: { select: { followers: true } },
+      },
+    });
+  }
+
   async suggestions(userId: string, limit = 5) {
     const followed = await this.prisma.follow.findMany({
       where: { followerId: userId },

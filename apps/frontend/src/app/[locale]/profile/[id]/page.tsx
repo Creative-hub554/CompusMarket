@@ -11,6 +11,13 @@ import { PostCard, FeedPost } from "@/components/social/PostCard";
 import { Lock } from "lucide-react";
 import { useTranslations } from "next-intl";
 
+type ProfileAlbum = {
+  id: string;
+  title: string;
+  description: string | null;
+  images: { id: string; url: string; position: number }[];
+};
+
 type Profile = {
   id: string;
   name: string | null;
@@ -22,6 +29,7 @@ type Profile = {
   isFollowing: boolean;
   accountPrivate?: boolean;
   followRequested?: boolean;
+  albums: ProfileAlbum[];
   _count: { posts: number; followers: number; following: number };
 };
 
@@ -198,6 +206,44 @@ export default function ProfilePage() {
           <span className="text-gray-400">Joined {new Date(profile.createdAt).toLocaleDateString()}</span>
         </div>
       </div>
+
+      {profile.image && (
+        <figure className="mb-6 overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)] shadow-sm">
+          <figcaption className="px-4 py-3 text-xs font-bold uppercase tracking-[0.16em] text-[var(--text-muted)]">
+            {t("highlightedPicture")}
+          </figcaption>
+          <Image
+            src={profile.image}
+            alt={profile.name || profile.username || t("profilePictureAlt")}
+            width={1200}
+            height={900}
+            className="max-h-[28rem] w-full object-cover"
+          />
+        </figure>
+      )}
+
+      {profile.albums.length > 0 && (
+        <section className="mb-7">
+          <h2 className="mb-3 text-lg font-bold">{t("albums")}</h2>
+          <div className="space-y-4">
+            {profile.albums.map((album) => (
+              <article key={album.id} className="overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)] p-4">
+                <h3 className="font-semibold">{album.title}</h3>
+                {album.description && <p className="mt-1 text-sm text-[var(--text-muted)]">{album.description}</p>}
+                {album.images.length > 0 ? (
+                  <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {album.images.map((image) => (
+                      <Image key={image.id} src={image.url} alt="" width={240} height={240} unoptimized className="aspect-square w-full rounded-lg object-cover" />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-3 text-sm text-[var(--text-muted)]">{t("emptyAlbum")}</p>
+                )}
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
       {locked ? (
         <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)]/50 py-12 px-6 text-center">

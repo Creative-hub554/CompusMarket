@@ -19,6 +19,8 @@ const ALLOWED_PREFIXES = [
   "/api/feed",
   "/api/profiles",
   "/api/users",
+  "/api/people",
+  "/api/people/directory",
   "/api/suggestions",
   "/api/stories",
   "/api/notifications",

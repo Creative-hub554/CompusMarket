@@ -7,8 +7,9 @@ import Image from "next/image";
 import { Avatar } from "./Avatar";
 import { uploadFile, useAuthSocket } from "@/lib/social";
 import { useSession } from "@/lib/session-client";
+import { canAddMedia, type PostMediaInput } from "@/lib/post-media";
 
-type MediaInput = { url: string; kind: "IMAGE" | "VIDEO" };
+type MediaInput = PostMediaInput;
 
 export function Composer({
   onPosted,
@@ -26,26 +27,25 @@ export function Composer({
 
   async function handleFiles(files: FileList | null) {
     if (!files?.length) return;
+    const selected = Array.from(files);
+    if (!canAddMedia(media, selected)) {
+      toast.error("A post can have up to 8 photos or a single video.");
+      return;
+    }
+
     setUploading(true);
     try {
       const uploaded: MediaInput[] = [];
-      for (const file of Array.from(files)) {
+      for (const file of selected) {
         const { url } = await uploadFile(file);
         uploaded.push({ url, kind: file.type.startsWith("video/") ? "VIDEO" : "IMAGE" });
       }
-      setMedia((prev) => {
-        const combined = [...prev, ...uploaded];
-        const videos = combined.filter((m) => m.kind === "VIDEO");
-        if (videos.length > 1 || (videos.length === 1 && combined.length > 1)) {
-          toast.error("A post can have up to 8 photos or a single video.");
-          return prev;
-        }
-        return combined.slice(0, 8);
-      });
+      setMedia((prev) => [...prev, ...uploaded]);
     } catch {
       toast.error("Upload failed. Is storage running?");
+    } finally {
+      setUploading(false);
     }
-    setUploading(false);
   }
 
   async function submit() {

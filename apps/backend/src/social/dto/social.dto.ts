@@ -76,6 +76,24 @@ export class CreateStoryDto {
   caption?: string;
 }
 
+export class CreateProfileAlbumDto {
+  @IsString()
+  @MinLength(1)
+  @MaxLength(80)
+  title!: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  description?: string;
+}
+
+export class AddProfileAlbumImageDto {
+  @IsString()
+  @MinLength(1)
+  url!: string;
+}
+
 export class UpdateProfileDto {
   @IsOptional()
   @IsString()

@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { UpdateProfileDto } from "./dto/social.dto";
 
@@ -14,9 +14,77 @@ const PUBLIC_PROFILE_SELECT = {
   _count: { select: { posts: true, followers: true, following: true } },
 };
 
+const ALBUM_SELECT = {
+  id: true,
+  title: true,
+  description: true,
+  createdAt: true,
+  images: {
+    orderBy: { position: "asc" as const },
+    select: { id: true, url: true, position: true },
+  },
+};
+
 @Injectable()
 export class ProfilesService {
   constructor(private prisma: PrismaService) {}
+
+  async listAlbums(ownerId: string, viewerId?: string) {
+    if (viewerId !== ownerId) {
+      const owner = await this.prisma.user.findUnique({
+        where: { id: ownerId },
+        select: { accountPrivate: true },
+      });
+      if (!owner || owner.accountPrivate) return [];
+    }
+
+    return this.prisma.profileAlbum.findMany({
+      where: { ownerId },
+      orderBy: { createdAt: "desc" },
+      select: ALBUM_SELECT,
+    });
+  }
+
+  async createAlbum(ownerId: string, title: string, description?: string) {
+    const normalizedTitle = title.trim();
+    if (!normalizedTitle) throw new BadRequestException("Album title is required");
+    return this.prisma.profileAlbum.create({
+      data: {
+        ownerId,
+        title: normalizedTitle,
+        description: description?.trim() || null,
+      },
+      select: ALBUM_SELECT,
+    });
+  }
+
+  async deleteAlbum(ownerId: string, albumId: string) {
+    const album = await this.prisma.profileAlbum.findFirst({
+      where: { id: albumId, ownerId },
+      select: { id: true },
+    });
+    if (!album) throw new NotFoundException("Album not found");
+    await this.prisma.profileAlbum.delete({ where: { id: albumId } });
+    return { deleted: true };
+  }
+  async addAlbumImage(ownerId: string, albumId: string, url: string) {
+    const album = await this.prisma.profileAlbum.findFirst({
+      where: { id: albumId, ownerId },
+      select: { id: true },
+    });
+    if (!album) throw new NotFoundException("Album not found");
+
+    const last = await this.prisma.profileAlbumImage.findFirst({
+      where: { albumId },
+      orderBy: { position: "desc" },
+      select: { position: true },
+    });
+
+    return this.prisma.profileAlbumImage.create({
+      data: { albumId, url, position: (last?.position ?? -1) + 1 },
+      select: { id: true, url: true, position: true },
+    });
+  }
 
   async getProfile(profileId: string, viewerId?: string) {
     const user = await this.prisma.user.findUnique({
@@ -25,7 +93,6 @@ export class ProfilesService {
     });
     if (!user) throw new NotFoundException("User not found");
 
-    // Viewing your own profile never needs a self-follow lookup.
     const isFollowing =
       viewerId && viewerId !== user.id
         ? await this.prisma.follow
@@ -36,8 +103,6 @@ export class ProfilesService {
             .then((r) => !!r)
         : false;
 
-    // An outstanding request matters only when the target is private, the
-    // viewer is someone else, and they are not already following.
     const followRequested =
       viewerId &&
       viewerId !== user.id &&
@@ -53,14 +118,13 @@ export class ProfilesService {
             .then((r) => r?.status === "PENDING")
         : false;
 
-    // A private account's post count is only visible to the account holder and
-    // their followers; everyone else sees zero so the count cannot be inferred
-    // from a locked profile. Follower/following counts stay public.
     const canSeePostCount =
       !user.accountPrivate || viewerId === user.id || isFollowing;
+    const albums = await this.listAlbums(profileId, viewerId);
 
     return {
       ...user,
+      albums,
       isFollowing,
       followRequested,
       ...(canSeePostCount ? {} : { _count: { ...user._count, posts: 0 } }),
