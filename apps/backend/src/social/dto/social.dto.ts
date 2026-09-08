@@ -1,11 +1,11 @@
 import {
+  ArrayMaxSize,
   IsArray,
   IsBoolean,
   IsIn,
   IsOptional,
   IsString,
   Matches,
-  Max,
   MaxLength,
   MinLength,
   ValidateNested,
@@ -32,7 +32,7 @@ export class CreatePostDto {
 
   @IsOptional()
   @IsArray()
-  @Max(8)
+  @ArrayMaxSize(8)
   @ValidateNested({ each: true })
   @Type(() => PostMediaInputDto)
   media?: PostMediaInputDto[];
