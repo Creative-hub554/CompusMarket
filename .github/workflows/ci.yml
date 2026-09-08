@@ -200,10 +200,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Deploy to staging
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
         run: |
-          echo "Deploying to staging..."
-          # Add your staging deployment commands here
-          # Example: SSH to staging server and run docker compose pull && docker compose up -d
+          set -euo pipefail
+          if [ -z "${DEPLOY_HOST:-}" ]; then
+            echo "DEPLOY_HOST not configured - skipping deploy (see docs/deployment.md)"
+            exit 0
+          fi
+          mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
+          printf '%s' "$DEPLOY_SSH_KEY" > "$HOME/.ssh/deploy_key" && chmod 600 "$HOME/.ssh/deploy_key"
+          ssh -i "$HOME/.ssh/deploy_key" -o StrictHostKeyChecking=accept-new "${DEPLOY_USER}@${DEPLOY_HOST}" 'set -euo pipefail; cd /srv/champey; git pull --ff-only origin develop; docker compose -f docker/compose.prod.yml build --pull; docker compose -f docker/compose.prod.yml up -d; docker compose -f docker/compose.prod.yml ps'
 
   deploy-production:
     runs-on: ubuntu-latest
@@ -213,7 +222,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Deploy to production
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
         run: |
-          echo "Deploying to production..."
-          # Add your production deployment commands here
-          # Example: SSH to production server and run docker compose -f docker/compose.prod.yml pull && docker compose -f docker/compose.prod.yml up -d
+          set -euo pipefail
+          if [ -z "${DEPLOY_HOST:-}" ]; then
+            echo "DEPLOY_HOST not configured - skipping deploy (see docs/deployment.md)"
+            exit 0
+          fi
+          mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
+          printf '%s' "$DEPLOY_SSH_KEY" > "$HOME/.ssh/deploy_key" && chmod 600 "$HOME/.ssh/deploy_key"
+          ssh -i "$HOME/.ssh/deploy_key" -o StrictHostKeyChecking=accept-new "${DEPLOY_USER}@${DEPLOY_HOST}" 'set -euo pipefail; cd /srv/champey; git pull --ff-only origin main; docker compose -f docker/compose.prod.yml build --pull; docker compose -f docker/compose.prod.yml up -d; docker compose -f docker/compose.prod.yml ps'
