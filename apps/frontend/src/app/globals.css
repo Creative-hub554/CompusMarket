@@ -767,3 +767,420 @@ img {
     animation-delay: 0s !important;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .gradient-mesh::before,
+  .gradient-mesh::after,
+  .animate-temple-float {
+    animation: none;
+  }
+}
+
+/* ============================================================
+   ROYAL LUXE — landing redesign design system (v2)
+   Editorial serif + deep indigo ink + temple gold on ivory.
+   Scoped: only pages that opt in via .lx-root use this language.
+   ============================================================ */
+
+.lx-root {
+  /* Palette */
+  --lx-ink: #14122b; /* deep indigo ink */
+  --lx-ink-soft: #4c4869;
+  --lx-muted: #85809f;
+  --lx-paper: #f7f5ef; /* ivory paper */
+  --lx-paper-2: #fffdf8;
+  --lx-line: #e5e0d2;
+  --lx-gold: #b08d3e; /* temple gold */
+  --lx-gold-deep: #8a6a26;
+  --lx-gold-tint: #f3ecda;
+  --lx-clay: #a8532f; /* lacquer clay accent */
+  --lx-jade: #2f6d5a; /* jade accent */
+  --lx-night: #14122b;
+  --lx-night-2: #1d1a3f;
+  --lx-on-night: #f4f0e6;
+  --lx-on-night-muted: rgba(244, 240, 230, 0.64);
+  --lx-on-night-line: rgba(244, 240, 230, 0.14);
+
+  /* Type */
+  --lx-serif: var(--font-serif-display), "Noto Sans Khmer", Georgia, serif;
+  --lx-sans: var(--font-inter), "Noto Sans Khmer", system-ui, sans-serif;
+
+  /* Motion */
+  --lx-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  background: var(--lx-paper);
+  color: var(--lx-ink);
+  font-family: var(--lx-sans);
+}
+
+.dark .lx-root {
+  /* Night palette — warm lamplight over indigo */
+  --lx-ink: #f0ede2;
+  --lx-ink-soft: #c9c4b4;
+  --lx-muted: #8f8aa6;
+  --lx-paper: #100e20;
+  --lx-paper-2: #17142e;
+  --lx-line: #2a2650;
+  --lx-gold: #d8b25c;
+  --lx-gold-deep: #c79a3f;
+  --lx-gold-tint: rgba(216, 178, 92, 0.12);
+  --lx-clay: #e07a4e;
+  --lx-jade: #5ba98d;
+  --lx-on-night: #f4f0e6;
+  --lx-on-night-muted: rgba(244, 240, 230, 0.62);
+  --lx-on-night-line: rgba(244, 240, 230, 0.14);
+}
+
+.dark .lx-root {
+  background:
+    radial-gradient(900px 420px at 88% -6%, rgba(216, 178, 92, 0.1), transparent 62%),
+    radial-gradient(700px 380px at -8% 24%, rgba(224, 122, 78, 0.07), transparent 60%),
+    var(--lx-paper);
+}
+
+/* ---- Type scale ---- */
+.lx-display {
+  font-family: var(--lx-serif);
+  font-variation-settings: "SOFT" 40, "WONK" 0;
+  letter-spacing: -0.025em;
+  line-height: 1.02;
+  font-weight: 560;
+  color: var(--lx-ink);
+}
+.lx-serif {
+  font-family: var(--lx-serif);
+  font-variation-settings: "SOFT" 40, "WONK" 0;
+  letter-spacing: -0.01em;
+}
+.lx-eyebrow {
+  font-family: var(--lx-sans);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--lx-gold-deep);
+}
+.dark .lx-eyebrow {
+  color: var(--lx-gold);
+}
+.lx-muted-ink {
+  color: var(--lx-muted);
+}
+.lx-soft-ink {
+  color: var(--lx-ink-soft);
+}
+
+/* ---- Gold italic word (legacy coral text-gradient must not leak in) ---- */
+.lx-root .text-gradient {
+  background: none;
+  color: inherit;
+  -webkit-text-fill-color: currentColor;
+}
+
+/* On the night-sky hero, headings and eyebrows always read ivory/gold */
+.lx-hero-bg .lx-display {
+  color: var(--lx-on-night);
+}
+.lx-hero-bg .lx-eyebrow {
+  color: var(--lx-gold);
+}
+
+/* ---- Ornament: hairline + diamond ---- */
+.lx-rule {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--lx-gold);
+}
+.lx-rule::before,
+.lx-rule::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(90deg, transparent, var(--lx-line));
+}
+.lx-rule::after {
+  background: linear-gradient(90deg, var(--lx-line), transparent);
+}
+
+/* ---- Buttons ---- */
+.lx-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: var(--lx-sans);
+  font-weight: 600;
+  border-radius: 999px;
+  transition:
+    transform 0.25s var(--lx-ease),
+    box-shadow 0.25s var(--lx-ease),
+    background-color 0.25s var(--lx-ease),
+    border-color 0.25s var(--lx-ease),
+    color 0.25s var(--lx-ease);
+}
+.lx-btn:active {
+  transform: scale(0.97);
+}
+.lx-btn-gold {
+  background: linear-gradient(120deg, var(--lx-gold) 0%, var(--lx-gold-deep) 100%);
+  color: #fff;
+  box-shadow: 0 14px 30px -14px rgba(138, 106, 38, 0.65);
+}
+.lx-btn-gold:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 36px -14px rgba(138, 106, 38, 0.75);
+}
+.dark .lx-btn-gold {
+  color: #1c1830;
+}
+.lx-btn-ink {
+  background: var(--lx-night);
+  color: var(--lx-on-night);
+  box-shadow: 0 14px 30px -16px rgba(20, 18, 43, 0.8);
+}
+.lx-btn-ink:hover {
+  transform: translateY(-2px);
+}
+.lx-btn-outline {
+  border: 1px solid var(--lx-line);
+  background: transparent;
+  color: var(--lx-ink);
+}
+.lx-btn-outline:hover {
+  background: var(--lx-paper-2);
+  border-color: color-mix(in srgb, var(--lx-gold) 45%, var(--lx-line));
+}
+.lx-btn-white {
+  background: var(--lx-paper-2);
+  color: var(--lx-ink);
+}
+.lx-btn-white:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 34px -18px rgba(0, 0, 0, 0.5);
+}
+/* The CTA sits on the night panel — keep its button physically light in dark mode */
+.dark .lx-btn-white {
+  background: #f4f0e6;
+  color: #14122b;
+}
+.lx-btn-xl {
+  height: 52px;
+  padding: 0 30px;
+  font-size: 15.5px;
+}
+
+/* ---- Cards & tiles ---- */
+.lx-card {
+  background: var(--lx-paper-2);
+  border: 1px solid var(--lx-line);
+  border-radius: 22px;
+  transition:
+    transform 0.3s var(--lx-ease),
+    box-shadow 0.3s var(--lx-ease),
+    border-color 0.3s var(--lx-ease);
+}
+.lx-card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--lx-gold) 42%, var(--lx-line));
+  box-shadow: 0 24px 48px -28px rgba(20, 18, 43, 0.35);
+}
+
+.lx-tile {
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  color: var(--lx-on-night);
+  transition: transform 0.3s var(--lx-ease), box-shadow 0.3s var(--lx-ease);
+}
+.lx-tile:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 24px 46px -24px rgba(20, 18, 43, 0.55);
+}
+.lx-tile .lx-tile-arrow {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  transform: translate(-4px, 4px);
+  transition: opacity 0.25s var(--lx-ease), transform 0.25s var(--lx-ease);
+}
+.lx-tile:hover .lx-tile-arrow {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---- Hero backdrop: night-sky with gold lantern glows ---- */
+.lx-hero-bg {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(1100px 520px at 78% -10%, rgba(216, 178, 92, 0.22), transparent 60%),
+    radial-gradient(820px 460px at 8% 12%, rgba(224, 122, 78, 0.12), transparent 58%),
+    linear-gradient(160deg, #14122b 0%, #1d1a3f 52%, #26204a 100%);
+}
+.lx-hero-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, rgba(244, 240, 230, 0.5) 49%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 30% 8%, rgba(244, 240, 230, 0.4) 49%, transparent 51%),
+    radial-gradient(1px 1px at 46% 26%, rgba(244, 240, 230, 0.35) 49%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 62% 12%, rgba(244, 240, 230, 0.45) 49%, transparent 51%),
+    radial-gradient(1px 1px at 78% 22%, rgba(244, 240, 230, 0.3) 49%, transparent 51%),
+    radial-gradient(1px 1px at 90% 6%, rgba(244, 240, 230, 0.4) 49%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 22% 38%, rgba(244, 240, 230, 0.22) 49%, transparent 51%),
+    radial-gradient(1px 1px at 84% 40%, rgba(244, 240, 240, 0.2) 49%, transparent 51%);
+  opacity: 0.8;
+}
+.lx-hero-bg::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -1px;
+  width: min(920px, 92%);
+  height: 340px;
+  transform: translateX(-50%);
+  z-index: -1;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 46px,
+      rgba(216, 178, 92, 0.07) 46px 47px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 46px,
+      rgba(216, 178, 92, 0.07) 46px 47px
+    );
+  -webkit-mask-image: radial-gradient(58% 100% at 50% 100%, black 35%, transparent 78%);
+  mask-image: radial-gradient(58% 100% at 50% 100%, black 35%, transparent 78%);
+  opacity: 0.9;
+}
+
+/* ---- Floating product card (hero) ---- */
+.lx-float {
+  animation: lxFloat 7s ease-in-out infinite;
+}
+@keyframes lxFloat {
+  0%,
+  100% {
+    transform: translate(-50%, -50%);
+  }
+  50% {
+  transform: translate(-50%, -54%);
+  }
+}
+@keyframes lxChipFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+.lx-chip {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 15px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  background: var(--lx-paper-2);
+  color: var(--lx-ink);
+  border: 1px solid var(--lx-line);
+  box-shadow: 0 18px 36px -20px rgba(20, 18, 43, 0.55);
+  animation: lxChipFloat 6s ease-in-out infinite;
+}
+.lx-chip .lx-chip-stars {
+  color: #d8a53e;
+  letter-spacing: 1.5px;
+  font-size: 11px;
+}
+
+/* ---- Reveal on scroll ---- */
+.lx-reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.6s var(--lx-ease),
+    transform 0.6s var(--lx-ease);
+}
+.lx-reveal.lx-reveal-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---- Marquee ---- */
+.lx-marquee {
+  display: flex;
+  overflow: hidden;
+  user-select: none;
+  gap: var(--lx-marquee-gap, 56px);
+}
+.lx-marquee-track {
+  flex-shrink: 0;
+  display: flex;
+  min-width: 100%;
+  justify-content: space-around;
+  gap: var(--lx-marquee-gap, 56px);
+  animation: lxScroll 36s linear infinite;
+}
+@keyframes lxScroll {
+  to {
+  transform: translateX(calc(-100% - var(--lx-marquee-gap, 56px)));
+  }
+}
+
+/* ---- Bento grid ---- */
+.lx-bento {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 130px;
+  gap: 14px;
+}
+
+@media (max-width: 900px) {
+  .lx-bento {
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: 118px;
+  }
+}
+
+/* ---- Fixed-offset gradient band (section transitions) ---- */
+.lx-band {
+  background: linear-gradient(180deg, rgba(176, 141, 62, 0.09), rgba(176, 141, 62, 0));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lx-float,
+  .lx-chip {
+    animation: none;
+  }
+  .lx-marquee-track {
+    animation: none;
+  }
+  .lx-reveal {
+    opacity: 1;
+    transform: none;
+  }
+  .lx-hero-bg::before,
+  .lx-hero-bg::after {
+    animation: none;
+  }
+}
+
