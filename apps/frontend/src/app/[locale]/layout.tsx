@@ -114,6 +114,7 @@ export default async function LocaleLayout({ children, params }: Props) {
           <SessionWrapper>
             <NextIntlClientProvider locale={locale} messages={messages}>
               <Toaster />
+              <Nav />
               <main className="min-h-[calc(100vh-4rem)]">{children}</main>
               <Footer />
               <AssistantWidget />
