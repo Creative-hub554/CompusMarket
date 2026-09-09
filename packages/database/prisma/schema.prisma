@@ -503,6 +503,7 @@ model Message {
   replyToId   String?
   editedAt    DateTime?
   deletedAt   DateTime?
+  isAutoReply Boolean  @default(false)
   createdAt   DateTime @default(now())
 
   thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
