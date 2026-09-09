@@ -62,7 +62,7 @@ type Application = {
 type SellerData = { count: number; maxProducts: number; accountType: string };
 
 const THEMES = [
-  { key: "gold", label: "Gold", color: "#ff6b5e" },
+  { key: "gold", label: "Gold", color: "#b08d3e" },
   { key: "emerald", label: "Emerald", color: "#10b981" },
   { key: "ocean", label: "Ocean", color: "#0ea5e9" },
   { key: "violet", label: "Violet", color: "#8b5cf6" },
