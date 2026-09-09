@@ -6,46 +6,46 @@
 
 @theme {
   --color-ink: #17171f;
-  --color-accent: #ff6b5e;
-  --color-accent-dark: #f0554a;
-  --color-accent2: #ff9a3d;
-  --color-accent2-dark: #ff6b5e;
+  --color-accent: #b08d3e;
+  --color-accent-dark: #8a6a26;
+  --color-accent2: #d8b25c;
+  --color-accent2-dark: #b08d3e;
 
-  /* Khmer gold palette */
-  --color-gold: #ff6b5e;
-  --color-gold-light: #ff9a3d;
-  --color-gold-dark: #f0554a;
-  --color-gold-50: #fff2f0;
-  --color-gold-100: #ffe4df;
-  --color-gold-200: #ffc8c0;
-  --color-gold-300: #ffa79b;
-  --color-gold-400: #ff8574;
-  --color-gold-500: #ff6b5e;
-  --color-gold-600: #f0554a;
-  --color-gold-700: #c9433a;
-  --color-gold-800: #a83a32;
-  --color-gold-900: #8a352d;
-  --color-gold-950: #4c1512;
+  /* Temple gold palette (Royal Luxe) — 500 anchors the chrome literals */
+  --color-gold: #b08d3e;
+  --color-gold-light: #d8b25c;
+  --color-gold-dark: #8a6a26;
+  --color-gold-50: #faf7ee;
+  --color-gold-100: #f3ecda;
+  --color-gold-200: #e6d5a8;
+  --color-gold-300: #d8b25c;
+  --color-gold-400: #c79a3f;
+  --color-gold-500: #b08d3e;
+  --color-gold-600: #9a7a33;
+  --color-gold-700: #8a6a26;
+  --color-gold-800: #6f5420;
+  --color-gold-900: #57411c;
+  --color-gold-950: #3a2a12;
 
   --radius-xl: 0.75rem;
   --radius-2xl: 1rem;
   --radius-3xl: 1.5rem;
 
-  --shadow-soft: 0 2px 12px -2px rgb(255 107 94 / 0.12);
-  --shadow-lift: 0 16px 32px -12px rgb(255 107 94 / 0.32);
-  --shadow-glow: 0 8px 30px -6px rgb(255 107 94 / 0.45);
+  --shadow-soft: 0 2px 12px -2px rgb(176 141 62 / 0.12);
+  --shadow-lift: 0 16px 32px -12px rgb(176 141 62 / 0.32);
+  --shadow-glow: 0 8px 30px -6px rgb(176 141 62 / 0.45);
   --shadow-gold:
     0 1px 2px rgb(23 23 31 / 0.06),
-    0 0 0 1px rgb(255 107 94 / 0.14),
-    0 10px 32px -12px rgb(255 107 94 / 0.35);
+    0 0 0 1px rgb(176 141 62 / 0.14),
+    0 10px 32px -12px rgb(176 141 62 / 0.35);
 
   /* Legacy aliases — keep existing pages compiling during migration */
-  --color-khmer-blue: #ff6b5e;
-  --color-khmer-blue-light: #ff8f6b;
+  --color-khmer-blue: #b08d3e;
+  --color-khmer-blue-light: #c79a3f;
   --color-khmer-red: #dc2626;
   --color-khmer-red-light: #e53935;
-  --color-khmer-gold: #ff6b5e;
-  --color-khmer-gold-light: #ff9a3d;
+  --color-khmer-gold: #b08d3e;
+  --color-khmer-gold-light: #d8b25c;
 }
 
 /* ---- Personal account themes (scoped gold-palette overrides) ----
@@ -162,10 +162,10 @@
   --surface: #ffffff;
   --surface-2: #eef0f6;
   --border-subtle: #e8e9f2;
-  --border-gold: rgba(255, 107, 94, 0.28);
+  --border-gold: rgba(216, 178, 92, 0.28);
   --text-muted: #8a8b9c;
   --glass-bg: rgba(255, 255, 255, 0.72);
-  --glass-border: rgba(255, 107, 94, 0.25);
+  --glass-border: rgba(216, 178, 92, 0.25);
 }
 
 .dark {
@@ -174,10 +174,10 @@
   --surface: #171721;
   --surface-2: #1f1f2c;
   --border-subtle: #252532;
-  --border-gold: rgba(255, 107, 94, 0.22);
+  --border-gold: rgba(216, 178, 92, 0.22);
   --text-muted: #9b9bac;
   --glass-bg: rgba(23, 23, 33, 0.72);
-  --glass-border: rgba(255, 107, 94, 0.18);
+  --glass-border: rgba(216, 178, 92, 0.18);
 }
 
 * {
@@ -234,10 +234,10 @@ h4 {
 @keyframes pulseGlow {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(255, 107, 94, 0.4);
+    box-shadow: 0 0 0 0 rgba(216, 178, 92, 0.4);
   }
   50% {
-    box-shadow: 0 0 0 8px rgba(255, 107, 94, 0);
+    box-shadow: 0 0 0 8px rgba(216, 178, 92, 0);
   }
 }
 
@@ -366,7 +366,7 @@ h4 {
 }
 .dark .section-box {
   background:
-    linear-gradient(180deg, rgb(255 107 94 / 0.04), transparent 40%),
+    linear-gradient(180deg, rgb(216 178 92 / 0.04), transparent 40%),
     var(--surface);
 }
 
@@ -395,7 +395,7 @@ h4 {
   height: 480px;
   left: -120px;
   top: -160px;
-  background: radial-gradient(circle, #ff6b5e 0%, transparent 65%);
+  background: radial-gradient(circle, #d8b25c 0%, transparent 65%);
   animation: meshDrift 14s ease-in-out infinite;
 }
 .gradient-mesh::after {
@@ -403,7 +403,7 @@ h4 {
   height: 520px;
   right: -140px;
   bottom: -200px;
-  background: radial-gradient(circle, #ff9a3d 0%, transparent 65%);
+  background: radial-gradient(circle, #b08d3e 0%, transparent 65%);
   animation: meshDrift 18s ease-in-out infinite reverse;
 }
 
@@ -438,7 +438,7 @@ h4 {
 }
 
 .text-gradient {
-  background: linear-gradient(90deg, #ff6b5e, #ff9a3d, #ff6b5e);
+  background: linear-gradient(90deg, #b08d3e, #d8b25c, #b08d3e);
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
@@ -450,12 +450,12 @@ h4 {
 .btn-primary {
   @apply rounded-lg px-4 py-2 text-sm font-medium transition disabled:opacity-40;
   color: #fff;
-  background: linear-gradient(135deg, #ff6b5e, #ff9a3d);
-  box-shadow: 0 4px 14px -4px rgb(255 107 94 / 0.55);
+  background: linear-gradient(135deg, #b08d3e, #d8b25c);
+  box-shadow: 0 4px 14px -4px rgb(176 141 62 / 0.55);
 }
 .btn-primary:hover {
-  background: linear-gradient(135deg, #f0554a, #ff8a2e);
-  box-shadow: 0 6px 20px -4px rgb(255 107 94 / 0.7);
+  background: linear-gradient(135deg, #8a6a26, #c79a3f);
+  box-shadow: 0 6px 20px -4px rgb(176 141 62 / 0.7);
   transform: translateY(-1px);
 }
 
@@ -542,7 +542,7 @@ h4 {
   left: 0;
   width: 48px;
   height: 3px;
-  background: linear-gradient(90deg, #ff6b5e, #ff9a3d);
+  background: linear-gradient(90deg, #b08d3e, #d8b25c);
   border-radius: 2px;
 }
 
@@ -629,7 +629,7 @@ img {
   left: 0;
   width: 48px;
   height: 3px;
-  background: linear-gradient(90deg, #ff6b5e, #ff9a3d);
+  background: linear-gradient(90deg, #b08d3e, #d8b25c);
   border-radius: 2px;
 }
 
@@ -644,7 +644,7 @@ img {
   left: 0;
   width: 0;
   height: 2px;
-  background: linear-gradient(90deg, #ff6b5e, #ff9a3d);
+  background: linear-gradient(90deg, #b08d3e, #d8b25c);
   transition: width 0.3s ease;
 }
 .nav-link:hover::after {
