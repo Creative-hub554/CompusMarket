@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, forwardRef, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { ChatGateway } from "./chat.gateway";
 import { ChatBotService } from "./chat-bot.service";
@@ -14,7 +14,7 @@ const PARTICIPANT_SELECT = {
 export class ThreadsService {
   constructor(
     private prisma: PrismaService,
-    private chat: ChatGateway,
+    @Inject(forwardRef(() => ChatGateway)) private chat: ChatGateway,
     private bot: ChatBotService
   ) {}
 
@@ -175,6 +175,54 @@ export class ThreadsService {
         data: { readAt: new Date() },
       }),
     ]);
+  }
+
+  /**
+   * Personal auto-reply policy (shared by the socket and any REST message
+   * path): when the other participant of a private two-person thread has
+   * autoReplyEnabled with a non-empty autoReplyText, return the reply to
+   * send from them. One auto-reply per sender burst: fires only when the
+   * message immediately before the sender's was the recipient's own real
+   * (non-auto) message, so a sender messaging an away recipient gets a
+   * single reply until the recipient actually responds, and auto-replies
+   * can never chain.
+   */
+  async maybeAutoReply(
+    threadId: string,
+    message: { id: string; senderId: string; createdAt: Date }
+  ): Promise<{ recipientId: string; content: string } | null> {
+    const [thread, prevRow] = await Promise.all([
+      this.prisma.thread.findUnique({
+        where: { id: threadId },
+        select: { groupId: true, participants: { select: { userId: true } } },
+      }),
+      // The message that decided the turn is the newest one created BEFORE
+      // this one — bound by createdAt rather than "newest overall", so the
+      // burst rule never races a slower query against the sender's next
+      // message arriving meanwhile.
+      this.prisma.message.findFirst({
+        where: { threadId, createdAt: { lt: message.createdAt } },
+        orderBy: { createdAt: "desc" },
+        select: { senderId: true, isAutoReply: true },
+      }),
+    ]);
+    if (!thread || thread.groupId) return null;
+    const ids = thread.participants.map((p) => p.userId);
+    if (ids.length !== 2) return null;
+    const recipientId = ids.find((id) => id !== message.senderId);
+    if (!recipientId) return null;
+    // Burst rule: this message must open a new turn — the previous message
+    // is the recipient's own real message, or the thread is brand new.
+    if (prevRow && !(prevRow.senderId === recipientId && !prevRow.isAutoReply)) {
+      return null;
+    }
+    const recipient = await this.prisma.user.findUnique({
+      where: { id: recipientId },
+      select: { autoReplyEnabled: true, autoReplyText: true },
+    });
+    const content = recipient?.autoReplyText?.trim();
+    if (!recipient?.autoReplyEnabled || !content) return null;
+    return { recipientId, content };
   }
 
   async participantIds(threadId: string): Promise<string[]> {

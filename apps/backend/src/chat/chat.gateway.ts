@@ -1,4 +1,4 @@
-import { Logger, OnModuleInit } from "@nestjs/common";
+import { forwardRef, Inject, Logger, OnModuleInit } from "@nestjs/common";
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -13,6 +13,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { NotificationsService } from "../social/notifications.service";
 import { notificationEvents, NOTIFICATION_CREATED } from "../realtime/notification.events";
 import { ChatBotService } from "./chat-bot.service";
+import { ThreadsService } from "./threads.service";
 import { verify } from "jsonwebtoken";
 import { getAuthSecret, getCorsOrigins } from "../common/config";
 
@@ -52,7 +53,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   constructor(
     private prisma: PrismaService,
     private notifications: NotificationsService,
-    private bot: ChatBotService
+    private bot: ChatBotService,
+    @Inject(forwardRef(() => ThreadsService)) private threads: ThreadsService
   ) {}
 
   onModuleInit() {
@@ -199,21 +201,30 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       });
       if (!participant) return;
 
-      await this.persistAndBroadcast(data.threadId, userId, content, attachments);
+      const message = await this.persistAndBroadcast(data.threadId, userId, content, attachments);
 
       // Telegram-style auto-response when chatting with the built-in bot.
       void this.maybeReplyAsBot(data.threadId, userId, content);
+
+      // Personal auto-reply when the recipient is away (profile chat settings).
+      void this.maybeSendAutoReply(message);
     } catch (err) {
       this.logger.error("ChatGateway error:", err as Error);
     }
   }
 
-  /** Persist a message and fan it out exactly like a human-sent one. */
+  /**
+   * Persist a message and fan it out exactly like a human-sent one. The tail
+   * (lastMessageAt, unread stamp, MESSAGE notifications) is fire-and-forget so
+   * an auto-reply decision — which reads the message list right after this
+   * returns — is never delayed by it.
+   */
   private async persistAndBroadcast(
     threadId: string,
     senderId: string,
     content: string,
-    attachments?: { url: string; kind: string }[]
+    attachments?: { url: string; kind: string }[],
+    isAutoReply = false
   ) {
     const message = await this.prisma.message.create({
       data: {
@@ -221,38 +232,79 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         senderId,
         content,
         ...(attachments ? { attachments } : {}),
+        ...(isAutoReply ? { isAutoReply: true } : {}),
       },
       include: { sender: { select: { id: true, name: true, image: true } } },
     });
 
-    await Promise.all([
-      this.prisma.thread.update({
-        where: { id: threadId },
-        data: { lastMessageAt: new Date() },
-      }),
-      this.prisma.threadParticipant.update({
-        where: { threadId_userId: { threadId, userId: senderId } },
-        data: { lastReadAt: new Date() },
-      }),
-    ]);
-
     this.server.to(threadId).emit("newMessage", message);
 
-    const otherParticipants = await this.prisma.threadParticipant.findMany({
-      where: { threadId, userId: { not: senderId } },
-      select: { userId: true },
-    });
-    await Promise.all(
-      otherParticipants.map((p) =>
-        this.notifications.notify({
-          userId: p.userId,
-          actorId: senderId,
-          kind: "MESSAGE",
-          entityId: threadId,
-          message: content || "Sent an attachment",
-        })
-      )
-    );
+    void this.updateThreadAndNotify(threadId, senderId, content);
+
+    return message;
+  }
+
+  private async updateThreadAndNotify(
+    threadId: string,
+    senderId: string,
+    content: string
+  ) {
+    try {
+      await Promise.all([
+        this.prisma.thread.update({
+          where: { id: threadId },
+          data: { lastMessageAt: new Date() },
+        }),
+        this.prisma.threadParticipant.update({
+          where: { threadId_userId: { threadId, userId: senderId } },
+          data: { lastReadAt: new Date() },
+        }),
+      ]);
+
+      const otherParticipants = await this.prisma.threadParticipant.findMany({
+        where: { threadId, userId: { not: senderId } },
+        select: { userId: true },
+      });
+      await Promise.all(
+        otherParticipants.map((p) =>
+          this.notifications.notify({
+            userId: p.userId,
+            actorId: senderId,
+            kind: "MESSAGE",
+            entityId: threadId,
+            message: content || "Sent an attachment",
+          })
+        )
+      );
+    } catch (err) {
+      this.logger.error("Message tail failed:", err as Error);
+    }
+  }
+
+  /**
+   * Personal auto-reply for an away recipient: ThreadsService decides, and
+   * the reply is persisted+broadcast through the same path as a human
+   * message, flagged isAutoReply so it can never trigger another reply.
+   */
+  private async maybeSendAutoReply(message: {
+    threadId: string;
+    id: string;
+    senderId: string;
+    createdAt: Date;
+  }) {
+    try {
+      const reply = await this.threads.maybeAutoReply(message.threadId, message);
+      if (!reply) return;
+      await this.persistAndBroadcast(
+        message.threadId,
+        reply.recipientId,
+        reply.content,
+        undefined,
+        true
+      );
+    } catch (err) {
+      this.logger.error("Auto-reply failed:", err as Error);
+    }
   }
 
   private async maybeReplyAsBot(threadId: string, senderId: string, content: string) {
