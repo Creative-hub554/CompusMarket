@@ -59,6 +59,20 @@ function makePrisma() {
       findUnique: vi.fn(),
       findMany: vi.fn(),
     },
+    pageFollow: {
+      findUnique: vi.fn(),
+      findMany: vi.fn().mockResolvedValue([]),
+      create: vi.fn(),
+      deleteMany: vi.fn(),
+      count: vi.fn(),
+    },
+    pageMember: {
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+    },
+    page: {
+      findUnique: vi.fn(),
+    },
     user: {
       findUnique: vi.fn(),
       findFirst: vi.fn(),
@@ -205,6 +219,7 @@ describe("PostsService", () => {
                 OR: [
                   { authorId: { in: ["u2", "u1"] } },
                   { groupId: { in: [] } },
+                  { pageId: { in: [] } },
                 ],
               },
               NO_GROUP_VISIBILITY,
@@ -229,6 +244,7 @@ describe("PostsService", () => {
                 OR: [
                   { authorId: { in: ["u1"] } },
                   { groupId: { in: ["g1"] } },
+                  { pageId: { in: [] } },
                 ],
               },
               {
@@ -258,6 +274,7 @@ describe("PostsService", () => {
             OR: [
               { authorId: { in: ["u2", "u1"] } },
               { groupId: { in: [] } },
+              { pageId: { in: [] } },
             ],
           },
           NO_GROUP_VISIBILITY,

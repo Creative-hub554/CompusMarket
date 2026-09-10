@@ -20,6 +20,7 @@ import { AiModule } from "./ai/ai.module";
 import { ChatModule } from "./chat/chat.module";
 import { SocialModule } from "./social/social.module";
 import { GroupsModule } from "./groups/groups.module";
+import { PagesModule } from "./pages/pages.module";
 import { DocumentsModule } from "./documents/documents.module";
 import { DiagramsModule } from "./diagrams/diagrams.module";
 import { FlashcardsModule } from "./flashcards/flashcards.module";
@@ -51,6 +52,7 @@ SearchModule,
     ChatModule,
     SocialModule,
     GroupsModule,
+    PagesModule,
     DocumentsModule,
     DiagramsModule,
     FlashcardsModule,

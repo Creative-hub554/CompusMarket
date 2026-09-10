@@ -107,6 +107,10 @@ enum NotificationKind {
   REPORT_RESOLVED
   ROLE_CHANGED
   ACCOUNT_BANNED
+  PAGE_FOLLOW
+  PAGE_MESSAGE
+  PAGE_POST
+  BOOST
 }
 
 model JobAlert {
@@ -194,6 +198,9 @@ model User {
   groupsCreated       Group[]             @relation("GroupsCreated")
   groupMemberships    GroupMember[]       @relation("GroupMemberships")
   groupJoinRequests   GroupJoinRequest[]  @relation("GroupJoinRequests")
+  pagesOwned          Page[]              @relation("PagesOwned")
+  pageMemberships     PageMember[]        @relation("PageMemberships")
+  pageFollows         PageFollow[]        @relation("PageFollows")
   followRequestsSent     FollowRequest[]     @relation("FollowRequestsSent")
   followRequestsReceived FollowRequest[]     @relation("FollowRequestsReceived")
   roleChangesReceived    RoleChangeLog[]      @relation("RoleChangeTargets")
@@ -467,12 +474,14 @@ model Thread {
   id            String    @id @default(uuid())
   productId     String?
   groupId       String?   @unique
+  pageId        String?   @unique
   lastMessageAt DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime @updatedAt
 
   product      Product?            @relation(fields: [productId], references: [id], onDelete: SetNull)
   group        Group?              @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  page         Page?               @relation(fields: [pageId], references: [id], onDelete: Cascade)
   participants ThreadParticipant[]
   messages     Message[]
 
@@ -731,19 +740,21 @@ model Note {
 }
 
 // ── Social Platform ──
-
 model Post {
   id           String    @id @default(uuid())
   authorId     String
   groupId      String?
+  pageId       String?
   pinnedAt     DateTime?
   boostedUntil DateTime?
+  impressions  Int       @default(0)
   content      String
   createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  updatedAt    DateTime @updatedAt
 
   author    User        @relation("Posts", fields: [authorId], references: [id], onDelete: Cascade)
   group     Group?      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  page      Page?       @relation("PagePosts", fields: [pageId], references: [id], onDelete: Cascade)
   media     PostMedia[]
   reactions Reaction[]
   comments  Comment[]
@@ -752,8 +763,64 @@ model Post {
 
   @@index([authorId])
   @@index([groupId])
+  @@index([pageId])
   @@index([createdAt])
   @@index([boostedUntil])
+}
+
+enum PageRole {
+  OWNER
+  EDITOR
+}
+
+model Page {
+  id          String   @id @default(uuid())
+  name        String
+  username    String   @unique
+  category    String
+  description String?
+  image       String?
+  coverImage  String?
+  phone       String?
+  ownerId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner     User         @relation("PagesOwned", fields: [ownerId], references: [id], onDelete: Cascade)
+  members   PageMember[]
+  posts     Post[]       @relation("PagePosts")
+  followers PageFollow[]
+  threads   Thread[]
+
+  @@index([createdAt])
+  @@index([ownerId])
+  @@index([category])
+}
+
+model PageMember {
+  id     String   @id @default(uuid())
+  pageId String
+  userId String
+  role   PageRole @default(EDITOR)
+
+  page Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  user User @relation("PageMemberships", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([pageId, userId])
+  @@index([userId])
+}
+
+model PageFollow {
+  id        String   @id @default(uuid())
+  pageId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  page Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  user User @relation("PageFollows", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([pageId, userId])
+  @@index([userId])
 }
 
 enum GroupRole {
