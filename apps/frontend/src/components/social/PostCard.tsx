@@ -8,7 +8,7 @@ import { BadgeCheck } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { ReportButton } from "./ReportButton";
 import { timeAgo } from "@/lib/social";
-import { apiFetch } from "@/lib/apiFetch";
+import { apiFetch, handleApiError } from "@/lib/apiFetch";
 import { useHandleApiError } from "@/lib/useHandleApiError";
 import { toast } from "@/components/ui/toast";
 import { PostMediaCarousel } from "./PostMediaCarousel";
