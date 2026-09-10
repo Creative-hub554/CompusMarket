@@ -31,6 +31,7 @@ function makePrisma() {
       count: vi.fn(),
       groupBy: vi.fn(),
       findMany: vi.fn(),
+      findFirst: vi.fn(),
       updateMany: vi.fn(),
     },
     user: {
@@ -186,6 +187,80 @@ describe("ThreadsService", () => {
         where: { threadId: "t1", senderId: { not: "me" }, readAt: null },
         data: { readAt: expect.any(Date) },
       });
+    });
+  });
+
+  describe("maybeAutoReply", () => {
+    const two = { groupId: null, participants: [{ userId: "u1" }, { userId: "u2" }] };
+    const sent = { id: "m-sent", senderId: "u1", createdAt: new Date("2026-01-02T00:00:00Z") };
+
+    it("returns null when the thread does not exist", async () => {
+      prisma.thread.findUnique.mockResolvedValue(null);
+      await expect(service.maybeAutoReply("t1", sent)).resolves.toBeNull();
+    });
+
+    it("returns null for group threads", async () => {
+      prisma.thread.findUnique.mockResolvedValue({ groupId: "g1", participants: two.participants });
+      prisma.message.findFirst.mockResolvedValue(null);
+      await expect(service.maybeAutoReply("t1", sent)).resolves.toBeNull();
+    });
+
+    it("returns null unless the thread has exactly two participants", async () => {
+      prisma.thread.findUnique.mockResolvedValue({
+        groupId: null,
+        participants: [{ userId: "u1" }, { userId: "u2" }, { userId: "u3" }],
+      });
+      prisma.message.findFirst.mockResolvedValue(null);
+      await expect(service.maybeAutoReply("t1", sent)).resolves.toBeNull();
+    });
+
+    it("fires on the very first message of a thread (nothing before it)", async () => {
+      prisma.thread.findUnique.mockResolvedValue(two);
+      prisma.message.findFirst.mockResolvedValue(null);
+      prisma.user.findUnique.mockResolvedValue({ autoReplyEnabled: true, autoReplyText: "Away" });
+      await expect(service.maybeAutoReply("t1", sent)).resolves.toEqual({
+        recipientId: "u2",
+        content: "Away",
+      });
+      expect(prisma.message.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { threadId: "t1", createdAt: { lt: sent.createdAt } },
+          orderBy: { createdAt: "desc" },
+        })
+      );
+    });
+
+    it("returns the recipient's saved reply when the sender opens a new turn", async () => {
+      prisma.thread.findUnique.mockResolvedValue(two);
+      prisma.message.findFirst.mockResolvedValue({ senderId: "u2", isAutoReply: false });
+      prisma.user.findUnique.mockResolvedValue({ autoReplyEnabled: true, autoReplyText: "  Away, will reply later  " });
+      await expect(service.maybeAutoReply("t1", sent)).resolves.toEqual({
+        recipientId: "u2",
+        content: "Away, will reply later",
+      });
+    });
+
+    it("suppresses further replies while the sender keeps the turn", async () => {
+      prisma.thread.findUnique.mockResolvedValue(two);
+      prisma.message.findFirst.mockResolvedValue({ senderId: "u1", isAutoReply: false });
+      await expect(service.maybeAutoReply("t1", sent)).resolves.toBeNull();
+      expect(prisma.user.findUnique).not.toHaveBeenCalled();
+    });
+
+    it("never replies to a message that is itself an auto-reply (no chaining)", async () => {
+      prisma.thread.findUnique.mockResolvedValue(two);
+      prisma.message.findFirst.mockResolvedValue({ senderId: "u2", isAutoReply: true });
+      await expect(service.maybeAutoReply("t1", sent)).resolves.toBeNull();
+      expect(prisma.user.findUnique).not.toHaveBeenCalled();
+    });
+
+    it("returns null when auto-reply is disabled or the text is empty", async () => {
+      prisma.thread.findUnique.mockResolvedValue(two);
+      prisma.message.findFirst.mockResolvedValue({ senderId: "u2", isAutoReply: false });
+      prisma.user.findUnique.mockResolvedValue({ autoReplyEnabled: false, autoReplyText: "Away" });
+      await expect(service.maybeAutoReply("t1", sent)).resolves.toBeNull();
+      prisma.user.findUnique.mockResolvedValue({ autoReplyEnabled: true, autoReplyText: "   " });
+      await expect(service.maybeAutoReply("t1", sent)).resolves.toBeNull();
     });
   });
 

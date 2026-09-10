@@ -1,5 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Noto_Sans_Khmer, Space_Grotesk } from "next/font/google";
+import {
+  Fraunces,
+  Inter,
+  Noto_Sans_Khmer,
+  Space_Grotesk,
+} from "next/font/google";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
@@ -32,6 +37,14 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",
+});
+
+// Editorial serif for the "Royal Luxe" landing redesign.
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-serif-display",
+  display: "swap",
+  axes: ["SOFT", "WONK"],
 });
 
 export const viewport: Viewport = {
@@ -94,19 +107,19 @@ export default async function LocaleLayout({ children, params }: Props) {
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className={`${inter.variable} ${notoSansKhmer.variable} ${spaceGrotesk.variable}`} suppressHydrationWarning>
+    <html lang={locale} className={`${inter.variable} ${notoSansKhmer.variable} ${spaceGrotesk.variable} ${fraunces.variable}`} suppressHydrationWarning>
       <body className="min-h-screen text-gray-900 dark:text-slate-200 antialiased">
         <OrganizationJsonLd />
         <ThemeProvider>
           <SessionWrapper>
             <NextIntlClientProvider locale={locale} messages={messages}>
               <Toaster />
-                <Nav />
-                <main className="min-h-[calc(100vh-4rem)]">{children}</main>
-                <Footer />
-                <AssistantWidget />
-                <ChatDockProvider />
-                <SentryInit />
+              <Nav />
+              <main className="min-h-[calc(100vh-4rem)]">{children}</main>
+              <Footer />
+              <AssistantWidget />
+              <ChatDockProvider />
+              <SentryInit />
               </NextIntlClientProvider>
           </SessionWrapper>
         </ThemeProvider>

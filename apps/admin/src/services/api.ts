@@ -58,18 +58,32 @@ export const api = {
   products: {
     list: () => fetchApi<Product[]>("/products"),
     byId: (id: string) => fetchApi<Product>(`/products/${id}`),
-    create: (data: Record<string, unknown>, token?: string) =>
-      fetchApi<Product>("/products", {
+    // Mutations go through admin-local routes: requireAdmin authenticates and
+    // the route relays to the backend with INTERNAL_SERVICE_TOKEN (no legacy
+    // accessToken bridge anymore).
+    create: (data: Record<string, unknown>) =>
+      fetch("/api/admin/products", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-      }, token),
-    update: (id: string, data: Record<string, unknown>, token?: string) =>
-      fetchApi<Product>(`/products/${id}`, {
+      }).then((r) => {
+        if (!r.ok) throw new Error(`API error: ${r.status}`);
+        return r.json();
+      }),
+    update: (id: string, data: Record<string, unknown>) =>
+      fetch(`/api/admin/products/${id}`, {
         method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-      }, token),
-    delete: (id: string, token?: string) =>
-      fetchApi<void>(`/products/${id}`, { method: "DELETE" }, token),
+      }).then((r) => {
+        if (!r.ok) throw new Error(`API error: ${r.status}`);
+        return r.json();
+      }),
+    delete: (id: string) =>
+      fetch(`/api/admin/products/${id}`, { method: "DELETE" }).then((r) => {
+        if (!r.ok) throw new Error(`API error: ${r.status}`);
+        return r.json();
+      }),
   },
   categories: {
     list: () => fetchApi<Category[]>("/categories"),

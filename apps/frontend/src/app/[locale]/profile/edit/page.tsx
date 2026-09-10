@@ -11,6 +11,13 @@ import { Avatar } from "@/components/social/Avatar";
 import { uploadFile } from "@/lib/social";
 import { useTranslations } from "next-intl";
 
+type Album = {
+  id: string;
+  title: string;
+  description: string | null;
+  images: { id: string; url: string; position: number }[];
+};
+
 type Me = {
   id: string;
   name: string | null;
@@ -32,6 +39,10 @@ export default function EditProfilePage() {
   const [bio, setBio] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [albumTitle, setAlbumTitle] = useState("");
+  const [albumDescription, setAlbumDescription] = useState("");
+  const [albums, setAlbums] = useState<Album[]>([]);
+  const [albumSaving, setAlbumSaving] = useState(false);
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -45,9 +56,60 @@ export default function EditProfilePage() {
         setUsername(p.username ?? "");
         setBio(p.bio ?? "");
         setAccountPrivate(Boolean(p.accountPrivate));
+        setAlbums(Array.isArray(p.albums) ? p.albums : []);
       })
       .catch(() => {});
   }, [status, session?.user?.id]);
+
+  async function createAlbum() {
+    if (!albumTitle.trim() || albumSaving) return;
+    setAlbumSaving(true);
+    try {
+      const res = await fetch("/api/profiles/me/albums", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: albumTitle.trim(), description: albumDescription.trim() || undefined }),
+      });
+      if (!res.ok) throw new Error("Could not create album");
+      const album = await res.json();
+      setAlbums((current) => [album, ...current]);
+      setAlbumTitle("");
+      setAlbumDescription("");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not create album");
+    } finally {
+      setAlbumSaving(false);
+    }
+  }
+
+  async function deleteAlbum(albumId: string, title: string) {
+    if (!window.confirm(`${t("deleteAlbumConfirm")} "${title}"`)) return;
+    try {
+      const res = await fetch(`/api/profiles/me/albums/${albumId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error(t("deleteAlbumFailed"));
+      setAlbums((current) => current.filter((album) => album.id !== albumId));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("deleteAlbumFailed"));
+    }
+  }
+
+  async function addAlbumImage(albumId: string, files: FileList | null) {
+    const file = files?.[0];
+    if (!file) return;
+    try {
+      const { url } = await uploadFile(file);
+      const res = await fetch(`/api/profiles/me/albums/${albumId}/images`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      if (!res.ok) throw new Error("Could not add picture to album");
+      const image = await res.json();
+      setAlbums((current) => current.map((album) => album.id === albumId ? { ...album, images: [...album.images, image] } : album));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Upload failed");
+    }
+  }
 
   async function save() {
     setError("");
@@ -71,8 +133,9 @@ export default function EditProfilePage() {
       router.push(`/profile/${session?.user?.id}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not save profile");
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   }
 
   async function pickImage(kind: "image" | "coverImage", files: FileList | null) {
@@ -199,6 +262,49 @@ export default function EditProfilePage() {
             />
           </button>
         </div>
+
+        <section className="mt-8 border-t border-[var(--border-subtle)] pt-6">
+          <h2 className="text-lg font-bold">{t("albums")}</h2>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">{t("albumsHint")}</p>
+          <div className="mt-4 space-y-3">
+            <input
+              value={albumTitle}
+              onChange={(e) => setAlbumTitle(e.target.value)}
+              maxLength={80}
+              placeholder={t("albumTitlePlaceholder")}
+              className="w-full rounded-xl border border-[var(--border-subtle)] px-3 py-2"
+            />
+            <input
+              value={albumDescription}
+              onChange={(e) => setAlbumDescription(e.target.value)}
+              maxLength={300}
+              placeholder={t("albumDescriptionPlaceholder")}
+              className="w-full rounded-xl border border-[var(--border-subtle)] px-3 py-2"
+            />
+            <button type="button" onClick={createAlbum} disabled={!albumTitle.trim() || albumSaving} className="rounded-full border border-[var(--border-subtle)] px-4 py-2 text-sm font-semibold disabled:opacity-50">
+              {albumSaving ? t("creatingAlbum") : t("createAlbum")}
+            </button>
+          </div>
+          <div className="mt-5 space-y-4">
+            {albums.map((album) => (
+              <div key={album.id} className="rounded-xl border border-[var(--border-subtle)] p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div><h3 className="font-semibold">{album.title}</h3>{album.description && <p className="text-xs text-[var(--text-muted)]">{album.description}</p>}</div>
+                  <div className="flex items-center gap-2">
+                    <label className="cursor-pointer rounded-full border border-[var(--border-subtle)] px-3 py-1.5 text-xs font-semibold">
+                      {t("addPicture")}
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => addAlbumImage(album.id, e.target.files)} />
+                    </label>
+                    <button type="button" onClick={() => deleteAlbum(album.id, album.title)} className="rounded-full border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600">
+                      {t("deleteAlbum")}
+                    </button>
+                  </div>
+                </div>
+                {album.images.length > 0 && <div className="mt-3 grid grid-cols-4 gap-2">{album.images.map((image) => <Image key={image.id} src={image.url} alt="" width={120} height={90} unoptimized className="aspect-square w-full rounded-lg object-cover" />)}</div>}
+              </div>
+            ))}
+          </div>
+        </section>
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 

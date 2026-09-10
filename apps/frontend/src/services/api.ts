@@ -163,7 +163,8 @@ export const api = {
     related: (id: string) => fetchApi<Product[]>(`/products/${id}/related`),
   },
   categories: {
-    list: () => fetchApi<Category[]>("/categories"),
+    list: (options?: Parameters<typeof fetchApi>[1]) =>
+      fetchApi<Category[]>("/categories", options),
   },
   resumes: {
     list: (token: string) =>

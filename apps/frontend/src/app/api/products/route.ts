@@ -67,7 +67,10 @@ export async function POST(req: NextRequest) {
       data: {
         name: body.name.trim(),
         description: body.description,
-        price,
+        // toFixed(2) yields an exact decimal string; passing the raw JS number
+        // makes the query engine expand the f64 (e.g. 99.99 -> 99.98999999999999)
+        // into the numeric column. Mirrors the backend ProductsService.create.
+        price: price.toFixed(2),
         condition: body.condition,
         categoryId: body.categoryId.trim(),
         stock,

@@ -11,7 +11,6 @@ on:
 
 env:
   REGISTRY: docker.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   # ============================================================================
@@ -26,6 +25,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Lowercase image name
+        run: echo "IMAGE_NAME=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -56,10 +58,10 @@ jobs:
           file: ./apps/backend/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ github.sha }}
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:buildcache
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:buildcache,mode=max
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:buildcache
+          cache-to: ${{ github.event_name != 'pull_request' && format('type=registry,ref={0}/{1}-backend:buildcache,mode=max', env.REGISTRY, env.IMAGE_NAME) || '' }}
 
       # ---- Frontend ----
       - name: Build and push frontend image
@@ -72,10 +74,10 @@ jobs:
             NEXT_PUBLIC_SITE_URL=https://example.com
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }}
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:buildcache
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:buildcache,mode=max
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:buildcache
+          cache-to: ${{ github.event_name != 'pull_request' && format('type=registry,ref={0}/{1}-frontend:buildcache,mode=max', env.REGISTRY, env.IMAGE_NAME) || '' }}
 
       # ---- Admin ----
       - name: Build and push admin image
@@ -85,10 +87,10 @@ jobs:
           file: ./apps/admin/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/admin:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/admin:${{ github.sha }}
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/admin:buildcache
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/admin:buildcache,mode=max
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-admin:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-admin:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-admin:buildcache
+          cache-to: ${{ github.event_name != 'pull_request' && format('type=registry,ref={0}/{1}-admin:buildcache,mode=max', env.REGISTRY, env.IMAGE_NAME) || '' }}
 
   # ============================================================================
   # Security scanning
@@ -102,22 +104,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Lowercase image name
+        run: echo "IMAGE_NAME=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
       - name: Run Docker Scout on backend
         uses: docker/scout-action@v1
         with:
-          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ github.sha }}
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ github.sha }}
           sbom: true
 
       - name: Run Docker Scout on frontend
         uses: docker/scout-action@v1
         with:
-          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }}
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ github.sha }}
           sbom: true
 
       - name: Run Docker Scout on admin
         uses: docker/scout-action@v1
         with:
-          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/admin:${{ github.sha }}
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-admin:${{ github.sha }}
           sbom: true
 
   # ============================================================================
@@ -133,19 +138,16 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Deploy to production
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
         run: |
-          # Example: Deploy using Docker Stack, Kubernetes, or custom script
-          echo "Deploying to production..."
-          
-          # Option 1: Docker Stack
-          # docker stack deploy -c docker-compose.yml khmer-shop
-          
-          # Option 2: Kubernetes
-          # kubectl apply -f k8s/
-          
-          # Option 3: SSH to server
-          # ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
-          #   "cd /app && docker compose pull && docker compose up -d"
-          
-          # Option 4: Deploy service (AWS ECS, Google Cloud Run, etc.)
-          # Use appropriate action for your platform
+          set -euo pipefail
+          if [ -z "${DEPLOY_HOST:-}" ]; then
+            echo "DEPLOY_HOST not configured - skipping deploy (see docs/deployment.md)"
+            exit 0
+          fi
+          mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
+          printf '%s' "$DEPLOY_SSH_KEY" > "$HOME/.ssh/deploy_key" && chmod 600 "$HOME/.ssh/deploy_key"
+          ssh -i "$HOME/.ssh/deploy_key" -o StrictHostKeyChecking=accept-new "${DEPLOY_USER}@${DEPLOY_HOST}" 'set -euo pipefail; cd /srv/champey; git pull --ff-only origin main; docker compose -f docker/compose.prod.yml build --pull; docker compose -f docker/compose.prod.yml up -d; docker compose -f docker/compose.prod.yml ps'

@@ -27,19 +27,18 @@ type AssistantMessage = {
 };
 
 const GREETINGS: Record<Lang, string> = {
-  en: "Hi! I'm your shopping guide. Ask me anything about the site — find products, discover shops on /market, or explore our free tools!",
-  zh: "您好！我是您的购物向导。您可以问我任何关于本站的问题——找商品、逛 /market 市场，或探索我们的免费工具！",
-  km: "សួស្តី! ខ្ញុំជាមគ្គុទ្ទេសក៍ទិញទំនិញរបស់អ្នក។ សូមសួរខ្ញុំអ្វីៗទាំងអស់អំពីគេហទំព័រ—រកទំនិញ មើលផ្សារនៅ /market ឬស្វែងរកឧបករណ៍ឥតគិតថ្លៃរបស់យើង!",
+  en: "Hi! I'm your shopping guide. Ask me anything about the site — find products, discover shops on /shop, or explore our free tools!",
+  zh: "您好！我是您的购物向导。您可以问我任何关于本站的问题——找商品、逛 /shop 商城，或探索我们的免费工具！",
+  km: "សួស្តី! ខ្ញុំជាមគ្គុទ្ទេសក៍ទិញទំនិញរបស់អ្នក។ សូមសួរខ្ញុំអ្វីៗទាំងអស់អំពីគេហទំព័រ—រកទំនិញ មើលផ្សារនៅ /shop ឬស្វែងរកឧបករណ៍ឥតគិតថ្លៃរបស់យើង!",
 };
 
 const STARTERS: Record<Lang, string[]> = {
-  en: ["What can this site do?", "Gift ideas under $50", "Browse the market", "How do I sell here?"],
-  zh: ["这个网站能做什么？", "50美元以内的礼物推荐", "逛逛市场", "如何在这里卖东西？"],
+  en: ["What can this site do?", "Gift ideas under $50", "Browse the shop", "How do I sell here?"],
+  zh: ["这个网站能做什么？", "50美元以内的礼物推荐", "逛逛商城", "如何在这里卖东西？"],
   km: ["គេហទំព័រនេះធ្វើអ្វីបាន?", "យោបល់អំណោយក្រោម 50 ដុល្លារ", "មើលផ្សារ", "ធ្វើដូចម្ដេចដើម្បីលក់?"],
 };
 
 const PATH_LABELS: Record<string, string> = {
-  "/market": "Market",
   "/shop": "Shop",
   "/cart": "Cart",
   "/orders": "Orders",
@@ -170,7 +169,7 @@ export function AiAssistant() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="w-14 h-14 rounded-full shadow-[0_8px_30px_-6px_rgba(255,107,94,0.6)] flex items-center justify-center bg-gradient-to-br from-gold-500 to-gold-600 hover:scale-105 active:scale-95 transition-transform"
+          className="w-14 h-14 rounded-full shadow-[0_8px_30px_-6px_rgba(176,141,62,0.6)] flex items-center justify-center bg-gradient-to-br from-gold-500 to-gold-600 hover:scale-105 active:scale-95 transition-transform"
           aria-label={t.aiAssistant.title}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}

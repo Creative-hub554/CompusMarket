@@ -79,6 +79,16 @@ function makePrisma() {
       findMany: vi.fn(),
       update: vi.fn(),
     },
+    profileAlbum: {
+      findMany: vi.fn().mockResolvedValue([]),
+      findFirst: vi.fn(),
+      create: vi.fn(),
+      delete: vi.fn(),
+    },
+    profileAlbumImage: {
+      findFirst: vi.fn(),
+      create: vi.fn(),
+    },
     story: {
       create: vi.fn(),
       findUnique: vi.fn(),
@@ -101,6 +111,9 @@ function makePrisma() {
       count: vi.fn(),
       update: vi.fn(),
       updateMany: vi.fn(),
+    },
+    campaign: {
+      findMany: vi.fn().mockResolvedValue([]),
     },
   };
   db.$transaction = vi.fn((arg: unknown) => {
@@ -898,6 +911,51 @@ describe("FollowsService", () => {
     });
   });
 
+  it("browses unfollowed people with a cursor and next page", async () => {
+    prisma.follow.findMany.mockResolvedValue([{ followingId: "u2" }]);
+    prisma.user.findMany.mockResolvedValue([
+      { id: "u9", name: "Zara", username: "zara", image: null, bio: null, _count: { followers: 2 } },
+      { id: "u8", name: "Yara", username: "yara", image: null, bio: null, _count: { followers: 1 } },
+      { id: "u7", name: "Mara", username: "mara", image: null, bio: null, _count: { followers: 0 } },
+    ]);
+
+    const result = await service.browsePeople("u1", "u9", 2);
+
+    expect(prisma.user.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: { notIn: ["u1", "u2"] } },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      cursor: { id: "u9" },
+      skip: 1,
+      take: 3,
+    }));
+    expect(result.items).toHaveLength(2);
+    expect(result.nextCursor).toBe("u8");
+  });
+
+  it("searches unfollowed people by name or username", async () => {
+    prisma.follow.findMany.mockResolvedValue([{ followingId: "u2" }]);
+    prisma.user.findMany.mockResolvedValue([
+      { id: "u9", name: "Zara", username: "zara", image: null, bio: null, _count: { followers: 2 } },
+    ]);
+    const result = await service.searchPeople("u1", "zar");
+    expect(prisma.user.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        id: { notIn: ["u1", "u2"] },
+        OR: [
+          { name: { contains: "zar", mode: "insensitive" } },
+          { username: { contains: "zar", mode: "insensitive" } },
+        ],
+      },
+      take: 20,
+    }));
+    expect(result).toHaveLength(1);
+  });
+
+  it("returns no people for a blank search", async () => {
+    await expect(service.searchPeople("u1", "   ")).resolves.toEqual([]);
+    expect(prisma.user.findMany).not.toHaveBeenCalled();
+  });
+
   it("suggests popular unfollowed users", async () => {
     prisma.follow.findMany.mockResolvedValue([{ followingId: "u2" }]);
     prisma.follow.groupBy.mockResolvedValue([{ followingId: "u9", _count: { followingId: 5 } }]);
@@ -1164,6 +1222,21 @@ describe("ProfilesService", () => {
   it("rejects a taken username", async () => {
     prisma.user.findFirst.mockResolvedValue({ id: "someone-else" });
     await expect(service.updateMe("u1", { username: "taken" })).rejects.toThrow(ConflictException);
+  });
+
+  it("rejects a blank album title before writing", async () => {
+    await expect(service.createAlbum("u1", "   ")).rejects.toThrow(BadRequestException);
+    expect(prisma.profileAlbum.create).not.toHaveBeenCalled();
+  });
+
+  it("deletes an owned album and rejects another owner's album", async () => {
+    prisma.profileAlbum.findFirst.mockResolvedValue({ id: "a1" });
+    await expect(service.deleteAlbum("u1", "a1")).resolves.toEqual({ deleted: true });
+    expect(prisma.profileAlbum.delete).toHaveBeenCalledWith({ where: { id: "a1" } });
+
+    prisma.profileAlbum.findFirst.mockResolvedValue(null);
+    await expect(service.deleteAlbum("u1", "a2")).rejects.toThrow(NotFoundException);
+    expect(prisma.profileAlbum.delete).toHaveBeenCalledTimes(1);
   });
 });
 

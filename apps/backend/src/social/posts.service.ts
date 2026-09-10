@@ -364,6 +364,7 @@ export class PostsService {
     limit: number,
     orderBy: Prisma.PostOrderByWithRelationInput[] = [{ createdAt: "desc" }]
   ) {
+    // Basic post query
     const posts = await this.prisma.post.findMany({
       where,
       orderBy,
@@ -373,6 +374,49 @@ export class PostsService {
     });
     const hasMore = posts.length > limit;
     const page = posts.slice(0, limit);
+
+    // Reorder boosted posts to the top: look up active daily-budget campaigns attached to these posts.
+    if (page.length > 0) {
+      const now = new Date();
+      const postIds = page.map((p) => p.id);
+      const campaigns = await this.prisma.campaign.findMany({
+        where: {
+          postId: { in: postIds },
+          campaignType: "DAILY_BUDGET",
+          status: "ACTIVE",
+          moderationStatus: "APPROVED",
+          startAt: { lte: now },
+          OR: [{ endAt: null }, { endAt: { gt: now } }],
+        },
+        select: { id: true, postId: true, dailyBudget: true, startAt: true },
+      });
+      const campaignByPost = new Map<string, { id: string; dailyBudget: Prisma.Decimal; startAt: Date | null }>();
+      for (const c of campaigns) campaignByPost.set(c.postId!, { id: c.id, dailyBudget: c.dailyBudget, startAt: c.startAt });
+
+      const boosted: ListPost[] = [];
+      const regular: ListPost[] = [];
+      for (const p of page) {
+        if (campaignByPost.has(p.id)) boosted.push(p);
+        else regular.push(p);
+      }
+      // sort boosted by dailyBudget desc (higher spend first), then by startAt desc
+      boosted.sort((a, b) => {
+        const ca = campaignByPost.get(a.id)!;
+        const cb = campaignByPost.get(b.id)!;
+        const aBudget = Number(ca.dailyBudget ?? 0);
+        const bBudget = Number(cb.dailyBudget ?? 0);
+        if (bBudget !== aBudget) return bBudget - aBudget;
+        const bStart = campaignByPost.get(b.id)!.startAt?.getTime() ?? 0;
+        const aStart = campaignByPost.get(a.id)!.startAt?.getTime() ?? 0;
+        return bStart - aStart;
+      });
+
+      // new page order: boosted first
+      const reordered = [...boosted, ...regular];
+      const items = await this.hydratePosts(reordered, viewerId);
+      return { items, nextCursor: hasMore ? items[items.length - 1].id : null };
+    }
+
     const items = await this.hydratePosts(page, viewerId);
 
     // Fire-and-forget impression tally for page posts (insights feed on it).

@@ -20,8 +20,10 @@ RUN pnpm install
 COPY --from=pruner /app/out/full/ .
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_SITE_URL
+ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
+ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
 RUN pnpm --filter @theo/database exec prisma generate
 RUN pnpm turbo run build --filter=admin
 
@@ -32,8 +34,15 @@ RUN addgroup --system --gid 1001 nextjs && adduser --system --uid 1001 nextjs
 
 COPY --from=installer --chown=nextjs:nextjs /app/apps/admin/.next/standalone ./
 COPY --from=installer --chown=nextjs:nextjs /app/apps/admin/.next/static ./apps/admin/.next/static
+# Copy the Prisma query engine next to the server bundle: Next.js standalone
+# tracing bundles the client JS but not the .so engine, so SSR DB queries die
+# with "could not locate the Query Engine" unless it is copied in.
+COPY --from=installer --chown=nextjs:nextjs /app/node_modules/.pnpm/@prisma+client@*/node_modules/.prisma/client/libquery_engine-linux-musl-openssl-3.0.x.so.node ./apps/admin/.next/server/
 
 USER nextjs
 EXPOSE 3001
 ENV PORT=3001
+# Docker injects HOSTNAME (container id) and Next.js binds to it, so the app is
+# unreachable on 127.0.0.1 and in-container healthchecks fail. Bind all interfaces.
+ENV HOSTNAME=0.0.0.0
 CMD ["node", "apps/admin/server.js"]

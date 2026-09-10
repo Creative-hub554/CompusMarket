@@ -1,11 +1,11 @@
 import {
+  ArrayMaxSize,
   IsArray,
   IsBoolean,
   IsIn,
   IsOptional,
   IsString,
   Matches,
-  Max,
   MaxLength,
   MinLength,
   ValidateNested,
@@ -32,7 +32,7 @@ export class CreatePostDto {
 
   @IsOptional()
   @IsArray()
-  @Max(8)
+  @ArrayMaxSize(8)
   @ValidateNested({ each: true })
   @Type(() => PostMediaInputDto)
   media?: PostMediaInputDto[];
@@ -76,6 +76,24 @@ export class CreateStoryDto {
   caption?: string;
 }
 
+export class CreateProfileAlbumDto {
+  @IsString()
+  @MinLength(1)
+  @MaxLength(80)
+  title!: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  description?: string;
+}
+
+export class AddProfileAlbumImageDto {
+  @IsString()
+  @MinLength(1)
+  url!: string;
+}
+
 export class UpdateProfileDto {
   @IsOptional()
   @IsString()
@@ -104,4 +122,18 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsBoolean()
   accountPrivate?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  theme?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  autoReplyEnabled?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  autoReplyText?: string;
 }

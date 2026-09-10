@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { api } from "@/services/api";
 import { notFound } from "next/navigation";
 import { AddToCartButton } from "@/components/AddToCartButton";
+import { BuyNowButton } from "@/components/BuyNowButton";
 import { ChatWithSellerButton } from "@/components/ChatWithSellerButton";
 import { ProductTabs } from "./ProductTabs";
 import { ProductCard } from "@/components/ProductCard";
@@ -123,7 +124,10 @@ export default async function ProductDetailPage({ params }: Props) {
       {/* Gallery + buying box */}
       <div className="grid md:grid-cols-2 gap-8 mb-10">
         <div className="space-y-4">
-          <div className="aspect-square rounded-2xl bg-[var(--surface-2)] flex items-center justify-center overflow-hidden shadow-sm ring-1 ring-[var(--border-subtle)]">
+          <div
+            className="product-morph aspect-square rounded-2xl bg-[var(--surface-2)] flex items-center justify-center overflow-hidden shadow-sm ring-1 ring-[var(--border-subtle)]"
+            style={{ viewTransitionName: `product-${product.id}` }}
+          >
             {product.images?.[0] ? (
               <Image
                 src={product.images[0]}
@@ -161,9 +165,7 @@ export default async function ProductDetailPage({ params }: Props) {
                 <AddToCartButton productId={product.id} />
               </div>
             )}
-            <button type="button" className="btn-primary">
-              Buy now
-            </button>
+            <BuyNowButton productId={product.id} />
             {product.sellerId && (
               <div className="flex-1 min-w-[200px]">
                 <ChatWithSellerButton

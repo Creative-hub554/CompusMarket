@@ -97,6 +97,9 @@ services:
     build:
       context: ..
       dockerfile: apps/backend/Dockerfile
+      # Without an explicit target Docker builds the LAST stage (db-init), so
+      # the backend container only runs db push + seed and exits.
+      target: runner
     restart: unless-stopped
     environment:
       NODE_ENV: production
@@ -115,6 +118,7 @@ services:
       METRICS_TOKEN: ${METRICS_TOKEN:-metrics-token-change-me}
       AUTH_SECRET: ${AUTH_SECRET}
       JWT_SECRET: ${JWT_SECRET}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:-}
       CORS_ORIGIN: ${CORS_ORIGIN}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
@@ -134,7 +138,8 @@ services:
     expose:
       - "4000"
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:4000/api/health/live || exit 1"]
+      # busybox wget resolves `localhost` to ::1, which nothing binds; probe IPv4.
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4000/api/health/live || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -144,22 +149,28 @@ services:
     build:
       context: ..
       dockerfile: apps/frontend/Dockerfile
+      target: runner
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://backend:4000}
         NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
     restart: unless-stopped
     environment:
       NODE_ENV: production
       PORT: 3000
       DATABASE_URL: postgresql://theo:${POSTGRES_PASSWORD}@postgres:5432/theo_platform
-      NEXTAUTH_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:-}
+      CLERK_WEBHOOK_SECRET: ${CLERK_WEBHOOK_SECRET:-}
       AUTH_SECRET: ${AUTH_SECRET}
       JWT_SECRET: ${JWT_SECRET}
       SENTRY_DSN: ${SENTRY_DSN:-}
     ports:
       - "3000:3000"
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/healthz >/dev/null 2>&1 || exit 1"]
+      # No /healthz route on the frontend (locale middleware 404s it); probe the
+      # locale-agnostic home page over IPv4 (busybox wget resolves `localhost` to ::1).
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/ >/dev/null 2>&1 || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -169,17 +180,18 @@ services:
     build:
       context: ..
       dockerfile: apps/admin/Dockerfile
+      target: runner
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://backend:4000}
         NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
     restart: unless-stopped
     environment:
       NODE_ENV: production
       PORT: 3001
       DATABASE_URL: postgresql://theo:${POSTGRES_PASSWORD}@postgres:5432/theo_platform
-      AUTH_SECRET: ${AUTH_SECRET}
-      NEXTAUTH_SECRET: ${AUTH_SECRET}
-      NEXTAUTH_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:-}
       SENTRY_DSN: ${SENTRY_DSN:-}
       # Server-to-server backend calls (real-time notification relay).
       INTERNAL_API_URL: ${INTERNAL_API_URL:-http://backend:4000}
@@ -187,7 +199,8 @@ services:
     expose:
       - "3001"
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/healthz >/dev/null 2>&1 || exit 1"]
+      # busybox wget resolves `localhost` to ::1, which the app does not bind.
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3001/healthz >/dev/null 2>&1 || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -210,7 +223,8 @@ services:
       - admin
       - backend
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost/healthz >/dev/null 2>&1 || exit 1"]
+      # busybox wget resolves `localhost` to ::1; nginx binds IPv4 only.
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/healthz >/dev/null 2>&1 || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 3

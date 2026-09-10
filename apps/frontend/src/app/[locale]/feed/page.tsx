@@ -98,7 +98,7 @@ export default function FeedPage() {
               { href: "/community/groups", label: nav("groups"), img: "/champey-mark.svg" },
               { href: "/pages", label: nav("pages"), Icon: Flag },
               { href: "/saved", label: nav("savedPosts"), Icon: Bookmark },
-              { href: "/market", label: nav("market"), Icon: Store },
+              { href: "/shop", label: nav("shop"), Icon: Store },
               { href: "/jobs", label: nav("jobs"), Icon: Briefcase },
             ].map(({ href, label, Icon, img }) => {
               const active = pathname === href || pathname.startsWith(href + "/");
@@ -124,10 +124,6 @@ export default function FeedPage() {
                 </Link>
               );
             })}
-            {/* Online people, most interacted first */}
-            <div className="mt-4 pt-4 border-t border-[var(--border-subtle)]">
-              <OnlineContacts />
-            </div>
           </div>
         </aside>
 
@@ -215,6 +211,12 @@ export default function FeedPage() {
 
         <aside className="hidden lg:block">
           <div className="sticky top-20 space-y-4">
+            {/* Online people, most interacted first (Facebook contacts rail) */}
+            <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)] p-4">
+              <h2 className="font-semibold text-slate-800 dark:text-slate-200 mb-3">{nav("messages")}</h2>
+              <OnlineContacts />
+            </div>
+
             <h2 className="font-semibold text-slate-800 dark:text-slate-200">Suggested for you</h2>
             {suggestions.length === 0 ? (
               <p className="text-sm text-gray-400">No suggestions right now.</p>

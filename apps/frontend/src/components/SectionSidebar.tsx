@@ -37,7 +37,7 @@ export function SectionSidebar({
                     href={item.href}
                     className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
                       active
-                        ? "bg-[rgba(255,107,94,0.14)] font-semibold text-gold"
+                        ? "bg-[rgba(176,141,62,0.14)] font-semibold text-gold"
                         : "text-[var(--text-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text-body)]"
                     }`}
                   >

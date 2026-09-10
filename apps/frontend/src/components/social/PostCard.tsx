@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
 import { Avatar } from "./Avatar";
@@ -9,11 +8,13 @@ import { BadgeCheck } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { ReportButton } from "./ReportButton";
 import { timeAgo } from "@/lib/social";
-import { apiFetch, handleApiError } from "@/lib/apiFetch";
+import { apiFetch } from "@/lib/apiFetch";
 import { useHandleApiError } from "@/lib/useHandleApiError";
 import { toast } from "@/components/ui/toast";
+import { PostMediaCarousel } from "./PostMediaCarousel";
+import type { PostMediaInput } from "@/lib/post-media";
 
-type Media = { id: string; kind: "IMAGE" | "VIDEO"; url: string; thumbUrl?: string | null };
+type Media = PostMediaInput & { id: string; thumbUrl?: string | null };
 
 const MENTION_RE = /@([a-zA-Z0-9_.]{2,20})/g;
 
@@ -65,21 +66,6 @@ type CommentT = {
 };
 
 const EMOJIS = ["👍", "❤️", "😂", "😮", "🔥"];
-
-function MediaGrid({ media }: { media: Media[] }) {
-  if (media.length === 0) return null;
-  return (
-    <div className={`grid gap-1 mt-3 rounded-xl overflow-hidden ${media.length > 1 ? "grid-cols-2" : ""}`}>
-      {media.map((m) =>
-        m.kind === "IMAGE" ? (
-          <Image key={m.id} src={m.url} alt="" width={800} height={420} className="w-full h-full object-cover max-h-[420px]" />
-        ) : (
-          <video key={m.id} src={m.url} controls className="w-full max-h-[420px] bg-black" />
-        )
-      )}
-    </div>
-  );
-}
 
 export function PostCard({
   post,
@@ -397,7 +383,7 @@ export function PostCard({
       )}
 
       <div className="px-4">
-        <MediaGrid media={post.media} />
+        <PostMediaCarousel media={post.media} />
       </div>
 
       <div className="flex items-center gap-1 px-3 py-2 mt-1 relative">

@@ -7,11 +7,12 @@ import Image from "next/image";
 import { Avatar } from "./Avatar";
 import { uploadFile, useAuthSocket } from "@/lib/social";
 import { useSession } from "@/lib/session-client";
-import { apiFetch, handleApiError } from "@/lib/apiFetch";
+import { apiFetch } from "@/lib/apiFetch";
 import { useHandleApiError } from "@/lib/useHandleApiError";
 import { useTranslations } from "next-intl";
+import { canAddMedia, type PostMediaInput } from "@/lib/post-media";
 
-type MediaInput = { url: string; kind: "IMAGE" | "VIDEO" };
+type MediaInput = PostMediaInput;
 
 export function Composer({
   onPosted,
@@ -33,10 +34,16 @@ export function Composer({
 
   async function handleFiles(files: FileList | null) {
     if (!files?.length) return;
+    const selected = Array.from(files);
+    if (!canAddMedia(media, selected)) {
+      toast.error(t("mediaLimit"));
+      return;
+    }
+
     setUploading(true);
     try {
       const uploaded: MediaInput[] = [];
-      for (const file of Array.from(files)) {
+      for (const file of selected) {
         const { url } = await uploadFile(file);
         uploaded.push({ url, kind: file.type.startsWith("video/") ? "VIDEO" : "IMAGE" });
       }
@@ -51,8 +58,9 @@ export function Composer({
       });
     } catch (err) {
       await _handleApiError(err, "attach a photo or video");
+    } finally {
+      setUploading(false);
     }
-    setUploading(false);
   }
 
   async function submit() {

@@ -3,6 +3,7 @@ import { ChatGateway } from "./chat.gateway";
 import type { PrismaService } from "../prisma/prisma.service";
 import type { NotificationsService } from "../social/notifications.service";
 import type { ChatBotService } from "./chat-bot.service";
+import type { ThreadsService } from "./threads.service";
 import type { Server } from "socket.io";
 
 // chat.gateway.ts resolves the auth secret at module scope, so seed the env
@@ -71,6 +72,7 @@ describe("ChatGateway participant gating", () => {
     buildReplies: vi.fn(),
   };
   const notifications = { notify: vi.fn() };
+  const threads = { maybeAutoReply: vi.fn() };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -79,11 +81,13 @@ describe("ChatGateway participant gating", () => {
     room = { emit: vi.fn() };
     server.to.mockReturnValue(room as never);
     bot.shouldRespond.mockResolvedValue(false);
+    threads.maybeAutoReply.mockResolvedValue(null);
 
     gateway = new ChatGateway(
       prisma as unknown as PrismaService,
       notifications as unknown as NotificationsService,
-      bot as unknown as ChatBotService
+      bot as unknown as ChatBotService,
+      threads as unknown as ThreadsService
     );
     gateway.server = server as unknown as Server;
   });
@@ -216,7 +220,8 @@ describe("ChatGateway participant gating", () => {
       prisma.threadParticipant.findUnique.mockResolvedValue(null);
       prisma.thread.findUnique
         .mockResolvedValueOnce({ pageId: "pg1" })           // assertThreadAccess
-        .mockResolvedValueOnce({ pageId: "pg1", page: { ownerId: "page-owner-1" } }); // persistAndBroadcast PAGE_MESSAGE check
+        .mockResolvedValueOnce({ pageId: "pg1", page: { ownerId: "page-owner-1" } }) // persistAndBroadcast PAGE_MESSAGE check
+        .mockResolvedValueOnce({ pageId: "pg1" });           // post-send page check (skip bot/auto-reply)
       prisma.pageMember.findUnique.mockResolvedValue({ id: "pm1" });
       prisma.message.create.mockResolvedValue({
         id: "m2",
@@ -243,12 +248,14 @@ describe("ChatGateway participant gating", () => {
         "newMessage",
         expect.objectContaining({ id: "m2" })
       );
-      // Customer participant gets notified
-      expect(notifications.notify).toHaveBeenCalledWith(
-        expect.objectContaining({
-          userId: "customer-1",
-          kind: "MESSAGE",
-        })
+      // Customer participant gets notified (fire-and-forget tail)
+      await vi.waitFor(() =>
+        expect(notifications.notify).toHaveBeenCalledWith(
+          expect.objectContaining({
+            userId: "customer-1",
+            kind: "MESSAGE",
+          })
+        )
       );
     });
 
@@ -318,8 +325,10 @@ describe("ChatGateway participant gating", () => {
         content: "Yes, it is!",
       });
 
-      // Only MESSAGE notification to customer, no PAGE_MESSAGE
-      expect(notifications.notify).toHaveBeenCalledTimes(1);
+      // Only MESSAGE notification to customer (fire-and-forget tail), no PAGE_MESSAGE
+      await vi.waitFor(() =>
+        expect(notifications.notify).toHaveBeenCalledTimes(1)
+      );
       expect(notifications.notify).toHaveBeenCalledWith(
         expect.objectContaining({ userId: "customer-1", kind: "MESSAGE" })
       );
@@ -349,6 +358,66 @@ describe("ChatGateway participant gating", () => {
       // Bot should never be consulted
       expect(bot.shouldRespond).not.toHaveBeenCalled();
       expect(bot.buildReplies).not.toHaveBeenCalled();
+    });
+
+    it("persists an auto-reply from the recipient when the policy fires", async () => {
+      prisma.threadParticipant.findUnique.mockResolvedValue({ id: "tp1" });
+      // First create = the sender's message; second = the auto-reply it triggers.
+      prisma.message.create
+        .mockResolvedValueOnce({
+          id: "m1",
+          threadId: "t1",
+          senderId: "u1",
+          content: "hello",
+          isAutoReply: false,
+          sender: { id: "u1", name: "Me", image: null },
+        })
+        .mockResolvedValue({
+          id: "m2",
+          threadId: "t1",
+          senderId: "u2",
+          content: "Away, will reply later",
+          isAutoReply: true,
+          sender: { id: "u2", name: "Bob", image: null },
+        });
+      prisma.thread.update.mockResolvedValue({});
+      prisma.threadParticipant.update.mockResolvedValue({});
+      prisma.threadParticipant.findMany.mockResolvedValue([]);
+      threads.maybeAutoReply.mockResolvedValue({
+        recipientId: "u2",
+        content: "Away, will reply later",
+      });
+      const client = makeClient("u1");
+
+      await gateway.handleSendMessage(client as never, {
+        threadId: "t1",
+        content: "hello",
+      });
+
+      expect(threads.maybeAutoReply).toHaveBeenCalledWith(
+        "t1",
+        expect.objectContaining({ id: "m1", senderId: "u1" })
+      );
+      // Same persist path as a human message, flagged so it can never chain.
+      await vi.waitFor(() =>
+        expect(prisma.message.create).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({
+              threadId: "t1",
+              senderId: "u2",
+              content: "Away, will reply later",
+              isAutoReply: true,
+            }),
+          })
+        )
+      );
+      expect(server.to).toHaveBeenCalledWith("t1");
+      await vi.waitFor(() =>
+        expect(room.emit).toHaveBeenCalledWith(
+          "newMessage",
+          expect.objectContaining({ id: "m2" })
+        )
+      );
     });
   });
 
