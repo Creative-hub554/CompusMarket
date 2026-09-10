@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
 import { RequireAuth } from "@/components/RequireAuth";
@@ -38,7 +39,8 @@ type Insights = {
   topPosts: { id: string; content: string; reactions: number; comments: number; impressions: number }[];
 };
 
-export default function ManagePageRoute({ params }: { params: { id: string } }) {
+export default function ManagePageRoute() {
+  const params = useParams<{ id: string }>();
   const t = useTranslations("pages");
   const router = useRouter();
   const { data: session } = useSession();
