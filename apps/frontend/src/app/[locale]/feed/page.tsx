@@ -3,15 +3,19 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
+import { RequireAuth } from "@/components/RequireAuth";
 import { useTranslations } from "next-intl";
-import { Bookmark, Store, Briefcase } from "lucide-react";
+import { Bookmark, Store, Briefcase, Flag } from "lucide-react";
 import { Composer } from "@/components/social/Composer";
 import { PostCard, FeedPost } from "@/components/social/PostCard";
 import { StoriesBar } from "@/components/social/StoriesBar";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
+import { AlertTriangle, RotateCcw } from "lucide-react";
 import { FollowButton } from "@/components/social/FollowButton";
 import { Avatar } from "@/components/social/Avatar";
 import { OnlineContacts } from "@/components/chat/ChatDock";
 import { MarketplaceListing, MarketplaceListingProduct } from "@/components/market/MarketplaceListing";
+import { apiFetch, handleApiError } from "@/lib/apiFetch";
 
 type Suggestion = {
   id: string;
@@ -37,26 +41,27 @@ export default function FeedPage() {
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   const loadPage = useCallback(async (cursorId?: string | null) => {
-    const res = await fetch(`/api/feed${cursorId ? `?cursor=${cursorId}` : ""}`);
-    if (!res.ok) return;
-    const data = await res.json();
-    setPosts((prev) => (cursorId ? [...prev, ...data.items] : data.items));
-    setCursor(data.nextCursor);
-    setHasMore(!!data.nextCursor);
+    try {
+      const data = await apiFetch<{ items: FeedPost[]; nextCursor: string | null }>(`/api/feed${cursorId ? `?cursor=${cursorId}` : ""}`);
+      setPosts((prev) => (cursorId ? [...prev, ...data.items] : data.items));
+      setCursor(data.nextCursor);
+      setHasMore(!!data.nextCursor);
+    } catch (err) {
+      await handleApiError(err, "load more posts", true);
+      setHasMore(false);
+    }
     setLoading(false);
   }, []);
 
   useEffect(() => {
     if (!session?.user?.id) return;
     loadPage();
-    fetch("/api/suggestions")
-      .then((r) => r.json())
+    apiFetch<Suggestion[]>("/api/suggestions")
       .then((data) => setSuggestions(Array.isArray(data) ? data : []))
       .catch(() => {});
-    fetch("/api/search")
-      .then((r) => r.json())
+    apiFetch<{ hits?: MarketplaceListingProduct[] }>("/api/search")
       .then((data) => setProducts(Array.isArray(data?.hits) ? data.hits.slice(0, 12) : []))
-      .catch(() => {});
+      .catch((err) => handleApiError(err, "load market suggestions", true));
   }, [session?.user?.id, loadPage]);
 
   useEffect(() => {
@@ -73,15 +78,7 @@ export default function FeedPage() {
   }, [hasMore, loading, cursor, loadPage]);
 
   if (!session) {
-    return (
-      <div className="max-w-xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
-        <p className="text-gray-600 dark:text-gray-300 mb-4">Please sign in to see your feed.</p>
-        <Link href="/login" className="text-slate-900 dark:text-slate-100 font-medium hover:underline">
-          Go to Login
-        </Link>
-      </div>
-    );
+    return <RequireAuth message="Please sign in to see your feed." />;
   }
 
   return (
@@ -97,8 +94,9 @@ export default function FeedPage() {
               <Avatar user={{ name: session.user.name, image: (session.user as { image?: string | null }).image }} size={32} />
               <span className="truncate">{session.user.name || nav("feed")}</span>
             </Link>
-            {[
+            {            [
               { href: "/community/groups", label: nav("groups"), img: "/champey-mark.svg" },
+              { href: "/pages", label: nav("pages"), Icon: Flag },
               { href: "/saved", label: nav("savedPosts"), Icon: Bookmark },
               { href: "/market", label: nav("market"), Icon: Store },
               { href: "/jobs", label: nav("jobs"), Icon: Briefcase },
@@ -136,9 +134,31 @@ export default function FeedPage() {
         {/* Center: stories, composer, posts */}
         <div className="space-y-5 min-w-0">
           <StoriesBar />
-          <Composer
-            onPosted={(post) => setPosts((prev) => [post as FeedPost, ...prev])}
-          />
+          <ErrorBoundary label="composer" fallback={({ reset }) => (
+            <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)] p-4 animate-fade-in">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 dark:bg-red-950/50 text-red-500">
+                  <AlertTriangle size={18} />
+                </span>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    Couldn&apos;t load the post composer
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Something went wrong. Try again below.
+                  </p>
+                </div>
+                <button onClick={reset} className="btn-primary inline-flex items-center gap-1.5 px-4 py-1.5 text-sm">
+                  <RotateCcw size={14} />
+                  Retry
+                </button>
+              </div>
+            </div>
+          )}>
+            <Composer
+              onPosted={(post) => setPosts((prev) => [post as FeedPost, ...prev])}
+            />
+          </ErrorBoundary>
 
           {loading ? (
             <div className="space-y-5">
@@ -172,13 +192,15 @@ export default function FeedPage() {
                     : null;
                 return (
                   <Fragment key={post.id}>
-                    <PostCard
-                      post={post}
-                      onDeleted={(id) => setPosts((prev) => prev.filter((p) => p.id !== id))}
-                      onEdited={(updated) =>
-                        setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
-                      }
-                    />
+                    <ErrorBoundary label={`post ${post.id}`}>
+                      <PostCard
+                        post={post}
+                        onDeleted={(id) => setPosts((prev) => prev.filter((p) => p.id !== id))}
+                        onEdited={(updated) =>
+                          setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
+                        }
+                      />
+                    </ErrorBoundary>
                     {product && <MarketplaceListing product={product} />}
                   </Fragment>
                 );

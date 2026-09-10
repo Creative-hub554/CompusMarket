@@ -150,6 +150,29 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
   // ── Threads ──
 
+  /**
+   * Page-thread access: the customer participant OR any page member
+   * (OWNER/EDITOR) may read/write. Returns true when access is granted.
+   */
+  private async assertThreadAccess(threadId: string, userId: string): Promise<boolean> {
+    const participant = await this.prisma.threadParticipant.findUnique({
+      where: { threadId_userId: { threadId, userId } },
+      select: { id: true },
+    });
+    if (participant) return true;
+
+    const thread = await this.prisma.thread.findUnique({
+      where: { id: threadId },
+      select: { pageId: true },
+    });
+    if (!thread?.pageId) return false;
+    const membership = await this.prisma.pageMember.findUnique({
+      where: { pageId_userId: { pageId: thread.pageId, userId } },
+      select: { id: true },
+    });
+    return Boolean(membership);
+  }
+
   @SubscribeMessage("joinThread")
   async handleJoinThread(
     @ConnectedSocket() client: AuthenticatedSocket,
@@ -159,11 +182,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       const userId = client.userId;
       if (!userId) return;
 
-      const participant = await this.prisma.threadParticipant.findUnique({
-        where: { threadId_userId: { threadId: data.threadId, userId } },
-        select: { id: true },
-      });
-      if (!participant) return;
+      if (!(await this.assertThreadAccess(data.threadId, userId))) return;
 
       client.join(data.threadId);
     } catch (err) {
@@ -193,16 +212,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         return;
       }
 
-      const participant = await this.prisma.threadParticipant.findUnique({
-        where: { threadId_userId: { threadId: data.threadId, userId } },
-        select: { id: true },
-      });
-      if (!participant) return;
+      if (!(await this.assertThreadAccess(data.threadId, userId))) return;
 
       await this.persistAndBroadcast(data.threadId, userId, content, attachments);
 
-      // Telegram-style auto-response when chatting with the built-in bot.
-      void this.maybeReplyAsBot(data.threadId, userId, content);
+      // Telegram-style auto-response when chatting with the built-in bot
+      // (never in page threads — customers talk to the business there).
+      const isPageThread = await this.prisma.thread.findUnique({
+        where: { id: data.threadId },
+        select: { pageId: true },
+      });
+      if (!isPageThread?.pageId) {
+        void this.maybeReplyAsBot(data.threadId, userId, content);
+      }
     } catch (err) {
       this.logger.error("ChatGateway error:", err as Error);
     }
@@ -238,6 +260,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
     this.server.to(threadId).emit("newMessage", message);
 
+    // Notify thread participants (except the sender).
     const otherParticipants = await this.prisma.threadParticipant.findMany({
       where: { threadId, userId: { not: senderId } },
       select: { userId: true },
@@ -253,6 +276,26 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         })
       )
     );
+
+    // Page thread: a customer message also pings the page owner so staff
+    // who never opened the thread still learn about it.
+    const thread = await this.prisma.thread.findUnique({
+      where: { id: threadId },
+      select: { pageId: true, page: { select: { ownerId: true } } },
+    });
+    if (thread?.page) {
+      const isStaffSender = senderId === thread.page.ownerId;
+      const senderIsParticipant = otherParticipants.some((p) => p.userId === senderId);
+      if (!isStaffSender && !senderIsParticipant) {
+        await this.notifications.notify({
+          userId: thread.page.ownerId,
+          actorId: senderId,
+          kind: "PAGE_MESSAGE",
+          entityId: threadId,
+          message: content || "Sent an attachment",
+        });
+      }
+    }
   }
 
   private async maybeReplyAsBot(threadId: string, senderId: string, content: string) {
@@ -283,11 +326,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   ) {
     const userId = client.userId;
     if (!userId) return;
-    const participant = await this.prisma.threadParticipant.findUnique({
-      where: { threadId_userId: { threadId: data.threadId, userId } },
-      select: { id: true },
-    });
-    if (!participant) return;
+    if (!(await this.assertThreadAccess(data.threadId, userId))) return;
     client.to(data.threadId).emit("typing", {
       threadId: data.threadId,
       userId,

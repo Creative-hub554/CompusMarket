@@ -7,18 +7,25 @@ import Image from "next/image";
 import { Avatar } from "./Avatar";
 import { uploadFile, useAuthSocket } from "@/lib/social";
 import { useSession } from "@/lib/session-client";
+import { apiFetch, handleApiError } from "@/lib/apiFetch";
+import { useHandleApiError } from "@/lib/useHandleApiError";
+import { useTranslations } from "next-intl";
 
 type MediaInput = { url: string; kind: "IMAGE" | "VIDEO" };
 
 export function Composer({
   onPosted,
   groupId,
+  pageId,
 }: {
   onPosted: (post: unknown) => void;
   groupId?: string;
+  pageId?: string;
 }) {
   const { data: session } = useSession();
   const socketRef = useAuthSocket(session?.user?.id);
+  const _handleApiError = useHandleApiError();
+  const t = useTranslations("social");
   const [content, setContent] = useState("");
   const [media, setMedia] = useState<MediaInput[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -37,13 +44,13 @@ export function Composer({
         const combined = [...prev, ...uploaded];
         const videos = combined.filter((m) => m.kind === "VIDEO");
         if (videos.length > 1 || (videos.length === 1 && combined.length > 1)) {
-          toast.error("A post can have up to 8 photos or a single video.");
+          toast.error(t("mediaLimit"));
           return prev;
         }
         return combined.slice(0, 8);
       });
-    } catch {
-      toast.error("Upload failed. Is storage running?");
+    } catch (err) {
+      await _handleApiError(err, "attach a photo or video");
     }
     setUploading(false);
   }
@@ -51,21 +58,28 @@ export function Composer({
   async function submit() {
     if (!content.trim() && media.length === 0) return;
     setPosting(true);
+    const endpoint = pageId
+      ? `/api/pages/${pageId}/posts`
+      : groupId
+        ? `/api/groups/${groupId}/posts`
+        : "/api/posts";
     try {
-      const res = await fetch(
-        groupId ? `/api/groups/${groupId}/posts` : "/api/posts",
-        {
+      const post = await apiFetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: content.trim(), media }),
+        body: { content: content.trim(), media },
       });
-      if (!res.ok) throw new Error();
-      const post = await res.json();
       onPosted(post);
       setContent("");
       setMedia([]);
-    } catch {
-      toast.error("Could not publish your post.");
+    } catch (err) {
+      const { retryResult } = await _handleApiError(err, "publish your post", false, true, () =>
+        apiFetch(endpoint, { method: "POST", body: { content: content.trim(), media } }),
+      );
+      if (retryResult) {
+        onPosted(retryResult);
+        setContent("");
+        setMedia([]);
+      }
     }
     setPosting(false);
   }
@@ -77,7 +91,7 @@ export function Composer({
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="Share something with the community…"
+          placeholder={t("composerPlaceholder")}
           rows={2}
           className="flex-1 resize-none bg-[var(--surface-2)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-300"
         />
@@ -113,14 +127,14 @@ export function Composer({
             onChange={(e) => handleFiles(e.target.files)}
             disabled={uploading}
           />
-          📷 {uploading ? "Uploading…" : "Photo / Video"}
+          📷 {uploading ? t("uploading") : t("photoVideo")}
         </label>
         <button
           onClick={submit}
           disabled={posting || uploading || (!content.trim() && media.length === 0)}
           className="bg-gold-600 text-white rounded-full px-5 py-2 text-sm font-semibold hover:bg-gold-700 disabled:opacity-40 transition-colors"
         >
-          {posting ? "Posting…" : "Post"}
+          {posting ? t("posting") : t("post")}
         </button>
       </div>
     </div>

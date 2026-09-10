@@ -23,7 +23,11 @@ function makePrisma() {
       updateMany: vi.fn(),
     },
     thread: {
+      findUnique: vi.fn(),
       update: vi.fn(),
+    },
+    pageMember: {
+      findUnique: vi.fn(),
     },
     supportTicket: {
       findUnique: vi.fn(),
@@ -87,6 +91,8 @@ describe("ChatGateway participant gating", () => {
   describe("joinThread", () => {
     it("does not join a non-participant to the thread room", async () => {
       prisma.threadParticipant.findUnique.mockResolvedValue(null);
+      // Non-page thread: thread.findUnique returns pageId null → access denied
+      prisma.thread.findUnique.mockResolvedValue({ pageId: null });
       const client = makeClient("u1");
 
       await gateway.handleJoinThread(client as never, { threadId: "t1" });
@@ -95,6 +101,11 @@ describe("ChatGateway participant gating", () => {
         where: { threadId_userId: { threadId: "t1", userId: "u1" } },
         select: { id: true },
       });
+      expect(prisma.thread.findUnique).toHaveBeenCalledWith({
+        where: { id: "t1" },
+        select: { pageId: true },
+      });
+      expect(prisma.pageMember.findUnique).not.toHaveBeenCalled();
       expect(client.join).not.toHaveBeenCalled();
     });
 
@@ -106,11 +117,53 @@ describe("ChatGateway participant gating", () => {
 
       expect(client.join).toHaveBeenCalledWith("t1");
     });
+
+    it("allows page OWNER to join a customer thread as non-participant", async () => {
+      // User is not a thread participant
+      prisma.threadParticipant.findUnique.mockResolvedValue(null);
+      // It's a page thread
+      prisma.thread.findUnique.mockResolvedValue({ pageId: "pg1" });
+      // User is the page OWNER
+      prisma.pageMember.findUnique.mockResolvedValue({ id: "pm1" });
+      const client = makeClient("page-owner-1");
+
+      await gateway.handleJoinThread(client as never, { threadId: "t1" });
+
+      expect(prisma.pageMember.findUnique).toHaveBeenCalledWith({
+        where: { pageId_userId: { pageId: "pg1", userId: "page-owner-1" } },
+        select: { id: true },
+      });
+      expect(client.join).toHaveBeenCalledWith("t1");
+    });
+
+    it("allows page EDITOR to join a customer thread as non-participant", async () => {
+      prisma.threadParticipant.findUnique.mockResolvedValue(null);
+      prisma.thread.findUnique.mockResolvedValue({ pageId: "pg1" });
+      prisma.pageMember.findUnique.mockResolvedValue({ id: "pm2" });
+      const client = makeClient("page-editor-1");
+
+      await gateway.handleJoinThread(client as never, { threadId: "t1" });
+
+      expect(client.join).toHaveBeenCalledWith("t1");
+    });
+
+    it("blocks a non-member from joining a page thread", async () => {
+      prisma.threadParticipant.findUnique.mockResolvedValue(null);
+      prisma.thread.findUnique.mockResolvedValue({ pageId: "pg1" });
+      prisma.pageMember.findUnique.mockResolvedValue(null); // not a member
+      const client = makeClient("outsider-1");
+
+      await gateway.handleJoinThread(client as never, { threadId: "t1" });
+
+      expect(client.join).not.toHaveBeenCalled();
+    });
   });
 
   describe("sendMessage", () => {
     it("ignores a message sent by a non-participant (nothing persisted or broadcast)", async () => {
       prisma.threadParticipant.findUnique.mockResolvedValue(null);
+      // Non-page thread
+      prisma.thread.findUnique.mockResolvedValue({ pageId: null });
       const client = makeClient("u1");
 
       await gateway.handleSendMessage(client as never, {
@@ -135,6 +188,8 @@ describe("ChatGateway participant gating", () => {
       prisma.thread.update.mockResolvedValue({});
       prisma.threadParticipant.update.mockResolvedValue({});
       prisma.threadParticipant.findMany.mockResolvedValue([]);
+      // After persist, bot check: non-page thread → bot replies allowed
+      prisma.thread.findUnique.mockResolvedValue({ pageId: null });
       const client = makeClient("u1");
 
       await gateway.handleSendMessage(client as never, {
@@ -154,6 +209,146 @@ describe("ChatGateway participant gating", () => {
       );
       // No other participants -> no MESSAGE notifications.
       expect(notifications.notify).not.toHaveBeenCalled();
+    });
+
+    it("allows page staff to send a message to a customer thread", async () => {
+      // Staff is not a participant but IS a page member
+      prisma.threadParticipant.findUnique.mockResolvedValue(null);
+      prisma.thread.findUnique
+        .mockResolvedValueOnce({ pageId: "pg1" })           // assertThreadAccess
+        .mockResolvedValueOnce({ pageId: "pg1", page: { ownerId: "page-owner-1" } }); // persistAndBroadcast PAGE_MESSAGE check
+      prisma.pageMember.findUnique.mockResolvedValue({ id: "pm1" });
+      prisma.message.create.mockResolvedValue({
+        id: "m2",
+        threadId: "t1",
+        senderId: "page-owner-1",
+        content: "Thanks for your order!",
+        sender: { id: "page-owner-1", name: "Shop Owner", image: null },
+      });
+      prisma.thread.update.mockResolvedValue({});
+      // Staff sender is the page owner → PAGE_MESSAGE not sent
+      prisma.threadParticipant.update.mockResolvedValue({});
+      prisma.threadParticipant.findMany.mockResolvedValue([
+        { userId: "customer-1" },
+      ]);
+      const client = makeClient("page-owner-1");
+
+      await gateway.handleSendMessage(client as never, {
+        threadId: "t1",
+        content: "Thanks for your order!",
+      });
+
+      expect(prisma.message.create).toHaveBeenCalled();
+      expect(room.emit).toHaveBeenCalledWith(
+        "newMessage",
+        expect.objectContaining({ id: "m2" })
+      );
+      // Customer participant gets notified
+      expect(notifications.notify).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: "customer-1",
+          kind: "MESSAGE",
+        })
+      );
+    });
+
+    it("sends PAGE_MESSAGE notification when customer messages a page thread", async () => {
+      // Customer IS a participant
+      prisma.threadParticipant.findUnique.mockResolvedValue({ id: "tp1" });
+      prisma.message.create.mockResolvedValue({
+        id: "m3",
+        threadId: "t1",
+        senderId: "customer-1",
+        content: "Is this still available?",
+        sender: { id: "customer-1", name: "Buyer", image: null },
+      });
+      prisma.thread.update.mockResolvedValue({});
+      prisma.threadParticipant.update.mockResolvedValue({});
+      // No other participants (customer is the only one besides staff)
+      prisma.threadParticipant.findMany.mockResolvedValue([]);
+      // persistAndBroadcast PAGE_MESSAGE check: page thread + customer sender
+      prisma.thread.findUnique.mockResolvedValue({
+        pageId: "pg1",
+        page: { ownerId: "page-owner-1" },
+      });
+      const client = makeClient("customer-1");
+
+      await gateway.handleSendMessage(client as never, {
+        threadId: "t1",
+        content: "Is this still available?",
+      });
+
+      expect(prisma.message.create).toHaveBeenCalled();
+      // PAGE_MESSAGE notification to the page owner
+      expect(notifications.notify).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: "page-owner-1",
+          actorId: "customer-1",
+          kind: "PAGE_MESSAGE",
+          entityId: "t1",
+          message: "Is this still available?",
+        })
+      );
+    });
+
+    it("does not send PAGE_MESSAGE when staff sends in a page thread", async () => {
+      // Staff is a participant
+      prisma.threadParticipant.findUnique.mockResolvedValue({ id: "tp1" });
+      prisma.message.create.mockResolvedValue({
+        id: "m4",
+        threadId: "t1",
+        senderId: "page-owner-1",
+        content: "Yes, it is!",
+        sender: { id: "page-owner-1", name: "Shop Owner", image: null },
+      });
+      prisma.thread.update.mockResolvedValue({});
+      prisma.threadParticipant.update.mockResolvedValue({});
+      prisma.threadParticipant.findMany.mockResolvedValue([
+        { userId: "customer-1" },
+      ]);
+      // persistAndBroadcast: page thread, but sender IS the owner → skip PAGE_MESSAGE
+      prisma.thread.findUnique.mockResolvedValue({
+        pageId: "pg1",
+        page: { ownerId: "page-owner-1" },
+      });
+      const client = makeClient("page-owner-1");
+
+      await gateway.handleSendMessage(client as never, {
+        threadId: "t1",
+        content: "Yes, it is!",
+      });
+
+      // Only MESSAGE notification to customer, no PAGE_MESSAGE
+      expect(notifications.notify).toHaveBeenCalledTimes(1);
+      expect(notifications.notify).toHaveBeenCalledWith(
+        expect.objectContaining({ userId: "customer-1", kind: "MESSAGE" })
+      );
+    });
+
+    it("does not trigger bot reply in page threads", async () => {
+      prisma.threadParticipant.findUnique.mockResolvedValue({ id: "tp1" });
+      prisma.message.create.mockResolvedValue({
+        id: "m5",
+        threadId: "t1",
+        senderId: "customer-1",
+        content: "hello",
+        sender: { id: "customer-1", name: "Buyer", image: null },
+      });
+      prisma.thread.update.mockResolvedValue({});
+      prisma.threadParticipant.update.mockResolvedValue({});
+      prisma.threadParticipant.findMany.mockResolvedValue([]);
+      // It's a page thread → bot should NOT reply
+      prisma.thread.findUnique.mockResolvedValue({ pageId: "pg1" });
+      const client = makeClient("customer-1");
+
+      await gateway.handleSendMessage(client as never, {
+        threadId: "t1",
+        content: "hello",
+      });
+
+      // Bot should never be consulted
+      expect(bot.shouldRespond).not.toHaveBeenCalled();
+      expect(bot.buildReplies).not.toHaveBeenCalled();
     });
   });
 
