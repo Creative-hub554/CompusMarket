@@ -1,157 +1,194 @@
 @echo off
 cd /d "%~dp0"
-title KHMERONLINESHOP
+title champey - canonical launcher
 color 0B
 
-:: Ensure Node.js and pnpm are in PATH
-set "PATH=C:\Program Files\nodejs;C:\Users\theow\AppData\Roaming\npm;%PATH%"
-set "PNPM=C:\Users\theow\AppData\Roaming\npm\pnpm.cmd"
+:: ============================================================
+::  CANONICAL startup path for the champey platform.
+::  Secrets live in ONE place: docker/.env (never in copies).
+::  Infra (postgres/redis/minio/meilisearch) ALWAYS comes from
+::  the Docker stack below - never start a second copy of it.
+::
+::  Port map (canonical):
+::    Docker stack : frontend 3000 | admin 3001 | backend 4000
+::    Host-dev infra (dev mode) : postgres 5432 | redis 6379
+::                  meilisearch 7700 | minio 9000/9001
+::    Monitoring : grafana 3002 | prometheus 9090 (+ host metrics feed 9701)
+:: ============================================================
 
-:: Load config
-if exist "config.bat" call "config.bat"
-if "%STATIC_IP%"=="" set STATIC_IP=
+set "PNPM=C:\Users\theow\AppData\Roaming\npm\pnpm.cmd"
+if not exist "%PNPM%" set "PNPM=pnpm"
+
+if "%~1"=="" goto menu
+if /i "%~1"=="stack"  ( call :stack  & goto :eof )
+if /i "%~1"=="dev"    ( call :dev    & goto :eof )
+if /i "%~1"=="sync"   ( call :sync   & goto :eof )
+if /i "%~1"=="status" ( call :status & goto :eof )
+if /i "%~1"=="check"  ( call :check  & goto :eof )
+if /i "%~1"=="audit"  ( call :audit  & goto :eof )
+if /i "%~1"=="backup" ( call :backup & goto :eof )
+if /i "%~1"=="stop"   ( call :stop   & goto :eof )
+echo Unknown command: %~1
+echo Usage: start.bat [stack^|dev^|sync^|status^|check^|audit^|backup^|stop]
+exit /b 1
 
 :menu
+if not "%~1"=="" (
+    echo Interactive menu requires no arguments. Usage: start.bat [stack^|dev^|sync^|status^|stop]
+    exit /b 1
+)
 cls
 echo.
 echo  ============================================
-echo     KHMERONLINESHOP - Launcher
+echo     champey - canonical launcher
 echo  ============================================
 echo.
-echo     1 - Admin Mode  (Frontend:3000 + Admin:3001)
-echo     2 - Normal Mode (Frontend:3002 + Admin:3003)
-echo     3 - Custom Ports
-echo     4 - Kill All Services
-echo     5 - Set Static IP (current: %STATIC_IP%)
-echo     6 - Exit
+echo     1 - Stack   (docker compose up -d; production-shape)
+echo     2 - Dev     (stack infra + host dev servers, hot reload)
+echo     3 - Sync    (propagate docker/.env into app env files)
+echo     4 - Status  (containers, health, ports, env drift)
+echo     5 - Check   (full health check + auto-repair)
+echo     6 - Audit   (weekly dependency scan -> output\dependency-audit)
+echo     7 - Backup  (postgres + meilisearch + minio -> output\backups)
+echo     8 - Stop    (all champey services; Docker-safe)
+echo     9 - Exit
 echo.
 set /p choice="  Enter number: "
 
-if "%choice%"=="1" set FPORT=3000 & set APORT=3001 & set BPORT=4000 & set MODE=Admin & goto start
-if "%choice%"=="2" set FPORT=3002 & set APORT=3003 & set BPORT=4001 & set MODE=Normal & goto start
-if "%choice%"=="3" goto ports
-if "%choice%"=="4" goto kill
-if "%choice%"=="5" goto ip
-if "%choice%"=="6" exit /b
+if "%choice%"=="1" goto stack
+if "%choice%"=="2" goto dev
+if "%choice%"=="3" goto sync
+if "%choice%"=="4" goto status
+if "%choice%"=="5" goto check
+if "%choice%"=="6" goto audit
+if "%choice%"=="7" goto backup
+if "%choice%"=="8" goto stop
+if "%choice%"=="9" exit /b 0
+goto menu
 goto menu
 
-:ports
-cls
+:stack
 echo.
-echo  ============================================
-set /p FPORT="  Frontend port [3000]: "
-if "%FPORT%"=="" set FPORT=3000
-set /p APORT="  Admin port [3001]: "
-if "%APORT%"=="" set APORT=3001
-set /p BPORT="  Backend port [4000]: "
-if "%BPORT%"=="" set BPORT=4000
-set MODE=Custom
-goto start
-
-:ip
-cls
-echo.
-echo  ============================================
-echo  Current: %STATIC_IP% (blank = auto-detect)
-echo.
-set /p NEW_IP="  Enter IP: "
-if "%NEW_IP%"=="" (
-    echo set STATIC_IP=>config.bat
-    set STATIC_IP=
-) else (
-    echo set STATIC_IP=%NEW_IP%>config.bat
-    set STATIC_IP=%NEW_IP%
-)
-echo  Saved.
-timeout /t 2 >nul
-goto menu
-
-:kill
-cls
-echo.
-echo  Stopping all services...
-for %%p in (3000 3001 3002 3003 4000 4001) do (
-    for /f "skip=4 tokens=5" %%a in ('netstat -ano ^| findstr ":%%p "') do (
-        taskkill /f /pid %%a >nul 2>&1
-    )
-)
-echo  Done.
-timeout /t 2 >nul
-goto menu
-
-:start
-cls
-echo.
-echo  ============================================
-echo     Starting %MODE% Mode
-echo  ============================================
-echo.
-
-where node >nul 2>&1 || (
-    echo  [FAIL] Node.js not found
+echo  [1/4] Ensuring secrets exist...
+if not exist "docker\.env" (
+    echo  [FAIL] docker\.env missing. Copy docker\.env.example and fill it in.
     pause
     exit /b 1
 )
-
-if not exist "%PNPM%" (
-    echo  [FAIL] pnpm not found at %PNPM%
+echo  [2/4] Starting canonical Docker stack (+monitoring profile)...
+docker compose --profile monitoring up -d
+if errorlevel 1 (
+    echo  [FAIL] docker compose failed. Is Docker Desktop running?
     pause
     exit /b 1
 )
-
-echo  [1/4] Cleaning ports %FPORT%, %APORT%, %BPORT%...
-for %%p in (%FPORT% %APORT% %BPORT%) do (
-    for /f "skip=4 tokens=5" %%a in ('netstat -ano ^| findstr ":%%p "') do (
-        taskkill /f /pid %%a >nul 2>&1
-    )
-)
+echo  [3/4] Starting stack-health metrics feed (127.0.0.1:9701 -> Prometheus)...
+start "champey metrics feed :9701" /MIN cmd /c "node scripts\metrics-server.mjs"
 timeout /t 2 >nul
-
-echo  [2/4] Dependencies...
-if not exist "node_modules\.pnpm\" (
-    "%PNPM%" install
+echo  [4/4] Health check + auto-repair (known failure modes)...
+node scripts\health-check.mjs --metrics-out output\health-metrics.prom
+if errorlevel 1 (
+    echo  [WARN] Some checks still failing - see lines above.
 )
+echo.
+echo  Storefront : http://localhost:3000   ^(admin: 3001, backend: 4000, grafana: 3002^)
+call :status_quiet
+echo.
+echo  Press any key to close this window (stack keeps running)...
+if not "%CHAMPEY_NONINTERACTIVE%"=="1" pause >nul
+goto :eof
 
-echo  [3/4] Database...
-"%PNPM%" -F @theo/database exec prisma generate >nul 2>&1
+:dev
+echo.
+echo  [1/3] Stack infra up ^(postgres/redis/meilisearch/minio^)...
+docker compose up -d postgres redis meilisearch minio
+echo  [2/3] Syncing secrets from docker/.env into app env files...
+node scripts\sync-dev-env.mjs
+echo  [3/3] Starting host dev servers ^(hot reload^)...
+set "HOSTNAME=0.0.0.0"
+start "champey backend :4000" /MIN cmd /c "%PNPM%" --filter backend dev
+timeout /t 4 >nul
+start "champey frontend :3010" /MIN cmd /c "%PNPM%" --filter frontend dev --port 3010
+start "champey admin    :3001" /MIN cmd /c "%PNPM%" --filter admin dev --port 3001
+echo.
+echo  Dev servers launching. Infra: localhost:5432 / 6379 / 7700 / 9000.
+echo  Press any key to close this window (servers keep running)...
+if not "%CHAMPEY_NONINTERACTIVE%"=="1" pause >nul
+goto :eof
 
-:: Get IP for display
-if "%STATIC_IP%"=="" (
-    set IP=localhost
+:sync
+echo.
+node scripts\sync-dev-env.mjs
+echo.
+if not "%CHAMPEY_NONINTERACTIVE%"=="1" pause
+goto :eof
+
+:status
+cls
+echo.
+call :status_quiet
+echo.
+if not "%CHAMPEY_NONINTERACTIVE%"=="1" pause
+goto :eof
+
+:status_quiet
+echo  --- Containers -------------------------------------------------
+docker compose ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}" 2>nul
+echo.
+echo  --- Health / ports ----------------------------------------------
+curl -s -m 5 -o nul -w "backend  :4000/api/health/ready -> HTTP %%{http_code}\n" http://localhost:4000/api/health/ready
+curl -sL -m 5 -o nul -w "storefront :3000 -> HTTP %%{http_code}\n" http://localhost:3000/
+curl -s -m 5 -o nul -w "admin    :3001 -> HTTP %%{http_code} (307 = Clerk redirect)\n" http://localhost:3001/
+curl -s -m 5 -o nul -w "metrics feed :9701 -> HTTP %%{http_code}\n" http://127.0.0.1:9701/metrics
+curl -s -m 5 -o nul -w "prometheus :9090 -> HTTP %%{http_code}\n" http://127.0.0.1:9090/-/healthy
+curl -s -m 5 -o nul -w "grafana    :3002 -> HTTP %%{http_code}\n" http://127.0.0.1:3002/api/health
+echo.
+echo  --- Env drift vs docker/.env ------------------------------------
+node scripts\sync-dev-env.mjs --check
+goto :eof
+
+:check
+cls
+echo.
+node scripts\health-check.mjs
+echo.
+if not "%CHAMPEY_NONINTERACTIVE%"=="1" pause
+goto :eof
+
+:audit
+echo.
+echo  Weekly dependency scan (SECURITY-ROTATION.md section 1)...
+node scripts\dependency-audit.mjs
+if errorlevel 2 (
+    echo  [FAIL] Scan could not run ^(pnpm unresolvable?^) - see above.
+) else if errorlevel 1 (
+    echo  [WARN] Advisories at/above threshold - see output\dependency-audit\ summary.txt
+    echo         Safe patching: node scripts\security-patch.mjs --dry-run
+)
+echo.
+if not "%CHAMPEY_NONINTERACTIVE%"=="1" pause
+goto :eof
+
+:backup
+echo.
+echo  Snapshotting postgres + meilisearch + minio to output\backups...
+node scripts\backup.mjs
+if errorlevel 1 (
+    echo  [WARN] Backup incomplete - see manifest.txt in today's folder.
 ) else (
-    set IP=%STATIC_IP%
+    echo  Backup complete.
 )
-
-echo  [4/4] Starting servers...
 echo.
+if not "%CHAMPEY_NONINTERACTIVE%"=="1" pause
+goto :eof
 
-:: Set HOSTNAME globally so all child processes inherit it
-set HOSTNAME=0.0.0.0
-
-start "Frontend :%FPORT%" /MIN cmd /c ""%PNPM%" --filter frontend dev --port %FPORT%"
-start "Admin    :%APORT%" /MIN cmd /c ""%PNPM%" --filter admin dev --port %APORT%"
-start "Backend  :%BPORT%" /MIN cmd /c ""%PNPM%" --filter backend dev"
-
-echo  Waiting for servers to start...
-timeout /t 15 >nul
-
-:: Check if servers are running
-set F_OK=0
-set A_OK=0
-netstat -ano | findstr ":%FPORT% " >nul 2>&1 && set F_OK=1
-netstat -ano | findstr ":%APORT% " >nul 2>&1 && set A_OK=1
-
+:stop
 echo.
-echo  ============================================
-if "%F_OK%"=="1" (echo   Frontend: http://localhost:%FPORT%  [OK]) else (echo   Frontend: http://localhost:%FPORT%  [FAIL])
-if "%A_OK%"=="1" (echo   Admin:    http://localhost:%APORT%  [OK]) else (echo   Admin:    http://localhost:%APORT%  [FAIL])
-echo   Network:  http://%IP%:%FPORT%
-echo  ============================================
+echo  [1/2] Stopping champey containers first ^(releases their port proxies cleanly^)...
+docker compose stop
+echo  [2/2] Stopping stray host dev servers on 3000/3001/3002/4000 ^(Docker-safe guard^)...
+powershell -NoProfile -Command "$ports = 3000,3001,3002,4000; foreach ($port in $ports) { Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue | ForEach-Object { $proc = Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue; if ($proc -and $proc.ProcessName -notmatch 'docker|wslrelay|vpnkit|com\.docker') { Write-Host ('  Killing ' + $proc.ProcessName + ' (PID ' + $proc.Id + ') on port ' + $port); Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue } else { Write-Host ('  Skipping ' + $proc.ProcessName + ' on port ' + $port + ' (Docker-managed)') } } }"
+echo  Done. Infra and app containers stopped. Volumes untouched.
 echo.
-
-if "%F_OK%"=="1" start http://localhost:%FPORT%
-if "%A_OK%"=="1" start http://localhost:%APORT%
-
-echo  Close this window or press any key to shut down...
-pause >nul
-goto kill
+if not "%CHAMPEY_NONINTERACTIVE%"=="1" pause
+goto :eof

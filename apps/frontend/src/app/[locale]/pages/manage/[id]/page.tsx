@@ -9,6 +9,7 @@ import { apiFetch } from "@/lib/apiFetch";
 import { useTranslations } from "next-intl";
 import { toast } from "@/components/ui/toast";
 import { BadgeCheck, BarChart3, Trash2, UserMinus } from "lucide-react";
+import { MiniBarChart, MultiLineChart } from "@/components/social/PageCharts";
 
 type PageProfile = {
   id: string;
@@ -36,13 +37,33 @@ type Insights = {
   impressions: number;
   reactions: number;
   comments: number;
-  topPosts: { id: string; content: string; reactions: number; comments: number; impressions: number }[];
+  engagementScore: number;
+  avgEngagementRate: number;
+  topPosts: {
+    id: string;
+    content: string;
+    reactions: number;
+    comments: number;
+    impressions: number;
+    engagementRate: number;
+    rank: number;
+    createdAt: string;
+  }[];
+  followerGrowth: { date: string; count: number }[];
+  engagementOverTime: {
+    date: string;
+    impressions: number;
+    reactions: number;
+    comments: number;
+    posts: number;
+  }[];
+  postFrequency: { week: string; count: number }[];
 };
 
 export default function ManagePageRoute() {
-  const params = useParams<{ id: string }>();
   const t = useTranslations("pages");
   const router = useRouter();
+  const { id: pageId } = useParams<{ id: string }>();
   const { data: session } = useSession();
 
   const [page, setPage] = useState<PageProfile | null>(null);
@@ -59,18 +80,18 @@ export default function ManagePageRoute() {
 
   const loadAll = useCallback(async () => {
     try {
-      const data = await apiFetch<PageProfile>(`/api/pages/${params.id}`);
+      const data = await apiFetch<PageProfile>(`/api/pages/${pageId}`);
       setPage(data);
       setName(data.name);
       setCategory(data.category);
       setDescription(data.description ?? "");
       setPhone(data.phone ?? "");
-      apiFetch<Member[]>(`/api/pages/${params.id}/members`).then(setMembers).catch(() => undefined);
-      apiFetch<Insights>(`/api/pages/${params.id}/insights`).then(setInsights).catch(() => undefined);
+      apiFetch<Member[]>(`/api/pages/${pageId}/members`).then(setMembers).catch(() => undefined);
+      apiFetch<Insights>(`/api/pages/${pageId}/insights`).then(setInsights).catch(() => undefined);
     } catch {
       setNotFound(true);
     }
-  }, [params.id]);
+  }, [pageId]);
 
   useEffect(() => {
     if (session?.user?.id) loadAll();
@@ -192,47 +213,103 @@ export default function ManagePageRoute() {
         </Link>
       </div>
 
-      {/* Insights */}
+      {/* Analytics Dashboard */}
       <section className="card rounded-2xl p-5">
-        <h2 className="font-bold mb-3 inline-flex items-center gap-2">
+        <h2 className="font-bold mb-4 inline-flex items-center gap-2">
           <BarChart3 size={17} className="text-gold-500" />
           {t("insightsTitle")}
         </h2>
         {!insights ? (
           <div className="h-20 rounded-xl animate-shimmer" />
         ) : (
-          <>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
+          <div className="space-y-5">
+            {/* Summary cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { label: t("insFollowers"), value: insights.followers },
-                { label: t("insNewFollowers"), value: insights.newFollowers },
-                { label: t("insImpressions"), value: insights.impressions },
-                { label: t("insReactions"), value: insights.reactions },
-                { label: t("insComments"), value: insights.comments },
+                { label: t("insFollowers"), value: insights.followers, sub: `+${insights.newFollowers} ${t("insNewFollowers")}` },
+                { label: t("insImpressions"), value: insights.impressions, sub: null },
+                { label: t("insEngagement"), value: insights.engagementScore, sub: null },
+                { label: t("insEngagementRate"), value: `${insights.avgEngagementRate}%`, sub: null },
               ].map((s) => (
                 <div key={s.label} className="rounded-xl bg-[var(--surface-2)] p-3">
                   <p className="text-xl font-bold text-gold-600 dark:text-gold-400">{s.value}</p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{s.label}</p>
+                  {s.sub && <p className="text-[10px] text-green-500 mt-0.5">{s.sub}</p>}
                 </div>
               ))}
             </div>
+
+            {/* Follower growth chart (SVG bar chart) */}
+            {insights.followerGrowth.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold mb-2">{t("insFollowerGrowth")}</h3>
+                <div className="bg-[var(--surface-2)] rounded-xl p-3 overflow-x-auto">
+                  <MiniBarChart
+                    data={insights.followerGrowth.map((d) => ({ label: d.date.slice(5), value: d.count }))}
+                    color="var(--color-gold-500, #f59e0b)"
+                    height={80}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Engagement over time chart */}
+            {insights.engagementOverTime.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold mb-2">{t("insEngagementOverTime")}</h3>
+                <div className="bg-[var(--surface-2)] rounded-xl p-3 overflow-x-auto">
+                  <MultiLineChart
+                    data={insights.engagementOverTime.map((d) => ({
+                      label: d.date.slice(5),
+                      lines: [
+                        { value: d.impressions, color: "#6366f1", label: t("insImpressions") },
+                        { value: d.reactions, color: "#f59e0b", label: t("insReactions") },
+                        { value: d.comments, color: "#10b981", label: t("insComments") },
+                      ],
+                    }))}
+                    height={80}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Post frequency chart */}
+            {insights.postFrequency.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold mb-2">{t("insPostFrequency")}</h3>
+                <div className="bg-[var(--surface-2)] rounded-xl p-3 overflow-x-auto">
+                  <MiniBarChart
+                    data={insights.postFrequency.map((d) => ({ label: d.week.slice(5), value: d.count }))}
+                    color="#10b981"
+                    height={60}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Top posts ranking */}
             {insights.topPosts.length > 0 && (
-              <div className="mt-4">
+              <div>
                 <h3 className="text-sm font-semibold mb-2">{t("insTopPosts")}</h3>
                 <ul className="space-y-2">
-                  {insights.topPosts.map((p, i) => (
-                    <li key={p.id} className="flex items-center gap-3 text-sm">
-                      <span className="w-5 text-slate-400 font-bold">{i + 1}.</span>
-                      <span className="flex-1 min-w-0 truncate">{p.content || t("mediaPost")}</span>
-                      <span className="text-xs text-slate-400 shrink-0">
-                        ♥ {p.reactions} · 💬 {p.comments} · 👁 {p.impressions}
+                  {insights.topPosts.map((p) => (
+                    <li key={p.id} className="flex items-center gap-3 text-sm rounded-lg bg-[var(--surface-2)] p-2.5">
+                      <span className="shrink-0 w-7 h-7 rounded-full bg-gold-500/20 text-gold-600 dark:text-gold-400 flex items-center justify-center text-xs font-bold">
+                        #{p.rank}
                       </span>
+                      <span className="flex-1 min-w-0 truncate text-slate-700 dark:text-slate-300">{p.content || t("mediaPost")}</span>
+                      <div className="flex items-center gap-2 shrink-0 text-xs text-slate-400">
+                        <span>♥ {p.reactions}</span>
+                        <span>💬 {p.comments}</span>
+                        <span>👁 {p.impressions}</span>
+                        <span className="font-medium text-gold-500">{p.engagementRate}%</span>
+                      </div>
                     </li>
                   ))}
                 </ul>
               </div>
             )}
-          </>
+          </div>
         )}
       </section>
 

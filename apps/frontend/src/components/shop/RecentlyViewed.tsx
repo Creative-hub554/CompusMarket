@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { api, type Product } from "@/services/api";
 import { ProductCard } from "@/components/ProductCard";
 import { getRecentlyViewed, recordProductView } from "@/lib/recentlyViewed";
+import { apiFetch, handleApiError } from "@/lib/apiFetch";
 
 /**
  * Records the current product view and shows a "Recently viewed" row
@@ -18,14 +19,13 @@ export function RecentlyViewed({ currentId }: { currentId: string }) {
     recordProductView(currentId);
     const ids = getRecentlyViewed().filter((id) => id !== currentId);
     if (ids.length === 0) return;
-    fetch(`/api/products?ids=${ids.join(",")}`)
-      .then((r) => (r.ok ? r.json() : []))
-      .then((data: Product[]) => {
+    apiFetch<Product[]>("/api/products?ids=" + ids.join(","))
+      .then((data) => {
         // Preserve the recency order from localStorage.
         const byId = new Map((Array.isArray(data) ? data : []).map((p) => [p.id, p]));
         setProducts(ids.map((id) => byId.get(id)).filter((p): p is Product => Boolean(p)));
       })
-      .catch(() => {});
+      .catch((err) => handleApiError(err, "load recently viewed products", true));
   }, [currentId]);
 
   if (products.length === 0) return null;

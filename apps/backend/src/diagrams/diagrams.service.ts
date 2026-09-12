@@ -1,43 +1,44 @@
-import { Injectable, NotFoundException, ForbiddenException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { createOwnedResource, type OwnedResource } from "../common/owned-resource";
+import type { Diagram } from "@theo/database";
+
+type CreateDiagram = { title: string; code: string; type?: string };
+type UpdateDiagram = { title?: string; code?: string; type?: string };
 
 @Injectable()
 export class DiagramsService {
-  constructor(private prisma: PrismaService) {}
-  async create(userId: string, data: { title: string; code: string; type?: string }) {
-    return this.prisma.diagram.create({
-      data: { userId, title: data.title, code: data.code, type: data.type || "flowchart" },
+  private readonly diagrams: OwnedResource<Diagram, CreateDiagram, UpdateDiagram>;
+
+  constructor(prisma: PrismaService) {
+    this.diagrams = createOwnedResource<Diagram, CreateDiagram, UpdateDiagram>(prisma.diagram, {
+      name: "Diagram",
+      buildCreateData: (userId, data) => ({
+        userId,
+        title: data.title,
+        code: data.code,
+        type: data.type || "flowchart",
+      }),
     });
   }
 
-  async findByUser(userId: string) {
-    return this.prisma.diagram.findMany({
-      where: { userId },
-      orderBy: { updatedAt: "desc" },
-    });
+  create(userId: string, data: CreateDiagram) {
+    return this.diagrams.create(userId, data);
   }
 
-  async findOne(id: string, userId: string) {
-    const diagram = await this.prisma.diagram.findUnique({ where: { id } });
-    if (!diagram) throw new NotFoundException("Diagram not found");
-    if (diagram.userId !== userId) throw new ForbiddenException();
-    return diagram;
+  findByUser(userId: string) {
+    return this.diagrams.findByUser(userId);
   }
 
-  async update(id: string, userId: string, data: { title?: string; code?: string; type?: string }) {
-    await this.findOne(id, userId);
-    return this.prisma.diagram.update({
-      where: { id },
-      data: {
-        ...(data.title !== undefined && { title: data.title }),
-        ...(data.code !== undefined && { code: data.code }),
-        ...(data.type !== undefined && { type: data.type }),
-      },
-    });
+  findOne(id: string, userId: string) {
+    return this.diagrams.findOne(id, userId);
   }
 
-  async remove(id: string, userId: string) {
-    await this.findOne(id, userId);
-    return this.prisma.diagram.delete({ where: { id } });
+  update(id: string, userId: string, data: UpdateDiagram) {
+    return this.diagrams.update(id, userId, data);
+  }
+
+  remove(id: string, userId: string) {
+    return this.diagrams.remove(id, userId);
   }
 }

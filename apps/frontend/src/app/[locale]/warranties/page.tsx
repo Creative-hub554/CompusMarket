@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Link } from "@/i18n/navigation";
+import { apiFetch } from "@/lib/apiFetch";
 
 type Warranty = {
   id: string;
@@ -27,12 +28,7 @@ export default function MyWarrantiesPage() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetch("/api/warranties")
-      .then((r) => {
-        if (r.status === 401) throw new Error("Unauthorized");
-        if (!r.ok) throw new Error("Server error");
-        return r.json();
-      })
+    apiFetch<Warranty[]>("/api/warranties")
       .then(setWarranties)
       .catch(() => setError(true))
       .finally(() => setLoading(false));

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>champey — 5 new logo directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #f6f7fb; --card: #ffffff; --ink: #17171f; --muted: #8a8b9c; --line: #e8e9f2;
+    --coral: #ff6b5e; --gold: #f7c948; --dark-surface: #171721; --dark-ink: #efeff6;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: "Space Grotesk", system-ui, sans-serif;
+    padding: 36px clamp(16px, 4vw, 56px) 80px;
+  }
+  .mark { display: block; }
+  header.top { margin-bottom: 34px; }
+  header.top .old-vs {
+    display: inline-flex; align-items: center; gap: 14px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 18px;
+    padding: 14px 22px; margin-bottom: 22px;
+  }
+  header.top .arrow { color: var(--muted); font-size: 20px; }
+  h1 { font-size: clamp(22px, 3.4vw, 32px); letter-spacing: -0.02em; }
+  .sub { color: var(--muted); margin-top: 6px; font-size: 14px; }
+  .grid {
+    display: grid; gap: 22px;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  }
+  .concept {
+    background: var(--card); border: 1px solid var(--line); border-radius: 22px;
+    padding: 22px; display: flex; flex-direction: column; gap: 16px;
+  }
+  .concept h2 { font-size: 17px; display: flex; align-items: center; gap: 10px; }
+  .num {
+    width: 26px; height: 26px; border-radius: 9px; background: var(--coral);
+    color: #fff; font-size: 13px; display: inline-flex; align-items: center; justify-content: center;
+  }
+  .tagline { color: var(--muted); font-size: 13px; line-height: 1.45; min-height: 38px; }
+  .row { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
+  .cell {
+    border: 1px solid var(--line); border-radius: 16px;
+    padding: 12px; display: flex; flex-direction: column; align-items: center; gap: 8px;
+    background: #fff; min-width: 86px; flex: 1;
+  }
+  .cell span { font-size: 10px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+  .cell.dark  { background: var(--dark-surface); border-color: #2a2a3a; }
+  .cell.dark span { color: #7c7d90; }
+  .cell.brand { background: linear-gradient(135deg, #ff6b5e 0%, #ff9a3d 100%); border: 0; }
+  .cell.brand span { color: rgba(255,255,255,.85); }
+  .cell.mono { color: var(--ink); }
+  .hero { display: flex; align-items: center; gap: 16px; padding: 18px; border-radius: 16px; background: #fff; border: 1px solid var(--line); }
+  .hero.dark { background: var(--dark-surface); border-color: #2a2a3a; }
+  .hero .word { font-weight: 700; font-size: 24px; letter-spacing: -0.03em; }
+  .hero.dark .word { color: var(--dark-ink); }
+  .hero .word b { color: var(--coral); font-weight: 700; }
+  .sizes { display: flex; align-items: flex-end; gap: 12px; }
+  footer.note { margin-top: 40px; color: var(--muted); font-size: 13px; max-width: 720px; line-height: 1.6; }
+  footer.note code { background: var(--card); border: 1px solid var(--line); padding: 2px 7px; border-radius: 7px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════ SVG symbol library ══════════ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- shared gradients -->
+    <linearGradient id="g-petal" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#ff6b5e"/><stop offset="1" stop-color="#ff9a3d"/>
+    </linearGradient>
+    <radialGradient id="g-core" cx="0.35" cy="0.35" r="0.9">
+      <stop offset="0" stop-color="#ffe08a"/><stop offset="0.6" stop-color="#f7c948"/><stop offset="1" stop-color="#e0a428"/>
+    </radialGradient>
+    <radialGradient id="g-core-old" cx="0.35" cy="0.35" r="0.9">
+      <stop offset="0" stop-color="#fde68a"/><stop offset="0.6" stop-color="#f0c040"/><stop offset="1" stop-color="#d4a027"/>
+    </radialGradient>
+    <linearGradient id="g-purple" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#818cf8"/><stop offset="0.55" stop-color="#6366f1"/><stop offset="1" stop-color="#8b5cf6"/>
+    </linearGradient>
+    <radialGradient id="g-glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#8b5cf6" stop-opacity="0.55"/><stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="g-tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#232334"/><stop offset="1" stop-color="#181826"/>
+    </linearGradient>
+    <linearGradient id="g-c1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff9a3d"/><stop offset="1" stop-color="#f0554a"/>
+    </linearGradient>
+    <linearGradient id="g-bg1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff6b5e"/><stop offset="1" stop-color="#ff9a3d"/>
+    </linearGradient>
+
+    <!-- OLD current logo (indigo flower) -->
+    <symbol id="mark-old" viewBox="0 0 128 128">
+      <g transform="translate(64 64)">
+        <circle r="62" fill="url(#g-glow)"/>
+        <g>
+          <g transform="rotate(0)"><path d="M0 -16 C 13 -30 15 -56 0 -74 C -15 -56 -13 -30 0 -16 Z" fill="url(#g-purple)"/></g>
+          <g transform="rotate(72)"><path d="M0 -16 C 13 -30 15 -56 0 -74 C -15 -56 -13 -30 0 -16 Z" fill="url(#g-purple)"/></g>
+          <g transform="rotate(144)"><path d="M0 -16 C 13 -30 15 -56 0 -74 C -15 -56 -13 -30 0 -16 Z" fill="url(#g-purple)"/></g>
+          <g transform="rotate(216)"><path d="M0 -16 C 13 -30 15 -56 0 -74 C -15 -56 -13 -30 0 -16 Z" fill="url(#g-purple)"/></g>
+          <g transform="rotate(288)"><path d="M0 -16 C 13 -30 15 -56 0 -74 C -15 -56 -13 -30 0 -16 Z" fill="url(#g-purple)"/></g>
+          <circle r="8.5" fill="url(#g-core-old)"/>
+        </g>
+      </g>
+    </symbol>
+
+    <!-- 1 · Bloom -->
+    <symbol id="mark-bloom" viewBox="0 0 128 128">
+      <g transform="translate(64 68)">
+        <g>
+          <g transform="rotate(0)"><path d="M0 -18 C 12 -32 13 -56 0 -72 C -13 -56 -12 -32 0 -18 Z" fill="url(#g-petal)"/></g>
+          <g transform="rotate(72)"><path d="M0 -18 C 12 -32 13 -56 0 -72 C -13 -56 -12 -32 0 -18 Z" fill="url(#g-petal)"/></g>
+          <g transform="rotate(144)"><path d="M0 -18 C 12 -32 13 -56 0 -72 C -13 -56 -12 -32 0 -18 Z" fill="url(#g-petal)"/></g>
+          <g transform="rotate(216)"><path d="M0 -18 C 12 -32 13 -56 0 -72 C -13 -56 -12 -32 0 -18 Z" fill="url(#g-petal)"/></g>
+          <g transform="rotate(288)"><path d="M0 -18 C 12 -32 13 -56 0 -72 C -13 -56 -12 -32 0 -18 Z" fill="url(#g-petal)"/></g>
+          <circle r="9.5" fill="url(#g-core)"/>
+        </g>
+      </g>
+    </symbol>
+
+    <!-- 2 · Angkor A -->
+    <symbol id="mark-angkor" viewBox="0 0 128 128">
+      <rect x="6" y="6" width="116" height="116" rx="30" fill="url(#g-tile)"/>
+      <path d="M64 14 L72 30 H56 Z" fill="#f7c948"/>
+      <path d="M64 30 L33 102" stroke="#ffc247" stroke-width="13" stroke-linecap="round" fill="none"/>
+      <path d="M64 30 L95 102" stroke="#ffc247" stroke-width="13" stroke-linecap="round" fill="none"/>
+      <path d="M46 64 H82" stroke="#ff6b5e" stroke-width="10" stroke-linecap="round"/>
+      <path d="M39 84 H89" stroke="#ff6b5e" stroke-width="10" stroke-linecap="round"/>
+    </symbol>
+
+    <!-- 3 · Lotus Hand -->
+    <symbol id="mark-lotus" viewBox="0 0 128 128">
+      <path d="M20 66 C 26 96 44 112 64 112 C 84 112 102 96 108 66"
+            stroke="#f7c948" stroke-width="9" stroke-linecap="round" fill="none"/>
+      <path d="M64 30 C 71 44 71 62 64 76 C 57 62 57 44 64 30 Z" fill="url(#g-petal)"/>
+      <path d="M64 44 C 52 46 42 56 38 70 C 52 70 62 62 64 48 Z" fill="#ff6b5e"/>
+      <path d="M64 44 C 76 46 86 56 90 70 C 76 70 66 62 64 48 Z" fill="#ff8574"/>
+      <path d="M50 76 C 54 84 74 84 78 76" stroke="#f7c948" stroke-width="5" stroke-linecap="round" fill="none"/>
+    </symbol>
+
+    <!-- 4 · Market Bloom C -->
+    <symbol id="mark-market" viewBox="0 0 128 128">
+      <path d="M96 30 A 46 46 0 1 0 96 98" stroke="url(#g-c1)" stroke-width="14" stroke-linecap="round" fill="none"/>
+      <circle cx="98" cy="24" r="8" fill="#f7c948"/>
+      <circle cx="114" cy="44" r="6" fill="#ffd97a"/>
+      <circle cx="86" cy="12" r="5" fill="#ff8574"/>
+    </symbol>
+
+    <!-- 5 · Bubble Chat -->
+    <symbol id="mark-bubble" viewBox="0 0 128 128">
+      <path d="M64 24 C 88 24 104 40 104 60 C 104 80 88 96 64 96 C 57 96 51 95 45 92 L 28 104 L 34 86 C 26 79 24 70 24 60 C 24 40 40 24 64 24 Z" fill="url(#g-bg1)"/>
+      <circle cx="48" cy="60" r="7" fill="#fff7ed"/>
+      <circle cx="64" cy="60" r="7" fill="#ffe08a"/>
+      <circle cx="80" cy="60" r="7" fill="#fff7ed"/>
+    </symbol>
+
+    <!-- mono variants (currentColor) -->
+    <symbol id="mono-bloom" viewBox="0 0 128 128">
+      <g transform="translate(64 68)" fill="currentColor">
+        <g transform="rotate(0)"><path d="M0 -18 C 12 -32 13 -56 0 -72 C -13 -56 -12 -32 0 -18 Z"/></g>
+        <g transform="rotate(72)"><path d="M0 -18 C 12 -32 13 -56 0 -72 C -13 -56 -12 -32 0 -18 Z"/></g>
+        <g transform="rotate(144)"><path d="M0 -18 C 12 -32 13 -56 0 -72 C -13 -56 -12 -32 0 -18 Z"/></g>
+        <g transform="rotate(216)"><path d="M0 -18 C 12 -32 13 -56 0 -72 C -13 -56 -12 -32 0 -18 Z"/></g>
+        <g transform="rotate(288)"><path d="M0 -18 C 12 -32 13 -56 0 -72 C -13 -56 -12 -32 0 -18 Z"/></g>
+        <circle r="9.5"/>
+      </g>
+    </symbol>
+    <symbol id="mono-angkor" viewBox="0 0 128 128">
+      <g fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round">
+        <path d="M64 18 L36 102"/><path d="M64 18 L92 102"/>
+        <path d="M47 64 H81"/><path d="M40 84 H88"/>
+      </g>
+      <path d="M64 8 L70 22 H58 Z" fill="currentColor"/>
+    </symbol>
+    <symbol id="mono-lotus" viewBox="0 0 128 128">
+      <path d="M20 66 C 26 96 44 112 64 112 C 84 112 102 96 108 66"
+            stroke="currentColor" stroke-width="8" stroke-linecap="round" fill="none"/>
+      <g fill="currentColor">
+        <path d="M64 30 C 71 44 71 62 64 76 C 57 62 57 44 64 30 Z"/>
+        <path d="M64 44 C 52 46 42 56 38 70 C 52 70 62 62 64 48 Z"/>
+        <path d="M64 44 C 76 46 86 56 90 70 C 76 70 66 62 64 48 Z"/>
+      </g>
+      <path d="M50 76 C 54 84 74 84 78 76" stroke="currentColor" stroke-width="5" stroke-linecap="round" fill="none"/>
+    </symbol>
+    <symbol id="mono-market" viewBox="0 0 128 128">
+      <path d="M96 30 A 46 46 0 1 0 96 98" stroke="currentColor" stroke-width="14" stroke-linecap="round" fill="none"/>
+      <circle cx="98" cy="24" r="8" fill="currentColor"/>
+      <circle cx="114" cy="44" r="6" fill="currentColor"/>
+      <circle cx="86" cy="12" r="5" fill="currentColor"/>
+    </symbol>
+    <symbol id="mono-bubble" viewBox="0 0 128 128">
+      <path d="M64 24 C 88 24 104 40 104 60 C 104 80 88 96 64 96 C 57 96 51 95 45 92 L 28 104 L 34 86 C 26 79 24 70 24 60 C 24 40 40 24 64 24 Z" fill="currentColor"/>
+      <circle cx="48" cy="60" r="7" fill="#fff" opacity="0.92"/>
+      <circle cx="64" cy="60" r="7" fill="#fff" opacity="0.92"/>
+      <circle cx="80" cy="60" r="7" fill="#fff" opacity="0.92"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="top">
+  <div class="old-vs">
+    <svg class="mark" width="44" height="44" viewBox="0 0 128 128"><use href="#mark-old"/></svg>
+    <span class="arrow">&#8594;</span>
+    <strong>5 new directions</strong>
+  </div>
+  <h1>champey — logo explorations</h1>
+  <p class="sub">Every concept stays in the coral/gold brand. Each is tested: light, dark, brand-gradient tile, monochrome, and 16&ndash;64px sizes.</p>
+</header>
+
+<div class="grid">
+
+  <!-- 1 · Bloom -->
+  <section class="concept">
+    <h2><span class="num">1</span> Champey Bloom</h2>
+    <p class="tagline">Evolution of today's flower, recolored to brand coral/gold. Five petals = five pillars (shop, market, feed, jobs, community). Reads clearly from 16px up.</p>
+    <div class="row">
+      <div class="cell light"><svg class="mark" width="72" height="72" viewBox="0 0 128 128"><use href="#mark-bloom"/></svg><span>Light</span></div>
+      <div class="cell dark"><svg class="mark" width="72" height="72" viewBox="0 0 128 128"><use href="#mark-bloom"/></svg><span>Dark</span></div>
+      <div class="cell brand"><svg class="mark" width="72" height="72" viewBox="0 0 128 128"><use href="#mark-bloom"/></svg><span>Brand</span></div>
+    </div>
+    <div class="row">
+      <div class="cell mono"><svg class="mark" width="72" height="72" viewBox="0 0 128 128"><use href="#mono-bloom"/></svg><span>Mono</span></div>
+      <div class="cell light" style="flex:2">
+        <div class="sizes">
+          <svg class="mark" width="16" height="16" viewBox="0 0 128 128"><use href="#mark-bloom"/></svg>
+          <svg class="mark" width="24" height="24" viewBox="0 0 128 128"><use href="#mark-bloom"/></svg>
+          <svg class="mark" width="32" height="32" viewBox="0 0 128 128"><use href="#mark-bloom"/></svg>
+          <svg class="mark" width="48" height="48" viewBox="0 0 128 128"><use href="#mark-bloom"/></svg>
+          <svg class="mark" width="64" height="64" viewBox="0 0 128 128"><use href="#mark-bloom"/></svg>
+        </div>
+        <span>Favicon sizes</span>
+      </div>
+    </div>
+    <div class="hero">
+      <svg class="mark" width="56" height="56" viewBox="0 0 128 128"><use href="#mark-bloom"/></svg>
+      <span class="word">champey<b>.</b></span>
+    </div>
+  </section>
+
+  <!-- 2 · Angkor A -->
+  <section class="concept">
+    <h2><span class="num">2</span> Angkor A</h2>
+    <p class="tagline">Khmer heritage: an "A" whose crossbars echo Angkor Wat's tiered spires. Gold tower on dark tile &mdash; strong as an app icon, distinctive vs. generic social logos.</p>
+    <div class="row">
+      <div class="cell light"><svg class="mark" width="72" height="72" viewBox="0 0 128 128"><use href="#mark-angkor"/></svg><span>Light</span></div>
+      <div class="cell dark"><svg class="mark" width="72" height="72" viewBox="0 0 128 128"><use href="#mark-angkor"/></svg><span>Dark</span></div>
+      <div class="cell brand"><svg class="mark" width="72" height="72" viewBox="0 0 128 128"><use href="#mark-angkor"/></svg><span>Brand</span></div>
+    </div>
+    <div class="row">
+      <div class="cell mono"><svg class="mark" width="72" height="72" viewBox="0 0 128 128"><use href="#mono-angkor"/></svg><span>Mono</span></div>
+      <div class="cell light" style="flex:2">
+        <div class="sizes">
+          <svg class="mark" width="16" height="16" viewBox="0 0 128 128"><use href="#mark-angkor"/></svg>
+          <svg class="mark" width="24" height="24" viewBox="0 0 128 128"><use href="#mark-angkor"/></svg>
+          <svg class="mark" width="32" height="32" viewBox="0 0 128 128"><use href="#mark-angkor"/></svg>
+          <svg class="mark" width="48" height="48" viewBox="0 0 128 128"><use href="#mark-angkor"/></svg>
+          <svg class="mark" width="64" height="64" viewBox="0 0 128 128"><use href="#mark-angkor"/></svg>
+        </div>
+        <span>Favicon sizes</span>
+      </div>
+    </div>
+    <div class="hero">
+      <svg class="mark" width="56" height="56" viewBox="0 0 128 128"><use href="#mark-angkor"/></svg>
+      <span class="word">champey<b>.</b></span>
+    </div>
+  </section>
+
+  <!-- 3 · Lotus Hand -->
+  <section class="concept">
+    <h2><span class="num">3</span> Lotus Hand</h2>
+    <p class="tagline">A smiling lotus cradled by hands &mdash; care and community. Softer, people-first feeling; good if you want the platform to feel like family, not just commerce.</p>
+    <div class="row">
+      <div class="cell light"><svg class="mark" width="72" height="72" viewBox="0 0 128 128"><use href="#mark-lotus"/></svg><span>Light</span></div>
+      <div class="cell dark"><svg class="mark" width="72" height="72" viewBox="0 0 128 128"><use href="#mark-lotus"/></svg><span>Dark</span></div>
+      <div class="cell brand"><svg class="mark" width="72" height="72" viewBox="0 0 128 128"><use href="#mark-lotus"/></svg><span>Brand</span></div>
+    </div>
+    <div class="row">
+      <div class="cell mono"><svg class="mark" width="72" height="72" viewBox="0 0 128 128"><use href="#mono-lotus"/></svg><span>Mono</span></div>
+      <div class="cell light" style="flex:2">
+        <div class="sizes">
+          <svg class="mark" width="16" height="16" viewBox="0 0 128 128"><use href="#mark-lotus"/></svg>
+          <svg class="mark" width="24" height="24" viewBox="0 0 128 128"><use href="#mark-lotus"/></svg>
+          <svg class="mark" width="32" height="32" viewBox="0 0 128 128"><use href="#mark-lotus"/></svg>
+          <svg class="mark" width="48" height="48" viewBox="0 0 128 128"><use href="#mark-lotus"/></svg>
+          <svg class="mark" width="64" height="64" viewBox="0 0 128 128"><use href="#mark-lotus"/></svg>
+        </div>
+        <span>Favicon sizes</span>
+      </div>
+    </div>
+    <div class="hero">
+      <svg class="mark" width="56" height="56" viewBox="0 0 128 128"><use href="#mark-lotus"/></svg>
+      <span class="word">champey<b>.</b></span>
+    </div>
+  </section>
+
+  <!-- 4 · Market C -->
+  <section class="concept">
+    <h2><span class="num">4</span> Market Bloom C</h2>
+    <p class="tagline">A coral "C" shaped like a lotus basket, spilling gold coins &mdash; commerce-first. A real letterform monogram that also hints at the lotus. Best at 24px+.</p>
+    <div class="row">
+      <div class="cell light"><svg class="mark" width="72" height="72" viewBox="0 0 128 128"><use href="#mark-market"/></svg><span>Light</span></div>
+      <div class="cell dark"><svg class="mark" width="72" height="72" viewBox="0 0 128 128"><use href="#mark-market"/></svg><span>Dark</span></div>
+      <div class="cell brand"><svg class="mark" width="72" height="72" viewBox="0 0 128 128"><use href="#mark-market"/></svg><span>Brand</span></div>
+    </div>
+    <div class="row">
+      <div class="cell mono"><svg class="mark" width="72" height="72" viewBox="0 0 128 128"><use href="#mono-market"/></svg><span>Mono</span></div>
+      <div class="cell light" style="flex:2">
+        <div class="sizes">
+          <svg class="mark" width="16" height="16" viewBox="0 0 128 128"><use href="#mark-market"/></svg>
+          <svg class="mark" width="24" height="24" viewBox="0 0 128 128"><use href="#mark-market"/></svg>
+          <svg class="mark" width="32" height="32" viewBox="0 0 128 128"><use href="#mark-market"/></svg>
+          <svg class="mark" width="48" height="48" viewBox="0 0 128 128"><use href="#mark-market"/></svg>
+          <svg class="mark" width="64" height="64" viewBox="0 0 128 128"><use href="#mark-market"/></svg>
+        </div>
+        <span>Favicon sizes</span>
+      </div>
+    </div>
+    <div class="hero">
+      <svg class="mark" width="56" height="56" viewBox="0 0 128 128"><use href="#mark-market"/></svg>
+      <span class="word">champey<b>.</b></span>
+    </div>
+  </section>
+
+  <!-- 5 · Chat bubble -->
+  <section class="concept">
+    <h2><span class="num">5</span> Bubble Chat</h2>
+    <p class="tagline">Social-first: a speech bubble with five community dots (also petals, if you squint). Says "talk and belong" &mdash; the boldest color block, instantly recognizable as an app tile.</p>
+    <div class="row">
+      <div class="cell light"><svg class="mark" width="72" height="72" viewBox="0 0 128 128"><use href="#mark-bubble"/></svg><span>Light</span></div>
+      <div class="cell dark"><svg class="mark" width="72" height="72" viewBox="0 0 128 128"><use href="#mark-bubble"/></svg><span>Dark</span></div>
+      <div class="cell brand"><svg class="mark" width="72" height="72" viewBox="0 0 128 128"><use href="#mark-bubble"/></svg><span>Brand</span></div>
+    </div>
+    <div class="row">
+      <div class="cell mono"><svg class="mark" width="72" height="72" viewBox="0 0 128 128"><use href="#mono-bubble"/></svg><span>Mono</span></div>
+      <div class="cell light" style="flex:2">
+        <div class="sizes">
+          <svg class="mark" width="16" height="16" viewBox="0 0 128 128"><use href="#mark-bubble"/></svg>
+          <svg class="mark" width="24" height="24" viewBox="0 0 128 128"><use href="#mark-bubble"/></svg>
+          <svg class="mark" width="32" height="32" viewBox="0 0 128 128"><use href="#mark-bubble"/></svg>
+          <svg class="mark" width="48" height="48" viewBox="0 0 128 128"><use href="#mark-bubble"/></svg>
+          <svg class="mark" width="64" height="64" viewBox="0 0 128 128"><use href="#mark-bubble"/></svg>
+        </div>
+        <span>Favicon sizes</span>
+      </div>
+    </div>
+    <div class="hero">
+      <svg class="mark" width="56" height="56" viewBox="0 0 128 128"><use href="#mark-bubble"/></svg>
+      <span class="word">champey<b>.</b></span>
+    </div>
+  </section>
+
+</div>
+
+<footer class="note">
+  <p><strong>My pick:</strong> <em>Bloom</em> (#1) for continuity with what users already know, <em>Angkor A</em> (#2) if you want to lean into Khmer identity, <em>Market C</em> (#4) if commerce is the message. Once you choose one, I'll apply it everywhere the current mark appears (Nav, Footer, Assistant widgets, 404, feed rail, PWA icons 192/512, favicon, OG image).</p>
+  <p style="margin-top:8px">SVG sources also saved standalone: <code>design/logos/*.svg</code></p>
+</footer>
+
+</body>
+</html>

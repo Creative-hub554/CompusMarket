@@ -1,10 +1,4 @@
-import {
-  BadRequestException,
-  ConflictException,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { PostsService, MappedPost } from "../social/posts.service";
 import { NotificationsService } from "../social/notifications.service";
@@ -42,7 +36,32 @@ export interface PageInsights {
   impressions: number;
   reactions: number;
   comments: number;
-  topPosts: { id: string; content: string; reactions: number; comments: number; impressions: number }[];
+  topPosts: {
+    id: string;
+    content: string;
+    reactions: number;
+    comments: number;
+    impressions: number;
+    engagementRate: number;
+    rank: number;
+    createdAt: string;
+  }[];
+  /** Daily follower counts for the last N days [{date, count}] */
+  followerGrowth: { date: string; count: number }[];
+  /** Daily engagement metrics [{date, impressions, reactions, comments}] */
+  engagementOverTime: {
+    date: string;
+    impressions: number;
+    reactions: number;
+    comments: number;
+    posts: number;
+  }[];
+  /** Posts created per week in the last 8 weeks */
+  postFrequency: { week: string; count: number }[];
+  /** Total engagement score = reactions + comments*2 */
+  engagementScore: number;
+  /** Average engagement rate across all posts */
+  avgEngagementRate: number;
 }
 
 @Injectable()
@@ -441,48 +460,111 @@ export class PagesService {
   async insights(pageId: string, userId: string): Promise<PageInsights> {
     await this.requireRole(pageId, userId, "EDITOR");
     const since = new Date(Date.now() - INSIGHT_DAYS * 24 * 60 * 60 * 1000);
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const eightWeeksAgo = new Date(Date.now() - 56 * 24 * 60 * 60 * 1000);
 
-    const [followers, newFollowers, agg, topPosts] = await Promise.all([
+    const [
+      followers,
+      newFollowers,
+      agg,
+      allPosts,
+      reactionSum,
+      commentSum,
+      followerHistory,
+      recentPosts,
+      postsByWeek,
+    ] = await Promise.all([
       this.prisma.pageFollow.count({ where: { pageId } }),
       this.prisma.pageFollow.count({ where: { pageId, createdAt: { gte: since } } }),
       this.prisma.post.aggregate({
         where: { pageId },
-        _sum: { impressions: true, },
+        _sum: { impressions: true },
         _count: true,
       }),
       this.prisma.post.findMany({
         where: { pageId },
         orderBy: [{ boostedUntil: { sort: "desc", nulls: "last" } }, { createdAt: "desc" }],
-        take: 25,
+        take: 50,
         select: {
           id: true,
           content: true,
           impressions: true,
+          createdAt: true,
           _count: { select: { reactions: true, comments: true } },
         },
       }),
+      this.prisma.reaction.count({ where: { post: { pageId } } }),
+      this.prisma.comment.count({ where: { post: { pageId } } }),
+      // Follower growth: individual follow records for the last 30 days
+      this.prisma.pageFollow.findMany({
+        where: { pageId, createdAt: { gte: thirtyDaysAgo } },
+        select: { createdAt: true },
+        orderBy: { createdAt: "asc" },
+      }),
+      // Post-level data for engagement over time
+      this.prisma.post.findMany({
+        where: { pageId, createdAt: { gte: thirtyDaysAgo } },
+        select: {
+          id: true,
+          createdAt: true,
+          impressions: true,
+          _count: { select: { reactions: true, comments: true } },
+        },
+        orderBy: { createdAt: "asc" },
+      }),
+      // Posts grouped by week for frequency chart
+      this.prisma.post.findMany({
+        where: { pageId, createdAt: { gte: eightWeeksAgo } },
+        select: { createdAt: true },
+        orderBy: { createdAt: "asc" },
+      }),
     ]);
 
-    const reactionSum = await this.prisma.reaction.count({
-      where: { post: { pageId } },
-    });
-    const commentSum = await this.prisma.comment.count({
-      where: { post: { pageId } },
-    });
-
-    const ranked = [...topPosts]
-      .sort(
-        (a, b) =>
-          b._count.reactions + b._count.comments - (a._count.reactions + a._count.comments)
-      )
-      .slice(0, 5)
+    // ── Top posts ranking ──
+    const ranked = [...allPosts]
       .map((p) => ({
         id: p.id,
         content: p.content,
         reactions: p._count.reactions,
         comments: p._count.comments,
         impressions: p.impressions,
+        createdAt: p.createdAt.toISOString(),
+        engagement: p._count.reactions + p._count.comments * 2,
+      }))
+      .sort((a, b) => b.engagement - a.engagement)
+      .slice(0, 10)
+      .map((p, i) => ({
+        id: p.id,
+        content: p.content,
+        reactions: p.reactions,
+        comments: p.comments,
+        impressions: p.impressions,
+        engagementRate: p.impressions > 0
+          ? Math.round(((p.reactions + p.comments) / p.impressions) * 10000) / 100
+          : 0,
+        rank: i + 1,
+        createdAt: p.createdAt,
       }));
+
+    // ── Follower growth (daily buckets for last 30 days) ──
+    const followerGrowth = this.buildDailyTimeline(
+      followerHistory.map((f) => f.createdAt),
+      thirtyDaysAgo,
+      30,
+    );
+
+    // ── Engagement over time (daily buckets) ──
+    const engagementOverTime = this.buildEngagementTimeline(recentPosts, thirtyDaysAgo, 30);
+
+    // ── Post frequency (weekly buckets for last 8 weeks) ──
+    const postFrequency = this.buildWeeklyTimeline(postsByWeek.map((p) => p.createdAt), eightWeeksAgo, 8);
+
+    // ── Aggregate scores ──
+    const totalPosts = agg._count;
+    const engagementScore = reactionSum + commentSum * 2;
+    const avgEngagementRate = totalPosts > 0
+      ? Math.round((engagementScore / (agg._sum.impressions ?? 1)) * 10000) / 100
+      : 0;
 
     return {
       followers,
@@ -491,7 +573,86 @@ export class PagesService {
       reactions: reactionSum,
       comments: commentSum,
       topPosts: ranked,
+      followerGrowth,
+      engagementOverTime,
+      postFrequency,
+      engagementScore,
+      avgEngagementRate,
     };
+  }
+
+  /** Build a daily timeline of counts from individual timestamps. */
+  private buildDailyTimeline(
+    dates: Date[],
+    startDate: Date,
+    days: number,
+  ): { date: string; count: number }[] {
+    const buckets = new Map<string, number>();
+    for (let i = 0; i < days; i++) {
+      const d = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
+      buckets.set(this.dateKey(d), 0);
+    }
+    for (const date of dates) {
+      const key = this.dateKey(date);
+      if (buckets.has(key)) {
+        buckets.set(key, (buckets.get(key) ?? 0) + 1);
+      }
+    }
+    return [...buckets.entries()].map(([date, count]) => ({ date, count }));
+  }
+
+  /** Build daily engagement from post-level data. */
+  private buildEngagementTimeline(
+    posts: { createdAt: Date; impressions: number; _count: { reactions: number; comments: number } }[],
+    startDate: Date,
+    days: number,
+  ): { date: string; impressions: number; reactions: number; comments: number; posts: number }[] {
+    const buckets = new Map<string, { impressions: number; reactions: number; comments: number; posts: number }>();
+    for (let i = 0; i < days; i++) {
+      const d = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
+      buckets.set(this.dateKey(d), { impressions: 0, reactions: 0, comments: 0, posts: 0 });
+    }
+    for (const post of posts) {
+      const key = this.dateKey(post.createdAt);
+      const bucket = buckets.get(key);
+      if (bucket) {
+        bucket.impressions += post.impressions;
+        bucket.reactions += post._count.reactions;
+        bucket.comments += post._count.comments;
+        bucket.posts += 1;
+      }
+    }
+    return [...buckets.entries()].map(([date, data]) => ({ date, ...data }));
+  }
+
+  /** Build a weekly timeline of post counts. */
+  private buildWeeklyTimeline(
+    dates: Date[],
+    startDate: Date,
+    weeks: number,
+  ): { week: string; count: number }[] {
+    const buckets = new Map<string, number>();
+    for (let i = 0; i < weeks; i++) {
+      const d = new Date(startDate.getTime() + i * 7 * 24 * 60 * 60 * 1000);
+      buckets.set(this.weekKey(d), 0);
+    }
+    for (const date of dates) {
+      const key = this.weekKey(date);
+      if (buckets.has(key)) {
+        buckets.set(key, (buckets.get(key) ?? 0) + 1);
+      }
+    }
+    return [...buckets.entries()].map(([week, count]) => ({ week, count }));
+  }
+
+  private dateKey(d: Date): string {
+    return d.toISOString().slice(0, 10);
+  }
+
+  private weekKey(d: Date): string {
+    const start = new Date(d);
+    start.setDate(start.getDate() - start.getDay());
+    return start.toISOString().slice(0, 10);
   }
 
   // ── Boosts (Phase 5) ──

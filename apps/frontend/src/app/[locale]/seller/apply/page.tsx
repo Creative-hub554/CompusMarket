@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
+import { RequireAuth } from "@/components/RequireAuth";
+import { apiFetch } from "@/lib/apiFetch";
 
 export default function SellerApplyPage() {
   const { data: session } = useSession();
@@ -22,20 +24,7 @@ export default function SellerApplyPage() {
   const [error, setError] = useState("");
 
   if (!session) {
-    return (
-      <div className="max-w-xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
-        <p className="text-slate-600 dark:text-slate-300 mb-4">
-          Please sign in to apply as a seller.
-        </p>
-        <Link
-          href="/login"
-          className="text-gold-600 font-medium hover:underline"
-        >
-          Go to Login
-        </Link>
-      </div>
-    );
+    return <RequireAuth message="Please sign in to apply as a seller." />;
   }
 
   const requiredDocs =
@@ -46,12 +35,10 @@ export default function SellerApplyPage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch("/api/upload", {
+      const data = await apiFetch<{ url: string; filename: string }>("/api/upload", {
         method: "POST",
         body: formData,
       });
-      if (!res.ok) throw new Error("Upload failed");
-      const data = await res.json();
       setDocuments((prev) => [
         ...prev.filter((d) => d.type !== type),
         { type, file, url: data.url, filename: data.filename },
@@ -76,15 +63,10 @@ export default function SellerApplyPage() {
           filename: d.filename,
         })),
       };
-      const res = await fetch("/api/seller/apply", {
+      await apiFetch("/api/seller/apply", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: payload,
       });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Submission failed");
-      }
       router.push("/seller/dashboard");
     } catch (e: any) {
       setError(e.message);

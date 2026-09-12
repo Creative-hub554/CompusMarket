@@ -10,6 +10,13 @@ import * as crypto from "crypto";
 const REFRESH_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const PURGE_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
 
+// Reuse detection relies on keeping revoked tokens around until they are old
+// enough that a stolen-token replay is no longer plausible. With a 30-day
+// refresh window, that means revoked tokens must not be purged sooner than
+// REFRESH_TOKEN_TTL_MS after revocation. The purge cutoff below is written to
+// preserve that window (it keeps revoked tokens for the full refresh TTL).
+const REVOKED_TOKEN_RETENTION_MS = REFRESH_TOKEN_TTL_MS;
+
 function sha256(value: string): string {
   return crypto.createHash("sha256").update(value).digest("hex");
 }
@@ -136,19 +143,32 @@ export class AuthService {
 
   /**
    * Opportunistic housekeeping (throttled to once per hour): drop expired
-   * tokens and tokens revoked long enough ago that reuse detection no longer
-   * needs them. Fire-and-forget so failures never block a refresh.
+   * tokens and revoked tokens that have been retained long enough that reuse
+   * detection no longer needs them.
+   *
+   * Expired tokens are safe to drop as soon as they expire. Revoked tokens are
+   * only dropped once they have been revoked for at least
+   * REVOKED_TOKEN_RETENTION_MS — this preserves the reuse-detection window for
+   * the full refresh-token lifetime.
+   *
+   * The cutoffs are clamped to be non-negative so a system-clock setback (NTP
+   * step-back, VM snapshot restore, container restart on an old host clock)
+   * cannot make a 30-day-ago window wrap around and become a full-table purge.
    */
   private purgeExpiredTokens() {
     const now = Date.now();
     if (now - AuthService.lastPurgeAt < PURGE_INTERVAL_MS) return;
     AuthService.lastPurgeAt = now;
 
-    const cutoff = new Date(now - REFRESH_TOKEN_TTL_MS);
+    const expiredCutoffMs = Math.max(0, now - REFRESH_TOKEN_TTL_MS);
+    const revokedCutoffMs = Math.max(0, now - REVOKED_TOKEN_RETENTION_MS);
     this.prisma.refreshToken
       .deleteMany({
         where: {
-          OR: [{ expiresAt: { lt: new Date() } }, { revokedAt: { lt: cutoff } }],
+          OR: [
+            { expiresAt: { lt: new Date(expiredCutoffMs) } },
+            { revokedAt: { lt: new Date(revokedCutoffMs) } },
+          ],
         },
       })
       .catch(() => {});

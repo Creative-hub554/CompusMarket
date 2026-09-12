@@ -201,6 +201,7 @@ model User {
   pagesOwned          Page[]              @relation("PagesOwned")
   pageMemberships     PageMember[]        @relation("PageMemberships")
   pageFollows         PageFollow[]        @relation("PageFollows")
+  pageBlocks          PageBlock[]          @relation("PageBlocks")
   followRequestsSent     FollowRequest[]     @relation("FollowRequestsSent")
   followRequestsReceived FollowRequest[]     @relation("FollowRequestsReceived")
   roleChangesReceived    RoleChangeLog[]      @relation("RoleChangeTargets")
@@ -790,6 +791,7 @@ model Page {
   members   PageMember[]
   posts     Post[]       @relation("PagePosts")
   followers PageFollow[]
+  blocks    PageBlock[]
   threads   Thread[]
 
   @@index([createdAt])
@@ -818,6 +820,19 @@ model PageFollow {
 
   page Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
   user User @relation("PageFollows", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([pageId, userId])
+  @@index([userId])
+}
+
+model PageBlock {
+  id        String   @id @default(uuid())
+  pageId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  page Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  user User @relation("PageBlocks", fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([pageId, userId])
   @@index([userId])
@@ -1122,6 +1137,7 @@ enum ReportTargetType {
   PRODUCT
   USER
   COMMENT
+  PAGE
 }
 
 enum ReportReason {

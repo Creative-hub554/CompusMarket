@@ -5,6 +5,8 @@ import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { api, type PromoProduct } from "@/services/api";
 import { useCartStore } from "@/stores/cart";
+import { handleApiError } from "@/lib/apiFetch";
+import { useHandleApiError } from "@/lib/useHandleApiError";
 
 const SHOW_DELAY_MS = 5000;
 const DISMISS_KEY = "market-promo-dismissed";
@@ -12,6 +14,7 @@ const DISMISS_KEY = "market-promo-dismissed";
 export function PromoVideoPopup() {
   const t = useTranslations("market");
   const [promo, setPromo] = useState<PromoProduct | null>(null);
+  const _handleApiError = useHandleApiError();
   const [visible, setVisible] = useState(false);
   const [added, setAdded] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -31,7 +34,7 @@ export function PromoVideoPopup() {
           if (active) setVisible(true);
         }, SHOW_DELAY_MS);
       })
-      .catch(() => {});
+      .catch((err) => _handleApiError(err, "load featured promos", true));
 
     return () => {
       active = false;
@@ -52,9 +55,14 @@ export function PromoVideoPopup() {
       await useCartStore.getState().addItem(promo.id, 1);
       setAdded(true);
       setTimeout(dismiss, 1500);
-    } catch {
-      // Cart add failed (e.g. signed out): send them to the product page.
-      window.location.assign(`/shop/${promo.id}`);
+    } catch (err) {
+      const { retryResult } = await _handleApiError(err, "add the featured product to your cart", false, true, () =>
+        useCartStore.getState().addItem(promo.id, 1),
+      );
+      if (retryResult !== undefined) {
+        setAdded(true);
+        setTimeout(dismiss, 1500);
+      }
     }
   };
 

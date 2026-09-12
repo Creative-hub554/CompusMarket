@@ -1,9 +1,7 @@
 import type { MetadataRoute } from "next";
 import { routing } from "@/i18n/routing";
 import { getSiteUrl, localePath } from "@/lib/site";
-import { getApiBase } from "@/lib/apiBase";
-
-const API_BASE = getApiBase();
+import { apiFetch } from "@/lib/apiFetch";
 
 const STATIC_PATHS = [
   "/",
@@ -30,12 +28,7 @@ type ArticleSummary = { slug: string };
 
 async function fetchIds(path: string): Promise<string[]> {
   try {
-    const res = await fetch(`${API_BASE}${path}`, {
-      headers: { "Content-Type": "application/json" },
-      cache: "no-store",
-    });
-    if (!res.ok) return [];
-    const data: unknown = await res.json();
+    const data: unknown = await apiFetch(path, { cache: "no-store" });
     if (!Array.isArray(data)) return [];
     return data
       .filter((item): item is Summary => {
@@ -54,12 +47,7 @@ async function fetchIds(path: string): Promise<string[]> {
 
 async function fetchSlugs(path: string): Promise<string[]> {
   try {
-    const res = await fetch(`${API_BASE}${path}`, {
-      headers: { "Content-Type": "application/json" },
-      cache: "no-store",
-    });
-    if (!res.ok) return [];
-    const data: unknown = await res.json();
+    const data: unknown = await apiFetch(path, { cache: "no-store" });
     if (!Array.isArray(data)) return [];
     return data
       .filter((item): item is ArticleSummary => {

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
+import { apiFetch, handleApiError } from "@/lib/apiFetch";
 
 export function useAuthSocket(userId: string | null | undefined) {
   const socketRef = useRef<Socket | null>(null);
@@ -11,8 +12,7 @@ export function useAuthSocket(userId: string | null | undefined) {
     if (!userId) return;
     let cancelled = false;
     let socket: Socket | null = null;
-    fetch("/api/auth/token")
-      .then((r) => r.json())
+    apiFetch<{ token: string }>("/api/auth/token")
       .then((d) => {
         if (cancelled) return;
         socket = io(
@@ -27,7 +27,7 @@ export function useAuthSocket(userId: string | null | undefined) {
         socketRef.current = socket;
         forceRender((n) => n + 1);
       })
-      .catch(() => {});
+      .catch((err) => handleApiError(err, "connect to chat", true));
     return () => {
       cancelled = true;
       socket?.close();
@@ -54,13 +54,8 @@ export async function uploadFile(file: File): Promise<{ url: string }> {
   const isVideo = file.type.startsWith("video/");
   const form = new FormData();
   form.append("file", file);
-  const res = await fetch(`/api/upload/${isVideo ? "video" : "image"}`, {
+  return apiFetch<{ url: string }>(`/api/upload/${isVideo ? "video" : "image"}`, {
     method: "POST",
     body: form,
   });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || "Upload failed");
-  }
-  return res.json();
 }

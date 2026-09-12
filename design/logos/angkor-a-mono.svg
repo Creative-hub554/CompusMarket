@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <title>Angkor A — monochrome</title>
+  <g fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round">
+    <path d="M64 18 L36 102"/>
+    <path d="M64 18 L92 102"/>
+    <path d="M47 64 H81"/>
+    <path d="M40 84 H88"/>
+  </g>
+  <path d="M64 8 L70 22 H58 Z" fill="currentColor"/>
+</svg>

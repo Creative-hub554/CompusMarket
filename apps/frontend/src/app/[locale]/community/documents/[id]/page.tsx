@@ -37,8 +37,7 @@ export default function DocumentEditorPage() {
   const loadedRef = useRef(false);
 
   useEffect(() => {
-    authedFetch(`/api/documents/${id}`)
-      .then((r) => r.json())
+    authedFetch<DocumentData>(`/api/documents/${id}`)
       .then((data) => {
         setDoc(data);
         setTitle(data.title);
@@ -61,8 +60,7 @@ export default function DocumentEditorPage() {
     try {
       await authedFetch(`/api/documents/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, content: contentRef.current }),
+        body: { title, content: contentRef.current },
       });
       setLastSaved(new Date());
       setDirty(false);

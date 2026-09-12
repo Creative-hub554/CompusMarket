@@ -300,13 +300,18 @@ describe("PagesService", () => {
   });
 
   describe("insights", () => {
-    it("aggregates follower/post stats for staff", async () => {
+    function setupInsightsMocks() {
       mockPrisma.pageMember.findUnique.mockResolvedValue({ role: "EDITOR" });
       mockPrisma.pageFollow.count.mockResolvedValue(42);
       mockPrisma.post.aggregate.mockResolvedValue({ _sum: { impressions: 100 }, _count: 5 });
       mockPrisma.post.findMany.mockResolvedValue([]);
       mockPrisma.reaction.count.mockResolvedValue(7);
       mockPrisma.comment.count.mockResolvedValue(3);
+      mockPrisma.pageFollow.findMany.mockResolvedValue([]);
+    }
+
+    it("aggregates follower/post stats for staff", async () => {
+      setupInsightsMocks();
       const svc = service();
       const res = await svc.insights("p1", "u1");
       expect(res.followers).toBe(42);
@@ -314,12 +319,36 @@ describe("PagesService", () => {
       expect(res.impressions).toBe(100);
       expect(res.reactions).toBe(7);
       expect(res.comments).toBe(3);
+      expect(res.engagementScore).toBe(13);
+      expect(Array.isArray(res.followerGrowth)).toBe(true);
+      expect(Array.isArray(res.engagementOverTime)).toBe(true);
+      expect(Array.isArray(res.postFrequency)).toBe(true);
     });
 
     it("blocks outsiders from insights", async () => {
       mockPrisma.pageMember.findUnique.mockResolvedValue(null);
       const svc = service();
       await expect(svc.insights("p1", "u-outsider")).rejects.toBeInstanceOf(ForbiddenException);
+    });
+
+    it("computes reaction and comment counts in the same batch as the other stats", async () => {
+      mockPrisma.pageMember.findUnique.mockResolvedValue({ role: "EDITOR" });
+      mockPrisma.pageFollow.count.mockResolvedValue(10);
+      mockPrisma.post.aggregate.mockResolvedValue({ _sum: { impressions: 200 }, _count: 3 });
+      mockPrisma.post.findMany.mockResolvedValue([]);
+      mockPrisma.reaction.count.mockResolvedValue(4);
+      mockPrisma.comment.count.mockResolvedValue(2);
+      mockPrisma.pageFollow.findMany.mockResolvedValue([]);
+      const svc = service();
+      const res = await svc.insights("p1", "u1");
+      expect(res.followers).toBe(10);
+      expect(res.reactions).toBe(4);
+      expect(res.comments).toBe(2);
+      expect(mockPrisma.pageFollow.count).toHaveBeenCalledTimes(2);
+      expect(mockPrisma.post.aggregate).toHaveBeenCalledTimes(1);
+      expect(mockPrisma.post.findMany).toHaveBeenCalledTimes(3);
+      expect(mockPrisma.reaction.count).toHaveBeenCalledTimes(1);
+      expect(mockPrisma.comment.count).toHaveBeenCalledTimes(1);
     });
   });
 });

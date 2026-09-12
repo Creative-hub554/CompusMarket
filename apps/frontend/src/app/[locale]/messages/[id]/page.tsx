@@ -7,10 +7,12 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { useParams } from "next/navigation";
 import { useSession } from "@/lib/session-client";
+import { RequireAuth } from "@/components/RequireAuth";
 import { Avatar } from "@/components/social/Avatar";
 import { Users, Smile, Sticker as StickerIcon } from "lucide-react";
 import { ChatPicker } from "@/components/chat/ChatPicker";
 import { timeAgo, uploadFile, useAuthSocket } from "@/lib/social";
+import { apiFetch } from "@/lib/apiFetch";
 
 type Attachment = { url: string; kind: "IMAGE" | "VIDEO" };
 
@@ -88,17 +90,15 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (!session?.user?.id) return;
-    fetch(`/api/threads/${id}/messages`)
-      .then((r) => r.json())
+    apiFetch<{ items?: ChatMessage[] }>(`/api/threads/${id}/messages`)
       .then((data) => {
         if (Array.isArray(data?.items)) {
           setMessages([...data.items].reverse());
         }
       })
       .catch(() => {});
-    fetch("/api/threads")
-      .then((r) => r.json())
-      .then((threads: ThreadInfo[]) => {
+    apiFetch<ThreadInfo[]>("/api/threads")
+      .then((threads) => {
         const t = Array.isArray(threads) ? threads.find((x) => x.id === id) : null;
         if (t) setThread(t);
       })
@@ -207,15 +207,7 @@ export default function ChatPage() {
   }
 
   if (!session) {
-    return (
-      <div className="max-w-xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
-        <p className="text-gray-600 dark:text-gray-300 mb-4">Please sign in to view messages.</p>
-        <Link href="/login" className="text-slate-900 dark:text-slate-100 font-medium hover:underline">
-          Go to Login
-        </Link>
-      </div>
-    );
+    return <RequireAuth message="Please sign in to view messages." />;
   }
 
   const commandMenu =

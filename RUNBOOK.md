@@ -10,6 +10,135 @@ Each runbook includes symptoms, diagnosis steps, resolution, and escalation crit
 
 ---
 
+## 0. Local Stack Not Accessible (dev machine)
+
+**Symptoms:** storefront/admin/backend unreachable on localhost; "chompei cannot access".
+
+**Canonical path (memorize this):** everything runs from `C:\Workspace\www.champey.com\start.bat`
+(stack / dev / status / check / stop). Secrets in one file: `docker/.env`. Ports: storefront **3000**,
+admin **3001**, backend **4000**, infra on 127.0.0.1 (5432/6379/7700/9000), monitoring:
+Grafana **3002**, Prometheus **9090**, stack-health feed **9701**.
+
+### Diagnosis (3 min)
+
+```bat
+cd C:\Workspace\www.champey.com
+start.bat check    REM full health check + AUTO-REPAIR of known failure modes
+start.bat status   REM passive status only
+```
+
+`start.bat check` (= `node scripts/health-check.mjs`) verifies the engine, all
+services, postgres SCRAM auth against docker/.env, container env freshness,
+healthchecks, HTTP endpoints and host env drift — and repairs known failure
+modes automatically (stopped services, password drift via trusted-socket ALTER,
+stale container env, unhealthy containers, env-file drift). Use
+`node scripts/health-check.mjs --no-fix` for a report-only pass. Anything it
+cannot fix is printed as `[FAIL]` and exits 1.
+
+**Before risky operations** (VM reset, Docker Desktop reinstall, compose down
+with volume removal, restore drills): take a snapshot first —
+`start.bat backup` writes `output/backups/<YYYY-MM-DD>/` (postgres dump.gz,
+meilisearch dump, minio tar.gz + manifest; `--retention-days N` overrides the
+7-day default; `--only postgres|meilisearch|minio` for one store). Restore
+pointers (the postgres one-liner below was **drill-verified 2026-09-10**: 62/62
+objects and per-table row counts identical to the source, stderr clean):
+
+```bash
+# Drill first — restore into a THROWAWAY db, compare counts, then drop it:
+docker exec champey-postgres-1 psql -U theo -d postgres \
+  -c "CREATE DATABASE champey_restore_drill;"
+zcat output/backups/<date>/postgres-<HHmmss>.dump.gz | \
+  docker exec -i champey-postgres-1 pg_restore -U theo -d champey_restore_drill \
+  --no-owner --no-privileges -x
+# compare, then: docker exec champey-postgres-1 psql -U theo -d postgres \
+#   -c "DROP DATABASE champey_restore_drill;"
+
+# Real restore — same command, but create the db FRESH first (-c cleans+
+# recreates objects the dump contains; do NOT point it at a live db):
+docker exec champey-postgres-1 psql -U theo -d postgres -c "CREATE DATABASE theo_platform;"
+zcat output/backups/<date>/postgres-<HHmmss>.dump.gz | \
+  docker exec -i champey-postgres-1 pg_restore -U theo -d theo_platform \
+  --no-owner --no-privileges -x
+```
+
+meilisearch: upload the dump per Meilisearch docs, minio: extract into the bucket.
+
+**Daily automation:** a Task Scheduler job `champey-health-check` runs
+`scripts/scheduled-health-check.bat` every morning at 08:00 (logs to
+`output/health-check-YYYY-MM-DD.log`, last exit code in
+`output/health-check-last-exit.txt`). Manage it with:
+
+```bat
+schtasks /Query /TN champey-health-check /V /FO LIST   REM inspect
+schtasks /Run   /TN champey-health-check               REM run now
+schtasks /Delete /TN champey-health-check /F           REM remove
+```
+
+- Container `Exited` → `docker logs champey-<service>-1 --tail 50`
+- `docker compose ps` shows nothing → stack not started → `start.bat stack`
+- HTTP 000 on a port → Docker Desktop port-proxy wedged → restart Docker Desktop
+  (NEVER kill `com.docker.backend.exe` / `wslrelay.exe` individually — that wedges
+  more ports; kill `Docker Desktop.exe` itself, then relaunch it)
+- P1000 (postgres auth failed) → `docker/.env` password vs data volume drift →
+  see `SECURITY.md` rotation log + `docker/rotate-db-password.mjs`
+- `port is already allocated` on 3000 → check for zombie Docker Desktop Kubernetes
+  mirrors first (`kubectl get svc -A`, delete `*-published` services); see
+  `compose.override.yaml` header (fixed 2026-09-09; storefront is back on 3000)
+
+### Monitoring (local)
+
+`start.bat stack` brings up the `monitoring` profile: Prometheus (9090), Grafana
+(3002, login `admin` / `GRAFANA_ADMIN_PASSWORD` from `docker/.env`) and the
+postgres-exporter. Stack-health gauges (`champey_*`) flow from
+`scripts/health-check.mjs --metrics-out` → `output/health-metrics.prom` →
+`scripts/metrics-server.mjs` (127.0.0.1:9701) → Prometheus job `stack-health`.
+The metrics feed re-runs the full auto-repair check every 5 minutes and re-writes
+`output/metrics-dsn.txt` (the postgres-exporter DSN; recreate the exporter with
+`docker compose up -d --force-recreate postgres-exporter` after a manual rotation).
+Grafana panels: "Stack health (auto-repair)" timeline + "Last health check (age, s)"
+stat; Grafana alerts fire on `champey_stack_healthy == 0` and a stale feed (>15 min).
+Backend `up`/`postgres` `up` are visible on the same dashboard.
+
+### Dependency audit & security patches (SECURITY-ROTATION.md §1)
+
+**Weekly (automated):** Task Scheduler job `champey-dependency-audit` runs
+`scripts/dependency-audit.mjs` every Monday 02:00 → `pnpm audit` + `pnpm outdated`,
+reports in `output/dependency-audit/<YYYY-MM-DD>/`, history in
+`output/dependency-audit/history.csv`, last exit in `output/dependency-audit-last-exit.txt`
+(exit 1 = high/critical advisories present). Manage it with the same
+`schtasks /Query|/Run|/Delete /TN champey-dependency-audit` commands as the
+health-check job.
+
+**Patching (run when the scan flags high/critical, or at the monthly patch review):**
+
+```bat
+cd C:\Workspace\www.champey.com
+node scripts\security-patch.mjs --dry-run   REM review the plan first
+node scripts\security-patch.mjs             REM apply + build gate + SECURITY.md log
+pnpm test                                   REM full suite (script only gates the build)
+git diff package.json pnpm-lock.yaml        REM review, then commit
+docker compose build ^&^& docker compose up -d   REM ship it into the stack
+```
+
+The patch script only applies **semver-safe** fixes (`pnpm audit --fix` adds
+`pnpm.overrides` so vulnerable transitive ranges cannot come back), gates on
+`pnpm build`, and on failure git-restores exactly `package.json`/`pnpm-lock.yaml`/
+`pnpm-workspace.yaml` (it refuses to run when those files are dirty, exit 3).
+Semver-major fixes and outdated majors are listed in the weekly summary for the
+**quarterly** review — never auto-applied.
+
+### Rules that prevent repeat outages (2026-09-09 incident)
+
+1. **One stack, one env.** Never `docker compose up` from a worktree copy or run a
+   second postgres/redis/meili/minio — the worktree copy had a stale password and
+   duplicated infra. Check: `docker compose ls` must list ONLY the `champey` project.
+2. **After changing any secret** in `docker/.env`: `node scripts/sync-dev-env.mjs`
+   (also mirrors the monitoring keys into root `.env` for compose interpolation),
+   then `docker compose up -d --force-recreate` (add `postgres-exporter` if the
+   DB password changed).
+
+---
+
 ## 1. High Error Rate (>0.5%)
 
 **Severity:** P0 / P1

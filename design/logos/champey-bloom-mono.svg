@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <title>Champey Bloom — monochrome</title>
+  <g transform="translate(64 68)" fill="currentColor">
+    <g transform="rotate(0)"><path d="M0 -18 C 12 -32 13 -56 0 -72 C -13 -56 -12 -32 0 -18 Z"/></g>
+    <g transform="rotate(72)"><path d="M0 -18 C 12 -32 13 -56 0 -72 C -13 -56 -12 -32 0 -18 Z"/></g>
+    <g transform="rotate(144)"><path d="M0 -18 C 12 -32 13 -56 0 -72 C -13 -56 -12 -32 0 -18 Z"/></g>
+    <g transform="rotate(216)"><path d="M0 -18 C 12 -32 13 -56 0 -72 C -13 -56 -12 -32 0 -18 Z"/></g>
+    <g transform="rotate(288)"><path d="M0 -18 C 12 -32 13 -56 0 -72 C -13 -56 -12 -32 0 -18 Z"/></g>
+    <circle r="9.5"/>
+  </g>
+</svg>

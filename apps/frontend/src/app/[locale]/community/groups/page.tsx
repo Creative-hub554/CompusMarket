@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
+import { apiFetch } from "@/lib/apiFetch";
 import { useTranslations } from "next-intl";
 import { Users, Plus, MessageSquare, Lock, Search } from "lucide-react";
 import { toast } from "@/components/ui/toast";
@@ -37,11 +38,15 @@ export default function GroupsPage() {
     const params = new URLSearchParams();
     if (cursor) params.set("cursor", cursor);
     if (q) params.set("q", q);
-    const res = await fetch(`/api/groups?${params.toString()}`);
-    if (res.ok) {
-      const data = await res.json();
+    try {
+      const data = await apiFetch<{
+        items: GroupSummary[];
+        nextCursor: string | null;
+      }>(`/api/groups?${params.toString()}`);
       setGroups((prev) => (cursor ? [...prev, ...data.items] : data.items));
       setNextCursor(data.nextCursor);
+    } catch {
+      /* keep current list on failure */
     }
     setLoading(false);
   }, []);
@@ -61,11 +66,12 @@ export default function GroupsPage() {
     // Leaving a private group with a pending request cancels the request.
     const action =
       !group.isMember && group.hasPendingRequest ? "leave" : group.isMember ? "leave" : "join";
-    const res = await fetch(`/api/groups/${group.id}/${action}`, {
-      method: "POST",
-    });
-    if (res.ok) {
-      const data = await res.json();
+    try {
+      const data = await apiFetch<{
+        requested?: boolean;
+        cancelled?: boolean;
+        joined?: boolean;
+      }>(`/api/groups/${group.id}/${action}`, { method: "POST" });
       if (data.requested) {
         setGroups((prev) =>
           prev.map((g) =>
@@ -95,9 +101,8 @@ export default function GroupsPage() {
         );
         toast.success(joined ? t("joinedToast") : t("leftToast"));
       }
-    } else {
-      const err = await res.json().catch(() => ({}));
-      toast.error(err.error || t("actionFailed"));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("actionFailed"));
     }
     setBusyId(null);
   }
@@ -106,24 +111,22 @@ export default function GroupsPage() {
     e.preventDefault();
     if (!name.trim()) return;
     setCreating(true);
-    const res = await fetch("/api/groups", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: name.trim(),
-        description: description.trim() || undefined,
-        privacy,
-      }),
-    });
-    if (res.ok) {
-      const group = await res.json();
+    try {
+      const group = await apiFetch<GroupSummary>("/api/groups", {
+        method: "POST",
+        body: {
+          name: name.trim(),
+          description: description.trim() || undefined,
+          privacy,
+        },
+      });
       setGroups((prev) => [group, ...prev]);
       setName("");
       setDescription("");
       setShowCreate(false);
       toast.success(t("createdToast"));
-    } else {
-      toast.error(t("actionFailed"));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("actionFailed"));
     }
     setCreating(false);
   }

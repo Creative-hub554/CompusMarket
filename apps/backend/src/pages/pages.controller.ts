@@ -15,6 +15,7 @@ import { OptionalJwtGuard } from "../auth/optional-jwt.guard";
 import { RateLimitGuard } from "../common/rate-limit.guard";
 import { parseLimit } from "../common/pagination";
 import { PagesService } from "./pages.service";
+import { PageBlockService } from "./page-block.service";
 import { AddPageMemberDto, CreatePageDto, UpdatePageDto } from "./dto/pages.dto";
 import { CreatePostDto } from "../social/dto/social.dto";
 
@@ -22,10 +23,10 @@ type AuthUser = { user: { userId: string; role?: string } };
 
 @Controller("pages")
 export class PagesController {
-  constructor(private pages: PagesService) {}
+  constructor(private pages: PagesService, private pageBlock: PageBlockService) {}
 
   @Post()
-  @UseGuards(AuthGuard("jwt"), RateLimitGuard)
+  @UseGuards(AuthGuard("jwt"), new RateLimitGuard(20, 60))
   create(@Req() req: AuthUser, @Body() dto: CreatePageDto) {
     return this.pages.create(req.user.userId, dto);
   }
@@ -96,7 +97,7 @@ export class PagesController {
   }
 
   @Post(":id/follow")
-  @UseGuards(AuthGuard("jwt"), RateLimitGuard)
+  @UseGuards(AuthGuard("jwt"), new RateLimitGuard(20, 60))
   follow(@Req() req: AuthUser, @Param("id") id: string) {
     return this.pages.follow(id, req.user.userId);
   }
@@ -172,12 +173,30 @@ export class PagesController {
   }
 
   @Post(":id/posts/:postId/boost")
-  @UseGuards(AuthGuard("jwt"), RateLimitGuard)
+  @UseGuards(AuthGuard("jwt"), new RateLimitGuard(20, 60))
   boost(
     @Req() req: AuthUser,
     @Param("id") id: string,
     @Param("postId") postId: string
   ) {
     return this.pages.boostPost(id, postId, req.user.userId);
+  }
+
+  @Post(":id/block")
+  @UseGuards(AuthGuard("jwt"))
+  block(@Req() req: AuthUser, @Param("id") id: string) {
+    return this.pageBlock.block(req.user.userId, id);
+  }
+
+  @Delete(":id/block")
+  @UseGuards(AuthGuard("jwt"))
+  unblock(@Req() req: AuthUser, @Param("id") id: string) {
+    return this.pageBlock.unblock(req.user.userId, id);
+  }
+
+  @Get(":id/block/check")
+  @UseGuards(AuthGuard("jwt"))
+  checkBlock(@Req() req: AuthUser, @Param("id") id: string) {
+    return this.pageBlock.isBlocked(req.user.userId, id).then((blocked) => ({ blocked }));
   }
 }

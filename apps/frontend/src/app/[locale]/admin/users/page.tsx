@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
+import { apiFetch } from "@/lib/apiFetch";
 import { Avatar } from "@/components/social/Avatar";
 
 type AdminUser = {
@@ -63,9 +64,9 @@ export default function AdminUsersPage() {
         if (query) params.set("q", query);
         params.set("page", String(p));
         params.set("limit", String(PAGE_SIZE));
-        const res = await fetch(`/api/admin/users?${params}`);
-        const body = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(body.error || body.message || t("error"));
+        const body = await apiFetch<{ items: AdminUser[]; total: number }>(
+          `/api/admin/users?${params}`,
+        );
         setUsers(body.items ?? []);
         setTotal(body.total ?? 0);
       } catch (e) {
@@ -90,9 +91,9 @@ export default function AdminUsersPage() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch("/api/admin/users/changes?limit=10");
-        const body = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(body.error || body.message || t("error"));
+        const body = await apiFetch<RoleChange[]>(
+          "/api/admin/users/changes?limit=10",
+        );
         if (!cancelled) setRecent(Array.isArray(body) ? body : []);
       } catch (e) {
         if (!cancelled) setRecentError(e instanceof Error ? e.message : t("error"));
@@ -111,13 +112,10 @@ export default function AdminUsersPage() {
     setBusy(u.id);
     setError("");
     try {
-      const res = await fetch(`/api/admin/users/${u.id}/role`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role, reason }),
-      });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body.error || body.message || t("error"));
+      const body = await apiFetch<{ role?: string; banReason?: string | null }>(
+        `/api/admin/users/${u.id}/role`,
+        { method: "PATCH", body: { role, reason } },
+      );
       mergeUser(u, {
         role: body.role ?? role,
         banReason: body.banReason ?? null,
@@ -156,9 +154,9 @@ export default function AdminUsersPage() {
     setHistory(null);
     setHistoryError("");
     try {
-      const res = await fetch(`/api/admin/users/${u.id}/changes`);
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body.error || body.message || t("error"));
+      const body = await apiFetch<RoleChange[]>(
+        `/api/admin/users/${u.id}/changes`,
+      );
       setHistory(Array.isArray(body) ? body : []);
     } catch (e) {
       setHistoryError(e instanceof Error ? e.message : t("error"));

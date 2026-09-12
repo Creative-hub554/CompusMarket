@@ -10,6 +10,7 @@ import { useSession } from "@/lib/session-client";
 import { Avatar } from "@/components/social/Avatar";
 import { uploadFile } from "@/lib/social";
 import { useTranslations } from "next-intl";
+import { apiFetch } from "@/lib/apiFetch";
 
 type Album = {
   id: string;
@@ -26,6 +27,7 @@ type Me = {
   coverImage: string | null;
   bio: string | null;
   accountPrivate?: boolean;
+  albums?: Album[];
 };
 
 export default function EditProfilePage() {
@@ -47,8 +49,7 @@ export default function EditProfilePage() {
   useEffect(() => {
     if (status !== "authenticated") return;
     // profiles/me is PATCH-only; fetch full profile via session id
-    fetch(`/api/profiles/${session?.user?.id}`)
-      .then((r) => r.json())
+    apiFetch<Me>(`/api/profiles/${session?.user?.id}`)
       .then((p) => {
         if (!p?.id) return;
         setMe(p);
@@ -115,20 +116,15 @@ export default function EditProfilePage() {
     setError("");
     setSaving(true);
     try {
-      const res = await fetch("/api/profiles/me", {
+      await apiFetch("/api/profiles/me", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: {
           name,
           username: username || undefined,
           bio,
           accountPrivate,
-        }),
+        },
       });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.message || "Could not save profile");
-      }
       await update();
       router.push(`/profile/${session?.user?.id}`);
     } catch (e) {
@@ -143,15 +139,12 @@ export default function EditProfilePage() {
     if (!file) return;
     try {
       const { url } = await uploadFile(file);
-      const res = await fetch("/api/profiles/me", {
+      await apiFetch("/api/profiles/me", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ [kind]: url }),
+        body: { [kind]: url },
       });
-      if (res.ok) {
-        setMe((prev) => (prev ? { ...prev, [kind]: url } : prev));
-        await update();
-      }
+      setMe((prev) => (prev ? { ...prev, [kind]: url } : prev));
+      await update();
     } catch {
       toast.error("Upload failed. Is storage running?");
     }

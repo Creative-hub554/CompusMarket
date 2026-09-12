@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { cache } from "react";
 import { languageAlternates } from "@/lib/site";
-import { getApiBase } from "@/lib/apiBase";
-
-const API_BASE = getApiBase();
+import { apiFetch } from "@/lib/apiFetch";
 
 type Props = {
   children: React.ReactNode;
@@ -19,12 +17,7 @@ type Profile = {
 // cache() dedupes the fetch between generateMetadata and the layout render.
 const getProfile = cache(async (id: string): Promise<Profile | null> => {
   try {
-    const res = await fetch(`${API_BASE}/profiles/${id}`, {
-      headers: { "Content-Type": "application/json" },
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    return (await res.json()) as Profile;
+    return await apiFetch<Profile>(`/profiles/${id}`, { cache: "no-store" });
   } catch {
     return null;
   }

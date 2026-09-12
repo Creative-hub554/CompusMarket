@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
+import { RequireAuth } from "@/components/RequireAuth";
+import { apiFetch } from "@/lib/apiFetch";
 
 type Ticket = {
   id: string;
@@ -35,8 +37,7 @@ export default function SupportPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/support/tickets")
-      .then((r) => r.json())
+    apiFetch<Ticket[]>("/api/support/tickets")
       .then(setTickets)
       .catch(() => setTickets([]))
       .finally(() => setLoading(false));
@@ -44,13 +45,10 @@ export default function SupportPage() {
 
   if (!session) {
     return (
-      <div className="min-h-[calc(100vh-64px)] bg-[var(--surface)] flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">Sign In Required</h1>
-          <p className="text-slate-500 dark:text-slate-400 mb-4">Please sign in to access support.</p>
-          <Link href="/login" className="text-gold-600 font-medium hover:underline">Go to Login</Link>
-        </div>
-      </div>
+      <RequireAuth
+        className="min-h-[calc(100vh-64px)] bg-[var(--surface)] flex items-center justify-center"
+        message="Please sign in to access support."
+      />
     );
   }
 

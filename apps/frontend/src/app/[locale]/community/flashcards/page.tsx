@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
+import { RequireAuth } from "@/components/RequireAuth";
 import { useAuthedFetch } from "@/lib/useAuthedFetch";
 
 interface FlashcardDeckItem {
@@ -28,8 +29,7 @@ export default function FlashcardsPage() {
   async function loadDecks() {
     setLoading(true);
     try {
-      const res = await authedFetch("/api/flashcards/decks");
-      setDecks(await res.json());
+      setDecks(await authedFetch<FlashcardDeckItem[]>("/api/flashcards/decks"));
     } catch (err) { console.error("Failed to load decks:", err); }
     setLoading(false);
   }
@@ -40,8 +40,7 @@ export default function FlashcardsPage() {
     if (!newTitle.trim()) return;
     await authedFetch("/api/flashcards/decks", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: newTitle, description: newDesc }),
+      body: { title: newTitle, description: newDesc },
     });
     setShowNew(false);
     setNewTitle("");
@@ -66,14 +65,17 @@ export default function FlashcardsPage() {
 
   if (!session) {
     return (
-      <div className="text-center py-16">
-        <div className="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-purple-500">
-          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-        </div>
-        <h1 className="text-2xl font-bold mb-2">Flashcards</h1>
-        <p className="text-slate-500 mb-4">Sign in to create flashcard decks and study with spaced repetition.</p>
-        <Link href="/login" className="btn-primary">Sign In</Link>
-      </div>
+      <RequireAuth
+        title="Flashcards"
+        message="Sign in to create flashcard decks and study with spaced repetition."
+        icon={
+          <div className="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-purple-500">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+          </div>
+        }
+        cta="button"
+        className="py-16"
+      />
     );
   }
 

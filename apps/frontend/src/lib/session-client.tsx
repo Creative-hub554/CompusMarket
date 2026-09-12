@@ -11,6 +11,7 @@ import React, {
   type ReactNode,
 } from "react";
 import { useAuth, useClerk, useUser } from "@clerk/nextjs";
+import { apiFetch } from "@/lib/apiFetch";
 
 export type BridgeUser = {
   id: string;
@@ -43,10 +44,14 @@ const SessionContext = createContext<SessionContextValue>({
 });
 
 async function fetchBridgeSession(): Promise<BridgeSession | null> {
-  const res = await fetch("/api/auth/session", { cache: "no-store" });
-  if (!res.ok) return null;
-  const body = (await res.json()) as BridgeSession | null;
-  return body?.user ? body : null;
+  try {
+    const body = await apiFetch<BridgeSession | null>("/api/auth/session", {
+      cache: "no-store",
+    });
+    return body?.user ? body : null;
+  } catch {
+    return null;
+  }
 }
 
 /**

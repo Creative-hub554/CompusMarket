@@ -5,7 +5,6 @@ import type { Metadata } from "next";
 import { api } from "@/services/api";
 import { notFound } from "next/navigation";
 import { AddToCartButton } from "@/components/AddToCartButton";
-import { BuyNowButton } from "@/components/BuyNowButton";
 import { ChatWithSellerButton } from "@/components/ChatWithSellerButton";
 import { ProductTabs } from "./ProductTabs";
 import { ProductCard } from "@/components/ProductCard";
@@ -165,7 +164,6 @@ export default async function ProductDetailPage({ params }: Props) {
                 <AddToCartButton productId={product.id} />
               </div>
             )}
-            <BuyNowButton productId={product.id} />
             {product.sellerId && (
               <div className="flex-1 min-w-[200px]">
                 <ChatWithSellerButton
