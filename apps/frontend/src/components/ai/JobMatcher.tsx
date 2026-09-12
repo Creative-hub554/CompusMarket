@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "@/lib/useTranslation";
 import { useAuthedFetch } from "@/lib/useAuthedFetch";
+import { useHandleApiError } from "@/lib/useHandleApiError";
 
 export function JobMatcher() {
   const { t } = useTranslation();
@@ -10,17 +11,17 @@ export function JobMatcher() {
   const [hasResume, setHasResume] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
   const [showResumePrompt, setShowResumePrompt] = useState(false);
+  const _handleApiError = useHandleApiError();
 
   useEffect(() => {
     (async () => {
       try {
-        const res = await authedFetch("/api/resumes", { method: "GET" });
-        if (res.ok) {
-          const data = await res.json();
-          setHasResume(Array.isArray(data) && data.length > 0);
-          if (!hasResume) setShowResumePrompt(true);
-        }
-      } catch {}
+        const data = await authedFetch<unknown[]>("/api/resumes", { method: "GET" });
+        setHasResume(Array.isArray(data) && data.length > 0);
+        if (!hasResume) setShowResumePrompt(true);
+      } catch (err) {
+        await _handleApiError(err, "check your resume", true);
+      }
     })();
   }, [authedFetch, hasResume]);
 

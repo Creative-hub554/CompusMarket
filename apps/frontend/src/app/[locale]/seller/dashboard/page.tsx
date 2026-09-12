@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Link, usePathname, useRouter } from "@/i18n/navigation";
+import { usePathname, useRouter } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
+import { RequireAuth } from "@/components/RequireAuth";
 import { Sparkles, RefreshCw } from "lucide-react";
+import { apiFetch } from "@/lib/apiFetch";
 
 type SellerProfile = {
   id: string;
@@ -27,8 +29,7 @@ export default function SellerDashboardPage() {
   const [insightsError, setInsightsError] = useState("");
 
   useEffect(() => {
-    fetch("/api/seller/apply")
-      .then((r) => r.json())
+    apiFetch<SellerProfile | null>("/api/seller/apply")
       .then((data) => {
         if (data && data.id) setProfile(data);
       })
@@ -40,15 +41,10 @@ export default function SellerDashboardPage() {
     setInsightsError("");
     setInsightsLoading(true);
     try {
-      const res = await fetch("/api/seller/ai-insights", {
+      const body = await apiFetch<{ text?: string }>("/api/seller/ai-insights", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lang }),
+        body: { lang },
       });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(body.error || "Could not load insights");
-      }
       setInsights(body.text || "");
     } catch (e) {
       setInsightsError(e instanceof Error ? e.message : "Could not load insights");
@@ -58,20 +54,7 @@ export default function SellerDashboardPage() {
   }
 
   if (!session) {
-    return (
-      <div className="max-w-xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
-        <p className="text-slate-600 dark:text-slate-300 mb-4">
-          Please sign in to view your seller dashboard.
-        </p>
-        <Link
-          href="/login"
-          className="text-gold-600 font-medium hover:underline"
-        >
-          Go to Login
-        </Link>
-      </div>
-    );
+    return <RequireAuth message="Please sign in to view your seller dashboard." />;
   }
 
   if (loading) {

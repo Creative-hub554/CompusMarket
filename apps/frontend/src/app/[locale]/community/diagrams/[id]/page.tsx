@@ -50,8 +50,7 @@ export default function DiagramEditorPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    authedFetch(`/api/diagrams/${id}`)
-      .then((r) => r.json())
+    authedFetch<DiagramData>(`/api/diagrams/${id}`)
       .then((data) => {
         setDiagram(data);
         setTitle(data.title);
@@ -70,8 +69,7 @@ export default function DiagramEditorPage() {
     try {
       await authedFetch(`/api/diagrams/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, code: codeRef.current, type }),
+        body: { title, code: codeRef.current, type },
       });
       setLastSaved(new Date());
       setDirty(false);

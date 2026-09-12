@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { apiFetch } from "@/lib/apiFetch";
 
 type Lang = "en" | "km";
 type Skill = "auto" | "product_search" | "feed" | "jobs" | "resume";
@@ -138,17 +139,15 @@ export function AssistantWidget() {
     let replySkill: string | null = null;
 
     try {
-      const res = await fetch(`${ASSISTANT_URL}/chat`, {
+      const data = await apiFetch<{ reply?: string; error?: string; skill?: string }>(`${ASSISTANT_URL}/chat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: {
           message: content,
           language: lang,
           session_id: getSessionId(),
           skill,
-        }),
+        },
       });
-      const data = await res.json();
       if (data.reply && !data.error) {
         reply = data.reply;
         replySkill = data.skill || null;

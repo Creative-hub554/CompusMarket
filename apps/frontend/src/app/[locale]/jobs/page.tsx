@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useSession } from "@/lib/session-client";
 import { toast } from "@/components/ui/toast";
 import { jobsApi, type Job, type JobType } from "@/services/jobs";
+import { apiFetch } from "@/lib/apiFetch";
 
 const JOB_TYPES: JobType[] = [
   "FULL_TIME",
@@ -75,34 +76,33 @@ export default function JobsPage() {
 
   useEffect(() => {
     if (!session?.user) return;
-    fetch("/api/jobs/alerts")
-      .then((r) => (r.ok ? r.json() : []))
+    apiFetch<{ id: string; type: string | null; location: string | null; q: string | null }[]>("/api/jobs/alerts")
       .then((data) => setAlerts(Array.isArray(data) ? data : []))
       .catch(() => {});
   }, [session?.user]);
 
   async function saveSearch() {
     setAlertBusy(true);
-    const res = await fetch("/api/jobs/alerts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ q: q.trim() || undefined, location: location.trim() || undefined, type: type || undefined }),
-    });
-    if (res.ok) {
-      const alert = await res.json();
+    try {
+      const alert = await apiFetch<{ id: string; type: string | null; location: string | null; q: string | null }>("/api/jobs/alerts", {
+        method: "POST",
+        body: { q: q.trim() || undefined, location: location.trim() || undefined, type: type || undefined },
+      });
       setAlerts((prev) => [alert, ...prev]);
       toast.success(t("alertSaved"));
-    } else {
+    } catch {
       toast.error(t("alertFailed"));
     }
     setAlertBusy(false);
   }
 
   async function removeAlert(alertId: string) {
-    const res = await fetch(`/api/jobs/alerts/${alertId}`, { method: "DELETE" });
-    if (res.ok) {
+    try {
+      await apiFetch(`/api/jobs/alerts/${alertId}`, { method: "DELETE" });
       setAlerts((prev) => prev.filter((a) => a.id !== alertId));
       toast.success(t("alertRemoved"));
+    } catch {
+      // non-2xx responses used to stop silently
     }
   }
 

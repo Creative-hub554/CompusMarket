@@ -6,6 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "@/lib/useTranslation";
 import { useAuthedFetch } from "@/lib/useAuthedFetch";
+import { useHandleApiError } from "@/lib/useHandleApiError";
 
 type Lang = "en" | "zh" | "km";
 
@@ -77,6 +78,7 @@ export function AiAssistant() {
   const [isLoading, setIsLoading] = useState(false);
   const [lang, setLang] = useState<Lang>("en");
   const [hasResume, setHasResume] = useState<boolean>(false);
+  const _handleApiError = useHandleApiError();
 
   useEffect(() => {
     const storedLang = localStorage.getItem("aiAssistantLang") as Lang | null;
@@ -100,12 +102,11 @@ export function AiAssistant() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await authedFetch("/api/resumes", { method: "GET" });
-        if (res.ok) {
-          const data = await res.json();
-          setHasResume(Array.isArray(data) && data.length > 0);
-        }
-      } catch {}
+        const data = await authedFetch<unknown[]>("/api/resumes", { method: "GET" });
+        setHasResume(Array.isArray(data) && data.length > 0);
+      } catch (err) {
+        await _handleApiError(err, "check your resume", true);
+      }
     })();
   }, [authedFetch]);
 
@@ -123,42 +124,90 @@ export function AiAssistant() {
   const sendMessage = async (text?: string) => {
     const content = (text ?? input).trim();
     if (!content) return;
+    // Capture request params at call time so the retryFn (invoked 800ms after
+    // a 5xx failure) replays the same request instead of re-reading component
+    // state that may have changed in the interim.
+    const requestLang = lang;
+    const requestHasResume = hasResume;
+    const requestPage = pathname;
+
     const userMessage: AssistantMessage = {
       role: "user",
       content,
-      lang,
+      lang: requestLang,
     };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
 
+    const body = { message: content, lang: requestLang, hasResume: requestHasResume, page: requestPage };
+
     try {
-      const res = await authedFetch("/api/ai/assistant/chat", {
+      const data = await authedFetch<{
+        reply?: string;
+        products?: AssistantProduct[];
+        links?: string[];
+      }>("/api/ai/assistant/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: content, lang, hasResume, page: pathname }),
+        body,
       });
-      const data = await res.json();
       const aiResponse = data.reply || "Sorry, I couldn't process that.";
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
           content: aiResponse,
-          lang,
+          lang: requestLang,
           products: Array.isArray(data.products) ? data.products : undefined,
           links: Array.isArray(data.links) ? data.links : undefined,
         },
       ]);
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: t.aiAssistant.error,
-          lang,
-        },
-      ]);
+    } catch (err) {
+      // useHandleApiError toasts (and redirects on 401). Here we surface a
+      // specific message in the chat so the conversation isn't left hanging.
+      const { retryResult } = await _handleApiError(err, "get a response from the assistant", false, true, () =>
+        authedFetch<{
+          reply?: string;
+          products?: AssistantProduct[];
+          links?: string[];
+        }>("/api/ai/assistant/chat", {
+          method: "POST",
+          body,
+        }),
+      );
+      if (retryResult) {
+        const data = retryResult as { reply?: string; products?: AssistantProduct[]; links?: string[] };
+        const aiResponse = data.reply || "Sorry, I couldn't process that.";
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: aiResponse,
+            lang: requestLang,
+            products: Array.isArray(data.products) ? data.products : undefined,
+            links: Array.isArray(data.links) ? data.links : undefined,
+          },
+        ]);
+      } else {
+        const isApiError = err instanceof Error && "status" in err;
+        const status = isApiError ? (err as { status: number }).status : null;
+        const chatMessage =
+          status === 401
+            ? "Sign in again to continue chatting with the assistant."
+            : status === 404
+              ? "The assistant isn't available right now."
+              : status === 403
+                ? "You don't have permission to use the assistant."
+                : status === 409
+                  ? "That request was already processed."
+                  : status !== null && status >= 500
+                    ? "The assistant is having trouble. Please try again."
+                    : "Couldn't reach the assistant. Check your connection and try again.";
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: chatMessage, lang: requestLang },
+        ]);
+      }
     } finally {
       setIsLoading(false);
     }

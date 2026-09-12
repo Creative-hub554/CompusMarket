@@ -5,6 +5,8 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
+import { apiFetch } from "@/lib/apiFetch";
+import { RequireAuth } from "@/components/RequireAuth";
 
 type Category = { id: string; name: string };
 
@@ -52,14 +54,8 @@ export default function SellerEditProductPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/categories").then((r) => r.json()),
-      fetch(`/api/seller/products/${id}`).then(async (r) => {
-        if (!r.ok) {
-          const err = await r.json();
-          throw new Error(err.error || "Product not found");
-        }
-        return r.json();
-      }),
+      apiFetch<Category[]>("/api/categories"),
+      apiFetch<SellerProduct>(`/api/seller/products/${id}`),
     ])
       .then(([cats, product]: [Category[], SellerProduct]) => {
         setCategories(cats);
@@ -93,12 +89,10 @@ export default function SellerEditProductPage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch("/api/upload", {
+      const data = await apiFetch<{ url: string }>("/api/upload", {
         method: "POST",
         body: formData,
       });
-      if (!res.ok) throw new Error("Upload failed");
-      const data = await res.json();
       setImages((prev) => [...prev, data.url]);
     } catch {
       setError("Upload failed");
@@ -110,10 +104,9 @@ export default function SellerEditProductPage() {
     setSubmitting(true);
     setError("");
     try {
-      const res = await fetch(`/api/seller/products/${id}`, {
+      await apiFetch(`/api/seller/products/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: {
           ...form,
           images,
           status,
@@ -124,12 +117,8 @@ export default function SellerEditProductPage() {
           warrantyMonths: form.warrantyMonths
             ? parseInt(form.warrantyMonths)
             : undefined,
-        }),
+        },
       });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to update product");
-      }
       router.push("/seller/products");
     } catch (e: any) {
       setError(e.message);
@@ -138,11 +127,7 @@ export default function SellerEditProductPage() {
   };
 
   if (!session) {
-    return (
-      <div className="max-w-xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
-      </div>
-    );
+    return <RequireAuth />;
   }
 
   if (loading)

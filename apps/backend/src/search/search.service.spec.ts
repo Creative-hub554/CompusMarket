@@ -131,7 +131,7 @@ describe("SearchService", () => {
   });
 
   describe("search", () => {
-    it("builds a Meilisearch filter with quoted categoryId and numeric price bounds", async () => {
+    it("builds a Meilisearch filter from allowed categoryId and numeric price bounds", async () => {
       client().getIndexes.mockResolvedValue({
         results: [{ uid: "products", primaryKey: "id" }],
       });
@@ -146,6 +146,47 @@ describe("SearchService", () => {
             'categoryId = "c-1"',
             "price >= 5",
             "price <= 100",
+          ],
+        })
+      );
+    });
+
+    it("rejects crafted categoryId/condition values that do not match the safe grammar", async () => {
+      client().getIndexes.mockResolvedValue({
+        results: [{ uid: "products", primaryKey: "id" }],
+      });
+      h.mockIndex.search.mockResolvedValue({ hits: [], estimatedTotalHits: 0 });
+
+      await service.search("watch", {
+        categoryId: 'c-1", price <= 0, condition: "x',
+        condition: 'A", stock > 0 OR condition: "B',
+        maxPrice: 0,
+      });
+
+      expect(h.mockIndex.search).toHaveBeenCalledWith(
+        "watch",
+        expect.objectContaining({
+          filter: [
+            "price <= 0",
+          ],
+        })
+      );
+    });
+
+    it("accepts safe characters in categoryId and condition values", async () => {
+      client().getIndexes.mockResolvedValue({
+        results: [{ uid: "products", primaryKey: "id" }],
+      });
+      h.mockIndex.search.mockResolvedValue({ hits: [], estimatedTotalHits: 0 });
+
+      await service.search("watch", { categoryId: "c-alpha_1@v2:-3", condition: "A_b.c" });
+
+      expect(h.mockIndex.search).toHaveBeenCalledWith(
+        "watch",
+        expect.objectContaining({
+          filter: [
+            'categoryId = "c-alpha_1@v2:-3"',
+            'condition = "A_b.c"',
           ],
         })
       );

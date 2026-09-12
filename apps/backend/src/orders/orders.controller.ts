@@ -6,7 +6,6 @@ import {
   Param,
   Body,
   UseGuards,
-  Req,
   NotFoundException,
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
@@ -14,6 +13,7 @@ import { RolesGuard } from "../auth/roles.guard";
 import { Roles } from "../auth/roles.decorator";
 import { OrdersService } from "./orders.service";
 import { UpdateOrderStatusDto } from "./dto/update-status.dto";
+import { CurrentUser, CurrentUserId } from "../common/current-user.decorator";
 
 @Controller("orders")
 export class OrdersController {
@@ -21,14 +21,14 @@ export class OrdersController {
 
   @Post("checkout")
   @UseGuards(AuthGuard("jwt"))
-  checkout(@Req() req: { user: { userId: string } }) {
-    return this.ordersService.checkout(req.user.userId);
+  checkout(@CurrentUserId() userId: string) {
+    return this.ordersService.checkout(userId);
   }
 
   @Get()
   @UseGuards(AuthGuard("jwt"))
-  findMyOrders(@Req() req: { user: { userId: string } }) {
-    return this.ordersService.findByUser(req.user.userId);
+  findMyOrders(@CurrentUserId() userId: string) {
+    return this.ordersService.findByUser(userId);
   }
 
   @Get("all")
@@ -41,11 +41,11 @@ export class OrdersController {
   @Get(":id")
   @UseGuards(AuthGuard("jwt"))
   async findOne(
-    @Req() req: { user: { userId: string; role?: string } },
+    @CurrentUser() user: { userId: string; role: string },
     @Param("id") id: string
   ) {
     const order = await this.ordersService.findOne(id);
-    if (order.userId !== req.user.userId && req.user.role !== "ADMIN") {
+    if (order.userId !== user.userId && user.role !== "ADMIN") {
       throw new NotFoundException("Order not found");
     }
     return order;
@@ -53,8 +53,8 @@ export class OrdersController {
 
   @Patch(":id/cancel")
   @UseGuards(AuthGuard("jwt"))
-  cancel(@Req() req: { user: { userId: string } }, @Param("id") id: string) {
-    return this.ordersService.cancelMine(id, req.user.userId);
+  cancel(@CurrentUserId() userId: string, @Param("id") id: string) {
+    return this.ordersService.cancelMine(id, userId);
   }
 
   @Patch(":id/status")
@@ -70,10 +70,10 @@ export class OrdersController {
   @Patch(":id/seller-status")
   @UseGuards(AuthGuard("jwt"))
   updateSellerStatus(
-    @Req() req: { user: { userId: string } },
+    @CurrentUserId() userId: string,
     @Param("id") id: string,
     @Body() dto: UpdateOrderStatusDto
   ) {
-    return this.ordersService.updateSellerStatus(id, req.user.userId, dto.status);
+    return this.ordersService.updateSellerStatus(id, userId, dto.status);
   }
 }

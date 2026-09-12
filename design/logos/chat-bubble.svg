@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <title>Bubble Chat — a chat bubble blooming five speech petals</title>
+  <defs>
+    <linearGradient id="bg1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff6b5e"/>
+      <stop offset="1" stop-color="#ff9a3d"/>
+    </linearGradient>
+  </defs>
+  <!-- main bubble -->
+  <path d="M64 24 C 88 24 104 40 104 60 C 104 80 88 96 64 96 C 57 96 51 95 45 92 L 28 104 L 34 86 C 26 79 24 70 24 60 C 24 40 40 24 64 24 Z" fill="url(#bg1)"/>
+  <!-- community dots -->
+  <circle cx="48" cy="60" r="7" fill="#fff7ed"/>
+  <circle cx="64" cy="60" r="7" fill="#ffe08a"/>
+  <circle cx="80" cy="60" r="7" fill="#fff7ed"/>
+</svg>

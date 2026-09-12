@@ -81,14 +81,8 @@ async function proxy(req: NextRequest) {
   const targetPath = path.replace(/^\/api/, "");
   const target = `${getApiBase()}${targetPath}${req.nextUrl.search}`;
 
-  // Clone request headers but drop hop-by-hop and cookies. Then set our authorization.
-  const headers = new Headers();
-  for (const [k, v] of req.headers) {
-    const key = k.toLowerCase();
-    if (key === "cookie") continue;
-    if (HOP_BY_HOP_HEADERS.includes(key)) continue;
-    headers.set(k, v as string);
-  }
+  const headers = new Headers(req.headers);
+  ["cookie", ...HOP_BY_HOP_HEADERS].forEach((h) => headers.delete(h));
   if (authHeader) headers.set("authorization", authHeader);
 
   let res: Response;

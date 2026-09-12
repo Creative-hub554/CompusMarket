@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from "@nestjs/common";
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { FlashcardsService } from "./flashcards.service";
 import { CreateDeckDto } from "./dto/create-deck.dto";
@@ -6,6 +6,7 @@ import { UpdateDeckDto } from "./dto/update-deck.dto";
 import { CreateCardDto } from "./dto/create-card.dto";
 import { UpdateCardDto } from "./dto/update-card.dto";
 import { ReviewCardDto } from "./dto/review-card.dto";
+import { CurrentUserId } from "../common/current-user.decorator";
 
 @Controller("flashcards")
 @UseGuards(AuthGuard("jwt"))
@@ -14,54 +15,54 @@ export class FlashcardsController {
 
   // Decks
   @Post("decks")
-  createDeck(@Req() req: { user: { userId: string } }, @Body() body: CreateDeckDto) {
-    return this.flashcardsService.createDeck(req.user.userId, body);
+  createDeck(@CurrentUserId() userId: string, @Body() body: CreateDeckDto) {
+    return this.flashcardsService.createDeck(userId, body);
   }
 
   @Get("decks")
-  getDecks(@Req() req: { user: { userId: string } }) {
-    return this.flashcardsService.findDecks(req.user.userId);
+  getDecks(@CurrentUserId() userId: string) {
+    return this.flashcardsService.findDecks(userId);
   }
 
   @Get("decks/:id")
-  getDeck(@Req() req: { user: { userId: string } }, @Param("id") id: string) {
-    return this.flashcardsService.findDeck(id, req.user.userId);
+  getDeck(@CurrentUserId() userId: string, @Param("id") id: string) {
+    return this.flashcardsService.findDeck(id, userId);
   }
 
   @Patch("decks/:id")
-  updateDeck(@Req() req: { user: { userId: string } }, @Param("id") id: string, @Body() body: UpdateDeckDto) {
-    return this.flashcardsService.updateDeck(id, req.user.userId, body);
+  updateDeck(@CurrentUserId() userId: string, @Param("id") id: string, @Body() body: UpdateDeckDto) {
+    return this.flashcardsService.updateDeck(id, userId, body);
   }
 
   @Delete("decks/:id")
-  deleteDeck(@Req() req: { user: { userId: string } }, @Param("id") id: string) {
-    return this.flashcardsService.deleteDeck(id, req.user.userId);
+  deleteDeck(@CurrentUserId() userId: string, @Param("id") id: string) {
+    return this.flashcardsService.deleteDeck(id, userId);
   }
 
   // Cards
   @Post("decks/:deckId/cards")
-  createCard(@Req() req: { user: { userId: string } }, @Param("deckId") deckId: string, @Body() body: CreateCardDto) {
-    return this.flashcardsService.createCard(deckId, req.user.userId, body);
+  createCard(@CurrentUserId() userId: string, @Param("deckId") deckId: string, @Body() body: CreateCardDto) {
+    return this.flashcardsService.createCard(deckId, userId, body);
   }
 
   @Patch("cards/:id")
-  updateCard(@Req() req: { user: { userId: string } }, @Param("id") id: string, @Body() body: UpdateCardDto) {
-    return this.flashcardsService.updateCard(id, req.user.userId, body);
+  updateCard(@CurrentUserId() userId: string, @Param("id") id: string, @Body() body: UpdateCardDto) {
+    return this.flashcardsService.updateCard(id, userId, body);
   }
 
   @Delete("cards/:id")
-  deleteCard(@Req() req: { user: { userId: string } }, @Param("id") id: string) {
-    return this.flashcardsService.deleteCard(id, req.user.userId);
+  deleteCard(@CurrentUserId() userId: string, @Param("id") id: string) {
+    return this.flashcardsService.deleteCard(id, userId);
   }
 
   // Reviews
   @Post("cards/:id/review")
-  reviewCard(@Req() req: { user: { userId: string } }, @Param("id") id: string, @Body() body: ReviewCardDto) {
-    return this.flashcardsService.reviewCard(id, req.user.userId, body.quality);
+  reviewCard(@CurrentUserId() userId: string, @Param("id") id: string, @Body() body: ReviewCardDto) {
+    return this.flashcardsService.reviewCard(id, userId, body.quality);
   }
 
   @Get("decks/:deckId/due")
-  getDueCards(@Req() req: { user: { userId: string } }, @Param("deckId") deckId: string) {
-    return this.flashcardsService.getDueCards(deckId, req.user.userId);
+  getDueCards(@CurrentUserId() userId: string, @Param("deckId") deckId: string) {
+    return this.flashcardsService.getDueCards(deckId, userId);
   }
 }

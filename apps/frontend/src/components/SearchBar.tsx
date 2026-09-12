@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
+import { apiFetch } from "@/lib/apiFetch";
 
 type SearchHit = {
   id: string;
@@ -56,8 +57,7 @@ export function SearchBar() {
     debounceRef.current = setTimeout(async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(value)}`);
-        const data = await res.json();
+        const data = await apiFetch<{ hits?: SearchHit[] }>(`/api/search?q=${encodeURIComponent(value)}`);
         setResults(data.hits || []);
         setOpen(true);
       } catch {

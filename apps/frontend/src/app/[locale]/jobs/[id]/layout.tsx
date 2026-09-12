@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { cache } from "react";
 import { languageAlternates, getSiteUrl } from "@/lib/site";
-import { getApiBase } from "@/lib/apiBase";
-
-const API_BASE = getApiBase();
+import { apiFetch } from "@/lib/apiFetch";
 
 type Props = {
   children: React.ReactNode;
@@ -25,12 +23,7 @@ type Job = {
 // cache() dedupes the fetch between generateMetadata and the layout render.
 const getJob = cache(async (id: string): Promise<Job | null> => {
   try {
-    const res = await fetch(`${API_BASE}/jobs/${id}`, {
-      headers: { "Content-Type": "application/json" },
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    return (await res.json()) as Job;
+    return await apiFetch<Job>(`/jobs/${id}`, { cache: "no-store" });
   } catch {
     return null;
   }

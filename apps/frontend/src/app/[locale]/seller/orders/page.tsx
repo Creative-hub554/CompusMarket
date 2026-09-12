@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Link } from "@/i18n/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
+import { apiFetch } from "@/lib/apiFetch";
+import { RequireAuth } from "@/components/RequireAuth";
 
 type OrderItem = {
   id: string;
@@ -38,28 +39,14 @@ export default function SellerOrdersPage() {
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
-    fetch("/api/seller/orders")
-      .then((r) => {
-        if (!r.ok) throw new Error("Failed");
-        return r.json();
-      })
+    apiFetch<OrderItem[]>("/api/seller/orders")
       .then(setItems)
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
   if (!session) {
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
-        <Link
-          href="/login"
-          className="text-gold-600 font-medium hover:underline"
-        >
-          Go to Login
-        </Link>
-      </div>
-    );
+    return <RequireAuth className="max-w-3xl mx-auto px-4 py-12" />;
   }
 
   const filtered =

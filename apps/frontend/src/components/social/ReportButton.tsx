@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { apiFetch, ApiError } from "@/lib/apiFetch";
 
 type ReportTargetType = "POST" | "PRODUCT" | "USER" | "COMMENT";
 type ReportReason = "SPAM" | "ABUSE" | "FRAUD" | "INAPPROPRIATE" | "OTHER";
@@ -31,20 +32,17 @@ export function ReportButton({
     setSending(true);
     setError(null);
     try {
-      const res = await fetch("/api/reports", {
+      await apiFetch("/api/reports", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ targetType, targetId, reason, message: message.trim() || undefined }),
+        body: { targetType, targetId, reason, message: message.trim() || undefined },
       });
-      if (res.status === 409) {
-        setError("You have already reported this item.");
-        setSending(false);
-        return;
-      }
-      if (!res.ok) throw new Error("Failed to submit report");
       setDone(true);
-    } catch {
-      setError("Something went wrong. Please try again.");
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 409) {
+        setError("You have already reported this item.");
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
     } finally {
       setSending(false);
     }

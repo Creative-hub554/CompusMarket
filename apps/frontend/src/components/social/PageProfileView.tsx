@@ -6,7 +6,7 @@ import { useSession } from "@/lib/session-client";
 import { RequireAuth } from "@/components/RequireAuth";
 import { apiFetch, handleApiError } from "@/lib/apiFetch";
 import { useTranslations } from "next-intl";
-import { BadgeCheck, MessageCircle, Phone, Settings, Store, ThumbsUp } from "lucide-react";
+import { BadgeCheck, Flag, MessageCircle, Phone, Settings, ShieldOff, Store, ThumbsUp } from "lucide-react";
 import { Composer } from "@/components/social/Composer";
 import { PostCard, FeedPost } from "@/components/social/PostCard";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
@@ -55,6 +55,11 @@ export function PageProfileView({ username }: { username: string }) {
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [products, setProducts] = useState<PageProduct[] | null>(null);
   const [openingChat, setOpeningChat] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState<"SPAM" | "ABUSE" | "FRAUD" | "INAPPROPRIATE" | "OTHER">("INAPPROPRIATE");
+  const [reportMessage, setReportMessage] = useState("");
+  const [reporting, setReporting] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -78,6 +83,50 @@ export function PageProfileView({ username }: { username: string }) {
       cancelled = true;
     };
   }, [username]);
+
+  // Check if the user has blocked this page
+  useEffect(() => {
+    if (!meId || !page) return;
+    fetchJson<{ blocked: boolean }>(`/api/pages/${page.id}/block/check`)
+      .then((d) => setIsBlocked(d.blocked))
+      .catch(() => undefined);
+  }, [meId, page]);
+
+  async function toggleBlock() {
+    if (!page) return;
+    try {
+      if (isBlocked) {
+        await apiFetch(`/api/pages/${page.id}/block`, { method: "DELETE" });
+        setIsBlocked(false);
+      } else {
+        await apiFetch(`/api/pages/${page.id}/block`, { method: "POST" });
+        setIsBlocked(true);
+      }
+    } catch (err) {
+      await handleApiError(err, isBlocked ? "unblock page" : "block page", true);
+    }
+  }
+
+  async function submitReport() {
+    if (!page) return;
+    setReporting(true);
+    try {
+      await apiFetch("/api/reports", {
+        method: "POST",
+        body: {
+          targetType: "PAGE",
+          targetId: page.id,
+          reason: reportReason,
+          message: reportMessage.trim() || undefined,
+        },
+      });
+      setShowReportModal(false);
+      setReportMessage("");
+    } catch (err) {
+      await handleApiError(err, "report page", true);
+    }
+    setReporting(false);
+  }
 
   const loadMore = useCallback(async () => {
     if (!page || !cursor) return;
@@ -155,6 +204,20 @@ export function PageProfileView({ username }: { username: string }) {
     );
   }
 
+  // Blocked page overlay
+  if (isBlocked && page) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-16 text-center">
+        <ShieldOff size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
+        <p className="font-semibold text-slate-900 dark:text-slate-100 mb-2">{t("blockedTitle")}</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{t("blockedDescription")}</p>
+        <button onClick={toggleBlock} className="btn-ghost">
+          {t("unblockPage")}
+        </button>
+      </div>
+    );
+  }
+
   if (!page) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-8">
@@ -227,6 +290,18 @@ export function PageProfileView({ username }: { username: string }) {
                   <Settings size={15} />
                   {t("manage")}
                 </Link>
+              )}
+              {meId && !isStaff && (
+                <>
+                  <button onClick={() => setShowReportModal(true)} className="btn-ghost inline-flex items-center gap-1.5">
+                    <Flag size={15} />
+                    {t("report")}
+                  </button>
+                  <button onClick={toggleBlock} className="btn-ghost inline-flex items-center gap-1.5 text-red-500">
+                    <ShieldOff size={15} />
+                    {t("block")}
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -338,6 +413,54 @@ export function PageProfileView({ username }: { username: string }) {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Report Modal */}
+      {showReportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="card rounded-2xl p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-bold mb-4">{t("reportTitle")}</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">
+                  {t("reportReason")}
+                </label>
+                <select
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value as typeof reportReason)}
+                  className="input-field w-full"
+                >
+                  <option value="SPAM">{t("reasonSpam")}</option>
+                  <option value="ABUSE">{t("reasonAbuse")}</option>
+                  <option value="FRAUD">{t("reasonFraud")}</option>
+                  <option value="INAPPROPRIATE">{t("reasonInappropriate")}</option>
+                  <option value="OTHER">{t("reasonOther")}</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">
+                  {t("reportDetails")}
+                </label>
+                <textarea
+                  value={reportMessage}
+                  onChange={(e) => setReportMessage(e.target.value)}
+                  className="input-field w-full resize-none"
+                  rows={3}
+                  maxLength={500}
+                  placeholder={t("reportDetailsPlaceholder")}
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <button onClick={() => setShowReportModal(false)} className="btn-ghost">
+                  {t("cancel")}
+                </button>
+                <button onClick={submitReport} disabled={reporting} className="btn-primary">
+                  {reporting ? t("submitting") : t("submitReport")}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

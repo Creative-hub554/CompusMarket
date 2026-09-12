@@ -8,6 +8,7 @@ import { Link } from "@/i18n/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { useCartStore } from "@/stores/cart";
+import { apiFetch } from "@/lib/apiFetch";
 
 export default function CartPage() {
   const router = useRouter();
@@ -25,13 +26,12 @@ export default function CartPage() {
   }, [initialized, fetchCart]);
 
   async function checkout() {
-    const res = await fetch("/api/orders", { method: "POST" });
-    if (!res.ok) {
+    try {
+      const order = await apiFetch<{ id: string }>("/api/orders", { method: "POST" });
+      router.push(`/orders/${order.id}`);
+    } catch {
       toast.error(t("checkoutFailed"));
-      return;
     }
-    const order = await res.json();
-    router.push(`/orders/${order.id}`);
   }
 
   if (loading)

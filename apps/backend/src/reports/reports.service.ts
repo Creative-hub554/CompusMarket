@@ -6,7 +6,7 @@ export class ReportsService {
   constructor(private prisma: PrismaService) {}
 
   async create(reporterId: string, data: {
-    targetType: "POST" | "PRODUCT" | "USER" | "COMMENT";
+    targetType: "POST" | "PRODUCT" | "USER" | "COMMENT" | "PAGE";
     targetId: string;
     reason: "SPAM" | "ABUSE" | "FRAUD" | "INAPPROPRIATE" | "OTHER";
     message?: string;

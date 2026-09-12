@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
+import { RequireAuth } from "@/components/RequireAuth";
 import { useAuthedFetch } from "@/lib/useAuthedFetch";
 
 interface QuizItem {
@@ -35,8 +36,7 @@ export default function QuizzesPage() {
   async function loadQuizzes() {
     setLoading(true);
     try {
-      const res = await authedFetch("/api/quizzes");
-      setQuizzes(await res.json());
+      setQuizzes(await authedFetch<QuizItem[]>("/api/quizzes"));
     } catch (err) {
       console.error("Failed to load quizzes:", err);
     }
@@ -49,12 +49,10 @@ export default function QuizzesPage() {
 
   async function createQuiz() {
     if (!newTitle.trim()) return;
-    const res = await authedFetch("/api/quizzes", {
+    const quiz = await authedFetch<{ id: string }>("/api/quizzes", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: newTitle }),
+      body: { title: newTitle },
     });
-    const quiz = await res.json();
     window.location.href = `/community/quizzes/${quiz.id}`;
   }
 
@@ -75,41 +73,39 @@ export default function QuizzesPage() {
     setAiLoading(true);
     setAiError("");
     try {
-      const res = await authedFetch("/api/ai", {
+      const json = await authedFetch<{
+        result?: {
+          title: string;
+          description?: string;
+          questions: { type: string; question: string; options: string[]; correctAnswer: string }[];
+        };
+        error?: string;
+      }>("/api/ai", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: {
           action: "generate-quiz",
           data: {
             topic: aiTopic.trim(),
             numberOfQuestions: aiCount,
             language: aiLang,
           },
-        }),
+        },
       });
-      const json = await res.json();
-      if (
-        !res.ok ||
-        !json.result?.title ||
-        !Array.isArray(json.result.questions)
-      ) {
+      if (!json.result?.title || !Array.isArray(json.result.questions)) {
         throw new Error(json.error || "Generation failed");
       }
       const quiz = json.result;
-      const quizRes = await authedFetch("/api/quizzes", {
+      const created = await authedFetch<{ id: string }>("/api/quizzes", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: {
           title: quiz.title,
           description: quiz.description || "",
-        }),
+        },
       });
-      const created = await quizRes.json();
       for (const q of quiz.questions) {
         await authedFetch(`/api/quizzes/${created.id}/questions`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(q),
+          body: q,
         });
       }
       window.location.href = `/community/quizzes/${created.id}`;
@@ -128,30 +124,29 @@ export default function QuizzesPage() {
 
   if (!session) {
     return (
-      <div className="text-center py-16">
-        <div className="w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-rose-500">
-          <svg
-            className="w-8 h-8"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-            />
-          </svg>
-        </div>
-        <h1 className="text-2xl font-bold mb-2">Quizzes</h1>
-        <p className="text-slate-500 dark:text-slate-400 mb-4">
-          Sign in to create and take quizzes.
-        </p>
-        <Link href="/login" className="btn-primary">
-          Sign In
-        </Link>
-      </div>
+      <RequireAuth
+        title="Quizzes"
+        message="Sign in to create and take quizzes."
+        icon={
+          <div className="w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-rose-500">
+            <svg
+              className="w-8 h-8"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+              />
+            </svg>
+          </div>
+        }
+        cta="button"
+        className="py-16"
+      />
     );
   }
 

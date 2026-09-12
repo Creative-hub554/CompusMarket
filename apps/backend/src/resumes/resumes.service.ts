@@ -1,47 +1,47 @@
-import { Injectable, NotFoundException, ForbiddenException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { createOwnedResource, type OwnedResource } from "../common/owned-resource";
 import type { Prisma, Resume } from "@theo/database";
+
+type CreateResume = { title: string; data: Record<string, unknown> };
+type UpdateResume = { title?: string; data?: Record<string, unknown> };
 
 @Injectable()
 export class ResumesService {
-  constructor(private prisma: PrismaService) {}
-  async create(userId: string, title: string, data: Record<string, unknown>) {
-    return this.prisma.resume.create({
-      data: { userId, title, data: structuredClone(data) as Prisma.InputJsonValue },
+  private readonly resumes: OwnedResource<Resume, CreateResume, UpdateResume>;
+
+  constructor(prisma: PrismaService) {
+    this.resumes = createOwnedResource<Resume, CreateResume, UpdateResume>(prisma.resume, {
+      name: "Resume",
+      buildCreateData: (userId, data) => ({
+        userId,
+        title: data.title,
+        data: structuredClone(data.data) as Prisma.InputJsonValue,
+      }),
+      buildUpdateData: (data) => ({
+        ...(data.title !== undefined && { title: data.title }),
+        ...(data.data !== undefined && { data: structuredClone(data.data) as Prisma.InputJsonValue }),
+      }),
     });
   }
 
-  async findByUser(userId: string): Promise<Resume[]> {
-    return this.prisma.resume.findMany({
-      where: { userId },
-      orderBy: { updatedAt: "desc" },
-    });
+  create(userId: string, data: CreateResume) {
+    return this.resumes.create(userId, data);
   }
 
-  async findOne(id: string, userId: string): Promise<Resume> {
-    const resume = await this.prisma.resume.findUnique({ where: { id } });
-    if (!resume) throw new NotFoundException("Resume not found");
-    if (resume.userId !== userId) throw new ForbiddenException();
-    return resume;
+  findByUser(userId: string) {
+    return this.resumes.findByUser(userId);
   }
 
-  async update(
-    id: string,
-    userId: string,
-    data: { title?: string; data?: Record<string, unknown> }
-  ) {
-    await this.findOne(id, userId);
-    return this.prisma.resume.update({
-      where: { id },
-      data: {
-        ...(data.title && { title: data.title }),
-        ...(data.data && { data: structuredClone(data.data) as Prisma.InputJsonValue }),
-      },
-    });
+  findOne(id: string, userId: string) {
+    return this.resumes.findOne(id, userId);
   }
 
-  async remove(id: string, userId: string) {
-    await this.findOne(id, userId);
-    return this.prisma.resume.delete({ where: { id } });
+  update(id: string, userId: string, data: UpdateResume) {
+    return this.resumes.update(id, userId, data);
+  }
+
+  remove(id: string, userId: string) {
+    return this.resumes.remove(id, userId);
   }
 }

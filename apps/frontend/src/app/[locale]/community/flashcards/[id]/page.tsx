@@ -23,8 +23,7 @@ export default function StudyPage() {
   const [reviewing, setReviewing] = useState(false);
 
   useEffect(() => {
-    authedFetch(`/api/flashcards/decks/${id}`)
-      .then((r) => r.json())
+    authedFetch<{ id: string; title: string; cards?: CardData[] }>(`/api/flashcards/decks/${id}`)
       .then((data) => {
         setDeck(data);
         setCards(data.cards || []);
@@ -44,8 +43,7 @@ export default function StudyPage() {
       try {
         await authedFetch(`/api/flashcards/cards/${card.id}/review`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ quality }),
+          body: { quality },
         });
         if (currentIndex < cards.length - 1) {
           setCurrentIndex(currentIndex + 1);

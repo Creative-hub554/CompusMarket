@@ -7,6 +7,8 @@ import Image from "next/image";
 import { Avatar } from "./Avatar";
 import { uploadFile } from "@/lib/social";
 import { useSession } from "@/lib/session-client";
+import { apiFetch, handleApiError } from "@/lib/apiFetch";
+import { useHandleApiError } from "@/lib/useHandleApiError";
 
 type Story = {
   id: string;
@@ -25,16 +27,16 @@ type StoryGroup = {
 
 export function StoriesBar() {
   const { data: session } = useSession();
+  const _handleApiError = useHandleApiError();
   const [groups, setGroups] = useState<StoryGroup[]>([]);
   const [viewing, setViewing] = useState<{ group: number; story: number } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    fetch("/api/stories")
-      .then((r) => r.json())
-      .then((data) => setGroups(Array.isArray(data) ? data : []))
-      .catch(() => {});
+    apiFetch<StoryGroup[]>("/api/stories")
+      .then(setGroups)
+      .catch((err) => _handleApiError(err, "load stories", true));
   }, []);
 
   async function createStory(files: FileList | null) {
@@ -43,18 +45,16 @@ export function StoriesBar() {
     setUploading(true);
     try {
       const { url } = await uploadFile(file);
-      await fetch("/api/stories", {
+      await apiFetch("/api/stories", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: {
           mediaUrl: url,
           mediaKind: file.type.startsWith("video/") ? "VIDEO" : "IMAGE",
-        }),
+        },
       });
-      const res = await fetch("/api/stories");
-      if (res.ok) setGroups(await res.json());
-    } catch {
-      toast.error("Could not add your story.");
+      setGroups(await apiFetch<StoryGroup[]>("/api/stories"));
+    } catch (err) {
+      await _handleApiError(err, "add your story");
     }
     setUploading(false);
   }
@@ -90,7 +90,7 @@ export function StoriesBar() {
   }
 
   function markViewed(storyId: string) {
-    fetch(`/api/stories/${storyId}/view`, { method: "POST" }).catch(() => {});
+    apiFetch(`/api/stories/${storyId}/view`, { method: "POST" }).catch((err) => _handleApiError(err, "mark story as viewed", true));
   }
 
   const current = viewing ? groups[viewing.group] : null;

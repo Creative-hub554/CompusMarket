@@ -5,6 +5,8 @@ import { Link } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
+import { RequireAuth } from "@/components/RequireAuth";
+import { apiFetch } from "@/lib/apiFetch";
 
 function NewTicketForm() {
   const { data: session } = useSession();
@@ -27,16 +29,14 @@ function NewTicketForm() {
 
   useEffect(() => {
     if (orderId) {
-      fetch(`/api/orders/${orderId}`)
-        .then((r) => r.json())
+      apiFetch<{ id: string; orderNumber: string }>(`/api/orders/${orderId}`)
         .then((data) => {
           if (data?.id) setOrder(data);
         })
         .catch(() => {});
     }
     if (productId) {
-      fetch(`/api/products/${productId}`)
-        .then((r) => r.json())
+      apiFetch<{ id: string; name: string }>(`/api/products/${productId}`)
         .then((data) => {
           if (data?.id) setProduct(data);
         })
@@ -49,12 +49,10 @@ function NewTicketForm() {
     if (!subject.trim() || !message.trim()) return;
     setSending(true);
     try {
-      const res = await fetch("/api/support/tickets", {
+      const ticket = await apiFetch<{ id: string }>("/api/support/tickets", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subject, message, orderId, productId }),
+        body: { subject, message, orderId, productId },
       });
-      const ticket = await res.json();
       router.push(`/support/${ticket.id}`);
     } catch {}
     setSending(false);
@@ -62,18 +60,12 @@ function NewTicketForm() {
 
   if (!session) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold mb-4">Support</h1>
-        <p className="text-gray-500 mb-4">
-          Sign in to create a new support ticket.
-        </p>
-        <Link
-          href="/login"
-          className="rounded-lg bg-slate-900 px-4 py-2 text-sm text-white hover:bg-gold-700 transition font-medium"
-        >
-          Sign In
-        </Link>
-      </div>
+      <RequireAuth
+        className="mx-auto max-w-2xl px-4 py-16"
+        title="Support"
+        message="Sign in to create a new support ticket."
+        cta="button"
+      />
     );
   }
 

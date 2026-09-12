@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <title>Bubble Chat — monochrome</title>
+  <path d="M64 24 C 88 24 104 40 104 60 C 104 80 88 96 64 96 C 57 96 51 95 45 92 L 28 104 L 34 86 C 26 79 24 70 24 60 C 24 40 40 24 64 24 Z"
+        fill="currentColor"/>
+  <circle cx="48" cy="60" r="7" fill="#fff" opacity="0.92"/>
+  <circle cx="64" cy="60" r="7" fill="#fff" opacity="0.92"/>
+  <circle cx="80" cy="60" r="7" fill="#fff" opacity="0.92"/>
+</svg>

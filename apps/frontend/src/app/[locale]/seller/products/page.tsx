@@ -5,6 +5,8 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
+import { RequireAuth } from "@/components/RequireAuth";
+import { apiFetch } from "@/lib/apiFetch";
 
 type SellerProduct = {
   id: string;
@@ -28,8 +30,7 @@ export default function SellerProductsPage() {
   const [error, setError] = useState("");
 
   const load = () => {
-    fetch("/api/seller/products")
-      .then((r) => r.json())
+    apiFetch<{ products: SellerProduct[]; maxProducts: number }>("/api/seller/products")
       .then((data) => {
         if (data && Array.isArray(data.products)) {
           setProducts(data.products);
@@ -43,32 +44,17 @@ export default function SellerProductsPage() {
   useEffect(load, []);
 
   if (!session) {
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
-        <Link
-          href="/login"
-          className="text-gold-600 font-medium hover:underline"
-        >
-          Go to Login
-        </Link>
-      </div>
-    );
+    return <RequireAuth className="max-w-3xl mx-auto px-4 py-12" />;
   }
 
   const toggleStatus = async (product: SellerProduct) => {
     const nextStatus = product.status === "ACTIVE" ? "DISABLED" : "ACTIVE";
     setError("");
     try {
-      const res = await fetch(`/api/seller/products/${product.id}`, {
+      await apiFetch(`/api/seller/products/${product.id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: nextStatus }),
+        body: { status: nextStatus },
       });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to update status");
-      }
       load();
     } catch (e: any) {
       setError(e.message);

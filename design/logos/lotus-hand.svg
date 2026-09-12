@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <title>Lotus Hand — smiling lotus cradled by two welcoming hands</title>
+  <defs>
+    <linearGradient id="lotus" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#f0554a"/>
+      <stop offset="1" stop-color="#ff9a3d"/>
+    </linearGradient>
+  </defs>
+  <!-- hands: two arcs cradling from below -->
+  <path d="M20 66 C 26 96 44 112 64 112 C 84 112 102 96 108 66"
+        stroke="#f7c948" stroke-width="9" stroke-linecap="round" fill="none"/>
+  <!-- petal fan: center + two sides -->
+  <path d="M64 30 C 71 44 71 62 64 76 C 57 62 57 44 64 30 Z" fill="url(#lotus)"/>
+  <path d="M64 44 C 52 46 42 56 38 70 C 52 70 62 62 64 48 Z" fill="#ff6b5e"/>
+  <path d="M64 44 C 76 46 86 56 90 70 C 76 70 66 62 64 48 Z" fill="#ff8574"/>
+  <!-- smiling bowl of the lotus -->
+  <path d="M50 76 C 54 84 74 84 78 76" stroke="#f7c948" stroke-width="5" stroke-linecap="round" fill="none"/>
+</svg>

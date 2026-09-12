@@ -1,8 +1,9 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Inject, Injectable, NotFoundException, Optional } from "@nestjs/common";
 import { Prisma } from "@theo/database";
 import { PrismaService } from "../prisma/prisma.service";
 import { NotificationsService } from "./notifications.service";
 import { CreateCommentDto, CreatePostDto, PostMediaInputDto } from "./dto/social.dto";
+import { PageBlockService } from "../pages/page-block.service";
 
 const LIST_POST_INCLUDE = {
   author: { select: { id: true, name: true, username: true, image: true, accountPrivate: true } },
@@ -92,7 +93,8 @@ function finalizePost(
 export class PostsService {
   constructor(
     private prisma: PrismaService,
-    private notifications: NotificationsService
+    private notifications: NotificationsService,
+    @Optional() private pageBlock?: PageBlockService
   ) {}
 
   async create(userId: string, dto: CreatePostDto, groupId?: string, pageId?: string): Promise<MappedPost> {
@@ -203,8 +205,14 @@ export class PostsService {
     const myGroupIds = myGroups.map((g) => g.groupId);
     const followedPageIds = followedPages.map((p) => p.pageId);
 
+    // Filter out posts from blocked pages
+    const blockedPageIds = this.pageBlock
+      ? await this.pageBlock.blockedPageIds(userId)
+      : [];
+    const visiblePageIds = followedPageIds.filter((id) => !blockedPageIds.includes(id));
+
     // Facebook-style: the feed carries posts from people you follow, groups
-    // you belong to, AND pages you follow.
+    // you belong to, AND pages you follow (minus blocked pages).
     return this.queryFeed(
       {
         AND: [
@@ -212,7 +220,7 @@ export class PostsService {
             OR: [
               { authorId: { in: authorIds } },
               { groupId: { in: myGroupIds } },
-              { pageId: { in: followedPageIds } },
+              { pageId: { in: visiblePageIds } },
             ],
           },
           this.visiblePostsWhere(myGroupIds),

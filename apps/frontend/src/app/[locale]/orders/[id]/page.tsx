@@ -8,6 +8,7 @@ import { Link } from "@/i18n/navigation";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import OrderItemTimeline from "@/components/OrderItemTimeline";
+import { apiFetch, ApiError } from "@/lib/apiFetch";
 
 type Feedback = {
   id: string;
@@ -56,8 +57,7 @@ export default function OrderDetailPage() {
 
   const fetchOrder = useCallback(async () => {
     try {
-      const res = await fetch(`/api/orders/${id}`);
-      if (res.ok) setOrder(await res.json());
+      setOrder(await apiFetch<Order>(`/api/orders/${id}`));
     } catch {
       /* empty */
     } finally {
@@ -75,14 +75,14 @@ export default function OrderDetailPage() {
     comment: string,
     images: string[],
   ) => {
-    const res = await fetch(`/api/orders/${id}/items/${itemId}/feedback`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ rating, comment, images }),
-    });
-    if (!res.ok) {
-      const err = await res.json();
-      toast.error(err.error || "Failed");
+    try {
+      await apiFetch(`/api/orders/${id}/items/${itemId}/feedback`, {
+        method: "POST",
+        body: { rating, comment, images },
+      });
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "Failed";
+      toast.error(message || "Failed");
       return;
     }
     fetchOrder();
@@ -266,12 +266,10 @@ function FeedbackForm({
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch("/api/upload", {
+      const data = await apiFetch<{ url: string }>("/api/upload", {
         method: "POST",
         body: formData,
       });
-      if (!res.ok) throw new Error("Upload failed");
-      const data = await res.json();
       setImages((prev) => [...prev, data.url]);
     } catch {
       toast.error("Upload failed");
