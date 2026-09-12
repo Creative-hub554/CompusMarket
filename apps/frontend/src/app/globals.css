@@ -159,6 +159,8 @@
 :root {
   --bg-body: #f6f7fb;
   --text-body: #17171f;
+  /* Editorial serif for page titles (Royal Luxe Phase 3) — Fraunces with a real Khmer webfont fallback */
+  --font-serif-title: var(--font-serif-display), var(--font-khmer), Georgia, serif;
   --surface: #ffffff;
   --surface-2: #eef0f6;
   --border-subtle: #e8e9f2;
@@ -531,7 +533,10 @@ h4 {
 }
 
 .page-title {
-  @apply text-3xl font-bold inline-block tracking-tight;
+  @apply text-3xl inline-block tracking-tight;
+  font-family: var(--font-serif-title);
+  font-weight: 560;
+  line-height: 1.15;
   color: var(--text-body);
   position: relative;
 }
@@ -802,8 +807,8 @@ img {
   --lx-on-night-line: rgba(244, 240, 230, 0.14);
 
   /* Type */
-  --lx-serif: var(--font-serif-display), "Noto Sans Khmer", Georgia, serif;
-  --lx-sans: var(--font-inter), "Noto Sans Khmer", system-ui, sans-serif;
+  --lx-serif: var(--font-serif-display), var(--font-khmer), Georgia, serif;
+  --lx-sans: var(--font-inter), var(--font-khmer), system-ui, sans-serif;
 
   /* Motion */
   --lx-ease: cubic-bezier(0.22, 1, 0.36, 1);

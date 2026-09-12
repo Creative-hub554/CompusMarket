@@ -75,7 +75,7 @@ export default function FeedPage() {
   if (!session) {
     return (
       <div className="max-w-xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
+        <h1 className="page-title mb-4">Sign In Required</h1>
         <p className="text-gray-600 dark:text-gray-300 mb-4">Please sign in to see your feed.</p>
         <Link href="/login" className="text-slate-900 dark:text-slate-100 font-medium hover:underline">
           Go to Login
@@ -131,6 +131,7 @@ export default function FeedPage() {
 
         {/* Center: stories, composer, posts */}
         <div className="space-y-5 min-w-0">
+          <h1 className="page-title">{nav("feed")}</h1>
           <StoriesBar />
           <Composer
             onPosted={(post) => setPosts((prev) => [post as FeedPost, ...prev])}

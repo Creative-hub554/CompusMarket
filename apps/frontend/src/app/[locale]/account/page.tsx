@@ -199,7 +199,7 @@ export default function AccountDashboard() {
   if (!session?.user) {
     return (
       <div className="max-w-xl mx-auto px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold mb-4">{t("title")}</h1>
+        <h1 className="page-title mb-4">{t("title")}</h1>
         <p className="text-gray-600 dark:text-gray-300 mb-4">{t("signInRequired")}</p>
         <Link href="/login" className="rounded-full bg-gradient-to-br from-gold-500 to-gold-600 text-white px-6 py-2.5 font-semibold hover:brightness-110 transition">
           {t("signIn")}
@@ -229,7 +229,7 @@ export default function AccountDashboard() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold">{t("title")}</h1>
+            <h1 className="page-title">{t("title")}</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">{t("subtitle")}</p>
           </div>
           <button
