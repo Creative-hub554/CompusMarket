@@ -1,0 +1,8 @@
+#! 0-champey-namespace.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: Namespace
+metadata:
+    name: champey
+    labels:
+        com.docker.compose.project: champey

@@ -1,0 +1,62 @@
+#! frontend-deployment.yaml
+# Generated code, do not edit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: frontend
+    namespace: champey
+    labels:
+        com.docker.compose.project: champey
+        com.docker.compose.service: frontend
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            com.docker.compose.project: champey
+            com.docker.compose.service: frontend
+    strategy:
+        type: Recreate
+    template:
+        metadata:
+            labels:
+                com.docker.compose.project: champey
+                com.docker.compose.service: frontend
+                com.docker.compose.network.default: "true"
+        spec:
+            restartPolicy: unless-stopped
+            containers:
+                - name: frontend
+                  image: champey-frontend
+                  imagePullPolicy: IfNotPresent
+                  env:
+                    - name: AUTH_SECRET
+                      value: "test_auth_secret_12345678901234567890123456789012"
+                    - name: CLERK_SECRET_KEY
+                      value: "sk_test_E5v0Y6ih3Ren1sVg6kurYTTHstHLeErwquaIgB6q6f"
+                    - name: CLERK_WEBHOOK_SECRET
+                      value: ""
+                    - name: DATABASE_URL
+                      value: "postgresql://theo:postgres@postgres:5432/theo_platform"
+                    - name: JWT_SECRET
+                      value: "af1a6dac425dac55830100478381e6ad278bab9bb047dcb29fc85dfb276102d3"
+                    - name: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+                      value: "pk_test_Ym9sZC1sYWJyYWRvci0yOTkyLmNsZXJrLmFjY291bnRzLmRldiQ"
+                    - name: NODE_ENV
+                      value: "production"
+                    - name: PORT
+                      value: "3000"
+                    - name: SENTRY_DSN
+                      value: ""
+                  livenessProbe:
+                    exec:
+                        command:
+                            - /bin/sh
+                            - -c
+                            - wget -qO- http://127.0.0.1:3000/ >/dev/null 2>&1 || exit 1
+                    periodSeconds: 30
+                    initialDelaySeconds: 30
+                    timeoutSeconds: 5
+                    failureThreshold: 3
+                  ports:
+                    - name: frontend-3000
+                      containerPort: 3000

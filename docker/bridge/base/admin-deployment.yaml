@@ -1,0 +1,60 @@
+#! admin-deployment.yaml
+# Generated code, do not edit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: admin
+    namespace: champey
+    labels:
+        com.docker.compose.project: champey
+        com.docker.compose.service: admin
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            com.docker.compose.project: champey
+            com.docker.compose.service: admin
+    strategy:
+        type: Recreate
+    template:
+        metadata:
+            labels:
+                com.docker.compose.project: champey
+                com.docker.compose.service: admin
+                com.docker.compose.network.default: "true"
+        spec:
+            restartPolicy: unless-stopped
+            containers:
+                - name: admin
+                  image: champey-admin
+                  imagePullPolicy: IfNotPresent
+                  env:
+                    - name: CLERK_SECRET_KEY
+                      value: "sk_test_E5v0Y6ih3Ren1sVg6kurYTTHstHLeErwquaIgB6q6f"
+                    - name: DATABASE_URL
+                      value: "postgresql://theo:postgres@postgres:5432/theo_platform"
+                    - name: INTERNAL_API_URL
+                      value: "http://backend:4000"
+                    - name: INTERNAL_SERVICE_TOKEN
+                      value: "5AwcQnnkC0HT7oF5XzLGQih81g2Md2Fr"
+                    - name: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+                      value: "pk_test_Ym9sZC1sYWJyYWRvci0yOTkyLmNsZXJrLmFjY291bnRzLmRldiQ"
+                    - name: NODE_ENV
+                      value: "production"
+                    - name: PORT
+                      value: "3001"
+                    - name: SENTRY_DSN
+                      value: ""
+                  livenessProbe:
+                    exec:
+                        command:
+                            - /bin/sh
+                            - -c
+                            - wget -qO- http://127.0.0.1:3001/healthz >/dev/null 2>&1 || exit 1
+                    periodSeconds: 30
+                    initialDelaySeconds: 30
+                    timeoutSeconds: 5
+                    failureThreshold: 3
+                  ports:
+                    - name: admin-3001
+                      containerPort: 3001

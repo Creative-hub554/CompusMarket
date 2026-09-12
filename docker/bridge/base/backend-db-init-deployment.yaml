@@ -1,0 +1,39 @@
+#! backend-db-init-deployment.yaml
+# Generated code, do not edit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: backend-db-init
+    namespace: champey
+    labels:
+        com.docker.compose.project: champey
+        com.docker.compose.service: backend-db-init
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            com.docker.compose.project: champey
+            com.docker.compose.service: backend-db-init
+    strategy:
+        type: Recreate
+    template:
+        metadata:
+            labels:
+                com.docker.compose.project: champey
+                com.docker.compose.service: backend-db-init
+                com.docker.compose.network.default: "true"
+        spec:
+            restartPolicy: Never
+            containers:
+                - name: backend-db-init
+                  image: champey-backend-db-init
+                  imagePullPolicy: IfNotPresent
+                  env:
+                    - name: DATABASE_URL
+                      value: "postgresql://theo:postgres@postgres:5432/theo_platform"
+                    - name: NODE_ENV
+                      value: "production"
+                    - name: SEED_ADMIN_EMAIL
+                      value: "admin@example.com"
+                    - name: SEED_ADMIN_PASSWORD
+                      value: "change-me"
