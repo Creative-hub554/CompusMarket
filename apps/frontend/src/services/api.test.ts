@@ -15,6 +15,7 @@ vi.mock("@/components/ui/toast", () => ({
 
 beforeEach(() => {
   vi.restoreAllMocks();
+  mockToastError.mockClear();
 });
 
 describe("fetchApi retry + timeout", () => {
