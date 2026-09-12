@@ -27,6 +27,7 @@ type Me = {
   coverImage: string | null;
   bio: string | null;
   accountPrivate?: boolean;
+  albums?: Album[];
 };
 
 export default function EditProfilePage() {
