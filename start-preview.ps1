@@ -42,12 +42,13 @@ if (-not (Test-Path $Node -PathType Leaf)) {
 
 # --- Preflight: required files ------------------------------------------------
 $Requirements = @(
-  @{ Path = Join-Path $Root '.freebuff\pg\pg-launcher.cjs';                  What = 'pg-launcher.cjs' }
+  @{ Path = Join-Path $Root 'scripts\pg-launcher.cjs';                       What = 'portable PG launcher (scripts\pg-launcher.cjs)' }
+  @{ Path = Join-Path $Root 'packages\database\node_modules\embedded-postgres'; What = 'embedded-postgres module (run pnpm install)' }
   @{ Path = Join-Path $Root 'apps\backend\dist\main.js';                     What = 'backend build (apps\backend\dist\main.js)' }
   @{ Path = Join-Path $Root 'apps\frontend\node_modules\next\dist\bin\next'; What = 'frontend next binary (run pnpm install)' }
 )
 foreach ($req in $Requirements) {
-  if (-not (Test-Path $req.Path -PathType Leaf)) {
+  if (-not (Test-Path $req.Path)) {  # no -PathType: embedded-postgres is a directory (pnpm junction)
     Write-Host "Missing $($req.What): $($req.Path)" -ForegroundColor Red
     exit 1
   }
@@ -65,6 +66,22 @@ foreach ($port in 5432, 4000, 3000) {
 
 # --- Helpers --------------------------------------------------------------------
 $Started = @{}
+$PidDir = Join-Path $Root '.freebuff\pids'
+New-Item -ItemType Directory -Path $PidDir -Force | Out-Null
+
+# Remove any PID files from a previous run before we start spawning processes.
+Get-ChildItem -Path $PidDir -Filter '*.pid' -File -ErrorAction SilentlyContinue |
+  Remove-Item -Force
+
+function Write-PidFile {
+  param([string]$Name, [System.Diagnostics.Process]$Proc)
+  @"
+PID=$($Proc.Id)
+NAME=$Name
+EXE=$($Proc.Path)
+CREATED=$($Proc.StartTime.ToUniversalTime().ToString('o'))
+"@ | Set-Content -Path (Join-Path $PidDir "$Name.pid") -Encoding ASCII
+}
 
 function Stop-Started {
   foreach ($proc in $Started.Values) {
@@ -73,6 +90,8 @@ function Stop-Started {
       Write-Host "Stopped $($proc.Id)" -ForegroundColor DarkGray
     }
   }
+  Get-ChildItem -Path $PidDir -Filter '*.pid' -File -ErrorAction SilentlyContinue |
+    Remove-Item -Force -ErrorAction SilentlyContinue
 }
 
 function Show-LogTail {
@@ -94,6 +113,7 @@ function Start-Stage {
     -RedirectStandardError $ErrLog `
     -WindowStyle Hidden -PassThru
   $Started[$Name] = $proc
+  Write-PidFile -Name $Name -Proc $proc
   Write-Host "$Name PID: $($proc.Id)"
 }
 
@@ -122,8 +142,8 @@ function Fail-Stage {
 
 # --- 1. Postgres ---------------------------------------------------------------
 Write-Host "=== 1. Starting embedded Postgres (:5432) ===" -ForegroundColor Cyan
-Start-Stage -Name 'PG' -WorkDir "$Root\.freebuff\pg" `
-  -NodeArgs @("`"$Root\.freebuff\pg\pg-launcher.cjs`"") `
+Start-Stage -Name 'PG' -WorkDir "$Root" `
+  -NodeArgs @("`"$Root\scripts\pg-launcher.cjs`"") `
   -OutLog "$Root\.freebuff\pg-stdout.log" `
   -ErrLog "$Root\.freebuff\pg-stderr.log"
 
@@ -174,3 +194,5 @@ Write-Host "Running processes:" -ForegroundColor Gray
 foreach ($entry in $Started.GetEnumerator()) {
   Write-Host ("  {0,-9} PID {1}" -f $entry.Key, $entry.Value.Id)
 }
+Write-Host ""
+Write-Host "To stop everything: .\stop-preview.ps1" -ForegroundColor Gray
