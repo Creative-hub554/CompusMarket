@@ -1,7 +1,12 @@
-# Start the Freebuff preview stack: Postgres -> Backend -> Frontend
+# Start the preview stack: Postgres -> Backend -> Frontend
 # Usage: .\start-preview.ps1 [-Root <path>] [-WorktreeId <uuid>]
 #   -Root       repo root to run from (default: this script's directory)
 #   -WorktreeId run inside <Root>\.freebuff\worktrees\<id> instead of <Root>
+#
+# Note: services are started detached and outlive this console. On Windows,
+# if you pipe or redirect the script's output, keep the reader attached until
+# .\stop-preview.ps1 has run — closing the pipe early takes the services'
+# inherited stdio handles (and with them the services) down.
 
 [CmdletBinding()]
 param(
@@ -161,9 +166,9 @@ Start-Stage -Name 'Backend' -WorkDir "$Root\apps\backend" `
   -OutLog "$Root\.freebuff\backend-stdout.log" `
   -ErrLog "$Root\.freebuff\backend-stderr.log"
 
-$beReady = Wait-Ready -Name 'Backend' -TimeoutSec 30 -Probe {
+$beReady = Wait-Ready -Name 'Backend' -TimeoutSec 60 -Probe {
   try {
-    (Invoke-WebRequest -Uri 'http://localhost:4000/api/health' -UseBasicParsing -TimeoutSec 2).Content -match 'ok'
+    (Invoke-WebRequest -Uri 'http://localhost:4000/api/health/live' -UseBasicParsing -TimeoutSec 5).Content -match 'ok'
   } catch { $false }
 }
 if (-not $beReady) {
@@ -177,9 +182,9 @@ Start-Stage -Name 'Frontend' -WorkDir "$Root\apps\frontend" `
   -OutLog "$Root\.freebuff\frontend-stdout.log" `
   -ErrLog "$Root\.freebuff\frontend-stderr.log"
 
-$feReady = Wait-Ready -Name 'Frontend' -TimeoutSec 45 -Probe {
+$feReady = Wait-Ready -Name 'Frontend' -TimeoutSec 60 -Probe {
   try {
-    (Invoke-WebRequest -Uri 'http://localhost:3000/en' -UseBasicParsing -TimeoutSec 2).StatusCode -eq 200
+    (Invoke-WebRequest -Uri 'http://localhost:3000/en' -UseBasicParsing -TimeoutSec 10).StatusCode -eq 200
   } catch { $false }
 }
 if (-not $feReady) {
