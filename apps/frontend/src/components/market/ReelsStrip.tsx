@@ -7,9 +7,12 @@ import { Play, X } from "lucide-react";
 import { api, type PromoProduct } from "@/services/api";
 import { useCartStore } from "@/stores/cart";
 import { toast } from "@/components/ui/toast";
+import { handleApiError } from "@/lib/apiFetch";
+import { useHandleApiError } from "@/lib/useHandleApiError";
 
 export function ReelsStrip() {
   const t = useTranslations("market");
+  const _handleApiError = useHandleApiError();
   const [promos, setPromos] = useState<PromoProduct[]>([]);
   const [active, setActive] = useState<number | null>(null);
   const [added, setAdded] = useState(false);
@@ -21,7 +24,7 @@ export function ReelsStrip() {
       .then((p) => {
         if (activeReq && Array.isArray(p)) setPromos(p);
       })
-      .catch(() => {});
+      .catch((err) => _handleApiError(err, "load featured promos", true));
     return () => {
       activeReq = false;
     };
@@ -57,8 +60,14 @@ export function ReelsStrip() {
       await useCartStore.getState().addItem(promo.id, 1);
       setAdded(true);
       toast.success(t("promoAdded"));
-    } catch {
-      window.location.assign(`/shop/${promo.id}`);
+    } catch (err) {
+      const { retryResult } = await _handleApiError(err, "add the featured product to your cart", false, true, () =>
+        useCartStore.getState().addItem(promo.id, 1),
+      );
+      if (retryResult !== undefined) {
+        setAdded(true);
+        toast.success(t("promoAdded"));
+      }
     }
   };
 

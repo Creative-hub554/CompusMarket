@@ -9,6 +9,7 @@ import { sampleResume, emptyResume } from "@/components/resume/utils";
 import { getAllTemplates } from "@/components/resume/registry";
 import "@/components/resume/templates";
 import { AiResumeAssistant } from "@/components/ai/AiResumeAssistant";
+import { apiFetch } from "@/lib/apiFetch";
 import { TranslationProvider, useTranslation } from "@/lib/useTranslation";
 import TemplateGallery from "@/components/resume/TemplateGallery";
 import DraggableList, { DragHandle } from "@/components/resume/DraggableList";
@@ -70,8 +71,7 @@ function ResumeBuilderContent() {
   }, [resume, resumeTitle, selectedTemplate, exportLocale]);
 
   useEffect(() => {
-    fetch("/api/resumes")
-      .then((res) => res.json())
+    apiFetch<SavedResume[]>("/api/resumes")
       .then((data) => {
         setSavedResumes(Array.isArray(data) ? data : []);
         setLoading(false);
@@ -177,30 +177,28 @@ function ResumeBuilderContent() {
     setSaving(true);
     try {
       if (currentResumeId) {
-        await fetch(`/api/resumes/${currentResumeId}`, {
+        await apiFetch(`/api/resumes/${currentResumeId}`, {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+          body: {
             title: resumeTitle,
             data: resume,
             template: selectedTemplate,
-          }),
+          },
         });
       } else {
-        const res = await fetch("/api/resumes", {
+        const created = await apiFetch<{ id: string }>("/api/resumes", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+          body: {
             title: resumeTitle,
             data: resume,
             template: selectedTemplate,
-          }),
+          },
         });
-        const created = await res.json();
         setCurrentResumeId(created.id);
       }
-      const res = await fetch("/api/resumes");
-      setSavedResumes(await res.json());
+      setSavedResumes(await apiFetch<SavedResume[]>("/api/resumes"));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to save resume");
     } finally {
       setSaving(false);
     }
@@ -216,7 +214,7 @@ function ResumeBuilderContent() {
   }
 
   async function deleteResume(id: string) {
-    await fetch(`/api/resumes/${id}`, { method: "DELETE" });
+    await apiFetch(`/api/resumes/${id}`, { method: "DELETE" }).catch(() => {});
     if (currentResumeId === id) {
       setCurrentResumeId(null);
       setResumeTitle("My Resume");

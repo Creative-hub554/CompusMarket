@@ -106,6 +106,9 @@ export async function PATCH(
             data: { status: "DISABLED" },
           });
           break;
+        case "PAGE":
+          await tx.page.deleteMany({ where: { id: report.targetId } });
+          break;
       }
 
       return closeOpenReports({

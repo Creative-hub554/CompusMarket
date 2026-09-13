@@ -5,6 +5,8 @@ import { useSession } from "@/lib/session-client";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { PostCard, type FeedPost } from "@/components/social/PostCard";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
+import { apiFetch } from "@/lib/apiFetch";
 
 export default function SavedPage() {
   const t = useTranslations("saved");
@@ -14,11 +16,12 @@ export default function SavedPage() {
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async (cursor?: string) => {
-    const res = await fetch(`/api/posts/bookmarks${cursor ? `?cursor=${cursor}` : ""}`);
-    if (res.ok) {
-      const data = await res.json();
+    try {
+      const data = await apiFetch<{ items: FeedPost[]; nextCursor: string | null }>(`/api/posts/bookmarks${cursor ? `?cursor=${cursor}` : ""}`);
       setPosts((prev) => (cursor ? [...prev, ...data.items] : data.items));
       setNextCursor(data.nextCursor);
+    } catch {
+      // non-2xx responses used to stop loading silently
     }
     setLoading(false);
   }, []);
@@ -68,7 +71,9 @@ export default function SavedPage() {
         <>
           <div className="space-y-4">
             {posts.map((post) => (
-              <PostCard key={post.id} post={post} onDeleted={(id) => setPosts((prev) => prev.filter((p) => p.id !== id))} onEdited={(updated) => setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))} />
+              <ErrorBoundary key={post.id} label={`saved post ${post.id}`}>
+                <PostCard post={post} onDeleted={(id) => setPosts((prev) => prev.filter((p) => p.id !== id))} onEdited={(updated) => setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))} />
+              </ErrorBoundary>
             ))}
           </div>
           {nextCursor && (

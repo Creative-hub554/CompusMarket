@@ -7,13 +7,13 @@ import {
   Delete,
   Param,
   UseGuards,
-  Req,
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { RolesGuard } from "../auth/roles.guard";
 import { Roles } from "../auth/roles.decorator";
 import { ArticlesService } from "./articles.service";
 import { ArticleCategory } from "@theo/database";
+import { CurrentUserId } from "../common/current-user.decorator";
 import { CreateArticleDto } from "./dto/create-article.dto";
 import { UpdateArticleDto } from "./dto/update-article.dto";
 
@@ -24,13 +24,10 @@ export class ArticlesController {
   @Post()
   @UseGuards(AuthGuard("jwt"), RolesGuard)
   @Roles("ADMIN", "CONTENT_EDITOR")
-  create(
-    @Req() req: { user: { userId: string } },
-    @Body() body: CreateArticleDto
-  ) {
+  create(@CurrentUserId() userId: string, @Body() body: CreateArticleDto) {
     return this.articlesService.create({
       ...body,
-      authorId: req.user.userId,
+      authorId: userId,
     });
   }
 

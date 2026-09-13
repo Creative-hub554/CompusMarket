@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
+import { RequireAuth } from "@/components/RequireAuth";
 import { useAuthedFetch } from "@/lib/useAuthedFetch";
 
 const diagramTypes = [
@@ -57,8 +58,7 @@ export default function DiagramsPage() {
   async function loadDiagrams() {
     setLoading(true);
     try {
-      const res = await authedFetch("/api/diagrams");
-      setDiagrams(await res.json());
+      setDiagrams(await authedFetch<DiagramItem[]>("/api/diagrams"));
     } catch (err) { console.error("Failed to load diagrams:", err); }
     setLoading(false);
   }
@@ -67,12 +67,10 @@ export default function DiagramsPage() {
 
   async function createDiagram() {
     if (!newTitle.trim()) return;
-    const res = await authedFetch("/api/diagrams", {
+    const diagram = await authedFetch<{ id: string }>("/api/diagrams", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: newTitle, type: newType, code: getTemplate(newType) }),
+      body: { title: newTitle, type: newType, code: getTemplate(newType) },
     });
-    const diagram = await res.json();
     window.location.href = `/community/diagrams/${diagram.id}`;
   }
 
@@ -88,14 +86,17 @@ export default function DiagramsPage() {
 
   if (!session) {
     return (
-      <div className="text-center py-16">
-        <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-emerald-500">
-          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" /></svg>
-        </div>
-        <h1 className="text-2xl font-bold mb-2">Diagrams</h1>
-        <p className="text-slate-500 dark:text-slate-400 mb-4">Sign in to create diagrams flowcharts and mind maps.</p>
-        <Link href="/login" className="btn-primary">Sign In</Link>
-      </div>
+      <RequireAuth
+        title="Diagrams"
+        message="Sign in to create diagrams flowcharts and mind maps."
+        icon={
+          <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-emerald-500">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" /></svg>
+          </div>
+        }
+        cta="button"
+        className="py-16"
+      />
     );
   }
 

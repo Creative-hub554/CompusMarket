@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
+import { apiFetch } from "@/lib/apiFetch";
 
 type Order = {
   id: string;
@@ -19,12 +20,7 @@ export default function OrdersPage() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetch("/api/orders")
-      .then((r) => {
-        if (r.status === 401) throw new Error("Unauthorized");
-        if (!r.ok) throw new Error("Server error");
-        return r.json();
-      })
+    apiFetch<Order[]>("/api/orders")
       .then(setOrders)
       .catch(() => setError(true))
       .finally(() => setLoading(false));

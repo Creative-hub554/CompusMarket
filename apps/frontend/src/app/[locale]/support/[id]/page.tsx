@@ -4,7 +4,9 @@ import { useEffect, useState, useRef } from "react";
 import { Link } from "@/i18n/navigation";
 import { useParams } from "next/navigation";
 import { useSession } from "@/lib/session-client";
+import { RequireAuth } from "@/components/RequireAuth";
 import { io, Socket } from "socket.io-client";
+import { apiFetch } from "@/lib/apiFetch";
 
 type Message = {
   id: string;
@@ -51,12 +53,8 @@ export default function TicketDetailPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch(`/api/support/tickets/${id}`)
-      .then((r) => {
-        if (!r.ok) throw new Error("Not found");
-        return r.json();
-      })
-      .then((data: Ticket) => {
+    apiFetch<Ticket>(`/api/support/tickets/${id}`)
+      .then((data) => {
         setTicket(data);
         setMessages(data.messages || []);
       })
@@ -67,8 +65,7 @@ export default function TicketDetailPage() {
   useEffect(() => {
     if (!session?.user?.id) return;
     let cancelled = false;
-    fetch("/api/auth/token")
-      .then((r) => r.json())
+    apiFetch<{ token: string }>("/api/auth/token")
       .then((d) => {
         if (cancelled) return;
         const socket = io(process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000", {
@@ -96,13 +93,10 @@ export default function TicketDetailPage() {
 
   if (!session) {
     return (
-      <div className="min-h-[calc(100vh-64px)] bg-[var(--surface)] flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">Sign In Required</h1>
-          <p className="text-slate-500 dark:text-slate-400 mb-4">Please sign in to view this ticket.</p>
-          <Link href="/login" className="text-gold-600 font-medium hover:underline">Go to Login</Link>
-        </div>
-      </div>
+      <RequireAuth
+        className="min-h-[calc(100vh-64px)] bg-[var(--surface)] flex items-center justify-center"
+        message="Please sign in to view this ticket."
+      />
     );
   }
 

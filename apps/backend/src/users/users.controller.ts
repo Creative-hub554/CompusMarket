@@ -1,9 +1,10 @@
-import { Body, Controller, Get, Param, Patch, Query, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Query, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { RolesGuard } from "../auth/roles.guard";
 import { Roles } from "../auth/roles.decorator";
 import { UsersService } from "./users.service";
 import { UpdateUserRoleDto } from "./dto/update-user-role.dto";
+import { CurrentUser } from "../common/current-user.decorator";
 
 @Controller("admin/users")
 @UseGuards(AuthGuard("jwt"), RolesGuard)
@@ -30,10 +31,10 @@ export class UsersController {
   @Roles("ADMIN")
   setRole(
     @Param("id") id: string,
-    @Req() req: { user: { userId: string; email: string } },
+    @CurrentUser() user: { userId: string; email: string },
     @Body() dto: UpdateUserRoleDto
   ) {
-    return this.usersService.setRole(id, dto.role, req.user.userId, dto.reason, req.user.email);
+    return this.usersService.setRole(id, dto.role, user.userId, dto.reason, user.email);
   }
 
   /** Audit trail of role changes for a single user. */

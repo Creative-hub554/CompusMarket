@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
+import { RequireAuth } from "@/components/RequireAuth";
 import { Avatar } from "@/components/social/Avatar";
 import { Users, Bot, UserPlus, X } from "lucide-react";
 import { timeAgo, useAuthSocket } from "@/lib/social";
+import { apiFetch } from "@/lib/apiFetch";
 
 type Thread = {
   id: string;
@@ -42,29 +44,24 @@ export default function MessagesPage() {
 
   useEffect(() => {
     if (!session?.user?.id) return;
-    fetch("/api/threads")
-      .then((r) => r.json())
+    apiFetch<Thread[]>("/api/threads")
       .then((data) => setThreads(Array.isArray(data) ? data : []))
       .catch(() => setThreads([]))
       .finally(() => setLoading(false));
-    fetch("/api/threads/bot")
-      .then((r) => (r.ok ? r.json() : null))
+    apiFetch<{ id: string }>("/api/threads/bot")
       .then((data) => setBotId(data?.id ?? null))
       .catch(() => {});
-    fetch("/api/ai/status")
-      .then((r) => (r.ok ? r.json() : null))
+    apiFetch<{ available?: boolean }>("/api/ai/status")
       .then((data) => setAiReady(!!data?.available))
       .catch(() => {});
   }, [session?.user?.id]);
 
   const openBotChat = () => {
     if (!botId) return;
-    fetch("/api/threads", {
+    apiFetch<{ id: string }>("/api/threads", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: botId }),
+      body: { userId: botId },
     })
-      .then((r) => r.json())
       .then(({ id }) => router.push(`/messages/${id}`))
       .catch(() => {});
   };
@@ -76,12 +73,10 @@ export default function MessagesPage() {
       .filter(Boolean);
     if (list.length === 0) return;
     setSyncing(true);
-    fetch("/api/threads/contacts/sync", {
+    apiFetch<MatchedUser[]>("/api/threads/contacts/sync", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contacts: list }),
+      body: { contacts: list },
     })
-      .then((r) => r.json())
       .then((data) => setMatches(Array.isArray(data) ? data : []))
       .catch(() => setMatches([]))
       .finally(() => setSyncing(false));
@@ -128,15 +123,7 @@ export default function MessagesPage() {
   }, [socketRef.current, session?.user?.id]);
 
   if (!session) {
-    return (
-      <div className="max-w-xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
-        <p className="text-gray-600 dark:text-gray-300 mb-4">Please sign in to view your messages.</p>
-        <Link href="/login" className="text-slate-900 dark:text-slate-100 font-medium hover:underline">
-          Go to Login
-        </Link>
-      </div>
-    );
+    return <RequireAuth message="Please sign in to view your messages." />;
   }
 
   return (
@@ -198,12 +185,10 @@ export default function MessagesPage() {
                   </span>
                   <button
                     onClick={() =>
-                      fetch("/api/threads", {
+                      apiFetch<{ id: string }>("/api/threads", {
                         method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ userId: u.id }),
+                        body: { userId: u.id },
                       })
-                        .then((r) => r.json())
                         .then(({ id }) => router.push(`/messages/${id}`))
                         .catch(() => {})
                     }

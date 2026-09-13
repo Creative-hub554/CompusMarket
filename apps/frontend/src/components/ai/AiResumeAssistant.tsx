@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslation } from "@/lib/useTranslation";
 import { useAuthedFetch } from "@/lib/useAuthedFetch";
+import { useHandleApiError } from "@/lib/useHandleApiError";
 
 type Props = {
   onImprove: (text: string) => void;
@@ -21,6 +22,7 @@ export function AiResumeAssistant({ onImprove, currentSummary = "" }: Props) {
   const [description, setDescription] = useState("");
   const [fullName, setFullName] = useState("");
   const [skills, setSkills] = useState("");
+  const _handleApiError = useHandleApiError();
 
   async function handleSubmit() {
     setLoading(true);
@@ -45,13 +47,13 @@ export function AiResumeAssistant({ onImprove, currentSummary = "" }: Props) {
         };
       }
 
-      const res = await authedFetch("/api/ai", {
+      const json = await authedFetch<{ result?: string }>("/api/ai", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, data }),
+        body: { action, data },
       });
-      const json = await res.json();
       if (json.result) onImprove(json.result);
+    } catch (err) {
+      await _handleApiError(err, `improve your ${mode === "summary" ? "summary" : mode === "experience" ? "experience" : "cover letter"}`);
     } finally {
       setLoading(false);
     }

@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Body, Req, UseGuards, ForbiddenException, ServiceUnavailableException } from "@nestjs/common";
+import { Controller, Get, Post, Body, UseGuards, ForbiddenException, ServiceUnavailableException } from "@nestjs/common";
 import { AiService, AssistantProduct, SellerInsightsPayload } from "./ai.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuthGuard } from "@nestjs/passport";
 import { RolesGuard } from "../auth/roles.guard";
 import { Roles } from "../auth/roles.decorator";
 import { RateLimitGuard } from "../common/rate-limit.guard";
+import { CurrentUserId } from "../common/current-user.decorator";
 import { DescribeProductDto } from "./dto/describe-product.dto";
 import { ImproveSummaryDto } from "./dto/improve-summary.dto";
 import { ImproveExperienceDto } from "./dto/improve-experience.dto";
@@ -101,9 +102,9 @@ export class AiController {
    */
   @Post("seller-insights")
   @UseGuards(AuthGuard("jwt"))
-  async sellerInsights(@Req() req: { user: { userId: string } }, @Body() body: SellerInsightsDto) {
+  async sellerInsights(@CurrentUserId() userId: string, @Body() body: SellerInsightsDto) {
     const profile = await this.prisma.sellerProfile.findUnique({
-      where: { userId: req.user.userId },
+      where: { userId },
       select: { id: true, verificationStatus: true },
     });
     if (!profile || profile.verificationStatus !== "APPROVED") {

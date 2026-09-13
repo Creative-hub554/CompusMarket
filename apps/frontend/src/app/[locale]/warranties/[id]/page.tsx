@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { Link } from "@/i18n/navigation";
+import { apiFetch } from "@/lib/apiFetch";
 
 type Warranty = {
   id: string;
@@ -41,11 +42,7 @@ export default function WarrantyDetailPage() {
   const [claiming, setClaiming] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/warranties/${id}`)
-      .then((r) => {
-        if (!r.ok) throw new Error("Not found");
-        return r.json();
-      })
+    apiFetch<Warranty>(`/api/warranties/${id}`)
       .then(setWarranty)
       .catch(() => setError(true))
       .finally(() => setLoading(false));
@@ -54,15 +51,15 @@ export default function WarrantyDetailPage() {
   async function handleClaim() {
     if (!claimReason.trim()) return;
     setClaiming(true);
-    const res = await fetch(`/api/warranties/${id}/claim`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reason: claimReason }),
-    });
-    if (res.ok) {
-      const updated = await res.json();
+    try {
+      const updated = await apiFetch<Warranty>(`/api/warranties/${id}/claim`, {
+        method: "POST",
+        body: { reason: claimReason },
+      });
       setWarranty(updated);
       setShowClaimForm(false);
+    } catch {
+      // Non-2xx responses used to be ignored silently; keep that behavior.
     }
     setClaiming(false);
   }

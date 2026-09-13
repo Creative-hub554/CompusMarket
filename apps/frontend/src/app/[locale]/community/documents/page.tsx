@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
+import { RequireAuth } from "@/components/RequireAuth";
 import { useAuthedFetch } from "@/lib/useAuthedFetch";
 
 interface DocumentItem {
@@ -27,8 +28,7 @@ export default function DocumentsPage() {
   async function loadDocs() {
     setLoading(true);
     try {
-      const res = await authedFetch("/api/documents");
-      setDocuments(await res.json());
+      setDocuments(await authedFetch<DocumentItem[]>("/api/documents"));
     } catch (err) { console.error("Failed to load documents:", err); }
     setLoading(false);
   }
@@ -37,12 +37,10 @@ export default function DocumentsPage() {
 
   async function createDocument() {
     if (!newTitle.trim()) return;
-    const res = await authedFetch("/api/documents", {
+    const doc = await authedFetch<{ id: string }>("/api/documents", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: newTitle }),
+      body: { title: newTitle },
     });
-    const doc = await res.json();
     window.location.href = `/community/documents/${doc.id}`;
   }
 
@@ -63,14 +61,17 @@ export default function DocumentsPage() {
 
   if (!session) {
     return (
-      <div className="text-center py-16">
-        <div className="w-16 h-16 bg-gold-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-gold-500">
-          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-        </div>
-        <h1 className="text-2xl font-bold mb-2">Documents</h1>
-        <p className="text-slate-500 mb-4">Sign in to create and edit rich text documents.</p>
-        <Link href="/login" className="btn-primary">Sign In</Link>
-      </div>
+      <RequireAuth
+        title="Documents"
+        message="Sign in to create and edit rich text documents."
+        icon={
+          <div className="w-16 h-16 bg-gold-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-gold-500">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+          </div>
+        }
+        cta="button"
+        className="py-16"
+      />
     );
   }
 

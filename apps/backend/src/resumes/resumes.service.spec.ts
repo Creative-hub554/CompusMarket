@@ -36,7 +36,7 @@ describe("ResumesService", () => {
       mockPrisma.resume.create.mockResolvedValue({ id: "r1" });
       const data = { skills: ["react"], contact: { email: "a@b.c" } };
 
-      await service.create("u1", "My Resume", data);
+      await service.create("u1", { title: "My Resume", data });
 
       expect(mockPrisma.resume.create).toHaveBeenCalledWith({
         data: { userId: "u1", title: "My Resume", data },

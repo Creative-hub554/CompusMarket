@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
+import { RequireAuth } from "@/components/RequireAuth";
 import { useAuthedFetch } from "@/lib/useAuthedFetch";
 
 interface NoteItem {
@@ -31,8 +32,7 @@ export default function NotesPage() {
 
   useEffect(() => {
     const params = search ? `?search=${encodeURIComponent(search)}` : "";
-    authedFetch(`/api/notes${params}`)
-      .then((r) => r.json())
+    authedFetch<NoteItem[]>(`/api/notes${params}`)
       .then(setNotes)
       .catch((err) => {
         console.error("Failed to load notes:", err);
@@ -42,12 +42,10 @@ export default function NotesPage() {
 
   async function createNote() {
     if (!newTitle.trim()) return;
-    const res = await authedFetch("/api/notes", {
+    const note = await authedFetch<{ id: string }>("/api/notes", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: newTitle }),
+      body: { title: newTitle },
     });
-    const note = await res.json();
     window.location.href = `/community/notes/${note.id}`;
   }
 
@@ -68,26 +66,25 @@ export default function NotesPage() {
     setAiLoading(true);
     setAiError("");
     try {
-      const res = await authedFetch("/api/ai", {
+      const json = await authedFetch<{
+        result?: { title: string; content: string };
+        error?: string;
+      }>("/api/ai", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: {
           action: "generate-note",
           data: { topic: aiTopic.trim(), language: aiLang },
-        }),
+        },
       });
-      const json = await res.json();
-      if (!res.ok || !json.result?.title)
+      if (!json.result?.title)
         throw new Error(json.error || "Generation failed");
-      const noteRes = await authedFetch("/api/notes", {
+      const note = await authedFetch<{ id: string }>("/api/notes", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: {
           title: json.result.title,
           content: json.result.content,
-        }),
+        },
       });
-      const note = await noteRes.json();
       window.location.href = `/community/notes/${note.id}`;
     } catch (err) {
       setAiError(
@@ -105,30 +102,29 @@ export default function NotesPage() {
 
   if (!session) {
     return (
-      <div className="text-center py-16">
-        <div className="w-16 h-16 bg-cyan-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-cyan-500">
-          <svg
-            className="w-8 h-8"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
-            />
-          </svg>
-        </div>
-        <h1 className="text-2xl font-bold mb-2">Study Notes</h1>
-        <p className="text-slate-500 mb-4">
-          Sign in to write and organize study notes with Markdown.
-        </p>
-        <Link href="/login" className="btn-primary">
-          Sign In
-        </Link>
-      </div>
+      <RequireAuth
+        title="Study Notes"
+        message="Sign in to write and organize study notes with Markdown."
+        icon={
+          <div className="w-16 h-16 bg-cyan-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-cyan-500">
+            <svg
+              className="w-8 h-8"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
+              />
+            </svg>
+          </div>
+        }
+        cta="button"
+        className="py-16"
+      />
     );
   }
 

@@ -225,6 +225,50 @@ describe("AuthService", () => {
         UnauthorizedException
       );
     });
+
+    it("keeps a freshly revoked token around for the reuse-detection window", async () => {
+      vi.useFakeTimers();
+      const now = new Date(2026, 0, 1, 12, 0, 0);
+      vi.setSystemTime(now);
+
+      // Present a VALID (non-revoked, non-expired) refresh token so the
+      // refresh flow reaches purgeExpiredTokens(). The purge deletes revoked
+      // tokens whose revokedAt is older than REFRESH_TOKEN_TTL_MS (30 days);
+      // a token revoked 5 days ago is newer than that cutoff and must be kept.
+      // Reset the static purge throttle so the fake-clock purge actually
+      // runs (a previous real-clock test may have left lastPurgeAt in the
+      // future relative to the fake now, which would skip the purge).
+      AuthService.lastPurgeAt = 0;
+
+      mockPrisma.refreshToken.findUnique.mockResolvedValue({
+        id: "rt-1",
+        userId: mockUser.id,
+        revokedAt: null,
+        expiresAt: new Date(now.getTime() + 10000),
+        user: mockUser,
+      });
+      mockPrisma.refreshToken.updateMany.mockResolvedValue({ count: 1 });
+
+      await service.refresh("a-valid-refresh-token-value");
+
+      // Verify the purge cutoff for revoked tokens is exactly 30 days ago,
+      // which preserves any token revoked within the last 30 days (e.g. 5 days
+      // ago) — the reuse-detection window stays intact.
+      const revokedCutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      expect(mockPrisma.refreshToken.deleteMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            OR: expect.arrayContaining([
+              expect.objectContaining({
+                revokedAt: { lt: revokedCutoff },
+              }),
+            ]),
+          }),
+        })
+      );
+
+      vi.useRealTimers();
+    });
   });
 
   describe("logout", () => {

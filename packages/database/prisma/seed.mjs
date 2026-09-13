@@ -668,6 +668,174 @@ async function main() {
     });
   }
 
+  // ── Demo Pages ─────────────────────────────────────────────────────────
+  const PAGE_DEFS = [
+    {
+      name: "Sokha Tech",
+      username: "sokhatech",
+      category: "electronics",
+      description: "Your trusted source for quality electronics in Phnom Penh. We stock phones, laptops, and accessories — all graded and warrantied.",
+      image: img("sokha-tech-logo"),
+      coverImage: img("sokha-tech-cover"),
+      phone: "+855 12 345 678",
+      ownerUsername: "sokhatech",
+      members: [],
+      followers: ["sreypich@example.com", "vuthy@example.com"],
+      posts: [
+        { content: "🎉 New arrival: Xiaomi Redmi Note 12 — only $145! Battery health 95%, 4/128GB. Limited stock, DM us to reserve.", daysAgo: 3, impressions: 142 },
+        { content: "💡 Tip: Always check battery health before buying a used phone. We test every device with a 12-point inspection.", daysAgo: 7, impressions: 89 },
+        { content: "📦 Weekend delivery is now available! Order before Friday 5PM for Saturday drop-off in Phnom Penh.", daysAgo: 14, impressions: 203 },
+      ],
+    },
+    {
+      name: "Reaksmey Market",
+      username: "rkmmarket",
+      category: "fashion",
+      description: "Handcrafted Khmer fashion and home goods. Supporting local artisans in Siem Reap since 2024.",
+      image: img("reaksmey-market-logo"),
+      coverImage: img("reaksmey-market-cover"),
+      phone: "+855 16 789 012",
+      ownerUsername: "rkmmarket",
+      members: [],
+      followers: ["vuthy@example.com"],
+      posts: [
+        { content: "🧵 New silk scarves just arrived from our Siem Reap weavers! Each piece is hand-dyed with traditional ikat patterns. DM to see the full collection.", daysAgo: 2, impressions: 67 },
+        { content: "🌿 Kampot peppercorns are back in stock — 2025 harvest, sealed pouches. Limited quantities, first come first served.", daysAgo: 5, impressions: 134 },
+        { content: "📸 Behind the scenes: Our artisans weaving silk scarves in Siem Reap. Every purchase supports local families.", daysAgo: 10, impressions: 98 },
+      ],
+    },
+    {
+      name: "Dara Phones",
+      username: "daraphones",
+      category: "phones",
+      description: "Specialist phone reseller — iPhones, Samsungs, and budget Androids. 30-day warranty on every device.",
+      image: img("dara-phones-logo"),
+      coverImage: img("dara-phones-cover"),
+      phone: "+855 93 246 810",
+      ownerUsername: "daraphones",
+      members: [],
+      followers: ["sreypich@example.com", "vuthy@example.com"],
+      posts: [
+        { content: "📱 iPhone 12 128GB — $420, like new. Battery 92%, unlocked, no scratches. Includes original box. Only 2 left!", daysAgo: 1, impressions: 256 },
+        { content: "🔥 Flash sale: Samsung Galaxy A54 5G at $260 this weekend only. Battery health 96%, no visible wear. DM to order.", daysAgo: 4, impressions: 178 },
+        { content: "✅ Did you know? Every phone we sell goes through a 12-point inspection including battery, screen, speakers, and cameras. Buy with confidence.", daysAgo: 9, impressions: 112 },
+        { content: "🎁 Refer a friend — when they buy, you both get $5 off your next purchase. DM us the details.", daysAgo: 16, impressions: 87 },
+      ],
+    },
+    {
+      name: "Champey Official",
+      username: "champey",
+      category: "other",
+      description: "Official Champey announcements, updates, and community highlights. The home team!",
+      image: img("champey-official-logo"),
+      coverImage: img("champey-official-cover"),
+      phone: null,
+      ownerUsername: "admin",
+      members: ["sokhatech", "daraphones"],
+      followers: ["vuthy@example.com", "sreypich@example.com", "sokhatech", "daraphones", "rkmmarket"],
+      posts: [
+        { content: "🚀 Champey Pages is LIVE! Businesses can now create their own page, post updates, and connect with customers directly. Create yours today!", daysAgo: 1, impressions: 512, pinned: true },
+        { content: "📊 Community milestone: 100 products listed! Thank you to all our verified sellers. The marketplace is growing fast.", daysAgo: 5, impressions: 234 },
+        { content: "🛠️ Maintenance window tonight 11PM-1AM. The app may be briefly unavailable. We're upgrading the search index.", daysAgo: 8, impressions: 156 },
+      ],
+    },
+    {
+      name: "Khmer Food Hub",
+      username: "khmerfoodhub",
+      category: "food",
+      description: "Authentic Cambodian food products — Kampot pepper, palm sugar, honey, coffee. Farm to table, no middlemen.",
+      image: img("khmer-food-hub-logo"),
+      coverImage: img("khmer-food-hub-cover"),
+      phone: "+855 11 234 567",
+      ownerUsername: "rkmmarket",
+      members: [],
+      followers: ["vuthy@example.com"],
+      posts: [
+        { content: "🍯 New batch of Mondulkiri forest honey — raw, unfiltered, 1L jar for $11. Limited harvest, once it's gone it's gone!", daysAgo: 2, impressions: 189 },
+        { content: "☕ Ratanakiri Robusta beans — medium roast, whole beans, 1kg for $14. Perfect for iced coffee or traditional Khmer-style brew.", daysAgo: 6, impressions: 145 },
+        { content: "🌴 Palm sugar season is here! Our glass jar (500g) is only $6. Low GI, traditional method. Great for cooking and tea.", daysAgo: 11, impressions: 98 },
+      ],
+    },
+  ];
+
+  async function getUserIdByEmail(email) {
+    const u = await prisma.user.findUnique({ where: { email }, select: { id: true } });
+    return u?.id;
+  }
+  async function getUserIdByUsername(username) {
+    const u = await prisma.user.findFirst({ where: { username }, select: { id: true } });
+    return u?.id;
+  }
+
+  for (const p of PAGE_DEFS) {
+    const ownerId = await getUserIdByUsername(p.ownerUsername);
+    if (!ownerId) continue;
+
+    const page = await prisma.page.upsert({
+      where: { username: p.username },
+      update: {
+        name: p.name,
+        description: p.description,
+        image: p.image,
+        coverImage: p.coverImage,
+        phone: p.phone,
+        category: p.category,
+      },
+      create: {
+        name: p.name,
+        username: p.username,
+        description: p.description,
+        image: p.image,
+        coverImage: p.coverImage,
+        phone: p.phone,
+        category: p.category,
+        ownerId,
+      },
+    });
+
+    // Members (editors)
+    for (const mUsername of p.members) {
+      const mId = await getUserIdByUsername(mUsername);
+      if (!mId) continue;
+      await prisma.pageMember.upsert({
+        where: { pageId_userId: { pageId: page.id, userId: mId } },
+        update: { role: "EDITOR" },
+        create: { pageId: page.id, userId: mId, role: "EDITOR" },
+      });
+    }
+
+    // Followers
+    for (const fEmail of p.followers) {
+      const fId = await getUserIdByEmail(fEmail);
+      if (!fId) continue;
+      await prisma.pageFollow.upsert({
+        where: { pageId_userId: { pageId: page.id, userId: fId } },
+        update: {},
+        create: { pageId: page.id, userId: fId },
+      });
+    }
+
+    // Posts (idempotent: skip if a page post with matching content exists)
+    for (const post of p.posts) {
+      const existing = await prisma.post.findFirst({
+        where: { pageId: page.id, content: post.content },
+        select: { id: true },
+      });
+      if (existing) continue;
+      await prisma.post.create({
+        data: {
+          authorId: ownerId,
+          pageId: page.id,
+          content: post.content,
+          impressions: post.impressions ?? 0,
+          pinnedAt: post.pinned ? daysAgo(post.daysAgo) : null,
+          createdAt: daysAgo(post.daysAgo),
+        },
+      });
+    }
+  }
+  console.log(`  pages:       ${PAGE_DEFS.length} demo pages seeded`);
+
   // Backfill email verification for legacy accounts. Email verification was
   // introduced as a hard login requirement after many accounts already
   // existed. Those legacy users were never issued a verification token, so

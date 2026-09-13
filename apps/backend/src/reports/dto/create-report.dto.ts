@@ -2,8 +2,8 @@ import { IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength } from "class-valid
 
 export class CreateReportDto {
   @IsNotEmpty()
-  @IsEnum(["POST", "PRODUCT", "USER", "COMMENT"] as const)
-  targetType!: "POST" | "PRODUCT" | "USER" | "COMMENT";
+  @IsEnum(["POST", "PRODUCT", "USER", "COMMENT", "PAGE"] as const)
+  targetType!: "POST" | "PRODUCT" | "USER" | "COMMENT" | "PAGE";
 
   @IsNotEmpty()
   @IsString()

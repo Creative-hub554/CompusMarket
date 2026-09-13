@@ -28,7 +28,22 @@ export class ThreadsService {
       where: { threadId_userId: { threadId, userId } },
       select: { id: true },
     });
-    if (!participant) throw new ForbiddenException("Not a participant of this thread");
+    if (participant) return;
+
+    // Page threads are readable/writable by page staff even though only the
+    // customer holds a participant row.
+    const thread = await this.prisma.thread.findUnique({
+      where: { id: threadId },
+      select: { pageId: true },
+    });
+    if (thread?.pageId) {
+      const membership = await this.prisma.pageMember.findUnique({
+        where: { pageId_userId: { pageId: thread.pageId, userId } },
+        select: { id: true },
+      });
+      if (membership) return;
+    }
+    throw new ForbiddenException("Not a participant of this thread");
   }
 
   async resolveSellerUserId(sellerProfileId: string): Promise<string> {
@@ -106,6 +121,7 @@ export class ThreadsService {
             messages: { orderBy: { createdAt: "desc" }, take: 1 },
             product: { select: { id: true, name: true, price: true, images: true } },
             group: { select: { id: true, name: true } },
+            page: { select: { id: true, name: true, username: true, image: true } },
           },
         },
       },
@@ -133,6 +149,7 @@ export class ThreadsService {
         id: p.threadId,
         product: p.thread.product,
         group: p.thread.group,
+        page: p.thread.page,
         participants: others,
         lastMessage,
         lastMessageAt: p.thread.lastMessageAt,

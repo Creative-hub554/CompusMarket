@@ -4,10 +4,11 @@
 import { toast } from "@/components/ui/toast";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Link } from "@/i18n/navigation";
 import { useParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
+import { apiFetch } from "@/lib/apiFetch";
+import { RequireAuth } from "@/components/RequireAuth";
 import OrderItemTimeline from "@/components/OrderItemTimeline";
 
 type OrderItem = {
@@ -91,11 +92,7 @@ export default function SellerOrderDetailPage() {
   );
 
   useEffect(() => {
-    fetch(`/api/seller/orders/${id}`)
-      .then((r) => {
-        if (!r.ok) throw new Error("Not found");
-        return r.json();
-      })
+    apiFetch<Order>(`/api/seller/orders/${id}`)
       .then(setOrder)
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -106,17 +103,16 @@ export default function SellerOrderDetailPage() {
     if (status === "SHIPPED" && trackingInputs[itemId]?.trim()) {
       body.trackingNumber = trackingInputs[itemId].trim();
     }
-    const res = await fetch(`/api/seller/orders/items/${itemId}/status`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      const err = await res.json();
-      toast.error(err.error || "Failed");
+    let updated: any;
+    try {
+      updated = await apiFetch(`/api/seller/orders/items/${itemId}/status`, {
+        method: "PATCH",
+        body,
+      });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed");
       return;
     }
-    const updated = await res.json();
     setOrder((prev) => {
       if (!prev) return prev;
       return {
@@ -129,17 +125,7 @@ export default function SellerOrderDetailPage() {
   };
 
   if (!session) {
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
-        <Link
-          href="/login"
-          className="text-gold-600 font-medium hover:underline"
-        >
-          Go to Login
-        </Link>
-      </div>
-    );
+    return <RequireAuth className="max-w-3xl mx-auto px-4 py-12" />;
   }
 
   if (loading)

@@ -25,8 +25,7 @@ export default function EditDeckPage() {
 
   const loadDeck = useCallback(async () => {
     try {
-      const res = await authedFetch(`/api/flashcards/decks/${id}`);
-      const data = await res.json();
+      const data = await authedFetch<{ id: string; title: string; description: string | null; cards?: CardItem[] }>(`/api/flashcards/decks/${id}`);
       setDeck(data);
       setCards(data.cards || []);
     } catch (err) { console.error("Failed to load deck:", err); }
@@ -40,8 +39,7 @@ export default function EditDeckPage() {
     try {
       await authedFetch(`/api/flashcards/decks/${id}/cards`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ front, back }),
+        body: { front, back },
       });
       setFront("");
       setBack("");
@@ -66,8 +64,7 @@ export default function EditDeckPage() {
         if (f && b) {
           await authedFetch(`/api/flashcards/decks/${id}/cards`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ front: f.trim(), back: b.trim() }),
+            body: { front: f.trim(), back: b.trim() },
           });
         }
       }

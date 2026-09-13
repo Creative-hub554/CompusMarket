@@ -5,9 +5,12 @@ import { toast } from "@/components/ui/toast";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useCartStore } from "@/stores/cart";
+import { handleApiError } from "@/lib/apiFetch";
+import { useHandleApiError } from "@/lib/useHandleApiError";
 
 export function AddToCartButton({ productId }: { productId: string }) {
   const t = useTranslations("addToCart");
+  const _handleApiError = useHandleApiError();
   const [loading, setLoading] = useState(false);
   const [added, setAdded] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
@@ -18,8 +21,14 @@ export function AddToCartButton({ productId }: { productId: string }) {
       await addItem(productId, 1);
       setAdded(true);
       setTimeout(() => setAdded(false), 2000);
-    } catch {
-      toast.error(t("loginRequired"));
+    } catch (err) {
+      const { retryResult } = await _handleApiError(err, "add the item to your cart", false, true, () =>
+        addItem(productId, 1),
+      );
+      if (retryResult !== undefined) {
+        setAdded(true);
+        setTimeout(() => setAdded(false), 2000);
+      }
     } finally {
       setLoading(false);
     }

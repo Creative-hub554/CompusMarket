@@ -1,12 +1,23 @@
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { Meilisearch } from "meilisearch";
+import type { Config } from "meilisearch/dist/types/types.js";
 import type { Prisma, ProductCondition } from "@theo/database";
 
 const INDEX_NAME = "products";
 
-function escapeFilterValue(value: string): string {
-  return value.replace(/["\\]/g, "\\$&");
+const SAFE_ALPHANUMERIC = /^[A-Za-z0-9_.@:-]+$/;
+
+function queryParamFilterValue(
+  value: unknown,
+  grammar: RegExp,
+  attribute: string,
+): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  if (trimmed.length === 0 || !grammar.test(trimmed)) return undefined;
+  const escaped = trimmed.replace(/["\\]/g, "\\$&");
+  return `${attribute} = "${escaped}"`;
 }
 
 const SORT_ORDERS: Record<string, Prisma.ProductOrderByWithRelationInput> = {
@@ -40,10 +51,13 @@ export class SearchService implements OnModuleInit {
 
   onModuleInit() {
     const host = process.env.MEILI_HOST || "http://localhost:7700";
-    const key = process.env.MEILI_API_KEY || "";
 
     try {
-      this.client = new Meilisearch({ host, apiKey: key });
+      this.client = new Meilisearch({
+        host,
+        apiKey: process.env.MEILI_API_KEY || "",
+        timeout: 3000,
+      } as Config);
       this.logger.log(`Meilisearch client initialized (${host})`);
     } catch {
       this.logger.warn("Failed to initialize Meilisearch client. Search will be unavailable.");
@@ -191,18 +205,27 @@ export class SearchService implements OnModuleInit {
 
     try {
       const filterParts: string[] = [];
-      if (filters?.categoryId) {
-        filterParts.push(`categoryId = "${escapeFilterValue(filters.categoryId)}"`);
-      }
-      if (filters?.minPrice !== undefined) {
+      const categoryFilter = queryParamFilterValue(
+        filters?.categoryId,
+        SAFE_ALPHANUMERIC,
+        "categoryId"
+      );
+      if (categoryFilter) filterParts.push(categoryFilter);
+
+      if (filters?.minPrice !== undefined && Number.isFinite(filters.minPrice)) {
         filterParts.push(`price >= ${Number(filters.minPrice)}`);
       }
-      if (filters?.maxPrice !== undefined) {
+      if (filters?.maxPrice !== undefined && Number.isFinite(filters.maxPrice)) {
         filterParts.push(`price <= ${Number(filters.maxPrice)}`);
       }
-      if (filters?.condition) {
-        filterParts.push(`condition = "${escapeFilterValue(filters.condition)}"`);
-      }
+
+      const conditionFilter = queryParamFilterValue(
+        filters?.condition,
+        SAFE_ALPHANUMERIC,
+        "condition"
+      );
+      if (conditionFilter) filterParts.push(conditionFilter);
+
       if (filters?.inStock) {
         filterParts.push("stock > 0");
       }

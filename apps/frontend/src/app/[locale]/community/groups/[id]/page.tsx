@@ -4,12 +4,15 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
+import { apiFetch } from "@/lib/apiFetch";
 import { useTranslations } from "next-intl";
 import { Users, MessageSquare, ArrowLeft, X, Crown, ImagePlus, Lock } from "lucide-react";
 import { Composer } from "@/components/social/Composer";
 import { PostCard, type FeedPost } from "@/components/social/PostCard";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { Avatar } from "@/components/social/Avatar";
 import { toast } from "@/components/ui/toast";
+import { AlertTriangle, RotateCcw } from "lucide-react";
 import { uploadFile } from "@/lib/social";
 
 type GroupDetail = {
@@ -59,13 +62,15 @@ export default function GroupDetailPage() {
 
   const loadPosts = useCallback(
     async (cursor?: string) => {
-      const res = await fetch(
-        `/api/groups/${id}/posts${cursor ? `?cursor=${cursor}` : ""}`
-      );
-      if (res.ok) {
-        const data = await res.json();
+      try {
+        const data = await apiFetch<{
+          items: FeedPost[];
+          nextCursor: string | null;
+        }>(`/api/groups/${id}/posts${cursor ? `?cursor=${cursor}` : ""}`);
         setPosts((prev) => (cursor ? [...prev, ...data.items] : data.items));
         setNextCursor(data.nextCursor);
+      } catch {
+        /* keep current posts on failure */
       }
     },
     [id]
@@ -73,7 +78,7 @@ export default function GroupDetailPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch(`/api/groups/${id}`).then((r) => (r.ok ? r.json() : null)),
+      apiFetch<GroupDetail | null>(`/api/groups/${id}`).catch(() => null),
       loadPosts(),
     ])
       .then(([g]) => {
@@ -83,8 +88,11 @@ export default function GroupDetailPage() {
   }, [id, loadPosts]);
 
   const loadRequests = useCallback(async () => {
-    const res = await fetch(`/api/groups/${id}/requests`);
-    if (res.ok) setRequests(await res.json());
+    try {
+      setRequests(await apiFetch<JoinRequest[]>(`/api/groups/${id}/requests`));
+    } catch {
+      /* keep current requests on failure */
+    }
   }, [id]);
 
   useEffect(() => {
@@ -93,19 +101,18 @@ export default function GroupDetailPage() {
   }, [isAdmin, loadRequests]);
 
   async function respond(requestUserId: string, accept: boolean) {
-    const res = await fetch(
-      `/api/groups/${id}/requests/${requestUserId}/${accept ? "accept" : "decline"}`,
-      { method: "POST" }
-    );
-    if (res.ok) {
+    try {
+      await apiFetch(
+        `/api/groups/${id}/requests/${requestUserId}/${accept ? "accept" : "decline"}`,
+        { method: "POST" }
+      );
       setRequests((prev) => prev.filter((r) => r.userId !== requestUserId));
       if (accept) {
         setGroup((g) => (g ? { ...g, memberCount: g.memberCount + 1 } : g));
       }
       toast.success(accept ? t("acceptedToast") : t("declinedToast"));
-    } else {
-      const err = await res.json().catch(() => ({}));
-      toast.error(err.error || t("actionFailed"));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("actionFailed"));
     }
   }
 
@@ -114,9 +121,12 @@ export default function GroupDetailPage() {
     setBusy(true);
     const action =
       !group.isMember && group.hasPendingRequest ? "leave" : group.isMember ? "leave" : "join";
-    const res = await fetch(`/api/groups/${id}/${action}`, { method: "POST" });
-    if (res.ok) {
-      const data = await res.json();
+    try {
+      const data = await apiFetch<{
+        requested?: boolean;
+        cancelled?: boolean;
+        joined?: boolean;
+      }>(`/api/groups/${id}/${action}`, { method: "POST" });
       if (data.requested) {
         setGroup({ ...group, hasPendingRequest: true });
         toast.success(t("requestSentToast"));
@@ -132,21 +142,22 @@ export default function GroupDetailPage() {
         });
         toast.success(joined ? t("joinedToast") : t("leftToast"));
       }
-    } else {
-      const err = await res.json().catch(() => ({}));
-      toast.error(err.error || t("actionFailed"));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("actionFailed"));
     }
     setBusy(false);
   }
 
   async function openChat() {
     setOpeningChat(true);
-    const res = await fetch(`/api/groups/${id}/thread`, { method: "POST" });
-    if (res.ok) {
-      const { id: threadId } = await res.json();
+    try {
+      const { id: threadId } = await apiFetch<{ id: string }>(
+        `/api/groups/${id}/thread`,
+        { method: "POST" }
+      );
       router.push(`/messages/${threadId}`);
-    } else {
-      toast.error(t("actionFailed"));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("actionFailed"));
       setOpeningChat(false);
     }
   }
@@ -154,30 +165,28 @@ export default function GroupDetailPage() {
   async function removeMember(userId: string) {
     if (!group) return;
     if (!window.confirm(t("kickConfirm"))) return;
-    const res = await fetch(`/api/groups/${id}/members/${userId}`, {
-      method: "DELETE",
-    });
-    if (res.ok) {
+    try {
+      await apiFetch(`/api/groups/${id}/members/${userId}`, {
+        method: "DELETE",
+      });
       setGroup({
         ...group,
         members: group.members.filter((m) => m.userId !== userId),
         memberCount: group.memberCount - 1,
       });
       toast.success(t("kickDone"));
-    } else {
-      const err = await res.json().catch(() => ({}));
-      toast.error(err.error || t("actionFailed"));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("actionFailed"));
     }
   }
 
   async function setRole(userId: string, role: "ADMIN" | "MEMBER") {
     if (!group) return;
-    const res = await fetch(`/api/groups/${id}/members/${userId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ role }),
-    });
-    if (res.ok) {
+    try {
+      await apiFetch(`/api/groups/${id}/members/${userId}`, {
+        method: "PATCH",
+        body: { role },
+      });
       setGroup({
         ...group,
         members: group.members.map((m) =>
@@ -185,26 +194,23 @@ export default function GroupDetailPage() {
         ),
       });
       toast.success(role === "ADMIN" ? t("promoted") : t("demoted"));
-    } else {
-      const err = await res.json().catch(() => ({}));
-      toast.error(err.error || t("actionFailed"));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("actionFailed"));
     }
   }
 
   async function togglePin(post: FeedPost) {
-    const res = await fetch(`/api/groups/${id}/posts/${post.id}/pin`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pinned: !post.pinned }),
-    });
-    if (res.ok) {
+    try {
+      await apiFetch(`/api/groups/${id}/posts/${post.id}/pin`, {
+        method: "PATCH",
+        body: { pinned: !post.pinned },
+      });
       setPosts((prev) =>
         prev.map((p) => (p.id === post.id ? { ...p, pinned: !post.pinned } : p))
       );
       toast.success(!post.pinned ? t("pinnedToast") : t("unpinnedToast"));
-    } else {
-      const err = await res.json().catch(() => ({}));
-      toast.error(err.error || t("actionFailed"));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("actionFailed"));
     }
   }
 
@@ -213,16 +219,15 @@ export default function GroupDetailPage() {
     setCoverUploading(true);
     try {
       const { url } = await uploadFile(files[0]);
-      const res = await fetch(`/api/groups/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ coverUrl: url }),
-      });
-      if (res.ok) {
+      try {
+        await apiFetch(`/api/groups/${id}`, {
+          method: "PATCH",
+          body: { coverUrl: url },
+        });
         setGroup({ ...group, coverUrl: url });
         toast.success(t("coverUpdated"));
-      } else {
-        toast.error(t("actionFailed"));
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : t("actionFailed"));
       }
     } catch {
       toast.error(t("actionFailed"));
@@ -469,24 +474,48 @@ export default function GroupDetailPage() {
         <>
           {group.isMember && (
             <div className="mb-5">
-              <Composer
-                groupId={group.id}
-                onPosted={(post) => setPosts((prev) => [post as FeedPost, ...prev])}
-              />
+              <ErrorBoundary label="group composer" fallback={({ reset }) => (
+                <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)] p-4 animate-fade-in">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 dark:bg-red-950/50 text-red-500">
+                      <AlertTriangle size={18} />
+                    </span>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        Couldn&apos;t load the group composer
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Something went wrong. Try again below.
+                      </p>
+                    </div>
+                    <button onClick={reset} className="btn-primary inline-flex items-center gap-1.5 px-4 py-1.5 text-sm">
+                      <RotateCcw size={14} />
+                      Retry
+                    </button>
+                  </div>
+                </div>
+              )}>
+                <Composer
+                  groupId={group.id}
+                  onPosted={(post) => setPosts((prev) => [post as FeedPost, ...prev])}
+                />
+              </ErrorBoundary>
             </div>
           )}
 
           <div className="space-y-4">
             {posts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                onDeleted={(id) => setPosts((prev) => prev.filter((p) => p.id !== id))}
-                onEdited={(updated) =>
-                  setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
-                }
-                onTogglePin={isAdmin ? (pinned) => togglePin(post) : undefined}
-              />
+              <ErrorBoundary key={post.id} label={`group post ${post.id}`}>
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onDeleted={(id) => setPosts((prev) => prev.filter((p) => p.id !== id))}
+                  onEdited={(updated) =>
+                    setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
+                  }
+                  onTogglePin={isAdmin ? (pinned) => togglePin(post) : undefined}
+                />
+              </ErrorBoundary>
             ))}
             {posts.length === 0 && (
               <div className="text-center py-12 card rounded-2xl">

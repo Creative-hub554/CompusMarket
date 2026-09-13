@@ -1,0 +1,33 @@
+# Prometheus config for the LOCAL canonical stack (compose.override.yaml,
+# --profile monitoring). The prod stack uses docker/prometheus/prometheus.yml;
+# this local variant adds the host stack-health feed and drops jobs whose
+# exporters the local stack does not run (node-exporter).
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Stack health gauges (champey_stack_healthy, champey_service_healthy,
+  # champey_postgres_auth_ok, champey_host_env_in_sync, champey_last_check_*)
+  # served on the host by scripts/metrics-server.mjs from the metrics file
+  # written by scripts/health-check.mjs --metrics-out.
+  - job_name: "stack-health"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["host.docker.internal:9701"]
+
+  # Backend application metrics (same Bearer-token auth as the prod config;
+  # token injected via the compose environment-sourced `metrics-token` secret).
+  - job_name: "backend"
+    metrics_path: /api/metrics
+    authorization:
+      type: Bearer
+      credentials_file: /run/secrets/metrics-token
+    static_configs:
+      - targets: ["backend:4000"]
+
+  # Postgres server metrics (DSN mounted read-only from output/metrics-dsn.txt;
+  # see compose.override.yaml for why it is a file and not an env var).
+  - job_name: "postgres"
+    static_configs:
+      - targets: ["postgres-exporter:9187"]

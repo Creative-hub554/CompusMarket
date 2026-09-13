@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "@/lib/session-client";
 import { useTranslations } from "next-intl";
+import { apiFetch } from "@/lib/apiFetch";
 
 type EligibleItem = { orderItemId: string; createdAt: string };
 type NewReview = {
@@ -33,9 +34,8 @@ export function ReviewForm({
   useEffect(() => {
     if (!session) return;
     let cancelled = false;
-    fetch(`/api/products/${productId}/reviewable`)
-      .then((res) => (res.ok ? res.json() : []))
-      .then((items: EligibleItem[]) => {
+    apiFetch<EligibleItem[]>(`/api/products/${productId}/reviewable`)
+      .then((items) => {
         if (cancelled) return;
         setEligible(items);
         setOrderItemId(items[0]?.orderItemId ?? "");
@@ -69,16 +69,10 @@ export function ReviewForm({
     setError(null);
     setSubmitting(true);
     try {
-      const res = await fetch(`/api/products/${productId}/reviews`, {
+      const review = await apiFetch<NewReview>(`/api/products/${productId}/reviews`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderItemId, rating, comment }),
+        body: { orderItemId, rating, comment },
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || t("reviewFailed"));
-      }
-      const review: NewReview = await res.json();
       onCreated(review);
       setComment("");
       setRating(5);

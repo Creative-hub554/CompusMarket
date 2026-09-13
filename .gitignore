@@ -22,6 +22,17 @@ apps/*/node_modules/
 .slim/deepwork/
 
 # local dev/test output logs (not source)
+# health-check/metrics artifacts (secrets: DSN file, images; DO NOT untrack)
+output/metrics-dsn.txt
+output/health-metrics.prom
+output/health-check.lock
+output/metrics-server.log
+output/backups/
+output/*.tar
+output/dependency-audit/
+output/dependency-audit-*.log
+output/*-last-exit.txt
+output/health-check-*.log
 run-*.txt
 apps/backend/test*.txt
 apps/backend/version.txt

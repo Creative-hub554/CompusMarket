@@ -1,13 +1,15 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException, Optional } from "@nestjs/common";
 import { Prisma } from "@theo/database";
 import { PrismaService } from "../prisma/prisma.service";
 import { NotificationsService } from "./notifications.service";
 import { CreateCommentDto, CreatePostDto, PostMediaInputDto } from "./dto/social.dto";
+import { PageBlockService } from "../pages/page-block.service";
 
 const LIST_POST_INCLUDE = {
   author: { select: { id: true, name: true, username: true, image: true, accountPrivate: true } },
   media: { orderBy: { position: Prisma.SortOrder.asc } },
   group: { select: { id: true, name: true } },
+  page: { select: { id: true, name: true, username: true, image: true } },
   _count: { select: { comments: true } },
 } satisfies Prisma.PostInclude;
 
@@ -31,12 +33,14 @@ export interface MappedPost {
   createdAt: Date;
   author: { id: string; name: string | null; username: string | null; image: string | null };
   group: { id: string; name: string } | null;
+  page: { id: string; name: string; username: string; image: string | null } | null;
   media: { id: string; kind: "IMAGE" | "VIDEO"; url: string; thumbUrl: string | null; position: number }[];
   reactions: { emoji: string; count: number }[];
   commentCount: number;
   viewerReaction: string | null;
   pinned: boolean;
   bookmarked: boolean;
+  boostedUntil: Date | null;
 }
 
 export function mapPost(post: PostWithRelations, viewerId?: string): MappedPost {
@@ -58,7 +62,7 @@ export function mapPost(post: PostWithRelations, viewerId?: string): MappedPost 
 function finalizePost(
   post: Pick<
     PostWithRelations,
-    "id" | "content" | "createdAt" | "author" | "group" | "media" | "_count" | "pinnedAt"
+    "id" | "content" | "createdAt" | "author" | "group" | "page" | "media" | "_count" | "pinnedAt" | "boostedUntil"
   >,
   summary: { reactions: { emoji: string; count: number }[]; viewerReaction: string | null; bookmarked: boolean }
 ): MappedPost {
@@ -68,6 +72,7 @@ function finalizePost(
     createdAt: post.createdAt,
     author: post.author,
     group: post.group,
+    page: post.page,
     media: post.media.map((m) => ({
       id: m.id,
       kind: m.kind,
@@ -80,6 +85,7 @@ function finalizePost(
     viewerReaction: summary.viewerReaction,
     pinned: Boolean(post.pinnedAt),
     bookmarked: summary.bookmarked,
+    boostedUntil: post.boostedUntil ?? null,
   };
 }
 
@@ -87,14 +93,18 @@ function finalizePost(
 export class PostsService {
   constructor(
     private prisma: PrismaService,
-    private notifications: NotificationsService
+    private notifications: NotificationsService,
+    @Optional() private pageBlock?: PageBlockService
   ) {}
 
-  async create(userId: string, dto: CreatePostDto, groupId?: string): Promise<MappedPost> {
+  async create(userId: string, dto: CreatePostDto, groupId?: string, pageId?: string): Promise<MappedPost> {
     const content = dto.content?.trim() ?? "";
     const media = dto.media ?? [];
     if (!content && media.length === 0) {
       throw new BadRequestException("Post must have content or media");
+    }
+    if (groupId && pageId) {
+      throw new BadRequestException("A post cannot belong to a group and a page at once");
     }
     this.validateMedia(media);
 
@@ -102,6 +112,7 @@ export class PostsService {
       data: {
         authorId: userId,
         ...(groupId ? { groupId } : {}),
+        ...(pageId ? { pageId } : {}),
         content,
         media: {
           create: media.map((m, i) => ({
@@ -116,6 +127,12 @@ export class PostsService {
     });
 
     await this.notifyMentions(post.id, content, userId);
+
+    // Page posts notify every follower — fire-and-forget so the response
+    // isn't blocked by O(followers) notification writes.
+    if (pageId) {
+      this.notifications.notifyPagePostFollowers(pageId, userId).catch(() => undefined);
+    }
 
     return mapPost(post, userId);
   }
@@ -170,21 +187,32 @@ export class PostsService {
     cursorId?: string,
     limit = 10
   ): Promise<{ items: MappedPost[]; nextCursor: string | null }> {
-    const following = await this.prisma.follow.findMany({
-      where: { followerId: userId },
-      select: { followingId: true },
-    });
+    const [following, followedPages, myGroups] = await Promise.all([
+      this.prisma.follow.findMany({
+        where: { followerId: userId },
+        select: { followingId: true },
+      }),
+      this.prisma.pageFollow.findMany({
+        where: { userId },
+        select: { pageId: true },
+      }),
+      this.prisma.groupMember.findMany({
+        where: { userId },
+        select: { groupId: true },
+      }),
+    ]);
     const authorIds = [...following.map((f) => f.followingId), userId];
-
-    // Facebook-style: the feed also carries posts from groups you belong to.
-    const myGroups = await this.prisma.groupMember.findMany({
-      where: { userId },
-      select: { groupId: true },
-    });
     const myGroupIds = myGroups.map((g) => g.groupId);
+    const followedPageIds = followedPages.map((p) => p.pageId);
 
-    // Followed authors may post into PRIVATE groups the viewer does not
-    // belong to — those must not surface in the feed.
+    // Filter out posts from blocked pages
+    const blockedPageIds = this.pageBlock
+      ? await this.pageBlock.blockedPageIds(userId)
+      : [];
+    const visiblePageIds = followedPageIds.filter((id) => !blockedPageIds.includes(id));
+
+    // Facebook-style: the feed carries posts from people you follow, groups
+    // you belong to, AND pages you follow (minus blocked pages).
     return this.queryFeed(
       {
         AND: [
@@ -192,6 +220,7 @@ export class PostsService {
             OR: [
               { authorId: { in: authorIds } },
               { groupId: { in: myGroupIds } },
+              { pageId: { in: visiblePageIds } },
             ],
           },
           this.visiblePostsWhere(myGroupIds),
@@ -316,6 +345,26 @@ export class PostsService {
     );
   }
 
+  /** Page profile feed: pinned first, then boosted, then newest. */
+  async byPage(
+    pageId: string,
+    viewerId?: string,
+    cursorId?: string,
+    limit = 10
+  ): Promise<{ items: MappedPost[]; nextCursor: string | null }> {
+    return this.queryFeed(
+      { pageId },
+      viewerId,
+      cursorId,
+      limit,
+      [
+        { pinnedAt: { sort: "desc", nulls: "last" } },
+        { boostedUntil: { sort: "desc", nulls: "last" } },
+        { createdAt: "desc" },
+      ]
+    );
+  }
+
   private async queryFeed(
     where: Prisma.PostWhereInput,
     viewerId: string | undefined,
@@ -377,6 +426,18 @@ export class PostsService {
     }
 
     const items = await this.hydratePosts(page, viewerId);
+
+    // Fire-and-forget impression tally for page posts (insights feed on it).
+    const servedPagePostIds = page.filter((p) => p.pageId).map((p) => p.id);
+    if (servedPagePostIds.length > 0) {
+      this.prisma.post
+        .updateMany({
+          where: { id: { in: servedPagePostIds } },
+          data: { impressions: { increment: 1 } },
+        })
+        .catch(() => undefined);
+    }
+
     return { items, nextCursor: hasMore ? items[items.length - 1].id : null };
   }
 
@@ -436,10 +497,25 @@ export class PostsService {
   }
 
   async remove(id: string, userId: string, role?: string): Promise<void> {
-    const post = await this.prisma.post.findUnique({ where: { id }, select: { authorId: true } });
+    const post = await this.prisma.post.findUnique({
+      where: { id },
+      select: { authorId: true, pageId: true },
+    });
     if (!post) throw new NotFoundException("Post not found");
+
     if (post.authorId !== userId && role !== "ADMIN") {
-      throw new ForbiddenException("You can only delete your own posts");
+      // Page staff may delete their page's posts even if a colleague authored them.
+      let staff = false;
+      if (post.pageId) {
+        const membership = await this.prisma.pageMember.findUnique({
+          where: { pageId_userId: { pageId: post.pageId, userId } },
+          select: { id: true },
+        });
+        staff = Boolean(membership);
+      }
+      if (!staff) {
+        throw new ForbiddenException("You can only delete your own posts");
+      }
     }
     await this.prisma.post.delete({ where: { id } });
   }

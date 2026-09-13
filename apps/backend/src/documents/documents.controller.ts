@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from "@nestjs/common";
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { DocumentsService } from "./documents.service";
 import { CreateDocumentDto } from "./dto/create-document.dto";
 import { UpdateDocumentDto } from "./dto/update-document.dto";
 import { CreateFolderDto } from "./dto/create-folder.dto";
+import { CurrentUserId } from "../common/current-user.decorator";
 
 @Controller("documents")
 @UseGuards(AuthGuard("jwt"))
@@ -11,43 +12,43 @@ export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
 
   @Post()
-  create(@Req() req: { user: { userId: string } }, @Body() body: CreateDocumentDto) {
-    return this.documentsService.create(req.user.userId, body);
+  create(@CurrentUserId() userId: string, @Body() body: CreateDocumentDto) {
+    return this.documentsService.create(userId, body);
   }
 
   @Get()
-  findAll(@Req() req: { user: { userId: string } }) {
-    return this.documentsService.findByUser(req.user.userId);
+  findAll(@CurrentUserId() userId: string) {
+    return this.documentsService.findByUser(userId);
   }
 
   @Get(":id")
-  findOne(@Req() req: { user: { userId: string } }, @Param("id") id: string) {
-    return this.documentsService.findOne(id, req.user.userId);
+  findOne(@CurrentUserId() userId: string, @Param("id") id: string) {
+    return this.documentsService.findOne(id, userId);
   }
 
   @Patch(":id")
-  update(@Req() req: { user: { userId: string } }, @Param("id") id: string, @Body() body: UpdateDocumentDto) {
-    return this.documentsService.update(id, req.user.userId, body);
+  update(@CurrentUserId() userId: string, @Param("id") id: string, @Body() body: UpdateDocumentDto) {
+    return this.documentsService.update(id, userId, body);
   }
 
   @Delete(":id")
-  remove(@Req() req: { user: { userId: string } }, @Param("id") id: string) {
-    return this.documentsService.remove(id, req.user.userId);
+  remove(@CurrentUserId() userId: string, @Param("id") id: string) {
+    return this.documentsService.remove(id, userId);
   }
 
   // Folders
   @Post("folders")
-  createFolder(@Req() req: { user: { userId: string } }, @Body() body: CreateFolderDto) {
-    return this.documentsService.createFolder(req.user.userId, body.name);
+  createFolder(@CurrentUserId() userId: string, @Body() body: CreateFolderDto) {
+    return this.documentsService.createFolder(userId, body.name);
   }
 
   @Get("folders/all")
-  getFolders(@Req() req: { user: { userId: string } }) {
-    return this.documentsService.findFolders(req.user.userId);
+  getFolders(@CurrentUserId() userId: string) {
+    return this.documentsService.findFolders(userId);
   }
 
   @Delete("folders/:id")
-  deleteFolder(@Req() req: { user: { userId: string } }, @Param("id") id: string) {
-    return this.documentsService.deleteFolder(id, req.user.userId);
+  deleteFolder(@CurrentUserId() userId: string, @Param("id") id: string) {
+    return this.documentsService.deleteFolder(id, userId);
   }
 }

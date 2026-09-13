@@ -1,72 +1,87 @@
 import { Injectable, NotFoundException, ForbiddenException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { createOwnedResource, type OwnedResource } from "../common/owned-resource";
+import type { Flashcard, FlashcardDeck } from "@theo/database";
+
+type CreateDeck = { title: string; description?: string };
+type UpdateDeck = { title?: string; description?: string };
+type CreateCard = { front: string; back: string };
+type UpdateCard = { front?: string; back?: string };
+
+/** A card fetched with its deck, enough to resolve ownership. */
+type CardWithDeck = Flashcard & { deck: { userId: string } };
 
 @Injectable()
 export class FlashcardsService {
-  constructor(private prisma: PrismaService) {}
+  private readonly decks: OwnedResource<FlashcardDeck, CreateDeck, UpdateDeck>;
+  private readonly cards: OwnedResource<CardWithDeck, CreateCard, UpdateCard>;
+
+  constructor(private readonly prisma: PrismaService) {
+    this.decks = createOwnedResource<FlashcardDeck, CreateDeck, UpdateDeck>(prisma.flashcardDeck, {
+      name: "Deck",
+      listInclude: { _count: { select: { cards: true } } },
+      findOneInclude: {
+        cards: { include: { reviews: { orderBy: { reviewedAt: "desc" }, take: 1 } } },
+      },
+      buildCreateData: (userId, data) => ({
+        userId,
+        title: data.title,
+        description: data.description,
+      }),
+    });
+
+    // Cards live under a deck; ownership is resolved through `card.deck.userId`.
+    this.cards = createOwnedResource<CardWithDeck, CreateCard, UpdateCard>(prisma.flashcard, {
+      name: "Card",
+      ownerId: (card) => card.deck.userId,
+      findOneInclude: { deck: true },
+    });
+  }
+
   // ── Decks ──
-
-  async createDeck(userId: string, data: { title: string; description?: string }) {
-    return this.prisma.flashcardDeck.create({
-      data: { userId, title: data.title, description: data.description },
-    });
+  createDeck(userId: string, data: CreateDeck) {
+    return this.decks.create(userId, data);
   }
 
-  async findDecks(userId: string) {
-    return this.prisma.flashcardDeck.findMany({
-      where: { userId },
-      orderBy: { updatedAt: "desc" },
-      include: { _count: { select: { cards: true } } },
-    });
+  findDecks(userId: string) {
+    return this.decks.findByUser(userId);
   }
 
-  async findDeck(id: string, userId: string) {
-    const deck = await this.prisma.flashcardDeck.findUnique({
-      where: { id },
-      include: { cards: { include: { reviews: { orderBy: { reviewedAt: "desc" }, take: 1 } } } },
-    });
-    if (!deck) throw new NotFoundException("Deck not found");
-    if (deck.userId !== userId) throw new ForbiddenException();
-    return deck;
+  findDeck(id: string, userId: string) {
+    return this.decks.findOne(id, userId);
   }
 
-  async updateDeck(id: string, userId: string, data: { title?: string; description?: string }) {
-    await this.findDeck(id, userId);
-    return this.prisma.flashcardDeck.update({ where: { id }, data });
+  updateDeck(id: string, userId: string, data: UpdateDeck) {
+    return this.decks.update(id, userId, data);
   }
 
-  async deleteDeck(id: string, userId: string) {
-    await this.findDeck(id, userId);
-    return this.prisma.flashcardDeck.delete({ where: { id } });
+  deleteDeck(id: string, userId: string) {
+    return this.decks.remove(id, userId);
   }
 
   // ── Cards ──
-
-  async createCard(deckId: string, userId: string, data: { front: string; back: string }) {
+  async createCard(deckId: string, userId: string, data: CreateCard) {
     await this.findDeck(deckId, userId);
     return this.prisma.flashcard.create({
       data: { deckId, front: data.front, back: data.back },
     });
   }
 
-  async updateCard(id: string, userId: string, data: { front?: string; back?: string }) {
-    const card = await this.prisma.flashcard.findUnique({ where: { id }, include: { deck: true } });
-    if (!card) throw new NotFoundException("Card not found");
-    if (card.deck.userId !== userId) throw new ForbiddenException();
-    return this.prisma.flashcard.update({ where: { id }, data });
+  updateCard(id: string, userId: string, data: UpdateCard) {
+    return this.cards.update(id, userId, data);
   }
 
-  async deleteCard(id: string, userId: string) {
-    const card = await this.prisma.flashcard.findUnique({ where: { id }, include: { deck: true } });
-    if (!card) throw new NotFoundException("Card not found");
-    if (card.deck.userId !== userId) throw new ForbiddenException();
-    return this.prisma.flashcard.delete({ where: { id } });
+  deleteCard(id: string, userId: string) {
+    return this.cards.remove(id, userId);
   }
 
   // ── Reviews (SM-2 Algorithm) ──
 
   async reviewCard(cardId: string, userId: string, quality: number) {
-    const card = await this.prisma.flashcard.findUnique({ where: { id: cardId }, include: { deck: true } });
+    const card = await this.prisma.flashcard.findUnique({
+      where: { id: cardId },
+      include: { deck: true },
+    });
     if (!card) throw new NotFoundException("Card not found");
     if (card.deck.userId !== userId) throw new ForbiddenException();
 

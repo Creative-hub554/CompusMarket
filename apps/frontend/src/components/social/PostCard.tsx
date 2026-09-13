@@ -4,8 +4,13 @@ import { useState, type ReactNode } from "react";
 import { Link } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
 import { Avatar } from "./Avatar";
+import { BadgeCheck } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { ReportButton } from "./ReportButton";
 import { timeAgo } from "@/lib/social";
+import { apiFetch, handleApiError } from "@/lib/apiFetch";
+import { useHandleApiError } from "@/lib/useHandleApiError";
+import { toast } from "@/components/ui/toast";
 import { PostMediaCarousel } from "./PostMediaCarousel";
 import type { PostMediaInput } from "@/lib/post-media";
 
@@ -40,6 +45,8 @@ export type FeedPost = {
   pinned?: boolean;
   bookmarked?: boolean;
   group?: { id: string; name: string } | null;
+  page?: { id: string; name: string; username: string; image: string | null } | null;
+  boostedUntil?: string | null;
   id: string;
   content: string;
   createdAt: string;
@@ -65,14 +72,21 @@ export function PostCard({
   onDeleted,
   onEdited,
   onTogglePin,
+  pageViewerRole,
 }: {
   post: FeedPost;
   onDeleted?: (id: string) => void;
   onEdited?: (post: FeedPost) => void;
   onTogglePin?: (pinned: boolean) => void;
+  /** Viewer's role on the page this post belongs to. Only page staff see the boost button. */
+  pageViewerRole?: "OWNER" | "EDITOR" | null;
 }) {
   const { data: session } = useSession();
   const meId = session?.user?.id;
+  const _handleApiError = useHandleApiError();
+  const tBoost = useTranslations("pages");
+  const isBoosted = Boolean(post.boostedUntil && new Date(post.boostedUntil) > new Date());
+  const [boosting, setBoosting] = useState(false);
   const [reactions, setReactions] = useState(post.reactions);
   const [bookmarked, setBookmarked] = useState(Boolean(post.bookmarked));
   const [myReaction, setMyReaction] = useState<string | null>(post.viewerReaction);
@@ -87,44 +101,88 @@ export function PostCard({
 
   async function react(emoji: string) {
     setShowPicker(false);
-    const res = await fetch(`/api/posts/${post.id}/react`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ emoji }),
-    });
-    if (!res.ok) return;
-    const data = await res.json();
-    setReactions(data.reactions);
-    setMyReaction(data.viewerReaction);
+    try {
+      const data = await apiFetch<{ reactions: typeof reactions; viewerReaction: string | null }>(`/api/posts/${post.id}/react`, {
+        method: "POST",
+        body: { emoji },
+      });
+      setReactions(data.reactions);
+      setMyReaction(data.viewerReaction);
+    } catch (err) {
+      const { retryResult } = await _handleApiError(err, "react to the post", false, true, () =>
+        apiFetch<{ reactions: typeof reactions; viewerReaction: string | null }>(`/api/posts/${post.id}/react`, {
+          method: "POST",
+          body: { emoji },
+        }),
+      );
+      if (retryResult) {
+        setReactions((retryResult as { reactions: typeof reactions }).reactions);
+        setMyReaction((retryResult as { viewerReaction: string | null }).viewerReaction);
+      }
+    }
   }
 
   async function loadComments() {
     setShowComments((v) => !v);
     if (!comments) {
-      const res = await fetch(`/api/posts/${post.id}/comments`);
-      if (res.ok) setComments(await res.json());
+      try {
+        setComments(await apiFetch<CommentT[]>(`/api/posts/${post.id}/comments`));
+      } catch (err) {
+        await handleApiError(err, "load comments", true);
+      }
     }
   }
 
   async function submitComment() {
     const content = commentInput.trim();
     if (!content) return;
-    const res = await fetch(`/api/posts/${post.id}/comments`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content }),
-    });
-    if (!res.ok) return;
-    const comment = await res.json();
-    setComments((prev) => [...(prev ?? []), comment]);
-    setCommentInput("");
-    setCommentCount((c) => c + 1);
+    try {
+      const comment = await apiFetch<CommentT>(`/api/posts/${post.id}/comments`, {
+        method: "POST",
+        body: { content },
+      });
+      setComments((prev) => [...(prev ?? []), comment]);
+      setCommentInput("");
+      setCommentCount((c) => c + 1);
+    } catch (err) {
+      const { retryResult } = await _handleApiError(err, "comment on the post", false, true, () =>
+        apiFetch<CommentT>(`/api/posts/${post.id}/comments`, {
+          method: "POST",
+          body: { content },
+        }),
+      );
+      if (retryResult) {
+        setComments((prev) => [...(prev ?? []), retryResult as CommentT]);
+        setCommentInput("");
+        setCommentCount((c) => c + 1);
+      }
+    }
   }
 
   async function removePost() {
     if (!confirm("Delete this post?")) return;
-    const res = await fetch(`/api/posts/${post.id}`, { method: "DELETE" });
-    if (res.ok) onDeleted?.(post.id);
+    try {
+      await apiFetch(`/api/posts/${post.id}`, { method: "DELETE" });
+      onDeleted?.(post.id);
+    } catch (err) {
+      await _handleApiError(err, "delete the post");
+    }
+  }
+
+  async function boostPost() {
+    if (!post.page) return;
+    setBoosting(true);
+    try {
+      const res = await apiFetch<{ boostedUntil: string }>(
+        `/api/pages/${post.page.id}/posts/${post.id}/boost`,
+        { method: "POST" }
+      );
+      onEdited?.({ ...post, boostedUntil: res.boostedUntil });
+      toast.success(tBoost("boostDone"));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : tBoost("boostFailed"));
+    }
+    setBoosting(false);
   }
 
   async function saveEdit() {
@@ -134,25 +192,42 @@ export function PostCard({
       setEditingDraft(content);
       return;
     }
-    const res = await fetch(`/api/posts/${post.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content: next }),
-    });
-    if (!res.ok) return;
-    const updated = await res.json();
-    setContent(updated.content);
-    setEditing(false);
-    onEdited?.(updated);
+    try {
+      const updated = await apiFetch<FeedPost>(`/api/posts/${post.id}`, {
+        method: "PATCH",
+        body: { content: next },
+      });
+      setContent(updated.content);
+      setEditing(false);
+      onEdited?.(updated);
+    } catch (err) {
+      const { retryResult } = await _handleApiError(err, "save your edit", false, true, () =>
+        apiFetch<FeedPost>(`/api/posts/${post.id}`, {
+          method: "PATCH",
+          body: { content: next },
+        }),
+      );
+      if (retryResult) {
+        setContent((retryResult as FeedPost).content);
+        setEditing(false);
+        onEdited?.(retryResult as FeedPost);
+      }
+    }
   }
 
   const totalReactions = reactions.reduce((sum, r) => sum + r.count, 0);
 
   async function toggleBookmark() {
-    const res = await fetch(`/api/posts/${post.id}/bookmark`, { method: "POST" });
-    if (res.ok) {
-      const { bookmarked: saved } = await res.json();
+    try {
+      const { bookmarked: saved } = await apiFetch<{ bookmarked: boolean }>(`/api/posts/${post.id}/bookmark`, { method: "POST" });
       setBookmarked(saved);
+    } catch (err) {
+      const { retryResult } = await _handleApiError(err, "save the post", false, true, () =>
+        apiFetch<{ bookmarked: boolean }>(`/api/posts/${post.id}/bookmark`, { method: "POST" }),
+      );
+      if (retryResult !== undefined) {
+        setBookmarked((retryResult as { bookmarked: boolean }).bookmarked);
+      }
     }
   }
 
@@ -163,14 +238,32 @@ export function PostCard({
           📌 Pinned
         </p>
       )}
+      {post.boostedUntil && new Date(post.boostedUntil) > new Date() && (
+        <p className="px-4 pt-3 text-xs font-semibold text-gold-600 dark:text-gold-400 flex items-center gap-1">
+          🚀 Boosted
+        </p>
+      )}
       <div className="flex items-center gap-3 p-4 pb-2">
-        <Link href={`/profile/${post.author.id}`}>
-          <Avatar user={post.author} size={44} />
-        </Link>
-        <div className="flex-1 min-w-0">
-          <Link href={`/profile/${post.author.id}`} className="font-semibold hover:underline truncate block">
-            {post.author.name || post.author.username || "Anonymous"}
+        {post.page ? (
+          <Link href={`/pages/${post.page.username}`}>
+            <Avatar user={{ name: post.page.name, image: post.page.image }} size={44} />
           </Link>
+        ) : (
+          <Link href={`/profile/${post.author.id}`}>
+            <Avatar user={post.author} size={44} />
+          </Link>
+        )}
+        <div className="flex-1 min-w-0">
+          {post.page ? (
+            <Link href={`/pages/${post.page.username}`} className="font-semibold hover:underline truncate block inline-flex items-center gap-1">
+              {post.page.name}
+              <BadgeCheck size={14} className="text-gold-500 shrink-0" />
+            </Link>
+          ) : (
+            <Link href={`/profile/${post.author.id}`} className="font-semibold hover:underline truncate block">
+              {post.author.name || post.author.username || "Anonymous"}
+            </Link>
+          )}
           <p className="text-xs text-gray-400 flex items-center gap-1.5 flex-wrap">
             {timeAgo(post.createdAt)}
             {post.author.username ? ` · @${post.author.username}` : ""}
@@ -234,6 +327,19 @@ export function PostCard({
             <button onClick={removePost} aria-label="Delete post" className="text-gray-300 hover:text-red-500 px-2 text-lg" title="Delete post">            ×
             </button>
           </>
+        )}
+        {post.page && pageViewerRole && meId && (
+          <button
+            onClick={boostPost}
+            disabled={boosting || isBoosted}
+            aria-label={isBoosted ? tBoost("boostActive") : tBoost("boost")}
+            title={tBoost("boostHint")}
+            className={`px-2 text-sm transition-colors ${
+              isBoosted ? "text-gold-500" : "text-gray-300 hover:text-gold-500"
+            }`}
+          >
+            🚀
+          </button>
         )}
         {meId && meId !== post.author.id && (
           <ReportButton targetType="POST" targetId={post.id} />
@@ -334,10 +440,12 @@ export function PostCard({
                 {meId === c.author.id && (
                   <button
                     onClick={async () => {
-                      const res = await fetch(`/api/comments/${c.id}`, { method: "DELETE" });
-                      if (res.ok) {
+                      try {
+                        await apiFetch(`/api/comments/${c.id}`, { method: "DELETE" });
                         setComments((prev) => (prev ?? []).filter((x) => x.id !== c.id));
                         setCommentCount((n) => n - 1);
+                      } catch (err) {
+                        await _handleApiError(err, "delete your comment");
                       }
                     }}
                     aria-label="Delete comment"

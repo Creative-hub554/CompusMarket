@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { apiFetch, handleApiError } from "@/lib/apiFetch";
+import { useHandleApiError } from "@/lib/useHandleApiError";
 
 export function FollowButton({
   userId,
@@ -19,6 +21,7 @@ export function FollowButton({
   size?: "sm" | "md";
 }) {
   const t = useTranslations("profile");
+  const _handleApiError = useHandleApiError();
   const [following, setFollowing] = useState(initialFollowing);
   const [requested, setRequested] = useState(initialRequested);
   const [busy, setBusy] = useState(false);
@@ -30,11 +33,9 @@ export function FollowButton({
   async function toggle() {
     setBusy(true);
     try {
-      const res = await fetch(`/api/users/${userId}/follow`, {
+      const body = await apiFetch<{ state?: string } | null>(`/api/users/${userId}/follow`, {
         method: active ? "DELETE" : "POST",
       });
-      if (!res.ok) return;
-      const body = await res.json().catch(() => null);
       if (active) {
         setFollowing(false);
         setRequested(false);
@@ -44,6 +45,25 @@ export function FollowButton({
         setFollowing(!next);
         setRequested(next);
         onChange?.({ following: !next, requested: next });
+      }
+    } catch (err) {
+      const { retryResult } = await _handleApiError(err, "follow this user", false, true, () =>
+        apiFetch<{ state?: string } | null>(`/api/users/${userId}/follow`, {
+          method: active ? "DELETE" : "POST",
+        }),
+      );
+      if (retryResult !== null) {
+        const body = retryResult as { state?: string } | null;
+        if (active) {
+          setFollowing(false);
+          setRequested(false);
+          onChange?.({ following: false, requested: false });
+        } else {
+          const next = body?.state === "requested";
+          setFollowing(!next);
+          setRequested(next);
+          onChange?.({ following: !next, requested: next });
+        }
       }
     } finally {
       setBusy(false);

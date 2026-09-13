@@ -38,8 +38,7 @@ export default function NoteEditorPage() {
   const loadedRef = useRef(false);
 
   useEffect(() => {
-    authedFetch(`/api/notes/${id}`)
-      .then((r) => r.json())
+    authedFetch<NoteData>(`/api/notes/${id}`)
       .then((data) => {
         setNote(data);
         setTitle(data.title);
@@ -56,8 +55,7 @@ export default function NoteEditorPage() {
     try {
       await authedFetch(`/api/notes/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, content: contentRef.current, tags }),
+        body: { title, content: contentRef.current, tags },
       });
       setLastSaved(new Date());
       setDirty(false);

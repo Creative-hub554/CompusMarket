@@ -1,12 +1,14 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { SocialController } from "./social.controller";
 import { PostsService } from "./posts.service";
 import { FollowsService } from "./follows.service";
 import { StoriesService } from "./stories.service";
 import { ProfilesService } from "./profiles.service";
 import { NotificationsService } from "./notifications.service";
+import { PagesModule } from "../pages/pages.module";
 
 @Module({
+  imports: [forwardRef(() => PagesModule)],
   controllers: [SocialController],
   providers: [PostsService, FollowsService, StoriesService, ProfilesService, NotificationsService],
   exports: [NotificationsService, PostsService],

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { apiFetch, handleApiError } from "@/lib/apiFetch";
 
 type CartProduct = {
   id: string;
@@ -34,12 +35,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
   fetchCart: async () => {
     set({ loading: true });
     try {
-      const res = await fetch("/api/cart");
-      if (!res.ok) {
-        set({ items: [], loading: false, initialized: true });
-        return;
-      }
-      const cart = await res.json();
+      const cart = await apiFetch<{ items?: CartItem[] }>("/api/cart");
       set({ items: cart.items || [], loading: false, initialized: true });
     } catch {
       set({ items: [], loading: false, initialized: true });
@@ -47,31 +43,64 @@ export const useCartStore = create<CartStore>((set, get) => ({
   },
 
   addItem: async (productId: string, quantity = 1) => {
-    const res = await fetch("/api/cart", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ productId, quantity }),
-    });
-    if (!res.ok) throw new Error("Failed to add item");
-    await get().fetchCart();
+    try {
+      await apiFetch("/api/cart", {
+        method: "POST",
+        body: { productId, quantity },
+      });
+      await get().fetchCart();
+    } catch (err) {
+      const { retryResult } = await handleApiError(err, "add the item to your cart", false, true, () =>
+        apiFetch("/api/cart", { method: "POST", body: { productId, quantity } }),
+      );
+      if (retryResult !== undefined) {
+        await get().fetchCart();
+      }
+    }
   },
 
   updateQuantity: async (itemId: string, quantity: number) => {
-    await fetch(`/api/cart/items/${itemId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ quantity }),
-    });
-    await get().fetchCart();
+    try {
+      await apiFetch(`/api/cart/items/${itemId}`, {
+        method: "PATCH",
+        body: { quantity },
+      });
+      await get().fetchCart();
+    } catch (err) {
+      const { retryResult } = await handleApiError(err, "update the item quantity", false, true, () =>
+        apiFetch(`/api/cart/items/${itemId}`, { method: "PATCH", body: { quantity } }),
+      );
+      if (retryResult !== undefined) {
+        await get().fetchCart();
+      }
+    }
   },
 
   removeItem: async (itemId: string) => {
-    await fetch(`/api/cart/items/${itemId}`, { method: "DELETE" });
-    await get().fetchCart();
+    try {
+      await apiFetch(`/api/cart/items/${itemId}`, { method: "DELETE" });
+      await get().fetchCart();
+    } catch (err) {
+      const { retryResult } = await handleApiError(err, "remove the item from your cart", false, true, () =>
+        apiFetch(`/api/cart/items/${itemId}`, { method: "DELETE" }),
+      );
+      if (retryResult !== undefined) {
+        await get().fetchCart();
+      }
+    }
   },
 
   clearCart: async () => {
-    await fetch("/api/cart", { method: "DELETE" });
-    set({ items: [] });
+    try {
+      await apiFetch("/api/cart", { method: "DELETE" });
+      set({ items: [] });
+    } catch (err) {
+      const { retryResult } = await handleApiError(err, "clear your cart", false, true, () =>
+        apiFetch("/api/cart", { method: "DELETE" }),
+      );
+      if (retryResult !== undefined) {
+        set({ items: [] });
+      }
+    }
   },
 }));

@@ -2,7 +2,7 @@ import { Prisma } from "@theo/database";
 
 export type CloseReportOpts = {
   tx: Prisma.TransactionClient;
-  targetType: "USER" | "POST" | "COMMENT" | "PRODUCT";
+  targetType: "USER" | "POST" | "COMMENT" | "PRODUCT" | "PAGE";
   targetId: string;
   resolvedById: string;
   notes: string | null;

@@ -71,8 +71,7 @@ export default function QuizDetailPage() {
 
   const loadQuiz = useCallback(async () => {
     try {
-      const res = await authedFetch(`/api/quizzes/${id}`);
-      const data = await res.json();
+      const data = await authedFetch<QuizData>(`/api/quizzes/${id}`);
       setQuiz(data);
       setQuestions(data.questions || []);
       setNewTitle(data.title);
@@ -92,12 +91,11 @@ export default function QuizDetailPage() {
     try {
       await authedFetch(`/api/quizzes/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: {
           title: newTitle,
           description: newDesc,
           public: isPublic,
-        }),
+        },
       });
       setEditingTitle(false);
       loadQuiz();
@@ -128,15 +126,14 @@ export default function QuizDetailPage() {
     try {
       await authedFetch(`/api/quizzes/${id}/questions`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: {
           type: qType,
           question: qText,
           options,
           correctAnswer: qAnswer,
           points: 1,
           order: questions.length,
-        }),
+        },
       });
       setQText("");
       setQOptions("");
@@ -159,8 +156,7 @@ export default function QuizDetailPage() {
 
   async function loadAttempts() {
     try {
-      const res = await authedFetch(`/api/quizzes/${id}/attempts`);
-      setAttempts(await res.json());
+      setAttempts(await authedFetch<AttemptData[]>(`/api/quizzes/${id}/attempts`));
       setShowAttempts(!showAttempts);
     } catch (err) {
       console.error("Failed to load attempts:", err);
@@ -169,10 +165,9 @@ export default function QuizDetailPage() {
 
   async function startQuiz() {
     try {
-      const res = await authedFetch(`/api/quizzes/${id}/attempts`, {
+      const attempt = await authedFetch<{ id: string }>(`/api/quizzes/${id}/attempts`, {
         method: "POST",
       });
-      const attempt = await res.json();
       setAttemptId(attempt.id);
       setMode("take");
     } catch (err) {
@@ -185,8 +180,7 @@ export default function QuizDetailPage() {
     try {
       await authedFetch(`/api/quizzes/attempts/${attemptId}/answers`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ questionId, answer: answers[questionId] }),
+        body: { questionId, answer: answers[questionId] },
       });
     } catch (err) {
       console.error("Failed to submit answer:", err);
@@ -200,11 +194,10 @@ export default function QuizDetailPage() {
       for (const q of questions) {
         if (answers[q.id]) await submitAnswer(q.id);
       }
-      const res = await authedFetch(
+      const data = await authedFetch<ResultData>(
         `/api/quizzes/attempts/${attemptId}/complete`,
         { method: "POST" },
       );
-      const data = await res.json();
       setResult(data);
       setMode("result");
     } catch (err) {

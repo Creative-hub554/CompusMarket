@@ -1,0 +1,120 @@
+# Local overrides for the canonical full stack (`docker compose up`).
+#
+# This file is loaded AUTOMATICALLY by docker compose — root compose.yaml is
+# the ONLY place where the stack and its secrets are defined (docker/.env).
+# Do not create a second copy of this stack anywhere else (a stale copy in a
+# worktree with its own .env caused a credential drift outage on 2026-09-09).
+#
+# What it changes vs compose.yaml:
+#   Infra published on 127.0.0.1 for host-side development (Prisma CLI,
+#   Studio, psql, tests) so no separate infra stack is ever needed.
+#
+#   Adds local monitoring (docker compose --profile monitoring up -d):
+#     Grafana    http://localhost:3002   (admin / GRAFANA_ADMIN_PASSWORD)
+#     Prometheus http://localhost:9090   (localhost only)
+#   fed by the host metrics server (scripts/metrics-server.mjs, 127.0.0.1:9701)
+#   which serves champey_* stack-health gauges written by
+#   scripts/health-check.mjs --metrics-out.
+#
+# History: 2026-09-09 the storefront was moved to host port 3010 because a
+# zombie Docker Desktop Kubernetes mirror of compose publications held port
+# 3000 inside the docker-desktop VM. Root cause fixed the same day (zombie
+# k8s services deleted; port 3000 reclaimed). If 3000 ever wedges again:
+#   kubectl get svc -A            # look for *-published services
+#   kubectl delete svc <name> -n <ns>
+
+services:
+  postgres:
+    ports: !override
+      - "127.0.0.1:5432:5432"
+
+  redis:
+    ports: !override
+      - "127.0.0.1:6379:6379"
+
+  meilisearch:
+    ports: !override
+      - "127.0.0.1:7700:7700"
+
+  minio:
+    ports: !override
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+
+  # ---- Monitoring (--profile monitoring) --------------------------------
+  # Mirrors docker/compose.prod.yml's monitoring profile with two local
+  # differences:
+  #   - scrapes the HOST metrics feed (host.docker.internal:9701) that
+  #     start.bat stack / Task Scheduler keep fresh;
+  #   - postgres-exporter reads its DSN from output/metrics-dsn.txt (mounted
+  #     ro) because this exporter version has no DATA_SOURCE_NAME_FILE
+  #     support and we do NOT duplicate POSTGRES_PASSWORD into env-var
+  #     interpolation copies. scripts/metrics-server.mjs (re)writes that
+  #     file from docker/.env; after a password rotation run
+  #     `docker compose up -d --force-recreate postgres-exporter` once.
+
+  prometheus:
+    profiles: ["monitoring"]
+    image: prom/prometheus:v2.53.1
+    restart: unless-stopped
+    volumes:
+      - ./docker/prometheus/prometheus.local.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    secrets:
+      - metrics-token
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - backend
+    expose:
+      - "9090"
+    ports:
+      - "127.0.0.1:9090:9090"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9090/-/healthy >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  grafana:
+    profiles: ["monitoring"]
+    image: grafana/grafana:11.3.0
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    ports:
+      - "127.0.0.1:${GRAFANA_PORT:-3002}:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  postgres-exporter:
+    profiles: ["monitoring"]
+    image: prometheuscommunity/postgres-exporter:v0.15.0
+    restart: unless-stopped
+    environment:
+      DATA_SOURCE_NAME_FILE: /run/dsn
+    volumes:
+      - ./output/metrics-dsn.txt:/run/dsn:ro
+    depends_on:
+      - postgres
+    expose:
+      - "9187"
+
+secrets:
+  metrics-token:
+    environment: METRICS_TOKEN
+
+volumes:
+  prometheus_data:
+  grafana_data:

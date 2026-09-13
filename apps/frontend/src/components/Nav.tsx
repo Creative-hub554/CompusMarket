@@ -11,6 +11,8 @@ import { ThemeToggle } from "./ThemeToggle";
 import { NotificationsBell } from "./social/NotificationsBell";
 import { Avatar } from "./social/Avatar";
 import { useCartStore } from "@/stores/cart";
+import { Button } from "@theo/ui";
+import { apiFetch, handleApiError } from "@/lib/apiFetch";
 
 function CartBadge({ count }: { count: number }) {
   if (count <= 0) return null;
@@ -59,9 +61,8 @@ export function Nav() {
     if (!session?.user?.id) return;
     let active = true;
     const poll = () => {
-      fetch("/api/threads")
-        .then((r) => (r.ok ? r.json() : []))
-        .then((threads: { unreadCount: number }[]) => {
+      apiFetch<{ unreadCount: number }[]>("/api/threads")
+        .then((threads) => {
           if (active) {
             setMsgUnread(
               Array.isArray(threads)
@@ -70,7 +71,7 @@ export function Nav() {
             );
           }
         })
-        .catch(() => {});
+        .catch((err) => handleApiError(err, "load unread message count", true));
     };
     poll();
     const timer = setInterval(poll, 45000);

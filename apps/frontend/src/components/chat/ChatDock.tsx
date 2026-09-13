@@ -14,6 +14,7 @@ import { Minus, Send, X } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Avatar } from "@/components/social/Avatar";
 import { timeAgo, useAuthSocket } from "@/lib/social";
+import { apiFetch, handleApiError } from "@/lib/apiFetch";
 
 type Participant = {
   id: string;
@@ -106,20 +107,20 @@ export function ChatDockProvider({ children }: { children?: React.ReactNode }) {
       socketRef.current?.emit("joinThread", { threadId });
       socketRef.current?.emit("markAsRead", { threadId });
       if (!existing) {
-        fetch(`/api/threads/${threadId}/messages`)
-          .then((r) => r.json())
+        apiFetch<{ items?: ChatMessage[] }>(`/api/threads/${threadId}/messages`)
           .then((data) => {
-            if (Array.isArray(data?.items)) {
+            const items = data?.items;
+            if (Array.isArray(items)) {
               setChats((prev) =>
                 prev.map((c) =>
                   c.threadId === threadId
-                    ? { ...c, messages: [...data.items].reverse() }
+                    ? { ...c, messages: [...items].reverse() }
                     : c
                 )
               );
             }
           })
-          .catch(() => {});
+          .catch((err) => handleApiError(err, "load conversation history", true));
       }
     },
     [socketRef, upsertChat]
@@ -129,14 +130,12 @@ export function ChatDockProvider({ children }: { children?: React.ReactNode }) {
   const openWithUser = useCallback(
     (user: Participant) => {
       if (!user.id || user.id === meId) return;
-      fetch("/api/threads", {
+      apiFetch<{ id: string }>("/api/threads", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id }),
+        body: { userId: user.id },
       })
-        .then((r) => r.json())
-        .then(({ id }: { id: string }) => openByThreadId(id, user))
-        .catch(() => {});
+        .then(({ id }) => openByThreadId(id, user))
+        .catch((err) => handleApiError(err, "start a conversation"));
     },
     [meId, openByThreadId]
   );
@@ -144,13 +143,12 @@ export function ChatDockProvider({ children }: { children?: React.ReactNode }) {
   // Thread metadata cache (for mapping incoming messages → participants).
   useEffect(() => {
     if (!meId) return;
-    fetch("/api/threads")
-      .then((r) => r.json())
-      .then((list: ThreadMeta[]) => {
+    apiFetch<ThreadMeta[]>("/api/threads")
+      .then((list) => {
         if (!Array.isArray(list)) return;
         threadsRef.current = new Map(list.map((t) => [t.id, t]));
       })
-      .catch(() => {});
+      .catch((err) => handleApiError(err, "load conversations", true));
   }, [meId]);
 
   useEffect(() => {
@@ -217,13 +215,12 @@ export function ChatDockProvider({ children }: { children?: React.ReactNode }) {
       socket.emit("markAsRead", { threadId: msg.threadId });
       if (!meta) {
         // Unknown thread: refresh cache so later messages resolve properly.
-        fetch("/api/threads")
-          .then((r) => r.json())
-          .then((list: ThreadMeta[]) => {
+        apiFetch<ThreadMeta[]>("/api/threads")
+          .then((list) => {
             if (Array.isArray(list))
               threadsRef.current = new Map(list.map((t) => [t.id, t]));
           })
-          .catch(() => {});
+          .catch((err) => handleApiError(err, "refresh conversation list", true));
       }
     });
 
@@ -427,12 +424,11 @@ export function OnlineContacts() {
     if (!session?.user?.id) return;
     let active = true;
     const load = () =>
-      fetch("/api/threads/online")
-        .then((r) => r.json())
+      apiFetch<OnlineContact[]>("/api/threads/online")
         .then((data) => {
           if (active && Array.isArray(data)) setContacts(data);
         })
-        .catch(() => {})
+        .catch((err) => handleApiError(err, "load online contacts", true))
         .finally(() => {
           if (active) setLoading(false);
         });

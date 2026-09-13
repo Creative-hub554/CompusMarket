@@ -5,6 +5,8 @@ import { toast } from "@/components/ui/toast";
 import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
+import { apiFetch, handleApiError } from "@/lib/apiFetch";
+import { useHandleApiError } from "@/lib/useHandleApiError";
 
 export function ChatWithSellerButton({
   sellerId,
@@ -15,6 +17,7 @@ export function ChatWithSellerButton({
 }) {
   const { data: session } = useSession();
   const router = useRouter();
+  const _handleApiError = useHandleApiError();
   const [loading, setLoading] = useState(false);
 
   async function handleChat() {
@@ -24,16 +27,21 @@ export function ChatWithSellerButton({
     }
     setLoading(true);
     try {
-      const res = await fetch("/api/threads", {
+      const thread = await apiFetch<{ id: string }>("/api/threads", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sellerId, productId }),
+        body: { sellerId, productId },
       });
-      if (!res.ok) throw new Error("Failed");
-      const thread = await res.json();
       router.push(`/messages/${thread.id}`);
-    } catch {
-      toast.error("Failed to start conversation");
+    } catch (err) {
+      const { retryResult } = await _handleApiError(err, "start a conversation with the seller", false, true, () =>
+        apiFetch<{ id: string }>("/api/threads", {
+          method: "POST",
+          body: { sellerId, productId },
+        }),
+      );
+      if (retryResult) {
+        router.push(`/messages/${(retryResult as { id: string }).id}`);
+      }
     }
     setLoading(false);
   }

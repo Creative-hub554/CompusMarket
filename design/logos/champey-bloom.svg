@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <title>Champey Bloom — five coral petals around a gold core</title>
+  <defs>
+    <linearGradient id="petal" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#ff6b5e"/>
+      <stop offset="1" stop-color="#ff9a3d"/>
+    </linearGradient>
+    <radialGradient id="core" cx="0.35" cy="0.35" r="0.9">
+      <stop offset="0" stop-color="#ffe08a"/>
+      <stop offset="0.6" stop-color="#f7c948"/>
+      <stop offset="1" stop-color="#e0a428"/>
+    </radialGradient>
+  </defs>
+  <g transform="translate(64 68)">
+    <g id="flower">
+      <g transform="rotate(0)"><path d="M0 -18 C 12 -32 13 -56 0 -72 C -13 -56 -12 -32 0 -18 Z" fill="url(#petal)"/></g>
+      <g transform="rotate(72)"><path d="M0 -18 C 12 -32 13 -56 0 -72 C -13 -56 -12 -32 0 -18 Z" fill="url(#petal)"/></g>
+      <g transform="rotate(144)"><path d="M0 -18 C 12 -32 13 -56 0 -72 C -13 -56 -12 -32 0 -18 Z" fill="url(#petal)"/></g>
+      <g transform="rotate(216)"><path d="M0 -18 C 12 -32 13 -56 0 -72 C -13 -56 -12 -32 0 -18 Z" fill="url(#petal)"/></g>
+      <g transform="rotate(288)"><path d="M0 -18 C 12 -32 13 -56 0 -72 C -13 -56 -12 -32 0 -18 Z" fill="url(#petal)"/></g>
+      <circle r="9.5" fill="url(#core)"/>
+    </g>
+  </g>
+</svg>

@@ -88,4 +88,40 @@ export class NotificationsService {
       data: { readAt: new Date() },
     });
   }
+
+  /**
+   * Fan out PAGE_POST notifications to every follower of a page (except the
+   * acting staff member). Intended to be called fire-and-forget from
+   * PostsService.create() so the post-creation response is not blocked by
+   * O(followers) notification writes.
+   */
+  async notifyPagePostFollowers(
+    pageId: string,
+    actorId: string
+  ): Promise<void> {
+    const [followers, page] = await Promise.all([
+      this.prisma.pageFollow.findMany({
+        where: { pageId, userId: { not: actorId } },
+        select: { userId: true },
+        take: 500,
+      }),
+      this.prisma.page.findUnique({
+        where: { id: pageId },
+        select: { name: true },
+      }),
+    ]);
+    if (!page || followers.length === 0) return;
+
+    await Promise.allSettled(
+      followers.map((f) =>
+        this.notify({
+          userId: f.userId,
+          actorId,
+          kind: "PAGE_POST",
+          entityId: pageId,
+          message: page.name,
+        })
+      )
+    );
+  }
 }

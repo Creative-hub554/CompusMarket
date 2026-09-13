@@ -34,19 +34,9 @@ export type JobApplication = {
   job?: Job;
 };
 
-const API = "/api/jobs";
+import { apiFetch } from "@/lib/apiFetch";
 
-async function fetchJson<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API}${path}`, {
-    headers: { "Content-Type": "application/json", ...(options?.headers || {}) },
-    ...options,
-  });
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.message || `Request failed: ${res.status}`);
-  }
-  return res.json();
-}
+const API = "/api/jobs";
 
 export const jobsApi = {
   list: (params: Record<string, string | undefined> = {}) => {
@@ -54,13 +44,13 @@ export const jobsApi = {
     Object.entries(params).forEach(([k, v]) => {
       if (v) qs.set(k, v);
     });
-    return fetchJson<Job[]>(`/?${qs.toString()}`);
+    return apiFetch<Job[]>(`${API}?${qs.toString()}`);
   },
-  byId: (id: string) => fetchJson<Job>(`/${id}`),
+  byId: (id: string) => apiFetch<Job>(`${API}/${id}`),
   create: (data: Record<string, unknown>) =>
-    fetchJson<Job>("", { method: "POST", body: JSON.stringify(data) }),
+    apiFetch<Job>(API, { method: "POST", body: data }),
   apply: (id: string, data: Record<string, unknown>) =>
-    fetchJson(`/${id}/apply`, { method: "POST", body: JSON.stringify(data) }),
-  myApplications: () => fetchJson<JobApplication[]>("/my-applications"),
-  applicants: (id: string) => fetchJson<JobApplication[]>(`/${id}/applicants`),
+    apiFetch(`${API}/${id}/apply`, { method: "POST", body: data }),
+  myApplications: () => apiFetch<JobApplication[]>(`${API}/my-applications`),
+  applicants: (id: string) => apiFetch<JobApplication[]>(`${API}/${id}/applicants`),
 };

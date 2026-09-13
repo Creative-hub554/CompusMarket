@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { Link } from "@/i18n/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
+import { apiFetch } from "@/lib/apiFetch";
+import { RequireAuth } from "@/components/RequireAuth";
 
 export default function SellerNewProductPage() {
   const { data: session } = useSession();
@@ -26,32 +27,22 @@ export default function SellerNewProductPage() {
   const [accountType, setAccountType] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/categories")
-      .then((r) => r.json())
-      .then(setCategories);
+    apiFetch<{ id: string; name: string }[]>("/api/categories")
+      .then(setCategories)
+      .catch(() => {});
 
-    fetch("/api/seller/apply")
-      .then((r) => r.json())
+    apiFetch<any>("/api/seller/apply")
       .then((data) => {
         if (data?.id && data.verificationStatus === "APPROVED") {
           setProductCount(data._count?.products || 0);
           setAccountType(data.accountType);
         }
-      });
+      })
+      .catch(() => {});
   }, []);
 
   if (!session) {
-    return (
-      <div className="max-w-xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
-        <Link
-          href="/login"
-          className="text-gold-600 font-medium hover:underline"
-        >
-          Go to Login
-        </Link>
-      </div>
-    );
+    return <RequireAuth />;
   }
 
   const maxProducts = accountType === "BUSINESS" ? 10 : 5;
@@ -78,12 +69,10 @@ export default function SellerNewProductPage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch("/api/upload", {
+      const data = await apiFetch<{ url: string }>("/api/upload", {
         method: "POST",
         body: formData,
       });
-      if (!res.ok) throw new Error("Upload failed");
-      const data = await res.json();
       setImages((prev) => [...prev, data.url]);
     } catch {
       setError("Upload failed");
@@ -95,10 +84,9 @@ export default function SellerNewProductPage() {
     setSubmitting(true);
     setError("");
     try {
-      const res = await fetch("/api/products", {
+      await apiFetch("/api/products", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: {
           name,
           description,
           price: parseFloat(price),
@@ -106,12 +94,8 @@ export default function SellerNewProductPage() {
           categoryId,
           stock: parseInt(stock),
           images,
-        }),
+        },
       });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to create product");
-      }
       router.push("/seller/dashboard");
     } catch (e: any) {
       setError(e.message);
