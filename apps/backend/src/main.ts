@@ -1,6 +1,8 @@
 import { config } from "dotenv";
 import { resolve } from "path";
-config({ path: resolve(__dirname, "../.env") });
+// override: the shell may carry a stale/unrelated DATABASE_URL (dotenv would
+// keep it), but apps/backend/.env is the single source of truth here.
+config({ path: resolve(__dirname, "../.env"), override: true });
 
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
