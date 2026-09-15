@@ -53,6 +53,12 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+    strategy:
+      fail-fast: false
+      matrix:
+        # Node 22 is the repo's pinned version (.nvmrc); 26 guards against
+        # forward-compat drift like the Node >=23 webstorage shadow.
+        node-version: [22, 26]
     steps:
       - uses: actions/checkout@v4
 
@@ -60,7 +66,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: ${{ matrix.node-version }}
           cache: pnpm
 
       - name: Install dependencies
@@ -89,7 +95,7 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 26
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
