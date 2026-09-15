@@ -5,11 +5,9 @@ kind: Kustomization
 resources:
     - ../../base
 patches:
+    - path: frontend-service.yaml
     - path: meilisearch-meili-data-persistentVolumeClaim.yaml
-    - path: meilisearch-service.yaml
     - path: minio-minio-data-persistentVolumeClaim.yaml
-    - path: minio-service.yaml
+    - path: nginx-service.yaml
     - path: postgres-pgdata-persistentVolumeClaim.yaml
-    - path: postgres-service.yaml
     - path: redis-redis-data-persistentVolumeClaim.yaml
-    - path: redis-service.yaml

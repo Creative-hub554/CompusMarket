@@ -1,0 +1,36 @@
+# Tunnel-mode override (untracked, local only).
+# 1) The base compose file omits `build.target` on the backend service,
+#    which makes Docker default to the LAST stage (db-init) - the backend
+#    would only run db push + seed and exit. Pin target: runner here.
+# 2) Publish backend 4000 and admin 3001 on the host so cloudflared can
+#    route api.champey.com / admin.champey.com directly to the apps.
+# 3) Docker injects HOSTNAME (the container id); Next.js binds to it, so
+#    the app is unreachable on 127.0.0.1 and in-container healthchecks fail.
+#    Force 0.0.0.0 and probe 127.0.0.1 (busybox wget resolves `localhost`
+#    to ::1, which nothing binds).
+services:
+  backend:
+    build:
+      target: runner
+    ports:
+      - "4000:4000"
+    environment:
+      # Allow the local dev storefront (next dev on 3002) in addition to the
+      # public tunnel origin when serving this machine.
+      CORS_ORIGIN: "https://champey.com,http://localhost:3000,http://localhost:3001,http://localhost:3002"
+  frontend:
+    environment:
+      HOSTNAME: "0.0.0.0"
+    healthcheck:
+      # No /healthz route on the frontend (locale middleware 404s it); /en/feed 200s.
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/en/feed >/dev/null 2>&1 || exit 1"]
+  admin:
+    ports:
+      - "3001:3001"
+    environment:
+      HOSTNAME: "0.0.0.0"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3001/healthz >/dev/null 2>&1 || exit 1"]
+  nginx:
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/healthz >/dev/null 2>&1 || exit 1"]

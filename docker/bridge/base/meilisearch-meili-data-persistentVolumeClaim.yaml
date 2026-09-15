@@ -4,7 +4,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
     name: meilisearch-meili-data
-    namespace: docker
+    namespace: champey
     labels:
         com.docker.compose.service: meilisearch
         com.docker.compose.volume: meili_data

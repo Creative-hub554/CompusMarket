@@ -1,0 +1,92 @@
+#! backend-deployment.yaml
+# Generated code, do not edit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: backend
+    namespace: champey
+    labels:
+        com.docker.compose.project: champey
+        com.docker.compose.service: backend
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            com.docker.compose.project: champey
+            com.docker.compose.service: backend
+    strategy:
+        type: Recreate
+    template:
+        metadata:
+            labels:
+                com.docker.compose.project: champey
+                com.docker.compose.service: backend
+                com.docker.compose.network.default: "true"
+        spec:
+            restartPolicy: unless-stopped
+            containers:
+                - name: backend
+                  image: champey-backend
+                  imagePullPolicy: IfNotPresent
+                  env:
+                    - name: AI_BASE_URL
+                      value: ""
+                    - name: AI_FALLBACK_MODELS
+                      value: ""
+                    - name: AI_MODEL
+                      value: "openai/gpt-4o-mini"
+                    - name: AUTH_SECRET
+                      value: "test_auth_secret_12345678901234567890123456789012"
+                    - name: CLERK_SECRET_KEY
+                      value: "sk_test_E5v0Y6ih3Ren1sVg6kurYTTHstHLeErwquaIgB6q6f"
+                    - name: CORS_ORIGIN
+                      value: "https://champey.com,https://admin.champey.com"
+                    - name: DATABASE_URL
+                      value: "postgresql://theo:postgres@postgres:5432/theo_platform"
+                    - name: JWT_SECRET
+                      value: "af1a6dac425dac55830100478381e6ad278bab9bb047dcb29fc85dfb276102d3"
+                    - name: MEILI_API_KEY
+                      value: "test_meili_master_key_123"
+                    - name: MEILI_HOST
+                      value: "http://meilisearch:7700"
+                    - name: METRICS_ENABLED
+                      value: "true"
+                    - name: METRICS_TOKEN
+                      value: "metrics-token-change-me"
+                    - name: MINIO_ACCESS_KEY
+                      value: "admin"
+                    - name: MINIO_BUCKET
+                      value: "khmeronlineshopbytheo"
+                    - name: MINIO_ENDPOINT
+                      value: "minio"
+                    - name: MINIO_PORT
+                      value: "9000"
+                    - name: MINIO_SECRET_KEY
+                      value: "test_minio_password_123"
+                    - name: MINIO_USE_SSL
+                      value: "false"
+                    - name: NODE_ENV
+                      value: "production"
+                    - name: OPENAI_API_KEY
+                      value: "sk-or-v1-you...here"
+                    - name: OPENROUTER_API_KEY
+                      value: "PASTE_OR_KEY"
+                    - name: PORT
+                      value: "4000"
+                    - name: REDIS_URL
+                      value: "redis://:redis@redis:6379"
+                    - name: SENTRY_DSN
+                      value: ""
+                  livenessProbe:
+                    exec:
+                        command:
+                            - /bin/sh
+                            - -c
+                            - wget -qO- http://127.0.0.1:4000/api/health/live || exit 1
+                    periodSeconds: 15
+                    initialDelaySeconds: 30
+                    timeoutSeconds: 5
+                    failureThreshold: 3
+                  ports:
+                    - name: backend-4000
+                      containerPort: 4000

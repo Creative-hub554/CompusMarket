@@ -129,6 +129,7 @@ export default function FeedPage() {
 
         {/* Center: stories, composer, posts */}
         <div className="space-y-5 min-w-0">
+          <h1 className="page-title">{nav("feed")}</h1>
           <StoriesBar />
           <ErrorBoundary label="composer" fallback={({ reset }) => (
             <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)] p-4 animate-fade-in">

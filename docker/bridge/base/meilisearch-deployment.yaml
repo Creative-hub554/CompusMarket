@@ -4,22 +4,22 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
     name: meilisearch
-    namespace: docker
+    namespace: champey
     labels:
-        com.docker.compose.project: docker
+        com.docker.compose.project: champey
         com.docker.compose.service: meilisearch
 spec:
     replicas: 1
     selector:
         matchLabels:
-            com.docker.compose.project: docker
+            com.docker.compose.project: champey
             com.docker.compose.service: meilisearch
     strategy:
         type: Recreate
     template:
         metadata:
             labels:
-                com.docker.compose.project: docker
+                com.docker.compose.project: champey
                 com.docker.compose.service: meilisearch
                 com.docker.compose.network.default: "true"
         spec:
@@ -30,7 +30,15 @@ spec:
                   imagePullPolicy: IfNotPresent
                   env:
                     - name: MEILI_MASTER_KEY
-                      value: "SETDLP5ABKULmOggKGKq5otdfDuYhliOkP_7iEqtIws"
+                      value: "test_meili_master_key_123"
+                    - name: MEILI_NO_ANALYTICS
+                      value: "true"
+                  livenessProbe:
+                    exec:
+                        command: ['curl -f http://localhost:7700/health']
+                    periodSeconds: 10
+                    timeoutSeconds: 5
+                    failureThreshold: 5
                   ports:
                     - name: meilisearc-7700
                       containerPort: 7700

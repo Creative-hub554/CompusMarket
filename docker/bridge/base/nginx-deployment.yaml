@@ -1,0 +1,77 @@
+#! nginx-deployment.yaml
+# Generated code, do not edit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: nginx
+    namespace: champey
+    labels:
+        com.docker.compose.project: champey
+        com.docker.compose.service: nginx
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            com.docker.compose.project: champey
+            com.docker.compose.service: nginx
+    strategy:
+        type: Recreate
+    template:
+        metadata:
+            labels:
+                com.docker.compose.project: champey
+                com.docker.compose.service: nginx
+                com.docker.compose.network.default: "true"
+        spec:
+            restartPolicy: unless-stopped
+            containers:
+                - name: nginx
+                  image: nginx:alpine
+                  imagePullPolicy: IfNotPresent
+                  command:
+                    - /bin/sh
+                    - /docker-entrypoint.sh
+                  livenessProbe:
+                    exec:
+                        command:
+                            - /bin/sh
+                            - -c
+                            - wget -qO- http://127.0.0.1/healthz >/dev/null 2>&1 || exit 1
+                    periodSeconds: 15
+                    timeoutSeconds: 5
+                    failureThreshold: 3
+                  ports:
+                    - name: nginx-80
+                      containerPort: 80
+                    - name: nginx-443
+                      containerPort: 443
+                  volumeMounts:
+                    - name: etc-nginx-templates-default-conf
+                      mountPath: /etc/nginx/templates/default.conf
+                      readOnly: true
+                    - name: etc-nginx-templates-http-only-conf
+                      mountPath: /etc/nginx/templates/http-only.conf
+                      readOnly: true
+                    - name: etc-nginx-ssl
+                      mountPath: /etc/nginx/ssl
+                      readOnly: true
+                    - name: docker-entrypoint-sh
+                      mountPath: /docker-entrypoint.sh
+                      readOnly: true
+            volumes:
+                - name: etc-nginx-templates-default-conf
+                  hostPath:
+                    path: C:\Workspace\www.champey.com\.freebuff\worktrees\1de27e1f-b456-4105-99e4-e87b9ca5e42b\docker\nginx\default.conf
+                  readOnly: true
+                - name: etc-nginx-templates-http-only-conf
+                  hostPath:
+                    path: C:\Workspace\www.champey.com\.freebuff\worktrees\1de27e1f-b456-4105-99e4-e87b9ca5e42b\docker\nginx\http-only.conf
+                  readOnly: true
+                - name: etc-nginx-ssl
+                  hostPath:
+                    path: C:\Workspace\www.champey.com\.freebuff\worktrees\1de27e1f-b456-4105-99e4-e87b9ca5e42b\docker\nginx\ssl
+                  readOnly: true
+                - name: docker-entrypoint-sh
+                  hostPath:
+                    path: C:\Workspace\www.champey.com\.freebuff\worktrees\1de27e1f-b456-4105-99e4-e87b9ca5e42b\docker\nginx\entrypoint.sh
+                  readOnly: true
