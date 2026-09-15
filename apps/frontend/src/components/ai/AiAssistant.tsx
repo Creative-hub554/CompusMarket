@@ -82,6 +82,7 @@ export function AiAssistant() {
 
   useEffect(() => {
     try {
+      // eslint-disable-next-line no-restricted-properties -- storage access is try/catch-guarded here
       const storedLang = localStorage.getItem("aiAssistantLang") as Lang | null;
       if (storedLang && ["en", "zh", "km"].includes(storedLang)) {
         setLang(storedLang);
@@ -118,6 +119,7 @@ export function AiAssistant() {
   const changeLang = (newLang: Lang) => {
     setLang(newLang);
     try {
+      // eslint-disable-next-line no-restricted-properties -- storage access is try/catch-guarded here
       localStorage.setItem("aiAssistantLang", newLang);
     } catch {
       // Storage blocked — the preference just won't persist.
