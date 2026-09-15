@@ -24,9 +24,11 @@ const eslintConfig = [
     },
   },
   {
-    // Storage access must be wrapped in try/catch: it throws when storage is
-    // blocked (Safari private mode) or when Node >=23's experimental
-    // webstorage global shadows jsdom's storage in test environments.
+    // Storage access must go through src/common/safeStorage.ts: Node's
+    // experimental webstorage is absent on some runtimes (CI runs a Node
+    // 22/26 matrix) and can throw when disabled or over quota. New raw
+    // access fails lint; src/common/safeStorage.ts is the single exempted
+    // gateway.
     rules: {
       // NOTE: property "*" is NOT a wildcard in no-restricted-properties, so
       // the Storage methods are enumerated explicitly. window./globalThis.
@@ -50,6 +52,20 @@ const eslintConfig = [
         { object: "globalThis", property: "localStorage" },
         { object: "globalThis", property: "sessionStorage" },
       ],
+    },
+  },
+  {
+    // src/common/safeStorage.ts is the single sanctioned gateway to raw Web Storage.
+    files: ["src/common/safeStorage.ts"],
+    rules: {
+      "no-restricted-properties": "off",
+    },
+  },
+  {
+    // Tests and test setup may seed storage directly; app code may not.
+    files: ["**/*.spec.ts", "test/**"],
+    rules: {
+      "no-restricted-properties": "off",
     },
   },
 ];
