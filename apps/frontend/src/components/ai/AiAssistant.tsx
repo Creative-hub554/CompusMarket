@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { useTranslation } from "@/lib/useTranslation";
 import { useAuthedFetch } from "@/lib/useAuthedFetch";
 import { useHandleApiError } from "@/lib/useHandleApiError";
+import { safeLocalStorageGet, safeLocalStorageSet } from "@/lib/safeStorage";
 
 type Lang = "en" | "zh" | "km";
 
@@ -81,15 +82,9 @@ export function AiAssistant() {
   const _handleApiError = useHandleApiError();
 
   useEffect(() => {
-    try {
-      // eslint-disable-next-line no-restricted-properties -- storage access is try/catch-guarded here
-      const storedLang = localStorage.getItem("aiAssistantLang") as Lang | null;
-      if (storedLang && ["en", "zh", "km"].includes(storedLang)) {
-        setLang(storedLang);
-      }
-    } catch {
-      // Storage unavailable (blocked, or shadowed by Node >=23's experimental
-      // webstorage in test environments) — keep the default language.
+    const storedLang = safeLocalStorageGet("aiAssistantLang");
+    if (storedLang === "en" || storedLang === "zh" || storedLang === "km") {
+      setLang(storedLang);
     }
   }, []);
 
@@ -118,12 +113,7 @@ export function AiAssistant() {
 
   const changeLang = (newLang: Lang) => {
     setLang(newLang);
-    try {
-      // eslint-disable-next-line no-restricted-properties -- storage access is try/catch-guarded here
-      localStorage.setItem("aiAssistantLang", newLang);
-    } catch {
-      // Storage blocked — the preference just won't persist.
-    }
+    safeLocalStorageSet("aiAssistantLang", newLang);
     if (isOpen) {
       setMessages((prev) => [
         ...prev.filter((m) => m.role === "assistant" && m.products && m.products.length > 0),
