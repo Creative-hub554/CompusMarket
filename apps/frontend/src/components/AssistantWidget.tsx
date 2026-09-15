@@ -51,17 +51,26 @@ const STRINGS: Record<
   },
 };
 
+function newSessionId(): string {
+  return typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `web-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 function getSessionId(): string {
   if (typeof window === "undefined") return "web";
-  let id = window.localStorage.getItem("champeyAssistantSessionId");
-  if (!id) {
-    id =
-      typeof crypto !== "undefined" && "randomUUID" in crypto
-        ? crypto.randomUUID()
-        : `web-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    window.localStorage.setItem("champeyAssistantSessionId", id);
+  try {
+    let id = window.localStorage.getItem("champeyAssistantSessionId");
+    if (!id) {
+      id = newSessionId();
+      window.localStorage.setItem("champeyAssistantSessionId", id);
+    }
+    return id;
+  } catch {
+    // Storage unavailable (blocked, or shadowed by Node >=23's experimental
+    // webstorage in test environments) — fall back to an ephemeral id.
+    return newSessionId();
   }
-  return id;
 }
 
 const MOCK_DATA: Record<Exclude<Skill, "auto">, Record<Lang, string>> = {
@@ -106,8 +115,13 @@ export function AssistantWidget() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const stored = window.localStorage.getItem("champeyAssistantLang") as Lang | null;
-    if (stored === "en" || stored === "km") setLang(stored);
+    try {
+      const stored = window.localStorage.getItem("champeyAssistantLang") as Lang | null;
+      if (stored === "en" || stored === "km") setLang(stored);
+    } catch {
+      // Storage unavailable (blocked, or shadowed by Node >=23's experimental
+      // webstorage in test environments) — keep the default language.
+    }
   }, []);
 
   useEffect(() => {
@@ -122,7 +136,11 @@ export function AssistantWidget() {
 
   const changeLang = (next: Lang) => {
     setLang(next);
-    window.localStorage.setItem("champeyAssistantLang", next);
+    try {
+      window.localStorage.setItem("champeyAssistantLang", next);
+    } catch {
+      // Storage blocked — the preference just won't persist.
+    }
     if (isOpen) {
       setMessages((prev) => [{ role: "assistant", content: STRINGS[next].greeting }, ...prev]);
     }

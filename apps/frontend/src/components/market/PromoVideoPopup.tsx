@@ -20,8 +20,13 @@ export function PromoVideoPopup() {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && sessionStorage.getItem(DISMISS_KEY)) {
-      return;
+    try {
+      if (typeof window !== "undefined" && sessionStorage.getItem(DISMISS_KEY)) {
+        return;
+      }
+    } catch {
+      // Storage unavailable (blocked, or shadowed by Node >=23's experimental
+      // webstorage in test environments) — fall through and show the popup.
     }
 
     let active = true;

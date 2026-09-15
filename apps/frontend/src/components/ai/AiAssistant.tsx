@@ -81,9 +81,14 @@ export function AiAssistant() {
   const _handleApiError = useHandleApiError();
 
   useEffect(() => {
-    const storedLang = localStorage.getItem("aiAssistantLang") as Lang | null;
-    if (storedLang && ["en", "zh", "km"].includes(storedLang)) {
-      setLang(storedLang);
+    try {
+      const storedLang = localStorage.getItem("aiAssistantLang") as Lang | null;
+      if (storedLang && ["en", "zh", "km"].includes(storedLang)) {
+        setLang(storedLang);
+      }
+    } catch {
+      // Storage unavailable (blocked, or shadowed by Node >=23's experimental
+      // webstorage in test environments) — keep the default language.
     }
   }, []);
 
@@ -112,7 +117,11 @@ export function AiAssistant() {
 
   const changeLang = (newLang: Lang) => {
     setLang(newLang);
-    localStorage.setItem("aiAssistantLang", newLang);
+    try {
+      localStorage.setItem("aiAssistantLang", newLang);
+    } catch {
+      // Storage blocked — the preference just won't persist.
+    }
     if (isOpen) {
       setMessages((prev) => [
         ...prev.filter((m) => m.role === "assistant" && m.products && m.products.length > 0),
