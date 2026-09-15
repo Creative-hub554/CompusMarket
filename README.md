@@ -14,6 +14,10 @@ Smart commerce & community platform for Cambodia: storefront, seller marketplace
 
 ## Getting started (single canonical startup path)
 
+**Node 22 LTS** is the repo's pinned version (`.nvmrc`; `engines` allows >=22 <27 and
+`pnpm install` enforces it). CI additionally runs the suite on Node 26 to catch
+forward-compat drift early. Run `nvm use` (or `fnm use`) before installing.
+
 The Docker stack is the **only** way to run champey. Secrets live in **one** file:
 `docker/.env` (copy from `docker/.env.example`). Never duplicate this stack or
 its `.env` — a second copy with stale secrets caused the 2026-09-09 outage.
