@@ -21,6 +21,7 @@ export function PromoVideoPopup() {
 
   useEffect(() => {
     try {
+      // eslint-disable-next-line no-restricted-properties -- storage access is try/catch-guarded here
       if (typeof window !== "undefined" && sessionStorage.getItem(DISMISS_KEY)) {
         return;
       }
@@ -50,6 +51,7 @@ export function PromoVideoPopup() {
   const dismiss = () => {
     setVisible(false);
     try {
+      // eslint-disable-next-line no-restricted-properties -- storage access is try/catch-guarded here
       sessionStorage.setItem(DISMISS_KEY, "1");
     } catch {}
   };

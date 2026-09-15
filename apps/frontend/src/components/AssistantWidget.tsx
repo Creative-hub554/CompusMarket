@@ -60,9 +60,11 @@ function newSessionId(): string {
 function getSessionId(): string {
   if (typeof window === "undefined") return "web";
   try {
+    // eslint-disable-next-line no-restricted-properties -- storage access is try/catch-guarded here
     let id = window.localStorage.getItem("champeyAssistantSessionId");
     if (!id) {
       id = newSessionId();
+      // eslint-disable-next-line no-restricted-properties -- storage access is try/catch-guarded here
       window.localStorage.setItem("champeyAssistantSessionId", id);
     }
     return id;
@@ -116,6 +118,7 @@ export function AssistantWidget() {
 
   useEffect(() => {
     try {
+      // eslint-disable-next-line no-restricted-properties -- storage access is try/catch-guarded here
       const stored = window.localStorage.getItem("champeyAssistantLang") as Lang | null;
       if (stored === "en" || stored === "km") setLang(stored);
     } catch {
@@ -137,6 +140,7 @@ export function AssistantWidget() {
   const changeLang = (next: Lang) => {
     setLang(next);
     try {
+      // eslint-disable-next-line no-restricted-properties -- storage access is try/catch-guarded here
       window.localStorage.setItem("champeyAssistantLang", next);
     } catch {
       // Storage blocked — the preference just won't persist.
