@@ -7,6 +7,7 @@ import { api, type PromoProduct } from "@/services/api";
 import { useCartStore } from "@/stores/cart";
 import { handleApiError } from "@/lib/apiFetch";
 import { useHandleApiError } from "@/lib/useHandleApiError";
+import { safeSessionStorageGet, safeSessionStorageSet } from "@/lib/safeStorage";
 
 const SHOW_DELAY_MS = 5000;
 const DISMISS_KEY = "market-promo-dismissed";
@@ -20,14 +21,8 @@ export function PromoVideoPopup() {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    try {
-      // eslint-disable-next-line no-restricted-properties -- storage access is try/catch-guarded here
-      if (typeof window !== "undefined" && sessionStorage.getItem(DISMISS_KEY)) {
-        return;
-      }
-    } catch {
-      // Storage unavailable (blocked, or shadowed by Node >=23's experimental
-      // webstorage in test environments) — fall through and show the popup.
+    if (safeSessionStorageGet(DISMISS_KEY)) {
+      return;
     }
 
     let active = true;
@@ -50,10 +45,7 @@ export function PromoVideoPopup() {
 
   const dismiss = () => {
     setVisible(false);
-    try {
-      // eslint-disable-next-line no-restricted-properties -- storage access is try/catch-guarded here
-      sessionStorage.setItem(DISMISS_KEY, "1");
-    } catch {}
+    safeSessionStorageSet(DISMISS_KEY, "1");
   };
 
   const buyNow = async () => {

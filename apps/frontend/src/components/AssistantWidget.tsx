@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { apiFetch } from "@/lib/apiFetch";
+import { safeLocalStorageGet, safeLocalStorageSet } from "@/lib/safeStorage";
 
 type Lang = "en" | "km";
 type Skill = "auto" | "product_search" | "feed" | "jobs" | "resume";
@@ -59,20 +60,11 @@ function newSessionId(): string {
 
 function getSessionId(): string {
   if (typeof window === "undefined") return "web";
-  try {
-    // eslint-disable-next-line no-restricted-properties -- storage access is try/catch-guarded here
-    let id = window.localStorage.getItem("champeyAssistantSessionId");
-    if (!id) {
-      id = newSessionId();
-      // eslint-disable-next-line no-restricted-properties -- storage access is try/catch-guarded here
-      window.localStorage.setItem("champeyAssistantSessionId", id);
-    }
-    return id;
-  } catch {
-    // Storage unavailable (blocked, or shadowed by Node >=23's experimental
-    // webstorage in test environments) — fall back to an ephemeral id.
-    return newSessionId();
-  }
+  const id = safeLocalStorageGet("champeyAssistantSessionId");
+  if (id) return id;
+  const fresh = newSessionId();
+  safeLocalStorageSet("champeyAssistantSessionId", fresh);
+  return fresh;
 }
 
 const MOCK_DATA: Record<Exclude<Skill, "auto">, Record<Lang, string>> = {
@@ -117,14 +109,8 @@ export function AssistantWidget() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    try {
-      // eslint-disable-next-line no-restricted-properties -- storage access is try/catch-guarded here
-      const stored = window.localStorage.getItem("champeyAssistantLang") as Lang | null;
-      if (stored === "en" || stored === "km") setLang(stored);
-    } catch {
-      // Storage unavailable (blocked, or shadowed by Node >=23's experimental
-      // webstorage in test environments) — keep the default language.
-    }
+    const stored = safeLocalStorageGet("champeyAssistantLang");
+    if (stored === "en" || stored === "km") setLang(stored);
   }, []);
 
   useEffect(() => {
@@ -139,12 +125,7 @@ export function AssistantWidget() {
 
   const changeLang = (next: Lang) => {
     setLang(next);
-    try {
-      // eslint-disable-next-line no-restricted-properties -- storage access is try/catch-guarded here
-      window.localStorage.setItem("champeyAssistantLang", next);
-    } catch {
-      // Storage blocked — the preference just won't persist.
-    }
+    safeLocalStorageSet("champeyAssistantLang", next);
     if (isOpen) {
       setMessages((prev) => [{ role: "assistant", content: STRINGS[next].greeting }, ...prev]);
     }
