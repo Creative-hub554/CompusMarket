@@ -159,7 +159,7 @@ model User {
   accountPrivate Boolean  @default(false)
   theme         String?   @default("gold")
   credits       Int       @default(0)
-  autoReplyEnabled Boolean @default(false)
+  autoReplyEnabled Boolean  @default(false)
   autoReplyText    String?
   banReason     String?
   createdAt     DateTime  @default(now())
@@ -179,6 +179,7 @@ model User {
   warranties       Warranty[]
   sellerProfile         SellerProfile?  @relation("SellerProfileOwner")
   reviewedSellerProfiles SellerProfile[] @relation("SellerProfileReviewer")
+  inventoryMovements    InventoryMovement[] @relation("InventoryMovementActor")
   messages               Message[]
   supportTickets         SupportTicket[] @relation("CustomerTickets")
   supportMessages        SupportMessage[]
@@ -191,6 +192,8 @@ model User {
   storyViews          StoryView[]        @relation("StoryViews")
   following           Follow[]           @relation("Following")
   followers           Follow[]           @relation("Followers")
+  blocksSent          Block[]            @relation("BlocksSent")
+  blocksReceived      Block[]            @relation("BlocksReceived")
   notifications       Notification[]     @relation("Notifications")
   notificationActors  Notification[]     @relation("NotificationActors")
   threadParticipants  ThreadParticipant[]
@@ -281,6 +284,7 @@ model Product {
   qrCode         String?
   serialNumber   String?
   stock          Int      @default(1)
+  lowStockThreshold Int    @default(0)
   warrantyMonths Int?
   purchaseDate   DateTime?
   createdAt      DateTime @default(now())
@@ -294,6 +298,7 @@ model Product {
   warranties  Warranty[]
   threads     Thread[]
   supportTickets SupportTicket[]
+  inventoryMovements InventoryMovement[]
 
   @@index([categoryId])
   @@index([sellerId])
@@ -456,6 +461,25 @@ model SellerProfile {
   reviewer   User?             @relation("SellerProfileReviewer", fields: [reviewedBy], references: [id])
   documents  SellerDocument[]
   products   Product[]
+  inventoryMovements InventoryMovement[]
+}
+
+model InventoryMovement {
+  id              String   @id @default(uuid())
+  productId       String
+  sellerProfileId String
+  actorId         String
+  delta           Int
+  reason          String
+  createdAt       DateTime @default(now())
+
+  product       Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sellerProfile SellerProfile @relation(fields: [sellerProfileId], references: [id], onDelete: Cascade)
+  actor         User          @relation("InventoryMovementActor", fields: [actorId], references: [id], onDelete: NoAction)
+
+  @@index([productId, createdAt])
+  @@index([sellerProfileId, createdAt])
+  @@index([actorId, createdAt])
 }
 
 model SellerDocument {
@@ -940,6 +964,19 @@ model Comment {
   @@index([postId])
   @@index([authorId])
   @@index([parentId])
+}
+
+model Block {
+  id        String   @id @default(uuid())
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+
+  blocker User @relation("BlocksSent", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked User @relation("BlocksReceived", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+  @@index([blockedId])
 }
 
 model Follow {
