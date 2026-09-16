@@ -40,16 +40,20 @@ function forwardOrderStatus(
 export class OrdersService {
   constructor(private prisma: PrismaService) {}
   async checkout(userId: string) {
-    const cart = await this.prisma.cart.findUnique({
-      where: { userId },
-      include: { items: { include: { product: true } } },
-    });
-
-    if (!cart || cart.items.length === 0) {
-      throw new BadRequestException("Cart is empty");
-    }
-
     const [order] = await this.prisma.$transaction(async (tx) => {
+      // Serialize checkout attempts for this cart, then re-read it inside the
+      // transaction. A retry after a committed checkout sees an empty cart.
+      const currentCart = await tx.cart.findUnique({ where: { userId } });
+      if (!currentCart) throw new BadRequestException("Cart is empty");
+      await tx.$queryRaw`SELECT id FROM "Cart" WHERE "id" = ${currentCart.id} FOR UPDATE`;
+      const cart = await tx.cart.findUnique({
+        where: { userId },
+        include: { items: { include: { product: true } } },
+      });
+      if (!cart || cart.items.length === 0) {
+        throw new BadRequestException("Cart is empty");
+      }
+
       for (const item of cart.items) {
         const result = await tx.product.updateMany({
           where: { id: item.productId, stock: { gte: item.quantity } },

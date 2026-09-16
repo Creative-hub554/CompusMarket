@@ -41,6 +41,8 @@ export default function SellerEditProductPage() {
   const [status, setStatus] = useState("ACTIVE");
   const [videoUrl, setVideoUrl] = useState("");
   const [videoActive, setVideoActive] = useState(false);
+  const [initialStock, setInitialStock] = useState<number | null>(null);
+  const [stockAdjustmentReason, setStockAdjustmentReason] = useState("");
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -63,6 +65,7 @@ export default function SellerEditProductPage() {
         setStatus(product.status);
         setVideoUrl(product.videoUrl || "");
         setVideoActive(Boolean(product.videoActive));
+        setInitialStock(product.stock);
         setForm({
           name: product.name,
           description: product.description,
@@ -114,6 +117,9 @@ export default function SellerEditProductPage() {
           videoActive: Boolean(videoUrl.trim()) && videoActive,
           price: parseFloat(form.price),
           stock: parseInt(form.stock),
+          ...(initialStock !== null && parseInt(form.stock) !== initialStock
+            ? { reason: stockAdjustmentReason }
+            : {}),
           warrantyMonths: form.warrantyMonths
             ? parseInt(form.warrantyMonths)
             : undefined,
@@ -210,6 +216,21 @@ export default function SellerEditProductPage() {
               onChange={(e) => setForm({ ...form, stock: e.target.value })}
               className="mt-1 block w-full border border-slate-300 rounded px-3 py-2"
             />
+            {initialStock !== null && parseInt(form.stock) !== initialStock && (
+              <>
+                <label className="mt-2 block text-sm font-medium text-slate-700">
+                  Stock adjustment reason <span className="text-red-600">*</span>
+                </label>
+                <input
+                  value={stockAdjustmentReason}
+                  onChange={(e) => setStockAdjustmentReason(e.target.value)}
+                  maxLength={500}
+                  placeholder="e.g. Restocked from supplier"
+                  className="mt-1 block w-full border border-slate-300 rounded px-3 py-2"
+                  required
+                />
+              </>
+            )}
           </div>
         </div>
 

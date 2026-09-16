@@ -30,6 +30,7 @@ import {
 } from "./dto/social.dto";
 
 type AuthUser = { user: { userId: string; role?: string } };
+type OptionalAuthUser = { user?: { userId: string; role?: string } };
 
 @Controller()
 export class SocialController {
@@ -147,6 +148,7 @@ export class SocialController {
   }
 
 
+  @Get("profiles/username/:username")
   @UseGuards(OptionalJwtGuard)
   getProfileByUsername(@Req() req: AuthUser, @Param("username") username: string) {
     return this.profiles.getProfileByUsername(username, req.user?.userId);
@@ -183,6 +185,18 @@ export class SocialController {
     return this.follows.unfollow(req.user.userId, id);
   }
 
+  @Post("users/:id/block")
+  @UseGuards(AuthGuard("jwt"))
+  block(@Req() req: AuthUser, @Param("id") id: string) {
+    return this.follows.block(req.user.userId, id);
+  }
+
+  @Delete("users/:id/block")
+  @UseGuards(AuthGuard("jwt"))
+  unblock(@Req() req: AuthUser, @Param("id") id: string) {
+    return this.follows.unblock(req.user.userId, id);
+  }
+
   @Get("follow-requests")
   @UseGuards(AuthGuard("jwt"))
   followRequests(@Req() req: AuthUser) {
@@ -202,13 +216,15 @@ export class SocialController {
   }
 
   @Get("users/:id/followers")
-  followers(@Param("id") id: string) {
-    return this.follows.followers(id);
+  @UseGuards(OptionalJwtGuard)
+  followers(@Req() req: OptionalAuthUser, @Param("id") id: string) {
+    return this.follows.followers(id, req.user?.userId);
   }
 
   @Get("users/:id/following")
-  following(@Param("id") id: string) {
-    return this.follows.following(id);
+  @UseGuards(OptionalJwtGuard)
+  following(@Req() req: OptionalAuthUser, @Param("id") id: string) {
+    return this.follows.following(id, req.user?.userId);
   }
 
   @Get("people/directory")

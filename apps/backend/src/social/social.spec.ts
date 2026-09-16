@@ -48,6 +48,12 @@ function makePrisma() {
       deleteMany: vi.fn(),
       groupBy: vi.fn(),
     },
+    block: {
+      findFirst: vi.fn(),
+      findMany: vi.fn().mockResolvedValue([]),
+      upsert: vi.fn(),
+      deleteMany: vi.fn(),
+    },
     followRequest: {
       findUnique: vi.fn(),
       findMany: vi.fn(),
@@ -740,6 +746,37 @@ describe("FollowsService", () => {
     await expect(service.follow("u1", "u1")).rejects.toThrow(BadRequestException);
   });
 
+  it("creates a block and removes both follow directions", async () => {
+    prisma.user.findUnique.mockResolvedValue({ id: "u2" });
+    prisma.$transaction.mockImplementation((operations: unknown[]) =>
+      Promise.all(operations as Promise<unknown>[])
+    );
+
+    await expect(service.block("u1", "u2")).resolves.toEqual({ blocked: true });
+
+    expect(prisma.block.upsert).toHaveBeenCalledWith({
+      where: { blockerId_blockedId: { blockerId: "u1", blockedId: "u2" } },
+      create: { blockerId: "u1", blockedId: "u2" },
+      update: {},
+    });
+    expect(prisma.follow.deleteMany).toHaveBeenCalledWith({
+      where: {
+        OR: [
+          { followerId: "u1", followingId: "u2" },
+          { followerId: "u2", followingId: "u1" },
+        ],
+      },
+    });
+  });
+
+  it("rejects following a blocked user", async () => {
+    prisma.user.findUnique.mockResolvedValue({ id: "u2", accountPrivate: false });
+    prisma.block.findFirst.mockResolvedValue({ id: "b1" });
+
+    await expect(service.follow("u1", "u2")).rejects.toThrow(NotFoundException);
+    expect(prisma.follow.create).not.toHaveBeenCalled();
+  });
+
   it("creates the follow edge and notifies", async () => {
     prisma.user.findUnique.mockResolvedValue({ id: "u2" });
     prisma.follow.create.mockResolvedValue({});
@@ -909,6 +946,18 @@ describe("FollowsService", () => {
         where: { followerId: "u1", followingId: "u2" },
       });
     });
+  });
+
+  it("excludes users blocked in either direction from people discovery", async () => {
+    prisma.follow.findMany.mockResolvedValue([]);
+    prisma.block.findMany.mockResolvedValue([{ blockerId: "u9", blockedId: "u1" }]);
+    prisma.user.findMany.mockResolvedValue([]);
+
+    await service.browsePeople("u1");
+
+    expect(prisma.user.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: { notIn: ["u1", "u9"] } },
+    }));
   });
 
   it("browses unfollowed people with a cursor and next page", async () => {
@@ -1116,6 +1165,13 @@ describe("ProfilesService", () => {
     prisma.follow.findUnique.mockResolvedValue({ followerId: "u1" });
     const profile = await service.getProfile("u2", "u1");
     expect(profile.isFollowing).toBe(true);
+  });
+
+  it("hides a profile when either side has blocked the other", async () => {
+    prisma.user.findUnique.mockResolvedValue({ id: "u2", _count: { posts: 0, followers: 0, following: 0 } });
+    prisma.block.findFirst.mockResolvedValue({ id: "b1" });
+
+    await expect(service.getProfile("u2", "u1")).rejects.toThrow(NotFoundException);
   });
 
   describe("post-count privacy", () => {

@@ -5,47 +5,47 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-ink: #17171f;
-  --color-accent: #b08d3e;
-  --color-accent-dark: #8a6a26;
-  --color-accent2: #d8b25c;
-  --color-accent2-dark: #b08d3e;
+  --color-ink: #050505;
+  --color-accent: #1877f2;
+  --color-accent-dark: #166fe5;
+  --color-accent2: #42b72a;
+  --color-accent2-dark: #36a420;
 
-  /* Temple gold palette (Royal Luxe) — 500 anchors the chrome literals */
-  --color-gold: #b08d3e;
-  --color-gold-light: #d8b25c;
-  --color-gold-dark: #8a6a26;
-  --color-gold-50: #faf7ee;
-  --color-gold-100: #f3ecda;
-  --color-gold-200: #e6d5a8;
-  --color-gold-300: #d8b25c;
-  --color-gold-400: #c79a3f;
-  --color-gold-500: #b08d3e;
-  --color-gold-600: #9a7a33;
-  --color-gold-700: #8a6a26;
-  --color-gold-800: #6f5420;
-  --color-gold-900: #57411c;
-  --color-gold-950: #3a2a12;
+  /* Community blue palette — keeps the app's existing gold utility names compatible. */
+  --color-gold: #1877f2;
+  --color-gold-light: #42b72a;
+  --color-gold-dark: #166fe5;
+  --color-gold-50: #eaf3ff;
+  --color-gold-100: #dbeafe;
+  --color-gold-200: #bfdbfe;
+  --color-gold-300: #93c5fd;
+  --color-gold-400: #60a5fa;
+  --color-gold-500: #1877f2;
+  --color-gold-600: #166fe5;
+  --color-gold-700: #1258b5;
+  --color-gold-800: #0d47a1;
+  --color-gold-900: #0b367d;
+  --color-gold-950: #082451;
 
   --radius-xl: 0.75rem;
   --radius-2xl: 1rem;
   --radius-3xl: 1.5rem;
 
-  --shadow-soft: 0 2px 12px -2px rgb(176 141 62 / 0.12);
-  --shadow-lift: 0 16px 32px -12px rgb(176 141 62 / 0.32);
-  --shadow-glow: 0 8px 30px -6px rgb(176 141 62 / 0.45);
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.08), 0 1px 4px rgb(0 0 0 / 0.06);
+  --shadow-lift: 0 8px 24px -12px rgb(0 0 0 / 0.28);
+  --shadow-glow: 0 8px 24px -8px rgb(24 119 242 / 0.35);
   --shadow-gold:
     0 1px 2px rgb(23 23 31 / 0.06),
     0 0 0 1px rgb(176 141 62 / 0.14),
     0 10px 32px -12px rgb(176 141 62 / 0.35);
 
   /* Legacy aliases — keep existing pages compiling during migration */
-  --color-khmer-blue: #b08d3e;
-  --color-khmer-blue-light: #c79a3f;
-  --color-khmer-red: #dc2626;
-  --color-khmer-red-light: #e53935;
-  --color-khmer-gold: #b08d3e;
-  --color-khmer-gold-light: #d8b25c;
+  --color-khmer-blue: #1877f2;
+  --color-khmer-blue-light: #42b72a;
+  --color-khmer-red: #e41e3f;
+  --color-khmer-red-light: #f5536d;
+  --color-khmer-gold: #1877f2;
+  --color-khmer-gold-light: #42b72a;
 }
 
 /* ---- Personal account themes (scoped gold-palette overrides) ----
@@ -157,29 +157,28 @@
 /* ---- Semantic surface tokens (flip in dark mode) ---- */
 
 :root {
-  --bg-body: #f6f7fb;
-  --text-body: #17171f;
-  /* Editorial serif for page titles (Royal Luxe Phase 3) — Fraunces with a real Khmer webfont fallback */
-  --font-serif-title: var(--font-serif-display), var(--font-khmer), Georgia, serif;
+  --bg-body: #f0f2f5;
+  --text-body: #050505;
+  --font-serif-title: var(--font-display), var(--font-khmer), Arial, sans-serif;
   --surface: #ffffff;
-  --surface-2: #eef0f6;
-  --border-subtle: #e8e9f2;
-  --border-gold: rgba(216, 178, 92, 0.28);
-  --text-muted: #8a8b9c;
-  --glass-bg: rgba(255, 255, 255, 0.72);
-  --glass-border: rgba(216, 178, 92, 0.25);
+  --surface-2: #e4e6eb;
+  --border-subtle: #dddfe2;
+  --border-gold: rgba(24, 119, 242, 0.2);
+  --text-muted: #65676b;
+  --glass-bg: rgba(255, 255, 255, 0.94);
+  --glass-border: rgba(221, 223, 226, 0.9);
 }
 
 .dark {
-  --bg-body: #0f0f17;
-  --text-body: #efeff6;
-  --surface: #171721;
-  --surface-2: #1f1f2c;
-  --border-subtle: #252532;
-  --border-gold: rgba(216, 178, 92, 0.22);
-  --text-muted: #9b9bac;
-  --glass-bg: rgba(23, 23, 33, 0.72);
-  --glass-border: rgba(216, 178, 92, 0.18);
+  --bg-body: #18191a;
+  --text-body: #e4e6eb;
+  --surface: #242526;
+  --surface-2: #3a3b3c;
+  --border-subtle: #3e4042;
+  --border-gold: rgba(45, 136, 255, 0.28);
+  --text-muted: #b0b3b8;
+  --glass-bg: rgba(36, 37, 38, 0.94);
+  --glass-border: rgba(62, 64, 66, 0.9);
 }
 
 * {
@@ -198,8 +197,8 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: var(--font-display), var(--font-inter), var(--font-khmer), sans-serif;
-  letter-spacing: -0.02em;
+  font-family: var(--font-inter), var(--font-khmer), Arial, sans-serif;
+  letter-spacing: -0.01em;
 }
 
 /* ---- Keyframes ---- */
@@ -450,14 +449,14 @@ h4 {
 /* ---- UI primitives ---- */
 
 .btn-primary {
-  @apply rounded-lg px-4 py-2 text-sm font-medium transition disabled:opacity-40;
+  @apply rounded-md px-4 py-2 text-sm font-semibold transition disabled:opacity-40;
   color: #fff;
-  background: linear-gradient(135deg, #b08d3e, #d8b25c);
-  box-shadow: 0 4px 14px -4px rgb(176 141 62 / 0.55);
+  background: #1877f2;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.12);
 }
 .btn-primary:hover {
-  background: linear-gradient(135deg, #8a6a26, #c79a3f);
-  box-shadow: 0 6px 20px -4px rgb(176 141 62 / 0.7);
+  background: #166fe5;
+  box-shadow: 0 4px 10px rgb(0 0 0 / 0.16);
   transform: translateY(-1px);
 }
 
@@ -490,7 +489,7 @@ h4 {
 }
 
 .card {
-  border-radius: var(--radius-xl);
+  border-radius: 12px;
   border: 1px solid var(--border-subtle);
   background: var(--surface);
   transition:
@@ -672,25 +671,25 @@ img {
 
 .lx-root {
   /* Palette */
-  --lx-ink: #14122b; /* deep indigo ink */
-  --lx-ink-soft: #4c4869;
-  --lx-muted: #85809f;
-  --lx-paper: #f7f5ef; /* ivory paper */
-  --lx-paper-2: #fffdf8;
-  --lx-line: #e5e0d2;
-  --lx-gold: #b08d3e; /* temple gold */
-  --lx-gold-deep: #8a6a26;
-  --lx-gold-tint: #f3ecda;
-  --lx-clay: #a8532f; /* lacquer clay accent */
-  --lx-jade: #2f6d5a; /* jade accent */
-  --lx-night: #14122b;
-  --lx-night-2: #1d1a3f;
-  --lx-on-night: #f4f0e6;
-  --lx-on-night-muted: rgba(244, 240, 230, 0.64);
-  --lx-on-night-line: rgba(244, 240, 230, 0.14);
+  --lx-ink: #050505;
+  --lx-ink-soft: #65676b;
+  --lx-muted: #65676b;
+  --lx-paper: #f0f2f5;
+  --lx-paper-2: #ffffff;
+  --lx-line: #dddfe2;
+  --lx-gold: #1877f2;
+  --lx-gold-deep: #166fe5;
+  --lx-gold-tint: #eaf3ff;
+  --lx-clay: #e41e3f;
+  --lx-jade: #42b72a;
+  --lx-night: #1877f2;
+  --lx-night-2: #166fe5;
+  --lx-on-night: #ffffff;
+  --lx-on-night-muted: rgba(255, 255, 255, 0.82);
+  --lx-on-night-line: rgba(255, 255, 255, 0.28);
 
   /* Type */
-  --lx-serif: var(--font-serif-display), var(--font-khmer), Georgia, serif;
+  --lx-serif: var(--font-inter), var(--font-khmer), Arial, sans-serif;
   --lx-sans: var(--font-inter), var(--font-khmer), system-ui, sans-serif;
 
   /* Motion */
@@ -702,27 +701,27 @@ img {
 }
 
 .dark .lx-root {
-  /* Night palette — warm lamplight over indigo */
-  --lx-ink: #f0ede2;
-  --lx-ink-soft: #c9c4b4;
-  --lx-muted: #8f8aa6;
-  --lx-paper: #100e20;
-  --lx-paper-2: #17142e;
-  --lx-line: #2a2650;
-  --lx-gold: #d8b25c;
-  --lx-gold-deep: #c79a3f;
-  --lx-gold-tint: rgba(216, 178, 92, 0.12);
-  --lx-clay: #e07a4e;
-  --lx-jade: #5ba98d;
-  --lx-on-night: #f4f0e6;
-  --lx-on-night-muted: rgba(244, 240, 230, 0.62);
-  --lx-on-night-line: rgba(244, 240, 230, 0.14);
+  /* Facebook-style dark mode: charcoal surfaces with blue accents. */
+  --lx-ink: #e4e6eb;
+  --lx-ink-soft: #b0b3b8;
+  --lx-muted: #b0b3b8;
+  --lx-paper: #18191a;
+  --lx-paper-2: #242526;
+  --lx-line: #3e4042;
+  --lx-gold: #2d88ff;
+  --lx-gold-deep: #4599ff;
+  --lx-gold-tint: rgba(45, 136, 255, 0.16);
+  --lx-clay: #f5536d;
+  --lx-jade: #65c75a;
+  --lx-on-night: #ffffff;
+  --lx-on-night-muted: rgba(255, 255, 255, 0.78);
+  --lx-on-night-line: rgba(255, 255, 255, 0.2);
 }
 
 .dark .lx-root {
   background:
-    radial-gradient(900px 420px at 88% -6%, rgba(216, 178, 92, 0.1), transparent 62%),
-    radial-gradient(700px 380px at -8% 24%, rgba(224, 122, 78, 0.07), transparent 60%),
+    radial-gradient(900px 420px at 88% -6%, rgba(45, 136, 255, 0.12), transparent 62%),
+    radial-gradient(700px 380px at -8% 24%, rgba(66, 183, 42, 0.06), transparent 60%),
     var(--lx-paper);
 }
 
@@ -770,7 +769,13 @@ img {
   color: var(--lx-on-night);
 }
 .lx-hero-bg .lx-eyebrow {
-  color: var(--lx-gold);
+  color: var(--lx-on-night);
+}
+.lx-hero-bg .lx-display em,
+.lx-hero-bg .lx-serif,
+.dark .lx-root .lx-hero-bg .lx-display em,
+.dark .lx-root .lx-hero-bg .lx-serif {
+  color: #ffffff !important;
 }
 
 /* ---- Ornament: hairline + diamond ---- */
@@ -811,7 +816,7 @@ img {
   transform: scale(0.97);
 }
 .lx-btn-gold {
-  background: linear-gradient(120deg, var(--lx-gold) 0%, var(--lx-gold-deep) 100%);
+  background: linear-gradient(120deg, #1877f2 0%, #1258b5 100%);
   color: #fff;
   box-shadow: 0 14px 30px -14px rgba(138, 106, 38, 0.65);
 }
@@ -907,14 +912,17 @@ img {
 }
 
 /* ---- Hero backdrop: night-sky with gold lantern glows ---- */
-.lx-hero-bg {
+.lx-hero-bg,
+.dark .lx-root .lx-hero-bg {
+  --lx-gold: #ffffff;
+  --lx-gold-deep: #ffffff;
   position: relative;
   isolation: isolate;
   overflow: hidden;
   background:
-    radial-gradient(1100px 520px at 78% -10%, rgba(216, 178, 92, 0.22), transparent 60%),
-    radial-gradient(820px 460px at 8% 12%, rgba(224, 122, 78, 0.12), transparent 58%),
-    linear-gradient(160deg, #14122b 0%, #1d1a3f 52%, #26204a 100%);
+    radial-gradient(1100px 520px at 78% -10%, rgba(66, 183, 42, 0.18), transparent 60%),
+    radial-gradient(820px 460px at 8% 12%, rgba(255, 255, 255, 0.1), transparent 58%),
+    linear-gradient(160deg, #1877f2 0%, #166fe5 52%, #1258b5 100%);
 }
 .lx-hero-bg::before {
   content: "";

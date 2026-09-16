@@ -93,6 +93,7 @@ export class SearchService implements OnModuleInit {
         "status",
         "price",
         "stock",
+        "sellerApproved",
       ]);
       await this.client!.index(INDEX_NAME).updateSearchableAttributes([
         "name",
@@ -115,7 +116,7 @@ export class SearchService implements OnModuleInit {
       await this.ensureIndex();
       const product = await this.prisma.product.findUnique({
         where: { id: productId },
-        include: { category: true },
+        include: { category: true, seller: { select: { verificationStatus: true } } },
       });
       if (!product) return;
 
@@ -130,6 +131,7 @@ export class SearchService implements OnModuleInit {
           stock: product.stock,
           categoryId: product.categoryId,
           categoryName: product.category.name,
+          sellerApproved: product.seller?.verificationStatus === "APPROVED",
           images: product.images,
           createdAt: product.createdAt.getTime(),
         },
@@ -159,7 +161,7 @@ export class SearchService implements OnModuleInit {
       let total = 0;
       for (;;) {
         const products = await this.prisma.product.findMany({
-          include: { category: true },
+          include: { category: true, seller: { select: { verificationStatus: true } } },
           orderBy: { id: "asc" },
           ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
           take: 200,
@@ -177,6 +179,7 @@ export class SearchService implements OnModuleInit {
           stock: p.stock,
           categoryId: p.categoryId,
           categoryName: p.category.name,
+          sellerApproved: p.seller?.verificationStatus === "APPROVED",
           images: p.images,
           createdAt: p.createdAt.getTime(),
         }));
@@ -204,7 +207,7 @@ export class SearchService implements OnModuleInit {
     }
 
     try {
-      const filterParts: string[] = [];
+      const filterParts: string[] = ["sellerApproved = true"];
       const categoryFilter = queryParamFilterValue(
         filters?.categoryId,
         SAFE_ALPHANUMERIC,
@@ -262,6 +265,7 @@ export class SearchService implements OnModuleInit {
   ) {
     const where: Prisma.ProductWhereInput = {
       status: "ACTIVE",
+      seller: { is: { verificationStatus: "APPROVED" } },
       OR: [
         { name: { contains: query } },
         { description: { contains: query } },

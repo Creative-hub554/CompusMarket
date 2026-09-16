@@ -13,6 +13,68 @@ export class FollowsService {
     private notifications: NotificationsService
   ) {}
 
+  async block(blockerId: string, blockedId: string): Promise<{ blocked: true }> {
+    if (blockerId === blockedId) {
+      throw new BadRequestException("You cannot block yourself");
+    }
+    const target = await this.prisma.user.findUnique({
+      where: { id: blockedId },
+      select: { id: true },
+    });
+    if (!target) throw new NotFoundException("User not found");
+
+    await this.prisma.$transaction([
+      this.prisma.block.upsert({
+        where: { blockerId_blockedId: { blockerId, blockedId } },
+        create: { blockerId, blockedId },
+        update: {},
+      }),
+      this.prisma.follow.deleteMany({
+        where: {
+          OR: [
+            { followerId: blockerId, followingId: blockedId },
+            { followerId: blockedId, followingId: blockerId },
+          ],
+        },
+      }),
+      this.prisma.followRequest.deleteMany({
+        where: {
+          OR: [
+            { followerId: blockerId, followingId: blockedId },
+            { followerId: blockedId, followingId: blockerId },
+          ],
+        },
+      }),
+    ]);
+    return { blocked: true };
+  }
+
+  async unblock(blockerId: string, blockedId: string): Promise<{ blocked: false }> {
+    await this.prisma.block.deleteMany({ where: { blockerId, blockedId } });
+    return { blocked: false };
+  }
+
+  async isBlocked(firstUserId: string, secondUserId: string): Promise<boolean> {
+    const row = await this.prisma.block.findFirst({
+      where: {
+        OR: [
+          { blockerId: firstUserId, blockedId: secondUserId },
+          { blockerId: secondUserId, blockedId: firstUserId },
+        ],
+      },
+      select: { id: true },
+    });
+    return Boolean(row);
+  }
+
+  private async blockedUserIds(userId: string): Promise<string[]> {
+    const rows = await this.prisma.block.findMany({
+      where: { OR: [{ blockerId: userId }, { blockedId: userId }] },
+      select: { blockerId: true, blockedId: true },
+    });
+    return rows.map((row) => (row.blockerId === userId ? row.blockedId : row.blockerId));
+  }
+
   /**
    * Public accounts are followed directly. Private accounts gate access, so
    * following them creates a PENDING request the holder must accept before a
@@ -28,6 +90,9 @@ export class FollowsService {
       select: { id: true, accountPrivate: true },
     });
     if (!target) throw new NotFoundException("User not found");
+    if (await this.isBlocked(followerId, followingId)) {
+      throw new NotFoundException("User not found");
+    }
 
     if (target.accountPrivate) {
       const already = await this.prisma.follow.findUnique({
@@ -161,30 +226,39 @@ export class FollowsService {
     return { accepted: accept };
   }
 
-  followers(userId: string) {
-    return this.prisma.follow.findMany({
+  async followers(userId: string, viewerId?: string) {
+    if (viewerId && viewerId !== userId && await this.isBlocked(viewerId, userId)) return [];
+    const blocked = viewerId ? new Set(await this.blockedUserIds(viewerId)) : new Set<string>();
+    const rows = await this.prisma.follow.findMany({
       where: { followingId: userId },
       orderBy: { createdAt: "desc" },
       take: 100,
       include: { follower: { select: USER_CARD_SELECT } },
     });
+    return rows.filter((row) => !blocked.has(row.followerId));
   }
 
-  following(userId: string) {
-    return this.prisma.follow.findMany({
+  async following(userId: string, viewerId?: string) {
+    if (viewerId && viewerId !== userId && await this.isBlocked(viewerId, userId)) return [];
+    const blocked = viewerId ? new Set(await this.blockedUserIds(viewerId)) : new Set<string>();
+    const rows = await this.prisma.follow.findMany({
       where: { followerId: userId },
       orderBy: { createdAt: "desc" },
       take: 100,
       include: { following: { select: USER_CARD_SELECT } },
     });
+    return rows.filter((row) => !blocked.has(row.followingId));
   }
 
   async browsePeople(userId: string, cursor?: string, limit = 20) {
-    const followed = await this.prisma.follow.findMany({
-      where: { followerId: userId },
-      select: { followingId: true },
-    });
-    const exclude = [userId, ...followed.map((f) => f.followingId)];
+    const [followed, blocked] = await Promise.all([
+      this.prisma.follow.findMany({
+        where: { followerId: userId },
+        select: { followingId: true },
+      }),
+      this.blockedUserIds(userId),
+    ]);
+    const exclude = [userId, ...blocked, ...followed.map((f) => f.followingId)];
     const rows = await this.prisma.user.findMany({
       where: { id: { notIn: exclude } },
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
@@ -202,11 +276,14 @@ export class FollowsService {
     const q = query.trim();
     if (!q) return [];
 
-    const followed = await this.prisma.follow.findMany({
-      where: { followerId: userId },
-      select: { followingId: true },
-    });
-    const exclude = [userId, ...followed.map((f) => f.followingId)];
+    const [followed, blocked] = await Promise.all([
+      this.prisma.follow.findMany({
+        where: { followerId: userId },
+        select: { followingId: true },
+      }),
+      this.blockedUserIds(userId),
+    ]);
+    const exclude = [userId, ...blocked, ...followed.map((f) => f.followingId)];
 
     return this.prisma.user.findMany({
       where: {
@@ -226,11 +303,14 @@ export class FollowsService {
   }
 
   async suggestions(userId: string, limit = 5) {
-    const followed = await this.prisma.follow.findMany({
-      where: { followerId: userId },
-      select: { followingId: true },
-    });
-    const exclude = [userId, ...followed.map((f) => f.followingId)];
+    const [followed, blocked] = await Promise.all([
+      this.prisma.follow.findMany({
+        where: { followerId: userId },
+        select: { followingId: true },
+      }),
+      this.blockedUserIds(userId),
+    ]);
+    const exclude = [userId, ...blocked, ...followed.map((f) => f.followingId)];
 
     const popular = await this.prisma.follow.groupBy({
       by: ["followingId"],

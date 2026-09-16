@@ -11,7 +11,7 @@ export async function PATCH(
   const uid = token.sub as string;
 
   const { itemId } = await params;
-  if (!/^\d+$/.test(itemId)) {
+  if (!itemId.trim()) {
     return NextResponse.json({ error: "Invalid item id" }, { status: 400 });
   }
 
@@ -36,9 +36,17 @@ export async function PATCH(
     return NextResponse.json({ success: true });
   }
 
+  const product = await prisma.product.findUnique({ where: { id: item.productId } });
+  if (!product || product.status !== "ACTIVE") {
+    return NextResponse.json({ error: "Product is not available" }, { status: 400 });
+  }
+  if (product.stock <= 0) {
+    return NextResponse.json({ error: "Product is out of stock" }, { status: 400 });
+  }
+
   const updated = await prisma.cartItem.update({
     where: { id: itemId },
-    data: { quantity },
+    data: { quantity: Math.min(quantity, product.stock, 99) },
     include: { product: true },
   });
 
@@ -54,7 +62,7 @@ export async function DELETE(
   const uid = token.sub as string;
 
   const { itemId } = await params;
-  if (!/^\d+$/.test(itemId)) {
+  if (!itemId.trim()) {
     return NextResponse.json({ error: "Invalid item id" }, { status: 400 });
   }
 

@@ -34,12 +34,23 @@ export class StoriesService {
   }
 
   async feedForViewer(viewerId: string): Promise<StoryGroup[]> {
-    const following = await this.prisma.follow.findMany({
-      where: { followerId: viewerId },
-      select: { followingId: true },
-      take: 200,
-    });
-    const authors = [viewerId, ...following.map((f) => f.followingId)];
+    const [following, blocked] = await Promise.all([
+      this.prisma.follow.findMany({
+        where: { followerId: viewerId },
+        select: { followingId: true },
+        take: 200,
+      }),
+      this.prisma.block.findMany({
+        where: { OR: [{ blockerId: viewerId }, { blockedId: viewerId }] },
+        select: { blockerId: true, blockedId: true },
+      }),
+    ]);
+    const blockedIds = new Set(
+      blocked.map((row) => (row.blockerId === viewerId ? row.blockedId : row.blockerId))
+    );
+    const authors = [viewerId, ...following.map((f) => f.followingId)].filter(
+      (id) => !blockedIds.has(id)
+    );
 
     const stories = await this.prisma.story.findMany({
       where: { authorId: { in: authors }, expiresAt: { gt: new Date() } },
@@ -92,6 +103,17 @@ export class StoriesService {
     // Only the author and their followers can ever see the story in a feed,
     // so a view from anyone else is fabricated and must be rejected.
     if (story.authorId !== userId) {
+      if (await this.prisma.block.findFirst({
+        where: {
+          OR: [
+            { blockerId: userId, blockedId: story.authorId },
+            { blockerId: story.authorId, blockedId: userId },
+          ],
+        },
+        select: { id: true },
+      })) {
+        throw new ForbiddenException("This story is unavailable");
+      }
       const follows = await this.prisma.follow.findUnique({
         where: {
           followerId_followingId: { followerId: userId, followingId: story.authorId },

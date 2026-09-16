@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { apiFetch } from "@/lib/apiFetch";
+import { productSearchHref, searchHref } from "@/lib/search";
 
 type SearchHit = {
   id: string;
@@ -57,7 +58,9 @@ export function SearchBar() {
     debounceRef.current = setTimeout(async () => {
       setLoading(true);
       try {
-        const data = await apiFetch<{ hits?: SearchHit[] }>(`/api/search?q=${encodeURIComponent(value)}`);
+        const data = await apiFetch<{ hits?: SearchHit[] }>(
+          `/api/search?q=${encodeURIComponent(value)}`,
+        );
         setResults(data.hits || []);
         setOpen(true);
       } catch {
@@ -80,13 +83,18 @@ export function SearchBar() {
     } else if (e.key === "Enter") {
       e.preventDefault();
       if (activeIndex >= 0 && results[activeIndex]) {
-        router.push(`/shop/${results[activeIndex].id}`);
+        router.push(
+          productSearchHref(
+            results[activeIndex].id,
+            searchHref(query, "market"),
+          ),
+        );
         setOpen(false);
         setQuery("");
         setActiveIndex(-1);
         inputRef.current?.blur();
       } else if (query.trim()) {
-        router.push(`/shop?q=${encodeURIComponent(query)}`);
+        router.push(searchHref(query));
         setOpen(false);
         inputRef.current?.blur();
       }
@@ -129,10 +137,10 @@ export function SearchBar() {
           value={query}
           onChange={(e) => handleChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={nav("searchPlaceholder")}
-          className="w-64 pl-10 pr-4 py-2 text-sm bg-white/15 text-white placeholder-white/50 border border-white/20 rounded-full focus:outline-none focus:border-gold-400 focus:bg-white/20 transition-all"
+          placeholder={nav("globalSearch")}
+          className="w-64 pl-10 pr-4 py-2 text-sm bg-[var(--surface-2)] text-[var(--text-body)] placeholder-[var(--text-muted)] border border-[var(--border-subtle)] rounded-full focus:outline-none focus:border-[var(--color-accent)] transition-all"
           onFocus={() => results.length > 0 && setOpen(true)}
-          aria-label={nav("searchPlaceholder")}
+          aria-label={nav("globalSearch")}
         />
         {loading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -154,7 +162,7 @@ export function SearchBar() {
                 id={`search-option-${i}`}
                 role="option"
                 aria-selected={i === activeIndex}
-                href={`/shop/${hit.id}`}
+                href={productSearchHref(hit.id, searchHref(query, "market"))}
                 onClick={() => {
                   setOpen(false);
                   setQuery("");
@@ -194,7 +202,9 @@ export function SearchBar() {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate text-slate-900 dark:text-slate-100">{hit.name}</p>
+                  <p className="text-sm font-medium truncate text-slate-900 dark:text-slate-100">
+                    {hit.name}
+                  </p>
                   <p className="text-xs text-gray-400 dark:text-slate-500">
                     ${hit.price} &middot; {hit.categoryName}
                   </p>
@@ -203,7 +213,7 @@ export function SearchBar() {
             ))}
           </div>
           <Link
-            href={`/shop?q=${encodeURIComponent(query)}`}
+            href={searchHref(query)}
             onClick={() => {
               setOpen(false);
               setQuery("");

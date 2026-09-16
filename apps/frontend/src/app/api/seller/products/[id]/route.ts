@@ -85,12 +85,47 @@ export async function PATCH(
     data.price = price.toFixed(2);
   }
 
+  let stockDelta = 0;
+  let stockWasProvided = false;
   if (body.stock !== undefined) {
-    const stock = parseInt(body.stock);
-    if (isNaN(stock) || stock < 0) {
+    const rawStock = body.stock;
+    const stock =
+      (typeof rawStock === "number" || typeof rawStock === "string") &&
+      (typeof rawStock !== "string" || rawStock.trim() !== "")
+        ? Number(rawStock)
+        : Number.NaN;
+    if (!Number.isInteger(stock) || stock < 0) {
       return NextResponse.json({ error: "Valid stock is required" }, { status: 400 });
     }
-    data.stock = stock;
+    stockDelta = stock - product.stock;
+    stockWasProvided = true;
+  }
+
+  const stockChanged = stockWasProvided && stockDelta !== 0;
+  let adjustmentReason: string | undefined;
+  if (stockChanged) {
+    if (typeof body.reason !== "string" || !body.reason.trim()) {
+      return NextResponse.json(
+        { error: "A reason is required when changing stock" },
+        { status: 400 },
+      );
+    }
+    const trimmedReason = body.reason.trim();
+    if (trimmedReason.length > 500) {
+      return NextResponse.json(
+        { error: "Stock adjustment reason must be 500 characters or fewer" },
+        { status: 400 },
+      );
+    }
+    adjustmentReason = trimmedReason;
+  }
+
+  if (body.lowStockThreshold !== undefined) {
+    const threshold = Number(body.lowStockThreshold);
+    if (!Number.isInteger(threshold) || threshold < 0) {
+      return NextResponse.json({ error: "Valid low-stock threshold is required" }, { status: 400 });
+    }
+    data.lowStockThreshold = threshold;
   }
 
   if (body.images !== undefined) {
@@ -139,11 +174,43 @@ export async function PATCH(
     data.status = String(body.status);
   }
 
-  const updated = await prisma.product.update({
-    where: { id },
-    data,
-    include: { category: true },
-  });
+  let updated;
+  try {
+    updated = await prisma.$transaction(async (tx) => {
+      if (stockChanged) {
+        const result = await tx.product.updateMany({
+          where: {
+            id,
+            sellerId: profile.id,
+            ...(stockDelta < 0 ? { stock: { gte: -stockDelta } } : {}),
+          },
+          data: { stock: { increment: stockDelta } },
+        });
+        if (result.count !== 1) {
+          throw new Error("Stock changed; reload the product and try again");
+        }
+        await tx.inventoryMovement.create({
+          data: {
+            productId: id,
+            sellerProfileId: profile.id,
+            actorId: uid,
+            delta: stockDelta,
+            reason: adjustmentReason!,
+          },
+        });
+      }
+      return tx.product.update({
+        where: { id },
+        data,
+        include: { category: true },
+      });
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("Stock changed;")) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
+    throw error;
+  }
 
   return NextResponse.json(updated);
 }

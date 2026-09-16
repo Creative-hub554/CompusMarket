@@ -2,16 +2,21 @@
 
 import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 import { useSession } from "@/lib/session-client";
 import { RequireAuth } from "@/components/RequireAuth";
 import { apiFetch } from "@/lib/apiFetch";
 import { uploadFile } from "@/lib/social";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { toast } from "@/components/ui/toast";
+import { routerReturnPath } from "@/lib/return-path";
 
 export default function NewPageForm() {
   const t = useTranslations("pages");
+  const locale = useLocale();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = routerReturnPath(searchParams.get("returnTo"), locale, "");
   const { data: session } = useSession();
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
@@ -61,7 +66,7 @@ export default function NewPageForm() {
         },
       });
       toast.success(t("createdToast"));
-      router.push(`/pages/${page.username}`);
+      router.push(routerReturnPath(searchParams.get("returnTo"), locale, `/pages/${page.username}`));
     } catch (err) {
       setError(err instanceof Error ? err.message : t("actionFailed"));
       setCreating(false);
@@ -217,7 +222,7 @@ export default function NewPageForm() {
         {error && <p className="text-sm text-red-500">{error}</p>}
 
         <div className="flex justify-end gap-2">
-          <button type="button" onClick={() => router.back()} className="btn-ghost">
+          <button type="button" onClick={() => returnTo ? router.push(returnTo) : router.back()} className="btn-ghost">
             {t("cancel")}
           </button>
           <button type="submit" disabled={creating || uploading !== null} className="btn-primary">

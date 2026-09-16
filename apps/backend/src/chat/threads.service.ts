@@ -28,7 +28,16 @@ export class ThreadsService {
       where: { threadId_userId: { threadId, userId } },
       select: { id: true },
     });
-    if (participant) return;
+    if (participant) {
+      const peers = await this.prisma.threadParticipant.findMany({
+        where: { threadId, userId: { not: userId } },
+        select: { userId: true },
+      });
+      if (await this.isBlockedByAny(userId, peers.map((peer) => peer.userId))) {
+        throw new ForbiddenException("This conversation is unavailable");
+      }
+      return;
+    }
 
     // Page threads are readable/writable by page staff even though only the
     // customer holds a participant row.
@@ -44,6 +53,20 @@ export class ThreadsService {
       if (membership) return;
     }
     throw new ForbiddenException("Not a participant of this thread");
+  }
+
+  private async isBlockedByAny(userId: string, peerIds: string[]): Promise<boolean> {
+    if (peerIds.length === 0) return false;
+    const blocked = await this.prisma.block.findFirst({
+      where: {
+        OR: [
+          { blockerId: userId, blockedId: { in: peerIds } },
+          { blockerId: { in: peerIds }, blockedId: userId },
+        ],
+      },
+      select: { id: true },
+    });
+    return Boolean(blocked);
   }
 
   async resolveSellerUserId(sellerProfileId: string): Promise<string> {
@@ -64,6 +87,9 @@ export class ThreadsService {
       select: { id: true },
     });
     if (!other) throw new NotFoundException("User not found");
+    if (await this.isBlockedByAny(userId, [otherUserId])) {
+      throw new NotFoundException("User not found");
+    }
 
     const existing = await this.prisma.thread.findFirst({
       where: {
@@ -112,6 +138,10 @@ export class ThreadsService {
   }
 
   async listThreads(userId: string) {
+    const blockedIds = await this.prisma.block.findMany({
+      where: { OR: [{ blockerId: userId }, { blockedId: userId }] },
+      select: { blockerId: true, blockedId: true },
+    }).then((rows) => new Set(rows.map((row) => row.blockerId === userId ? row.blockedId : row.blockerId)));
     const participations = await this.prisma.threadParticipant.findMany({
       where: { userId },
       include: {
@@ -140,22 +170,30 @@ export class ThreadsService {
       unreadCounts.map((c) => [c.threadId, c._count._all])
     );
 
-    const mapped = participations.map((p) => {
-      const others = p.thread.participants
-        .filter((t) => t.userId !== userId)
-        .map((t) => t.user);
-      const lastMessage = p.thread.messages[0] ?? null;
-      return {
-        id: p.threadId,
-        product: p.thread.product,
-        group: p.thread.group,
-        page: p.thread.page,
-        participants: others,
-        lastMessage,
-        lastMessageAt: p.thread.lastMessageAt,
-        unreadCount: unreadByThread.get(p.threadId) ?? 0,
-      };
-    });
+    const mapped = participations
+      .filter(
+        (p) =>
+          p.thread.group ||
+          !p.thread.participants.some(
+            (t) => t.userId !== userId && blockedIds.has(t.userId)
+          )
+      )
+      .map((p) => {
+        const others = p.thread.participants
+          .filter((t) => t.userId !== userId)
+          .map((t) => t.user);
+        const lastMessage = p.thread.messages[0] ?? null;
+        return {
+          id: p.threadId,
+          product: p.thread.product,
+          group: p.thread.group,
+          page: p.thread.page,
+          participants: others,
+          lastMessage,
+          lastMessageAt: p.thread.lastMessageAt,
+          unreadCount: unreadByThread.get(p.threadId) ?? 0,
+        };
+      });
 
     return mapped.sort(
       (a, b) =>
@@ -262,6 +300,10 @@ export class ThreadsService {
    * registered users. Returns public profiles of everyone found (self excluded).
    */
   async syncContacts(userId: string, contacts: string[]) {
+    const blockedIds = await this.prisma.block.findMany({
+      where: { OR: [{ blockerId: userId }, { blockedId: userId }] },
+      select: { blockerId: true, blockedId: true },
+    }).then((rows) => rows.map((row) => row.blockerId === userId ? row.blockedId : row.blockerId));
     const keys = [
       ...new Set(
         contacts
@@ -273,7 +315,7 @@ export class ThreadsService {
 
     const users = await this.prisma.user.findMany({
       where: {
-        id: { not: userId },
+        id: { notIn: [userId, ...blockedIds] },
         OR: [{ email: { in: keys } }, { username: { in: keys } }],
       },
       select: {
@@ -304,6 +346,10 @@ export class ThreadsService {
     const onlineIds = this.chat.getOnlineUserIds().filter((id) => id !== userId);
     if (onlineIds.length === 0) return [];
 
+    const blockedIds = await this.prisma.block.findMany({
+      where: { OR: [{ blockerId: userId }, { blockedId: userId }] },
+      select: { blockerId: true, blockedId: true },
+    }).then((rows) => new Set(rows.map((row) => row.blockerId === userId ? row.blockedId : row.blockerId)));
     const participations = await this.prisma.threadParticipant.findMany({
       where: { userId, thread: { groupId: null } },
       select: {
@@ -328,7 +374,7 @@ export class ThreadsService {
 
     for (const p of participations) {
       const other = p.thread.participants.find((t) => t.userId !== userId);
-      if (!other || !onlineIds.includes(other.userId)) continue;
+      if (!other || !onlineIds.includes(other.userId) || blockedIds.has(other.userId)) continue;
 
       const existing = byUser.get(other.userId);
       const count = p.thread._count.messages;

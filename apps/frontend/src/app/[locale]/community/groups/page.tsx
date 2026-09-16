@@ -1,12 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 import { useSession } from "@/lib/session-client";
 import { apiFetch } from "@/lib/apiFetch";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Users, Plus, MessageSquare, Lock, Search } from "lucide-react";
 import { toast } from "@/components/ui/toast";
+import { routerReturnPath } from "@/lib/return-path";
 
 type GroupSummary = {
   id: string;
@@ -22,6 +24,10 @@ type GroupSummary = {
 
 export default function GroupsPage() {
   const t = useTranslations("groups");
+  const locale = useLocale();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = routerReturnPath(searchParams.get("returnTo"), locale, "");
   const { data: session } = useSession();
   const [groups, setGroups] = useState<GroupSummary[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -125,6 +131,7 @@ export default function GroupsPage() {
       setDescription("");
       setShowCreate(false);
       toast.success(t("createdToast"));
+      if (returnTo) router.push(returnTo);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : t("actionFailed"));
     }

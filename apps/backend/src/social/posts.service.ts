@@ -187,7 +187,7 @@ export class PostsService {
     cursorId?: string,
     limit = 10
   ): Promise<{ items: MappedPost[]; nextCursor: string | null }> {
-    const [following, followedPages, myGroups] = await Promise.all([
+    const [following, followedPages, myGroups, blockedUsers] = await Promise.all([
       this.prisma.follow.findMany({
         where: { followerId: userId },
         select: { followingId: true },
@@ -200,8 +200,17 @@ export class PostsService {
         where: { userId },
         select: { groupId: true },
       }),
+      this.prisma.block.findMany({
+        where: { OR: [{ blockerId: userId }, { blockedId: userId }] },
+        select: { blockerId: true, blockedId: true },
+      }),
     ]);
-    const authorIds = [...following.map((f) => f.followingId), userId];
+    const blockedIds = new Set(
+      blockedUsers.map((row) => (row.blockerId === userId ? row.blockedId : row.blockerId))
+    );
+    const authorIds = [...following.map((f) => f.followingId), userId].filter(
+      (id) => !blockedIds.has(id)
+    );
     const myGroupIds = myGroups.map((g) => g.groupId);
     const followedPageIds = followedPages.map((p) => p.pageId);
 
@@ -259,6 +268,9 @@ export class PostsService {
     }
     // A profile page must not leak the author's private-group posts.
     const memberGroupIds = viewerId ? await this.viewerGroupIds(viewerId) : [];
+    if (viewerId && await this.isBlocked(viewerId, authorId)) {
+      throw new ForbiddenException("This content is unavailable");
+    }
     return this.queryFeed(
       { AND: [{ authorId }, this.visiblePostsWhere(memberGroupIds)] },
       viewerId,
@@ -269,8 +281,18 @@ export class PostsService {
 
   /** Posts the viewer has bookmarked, newest bookmark first. */
   async bookmarksFor(userId: string, cursorId?: string, limit = 10) {
+    const blockedRows = await this.prisma.block.findMany({
+      where: { OR: [{ blockerId: userId }, { blockedId: userId }] },
+      select: { blockerId: true, blockedId: true },
+    });
+    const blockedIds = blockedRows.map((row) =>
+      row.blockerId === userId ? row.blockedId : row.blockerId
+    );
     const bookmarks = await this.prisma.bookmark.findMany({
-      where: { userId },
+      where: {
+        userId,
+        ...(blockedIds.length > 0 ? { post: { authorId: { notIn: blockedIds } } } : {}),
+      },
       orderBy: { createdAt: "desc" },
       take: limit + 1,
       ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
@@ -676,6 +698,19 @@ export class PostsService {
     return rows.map((r) => r.groupId);
   }
 
+  private async isBlocked(firstUserId: string, secondUserId: string): Promise<boolean> {
+    const row = await this.prisma.block.findFirst({
+      where: {
+        OR: [
+          { blockerId: firstUserId, blockedId: secondUserId },
+          { blockerId: secondUserId, blockedId: firstUserId },
+        ],
+      },
+      select: { id: true },
+    });
+    return Boolean(row);
+  }
+
   /**
    * Posts a viewer may see: their own wall posts, posts in PUBLIC groups,
    * and posts in groups they belong to (public or private). Anything in a
@@ -720,6 +755,18 @@ export class PostsService {
     author: { id: string; accountPrivate: boolean },
     userId?: string
   ): Promise<void> {
+    if (userId && author.id !== userId) {
+      const blocked = await this.prisma.block.findFirst({
+        where: {
+          OR: [
+            { blockerId: userId, blockedId: author.id },
+            { blockerId: author.id, blockedId: userId },
+          ],
+        },
+        select: { id: true },
+      });
+      if (blocked) throw new ForbiddenException("This content is unavailable");
+    }
     if (!author.accountPrivate || author.id === userId) return;
     if (!userId) {
       throw new ForbiddenException("This account is private");

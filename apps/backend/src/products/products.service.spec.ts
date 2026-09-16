@@ -11,6 +11,7 @@ describe("ProductsService", () => {
     product: {
       findMany: vi.fn(),
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
@@ -51,7 +52,11 @@ describe("ProductsService", () => {
 
       expect(mockPrisma.product.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { status: "ACTIVE", stock: { gt: 0 } },
+          where: {
+            status: "ACTIVE",
+            seller: { is: { verificationStatus: "APPROVED" } },
+            stock: { gt: 0 },
+          },
         }),
       );
     });
@@ -63,7 +68,10 @@ describe("ProductsService", () => {
 
       expect(mockPrisma.product.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { status: "ACTIVE" },
+          where: {
+            status: "ACTIVE",
+            seller: { is: { verificationStatus: "APPROVED" } },
+          },
         }),
       );
       expect(mockPrisma.product.findMany.mock.calls[0][0].where.stock).toBeUndefined();
@@ -80,13 +88,21 @@ describe("ProductsService", () => {
 
       expect(mockPrisma.product.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { status: "ACTIVE" },
+          where: {
+            status: "ACTIVE",
+            seller: { is: { verificationStatus: "APPROVED" } },
+          },
           skip: 0,
           take: 12,
           orderBy: { createdAt: "desc" },
         }),
       );
-      expect(mockPrisma.product.count).toHaveBeenCalledWith({ where: { status: "ACTIVE" } });
+      expect(mockPrisma.product.count).toHaveBeenCalledWith({
+        where: {
+          status: "ACTIVE",
+          seller: { is: { verificationStatus: "APPROVED" } },
+        },
+      });
       expect(result).toEqual({ items: [{ id: "p1" }], total: 25, page: 1, limit: 12 });
     });
 
@@ -99,13 +115,21 @@ describe("ProductsService", () => {
 
       expect(mockPrisma.product.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { status: "ACTIVE", category: { slug: "phones" } },
+          where: {
+            status: "ACTIVE",
+            seller: { is: { verificationStatus: "APPROVED" } },
+            category: { slug: "phones" },
+          },
           skip: 48,
           take: 24,
         }),
       );
       expect(mockPrisma.product.count).toHaveBeenCalledWith({
-        where: { status: "ACTIVE", category: { slug: "phones" } },
+        where: {
+          status: "ACTIVE",
+          seller: { is: { verificationStatus: "APPROVED" } },
+          category: { slug: "phones" },
+        },
       });
       expect(result.page).toBe(3);
     });
@@ -119,6 +143,40 @@ describe("ProductsService", () => {
 
       expect(mockPrisma.product.findMany).toHaveBeenCalledWith(
         expect.objectContaining({ skip: 0, take: 48 }),
+      );
+    });
+  });
+
+  describe("public product visibility", () => {
+    it("requires an active product owned by an approved seller for direct reads", async () => {
+      const product = {
+        id: "p1",
+        category: { id: "c1" },
+        reviews: [],
+      };
+      mockPrisma.product.findFirst.mockResolvedValue(product);
+      mockPrisma.review.aggregate.mockResolvedValue({ _avg: { rating: null }, _count: { rating: 0 } });
+
+      await service.findOne("p1");
+
+      expect(mockPrisma.product.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            id: "p1",
+            status: "ACTIVE",
+            seller: { is: { verificationStatus: "APPROVED" } },
+          },
+        }),
+      );
+    });
+
+    it("keeps management reads available without the public seller filter", async () => {
+      mockPrisma.product.findUnique.mockResolvedValue({ id: "p1" });
+
+      await service.findOneAdmin("p1");
+
+      expect(mockPrisma.product.findUnique).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: "p1" } }),
       );
     });
   });
@@ -145,7 +203,6 @@ describe("ProductsService", () => {
 
     it("update stores price as an exact 2-dp decimal string when provided", async () => {
       mockPrisma.product.findUnique.mockResolvedValue({ id: "p1" });
-      mockPrisma.review.aggregate.mockResolvedValue({ _avg: { rating: null }, _count: { rating: 0 } });
       mockPrisma.product.update.mockResolvedValue({ id: "p1" });
 
       await service.update("p1", { price: 42.5 });
@@ -159,7 +216,6 @@ describe("ProductsService", () => {
 
     it("update leaves price untouched when not provided", async () => {
       mockPrisma.product.findUnique.mockResolvedValue({ id: "p1" });
-      mockPrisma.review.aggregate.mockResolvedValue({ _avg: { rating: null }, _count: { rating: 0 } });
       mockPrisma.product.update.mockResolvedValue({ id: "p1" });
 
       await service.update("p1", { name: "renamed" });
@@ -176,7 +232,12 @@ describe("ProductsService", () => {
 
       expect(mockPrisma.product.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { category: { slug: "phones" }, status: "ACTIVE", stock: { gt: 0 } },
+          where: {
+            category: { slug: "phones" },
+            status: "ACTIVE",
+            seller: { is: { verificationStatus: "APPROVED" } },
+            stock: { gt: 0 },
+          },
         }),
       );
     });

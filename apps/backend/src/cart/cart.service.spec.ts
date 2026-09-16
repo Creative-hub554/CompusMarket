@@ -103,9 +103,30 @@ describe("CartService", () => {
 
       await expect(service.addItem("u-1", "p-1", 1)).rejects.toBeInstanceOf(BadRequestException);
     });
+
+    it("rejects a zero-stock product before creating a cart line", async () => {
+      mockPrisma.product.findUnique.mockResolvedValue({ id: "p-1", status: "ACTIVE", stock: 0 });
+
+      await expect(service.addItem("u-1", "p-1", 1)).rejects.toThrow("out of stock");
+      expect(mockPrisma.cartItem.upsert).not.toHaveBeenCalled();
+    });
   });
 
   describe("updateItem", () => {
+    it("caps an existing line at current stock", async () => {
+      mockPrisma.cart.findUnique.mockResolvedValue({
+        id: "c-1",
+        items: [{ id: "ci-1", productId: "p-1", product: { status: "ACTIVE", stock: 2 } }],
+      });
+      mockPrisma.cartItem.update.mockResolvedValue({ id: "ci-1", quantity: 2 });
+
+      await service.updateItem("u-1", "ci-1", 9);
+
+      expect(mockPrisma.cartItem.update).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { quantity: 2 } }),
+      );
+    });
+
     it("removes the item when quantity drops to zero or below", async () => {
       mockPrisma.cart.findUnique.mockResolvedValue({
         id: "c-1",

@@ -9,7 +9,7 @@ import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { routing } from "@/i18n/routing";
-import { Nav } from "@/components/Nav";
+import { AppShell } from "@/components/shell/AppShell";
 import { Footer } from "@/components/Footer";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/toast";
@@ -37,9 +37,7 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",
-});
-
-// Editorial serif for the "Royal Luxe" landing redesign.
+});  // Kept for compatibility with existing font variables; surfaces use Inter.
 const fraunces = Fraunces({
   subsets: ["latin"],
   variable: "--font-serif-display",
@@ -50,7 +48,7 @@ const fraunces = Fraunces({
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#1e1b4b",
+  themeColor: "#1877f2",
 };
 
 export const metadata: Metadata = {
@@ -114,8 +112,7 @@ export default async function LocaleLayout({ children, params }: Props) {
           <SessionWrapper>
             <NextIntlClientProvider locale={locale} messages={messages}>
               <Toaster />
-              <Nav />
-              <main className="min-h-[calc(100vh-4rem)]">{children}</main>
+              <AppShell>{children}</AppShell>
               <Footer />
               <AssistantWidget />
               <ChatDockProvider />

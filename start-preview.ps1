@@ -1,4 +1,4 @@
-# Start the preview stack: Postgres -> Backend -> Frontend
+﻿# Start the preview stack: Meilisearch -> Postgres -> Backend -> Frontend
 # Usage: .\start-preview.ps1 [-Root <path>] [-WorktreeId <uuid>]
 #   -Root       repo root to run from (default: this script's directory)
 #   -WorktreeId run inside <Root>\.freebuff\worktrees\<id> instead of <Root>
@@ -60,7 +60,7 @@ foreach ($req in $Requirements) {
 }
 
 # --- Preflight: required ports must be free -----------------------------------
-foreach ($port in 5432, 4000, 3000) {
+foreach ($port in 5432, 7700, 4000, 3000) {
   $conn = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1
   if ($conn) {
     $name = (Get-Process -Id $conn.OwningProcess -ErrorAction SilentlyContinue).ProcessName
@@ -68,7 +68,6 @@ foreach ($port in 5432, 4000, 3000) {
     exit 1
   }
 }
-
 # --- Helpers --------------------------------------------------------------------
 $Started = @{}
 $PidDir = Join-Path $Root '.freebuff\pids'
@@ -110,8 +109,8 @@ function Show-LogTail {
 }
 
 function Start-Stage {
-  param([string]$Name, [string]$WorkDir, [string[]]$NodeArgs, [string]$OutLog, [string]$ErrLog)
-  $proc = Start-Process -FilePath $Node `
+  param([string]$Name, [string]$WorkDir, [string[]]$NodeArgs, [string]$OutLog, [string]$ErrLog, [string]$FilePath = $Node)
+  $proc = Start-Process -FilePath $FilePath `
     -ArgumentList $NodeArgs `
     -WorkingDirectory $WorkDir `
     -RedirectStandardOutput $OutLog `
@@ -137,16 +136,84 @@ function Wait-Ready {
 }
 
 function Fail-Stage {
-  param([string]$Name, [string[]]$LogPaths)
+  param([string]$Name, [string[]]$LogPaths, [string]$Hint = "")
   Write-Host "`n$Name did NOT become ready." -ForegroundColor Red
   Show-LogTail $Name $LogPaths
+  if ($Hint) { Write-Host "`n$Hint" -ForegroundColor Yellow }
   Write-Host "`nStopping started processes..." -ForegroundColor Yellow
   Stop-Started
   exit 1
 }
 
-# --- 1. Postgres ---------------------------------------------------------------
-Write-Host "=== 1. Starting embedded Postgres (:5432) ===" -ForegroundColor Cyan
+# --- 1. Meilisearch ------------------------------------------------------------
+# Search engine for the market page product grid (GET /api/search). The backend
+# falls back to Prisma `contains` when Meili is down, but results are worse and
+# every search request logs errors — so we start it as part of the stack.
+#
+# Binary resolution order:
+#   1. $env:MEILI_EXE          (explicit override)
+#   2. $env:LOCALAPPDATA\meilisearch\meilisearch.exe (start-meili.ps1 installs here)
+#   3. meilisearch.exe on PATH
+#
+# Data lives in .freebuff\meili-data (persisted across restarts) and the master
+# key comes from apps\backend\.env MEILI_API_KEY — the same key the backend uses.
+Write-Host "`n=== 1. Starting Meilisearch (:7700) ===" -ForegroundColor Cyan
+$MeiliExe = $null
+foreach ($candidate in @(
+  $env:MEILI_EXE,
+  (Join-Path $env:LOCALAPPDATA 'meilisearch\meilisearch.exe'),
+  'meilisearch.exe'
+)) {
+  if ($candidate -and (Get-Command $candidate -ErrorAction SilentlyContinue)) {
+    $MeiliExe = (Get-Command $candidate).Source
+    break
+  }
+}
+if (-not $MeiliExe) {
+  Write-Host "Meilisearch binary not found." -ForegroundColor Red
+  Write-Host "Install it with: .\start-meili.ps1 -Install  (downloads to %LOCALAPPDATA%\meilisearch)"
+  Write-Host "Or set MEILI_EXE to an existing meilisearch.exe, or run the docker infra stack instead."
+  exit 1
+}
+
+# Master key must match the backend's MEILI_API_KEY so both talk to the same
+# instance. Fail fast here rather than debugging 401s from the backend later.
+$MeiliKey = $null
+$BackendEnv = Join-Path $Root 'apps\backend\.env'
+if (Test-Path $BackendEnv) {
+  foreach ($line in (Get-Content $BackendEnv)) {
+    if ($line -match '^\s*MEILI_API_KEY\s*=\s*"?([^"\r\n]+)"?\s*$') { $MeiliKey = $Matches[1]; break }
+  }
+}
+if (-not $MeiliKey) {
+  Write-Host "MEILI_API_KEY not found in apps\backend\.env — cannot start Meilisearch with the matching master key." -ForegroundColor Red
+  exit 1
+}
+
+$MeiliDataDir = Join-Path $Root '.freebuff\meili-data'
+New-Item -ItemType Directory -Path $MeiliDataDir -Force | Out-Null
+
+Start-Stage -Name 'Meili' -FilePath $MeiliExe `
+  -WorkDir "$Root" `
+  -NodeArgs @(
+    '--master-key', $MeiliKey,
+    '--db-path', "$MeiliDataDir\data.ms",
+    '--no-analytics'
+  ) `
+  -OutLog "$Root\.freebuff\meili-stdout.log" `
+  -ErrLog "$Root\.freebuff\meili-stderr.log"
+
+$meiliReady = Wait-Ready -Name 'Meili' -TimeoutSec 30 -Probe {
+  try {
+    (Invoke-WebRequest -Uri 'http://localhost:7700/health' -UseBasicParsing -TimeoutSec 3).Content -match 'available'
+  } catch { $false }
+}
+if (-not $meiliReady) {
+  Fail-Stage -Name 'Meili' -LogPaths @("$Root\.freebuff\meili-stderr.log", "$Root\.freebuff\meili-stdout.log")
+}
+
+# --- 2. Postgres ---------------------------------------------------------------
+Write-Host "`n=== 2. Starting embedded Postgres (:5432) ===" -ForegroundColor Cyan
 Start-Stage -Name 'PG' -WorkDir "$Root" `
   -NodeArgs @("`"$Root\scripts\pg-launcher.cjs`"") `
   -OutLog "$Root\.freebuff\pg-stdout.log" `
@@ -159,8 +226,8 @@ if (-not $pgReady) {
   Fail-Stage -Name 'PG' -LogPaths @("$Root\.freebuff\pg-stdout.log", "$Root\.freebuff\pg-stderr.log")
 }
 
-# --- 2. Backend ----------------------------------------------------------------
-Write-Host "`n=== 2. Starting Backend (:4000) ===" -ForegroundColor Cyan
+# --- 3. Backend ----------------------------------------------------------------
+Write-Host "`n=== 3. Starting Backend (:4000) ===" -ForegroundColor Cyan
 Start-Stage -Name 'Backend' -WorkDir "$Root\apps\backend" `
   -NodeArgs @('--enable-source-maps', 'dist\main.js') `
   -OutLog "$Root\.freebuff\backend-stdout.log" `
@@ -175,8 +242,8 @@ if (-not $beReady) {
   Fail-Stage -Name 'Backend' -LogPaths @("$Root\.freebuff\backend-stdout.log", "$Root\.freebuff\backend-stderr.log")
 }
 
-# --- 3. Frontend -----------------------------------------------------------------
-Write-Host "`n=== 3. Starting Frontend (:3000) ===" -ForegroundColor Cyan
+# --- 4. Frontend -----------------------------------------------------------------
+Write-Host "`n=== 4. Starting Frontend (:3000) ===" -ForegroundColor Cyan
 Start-Stage -Name 'Frontend' -WorkDir "$Root\apps\frontend" `
   -NodeArgs @('node_modules\next\dist\bin\next', 'dev', '-p', '3000') `
   -OutLog "$Root\.freebuff\frontend-stdout.log" `

@@ -34,6 +34,17 @@ export class ProfilesService {
 
   async listAlbums(ownerId: string, viewerId?: string) {
     if (viewerId !== ownerId) {
+      const blocked = viewerId && await this.prisma.block.findFirst({
+        where: {
+          OR: [
+            { blockerId: viewerId, blockedId: ownerId },
+            { blockerId: ownerId, blockedId: viewerId },
+          ],
+        },
+        select: { id: true },
+      });
+      if (blocked) return [];
+
       const owner = await this.prisma.user.findUnique({
         where: { id: ownerId },
         select: { accountPrivate: true },
@@ -95,6 +106,19 @@ export class ProfilesService {
       select: PUBLIC_PROFILE_SELECT,
     });
     if (!user) throw new NotFoundException("User not found");
+
+    if (viewerId && viewerId !== user.id) {
+      const blocked = await this.prisma.block.findFirst({
+        where: {
+          OR: [
+            { blockerId: viewerId, blockedId: user.id },
+            { blockerId: user.id, blockedId: viewerId },
+          ],
+        },
+        select: { id: true },
+      });
+      if (blocked) throw new NotFoundException("User not found");
+    }
 
     const isFollowing =
       viewerId && viewerId !== user.id

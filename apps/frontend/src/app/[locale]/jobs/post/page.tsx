@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 import { useSession } from "@/lib/session-client";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { jobsApi, type JobType } from "@/services/jobs";
+import { routerReturnPath } from "@/lib/return-path";
 
 const JOB_TYPES: JobType[] = [
   "FULL_TIME",
@@ -16,7 +18,9 @@ const JOB_TYPES: JobType[] = [
 
 export default function PostJobPage() {
   const t = useTranslations("jobs");
+  const locale = useLocale();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
 
   const [title, setTitle] = useState("");
@@ -51,7 +55,7 @@ export default function PostJobPage() {
         salaryMin: salaryMin ? Number(salaryMin) : undefined,
         salaryMax: salaryMax ? Number(salaryMax) : undefined,
       });
-      router.push(`/jobs/${job.id}`);
+      router.push(routerReturnPath(searchParams.get("returnTo"), locale, `/jobs/${job.id}`));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to post job");
       setSubmitting(false);

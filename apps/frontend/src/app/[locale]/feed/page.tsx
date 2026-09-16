@@ -1,11 +1,10 @@
 "use client";
 
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
-import { Link, usePathname } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { useSession } from "@/lib/session-client";
 import { RequireAuth } from "@/components/RequireAuth";
-import { useTranslations } from "next-intl";
-import { Bookmark, Store, Briefcase, Flag } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { Composer } from "@/components/social/Composer";
 import { PostCard, FeedPost } from "@/components/social/PostCard";
 import { StoriesBar } from "@/components/social/StoriesBar";
@@ -16,6 +15,8 @@ import { Avatar } from "@/components/social/Avatar";
 import { OnlineContacts } from "@/components/chat/ChatDock";
 import { MarketplaceListing, MarketplaceListingProduct } from "@/components/market/MarketplaceListing";
 import { apiFetch, handleApiError } from "@/lib/apiFetch";
+import { useSearchParams } from "next/navigation";
+import { routerReturnPath } from "@/lib/return-path";
 
 type Suggestion = {
   id: string;
@@ -30,7 +31,10 @@ const INTERSPERSE_EVERY = 3;
 
 export default function FeedPage() {
   const nav = useTranslations("nav");
-  const pathname = usePathname();
+  const locale = useLocale();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = routerReturnPath(searchParams.get("returnTo"), locale, "");
   const { data: session } = useSession();
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -83,53 +87,28 @@ export default function FeedPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
-      <div className="grid xl:grid-cols-[220px_minmax(0,1fr)_300px] gap-6">
-        {/* Left rail: shortcuts (Facebook-style) */}
-        <aside className="hidden xl:block">
-          <div className="sticky top-20 space-y-1">
-            <Link
-              href={`/profile/${session.user.id}`}
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-[var(--surface-2)] transition-colors font-medium text-slate-800 dark:text-slate-200"
-            >
-              <Avatar user={{ name: session.user.name, image: (session.user as { image?: string | null }).image }} size={32} />
-              <span className="truncate">{session.user.name || nav("feed")}</span>
-            </Link>
-            {            [
-              { href: "/community/groups", label: nav("groups"), img: "/champey-mark.svg" },
-              { href: "/pages", label: nav("pages"), Icon: Flag },
-              { href: "/saved", label: nav("savedPosts"), Icon: Bookmark },
-              { href: "/shop", label: nav("shop"), Icon: Store },
-              { href: "/jobs", label: nav("jobs"), Icon: Briefcase },
-            ].map(({ href, label, Icon, img }) => {
-              const active = pathname === href || pathname.startsWith(href + "/");
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors text-sm font-medium ${
-                    active
-                      ? "bg-gold-500/10 text-gold-600 dark:text-gold-300"
-                      : "hover:bg-[var(--surface-2)] text-slate-700 dark:text-slate-300"
-                  }`}
-                >
-                  {img ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={img} alt="" width={26} height={26} className="rounded-lg" />
-                  ) : Icon ? (
-                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-gold-500/15 to-gold-500/15 text-gold-500 dark:text-gold-300">
-                      <Icon size={16} />
-                    </span>
-                  ) : null}
-                  <span className="truncate">{label}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </aside>
-
-        {/* Center: stories, composer, posts */}
+      <div className="grid lg:grid-cols-[minmax(0,1fr)_300px] gap-6">
+        {/* Main feed: stories, composer, and posts */}
         <div className="space-y-5 min-w-0">
-          <h1 className="page-title">{nav("feed")}</h1>
+          <header className="border-b border-[var(--border-subtle)] pb-3">
+            <h1 className="page-title">{nav("feed")}</h1>
+            <nav aria-label={nav("feedView")} className="mt-4 flex gap-5">
+              <Link
+                href="/feed?tab=for-you"
+                aria-current={!searchParams.get("tab") || searchParams.get("tab") === "for-you" ? "page" : undefined}
+                className={`border-b-2 pb-2 text-sm font-medium ${!searchParams.get("tab") || searchParams.get("tab") === "for-you" ? "border-[var(--color-accent)] text-[var(--color-accent)]" : "border-transparent text-[var(--text-muted)]"}`}
+              >
+                {nav("forYou")}
+              </Link>
+              <Link
+                href="/feed?tab=following"
+                aria-current={searchParams.get("tab") === "following" ? "page" : undefined}
+                className={`border-b-2 pb-2 text-sm font-medium ${searchParams.get("tab") === "following" ? "border-[var(--color-accent)] text-[var(--color-accent)]" : "border-transparent text-[var(--text-muted)]"}`}
+              >
+                {nav("following")}
+              </Link>
+            </nav>
+          </header>
           <StoriesBar />
           <ErrorBoundary label="composer" fallback={({ reset }) => (
             <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)] p-4 animate-fade-in">
@@ -153,7 +132,10 @@ export default function FeedPage() {
             </div>
           )}>
             <Composer
-              onPosted={(post) => setPosts((prev) => [post as FeedPost, ...prev])}
+              onPosted={(post) => {
+                setPosts((prev) => [post as FeedPost, ...prev]);
+                if (returnTo) router.push(returnTo);
+              }}
             />
           </ErrorBoundary>
 

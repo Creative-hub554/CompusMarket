@@ -103,6 +103,7 @@ describe("SearchService", () => {
         images: [],
         createdAt: new Date("2026-01-01"),
         category: { name: "Watches" },
+        seller: { verificationStatus: "APPROVED" },
       });
 
       await service.indexProduct("p-1");
@@ -143,6 +144,7 @@ describe("SearchService", () => {
         "watch",
         expect.objectContaining({
           filter: [
+            "sellerApproved = true",
             'categoryId = "c-1"',
             "price >= 5",
             "price <= 100",
@@ -167,6 +169,7 @@ describe("SearchService", () => {
         "watch",
         expect.objectContaining({
           filter: [
+            "sellerApproved = true",
             "price <= 0",
           ],
         })
@@ -185,6 +188,7 @@ describe("SearchService", () => {
         "watch",
         expect.objectContaining({
           filter: [
+            "sellerApproved = true",
             'categoryId = "c-alpha_1@v2:-3"',
             'condition = "A_b.c"',
           ],
@@ -203,7 +207,7 @@ describe("SearchService", () => {
       expect(h.mockIndex.search).toHaveBeenCalledWith(
         "watch",
         expect.objectContaining({
-          filter: ["stock > 0"],
+          filter: ["sellerApproved = true", "stock > 0"],
           sort: ["price:asc"],
         })
       );
