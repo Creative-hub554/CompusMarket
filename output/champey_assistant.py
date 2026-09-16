@@ -8,7 +8,7 @@ the live Champey backend API (read-only). It never writes or acts on the user's
 behalf.
 
 Run:
-    pip install -U openhands-sdk openhands-tools fastapi uvicorn
+    python -m pip install -r requirements.txt
     export LLM_API_KEY="..."            # required
     export CHAMPEY_API_BASE_URL="http://localhost:4000/api"
     python champey_assistant.py         # serves on http://localhost:8001

@@ -13,7 +13,8 @@ type ChatMessage = {
   skill?: string | null;
 };
 
-const ASSISTANT_URL = process.env.NEXT_PUBLIC_ASSISTANT_URL || "http://localhost:8001";
+const ASSISTANT_URL =
+  process.env.NEXT_PUBLIC_ASSISTANT_URL || "http://localhost:8001";
 
 const SKILLS: { id: Skill; label: Record<Lang, string> }[] = [
   { id: "auto", label: { en: "Auto", km: "ស្វ័យប្រវត្តិ" } },
@@ -32,7 +33,13 @@ const SKILL_TAGS: Record<string, string> = {
 
 const STRINGS: Record<
   Lang,
-  { title: string; greeting: string; placeholder: string; send: string; error: string }
+  {
+    title: string;
+    greeting: string;
+    placeholder: string;
+    send: string;
+    error: string;
+  }
 > = {
   en: {
     title: "Champey Assistant",
@@ -67,38 +74,6 @@ function getSessionId(): string {
   return fresh;
 }
 
-const MOCK_DATA: Record<Exclude<Skill, "auto">, Record<Lang, string>> = {
-  product_search: {
-    en: "Here are some products that match:\n\n• Khmer Silk Scarf — $18 (Like New)\n• Handwoven Rattan Basket — $25 (Good)\n• Ceramic Tea Set — $32 (New)\n\nYou can refine by category, price, or condition.",
-    km: "នេះជាផលិតផលដែលត្រូវគ្នា៖\n\n• ក្រម៉ាសូត្រខ្មែរ — 18 ដុល្លារ (ដូចថ្មី)\n• កន្ត្រកឫស្សី — 25 ដុល្លារ (ល្អ)\n• ឈុតតែសេរ៉ាមិច — 32 ដុល្លារ (ថ្មី)\n\nអ្នកអាចចម្រាញ់តាមប្រភេទ តម្លៃ ឬស្ថានភាព។",
-  },
-  feed: {
-    en: "For your feed, try these suggestions:\n\n• Filter: Trending · Newest · Following\n• Caption: \"Fresh finds at the market today 🌿\"\n• Search tip: short keywords like #handmade\n\nWant me to write a full caption?",
-    km: "សម្រាប់មាតិការបស់អ្នក សាកល្បងទាំងនេះ៖\n\n• តម្រង៖ កំពុងពេញនិយម · ថ្មីបំផុត · តាមដាន\n• ចំណងជើង៖ \"របស់ថ្មីនៅផ្សារថ្ងៃនេះ 🌿\"\n• គន្លឹះស្វែងរក៖ ពាក្យគន្លឹះខ្លីដូចជា #ធ្វើដោយដៃ\n\nចង់ឱ្យខ្ញុំសរសេរចំណងជើងពេញទេ?",
-  },
-  jobs: {
-    en: "Here are a few openings that match:\n\n• Junior Web Developer — Phnom Penh (Full-time)\n• Graphic Designer — Remote (Freelance)\n• Sales Associate — Siem Reap (Part-time)\n\nWant me to filter by location or type?",
-    km: "នេះជាការងារដែលត្រូវគ្នាមួយចំនួន៖\n\n• អ្នកអភិវឌ្ឍវេប Junior — ភ្នំពេញ (ពេញម៉ោង)\n• អ្នករចនាក្រាហ្វិក — ពីចម្ងាយ (ឯករាជ្យ)\n• បុគ្គលិកលក់ — សៀមរាប (ក្រៅម៉ោង)\n\nចង់ឱ្យខ្ញុំតម្រងតាមទីតាំង ឬប្រភេទទេ?",
-  },
-  resume: {
-    en: "I can help build your resume. A strong CV has:\n\n• A clear summary (2–3 lines)\n• Work experience with measurable results\n• Skills + languages\n\nTell me your target role and I'll draft bullet points.",
-    km: "ខ្ញុំអាចជួយបង្កើតប្រវត្តិរូបរបស់អ្នក។ CV ល្អគួរមាន៖\n\n• សេចក្តីសង្ខេបច្បាស់លាស់ (2–3 បន្ទាត់)\n• បទពិសោធន៍ការងារជាមួយលទ្ធផលវាស់វែងបាន\n• ជំនាញ + ភាសា\n\nប្រាប់ខ្ញុំពីតួនាទីគោលដៅ ហើយខ្ញុំនឹងសរសេរចំណុចៗឱ្យ។",
-  },
-};
-
-function detectSkill(message: string): Exclude<Skill, "auto"> {
-  const q = message.toLowerCase();
-  if (/job|career|work|hiring|position|ការងារ/.test(q)) return "jobs";
-  if (/resume|cv|cover letter|ប្រវត្តិរូប/.test(q)) return "resume";
-  if (/feed|post|caption|story|content|មាតិកា|ចំណងជើង/.test(q)) return "feed";
-  return "product_search";
-}
-
-function mockReply(message: string, selected: Skill, lang: Lang): { reply: string; skill: string } {
-  const skill = selected === "auto" ? detectSkill(message) : (selected as Exclude<Skill, "auto">);
-  return { reply: MOCK_DATA[skill][lang], skill };
-}
-
 export function AssistantWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -120,14 +95,20 @@ export function AssistantWidget() {
   }, [isOpen, lang, messages.length]);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: "smooth",
+    });
   }, [messages, isLoading]);
 
   const changeLang = (next: Lang) => {
     setLang(next);
     safeLocalStorageSet("champeyAssistantLang", next);
     if (isOpen) {
-      setMessages((prev) => [{ role: "assistant", content: STRINGS[next].greeting }, ...prev]);
+      setMessages((prev) => [
+        { role: "assistant", content: STRINGS[next].greeting },
+        ...prev,
+      ]);
     }
   };
 
@@ -142,7 +123,11 @@ export function AssistantWidget() {
     let replySkill: string | null = null;
 
     try {
-      const data = await apiFetch<{ reply?: string; error?: string; skill?: string }>(`${ASSISTANT_URL}/chat`, {
+      const data = await apiFetch<{
+        reply?: string;
+        error?: string;
+        skill?: string;
+      }>(`${ASSISTANT_URL}/chat`, {
         method: "POST",
         body: {
           message: content,
@@ -155,14 +140,10 @@ export function AssistantWidget() {
         reply = data.reply;
         replySkill = data.skill || null;
       } else {
-        const mock = mockReply(content, skill, lang);
-        reply = mock.reply;
-        replySkill = mock.skill;
+        reply = STRINGS[lang].error;
       }
     } catch {
-      const mock = mockReply(content, skill, lang);
-      reply = mock.reply;
-      replySkill = mock.skill;
+      reply = STRINGS[lang].error;
     }
 
     setMessages((prev) => [
@@ -201,7 +182,9 @@ export function AssistantWidget() {
                   onClick={() => changeLang(l)}
                   aria-pressed={lang === l}
                   className={`px-2 py-0.5 text-xs rounded-full transition-colors ${
-                    lang === l ? "bg-white text-gold-700 font-bold" : "text-white/80 hover:bg-white/15"
+                    lang === l
+                      ? "bg-white text-gold-700 font-bold"
+                      : "text-white/80 hover:bg-white/15"
                   }`}
                 >
                   {l === "en" ? "EN" : "ខ្មែរ"}
@@ -223,7 +206,10 @@ export function AssistantWidget() {
             className="flex-1 overflow-y-auto p-3 space-y-2.5 min-h-[220px] max-h-[340px] bg-[var(--bg-body)]"
           >
             {messages.map((msg, idx) => (
-              <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+              <div
+                key={idx}
+                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              >
                 <div
                   className={`max-w-[85%] text-sm whitespace-pre-wrap px-3 py-2 ${
                     msg.role === "assistant"
@@ -232,17 +218,22 @@ export function AssistantWidget() {
                   }`}
                 >
                   {msg.content}
-                  {msg.role === "assistant" && msg.skill && SKILL_TAGS[msg.skill] && (
-                    <span className="block mt-1.5 text-[10px] uppercase tracking-wider text-gold-600 dark:text-gold-300 font-bold">
-                      {SKILL_TAGS[msg.skill]}
-                    </span>
-                  )}
+                  {msg.role === "assistant" &&
+                    msg.skill &&
+                    SKILL_TAGS[msg.skill] && (
+                      <span className="block mt-1.5 text-[10px] uppercase tracking-wider text-gold-600 dark:text-gold-300 font-bold">
+                        {SKILL_TAGS[msg.skill]}
+                      </span>
+                    )}
                 </div>
               </div>
             ))}
 
             {isLoading && (
-              <div className="flex items-center gap-1.5 text-slate-400 dark:text-slate-500 text-xs px-1" aria-live="polite">
+              <div
+                className="flex items-center gap-1.5 text-slate-400 dark:text-slate-500 text-xs px-1"
+                aria-live="polite"
+              >
                 {[0, 150, 300].map((d) => (
                   <span
                     key={d}

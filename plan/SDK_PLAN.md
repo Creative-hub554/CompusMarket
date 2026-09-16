@@ -3,6 +3,25 @@
 > Built with the OpenHands Software Agent SDK. A single, read-only, bilingual
 > advisory agent embedded in the Champey frontend as a chat widget.
 
+## Status (2026-09-16)
+
+Implemented locally:
+
+- `output/champey_assistant.py` provides the FastAPI service, four read-only tools, language prompts, manual skill overrides, in-memory sessions, `/chat`, `/reset`, and `/health`.
+- `apps/frontend/src/components/AssistantWidget.tsx` provides the bilingual chat widget and uses `NEXT_PUBLIC_ASSISTANT_URL` for the service URL.
+- `output/requirements.txt` pins the runtime and test environment, including OpenHands SDK/tools `1.44.1`, compatible FastMCP/Uvicorn/Pydantic/FastAPI versions, and Pytest.
+- `output/test_champey_assistant.py` contains seven dependency-mocked service contract tests covering skills, language/overrides, sessions/reset, failures, malformed backend responses, and the read-only endpoint boundary.
+- `apps/frontend/src/components/AssistantWidget.test.tsx` covers live response rendering and explicit unavailable states.
+
+Validation completed without credentials or live services:
+
+- Manifest dependency resolution and imports passed with `uv`.
+- Seven mocked service tests passed.
+- Three frontend widget tests passed.
+- Frontend TypeScript typecheck passed.
+
+Live LLM/backend acceptance remains pending and requires configured credentials and a running Champey backend. No live product, feed, job, or resume recommendation was claimed or verified.
+
 ## 1. Overview
 
 A conversational assistant for the Champey marketplace/community that
@@ -30,7 +49,7 @@ auto-detect skill + manual override · Khmer + English (user picks language firs
 │   1. user picks language (km | en)                                              │
 │   2. types question + optional skill override                                   │
 │   3. POST /chat  { message, language, session_id, skill? }                      │
-│   4. renders the streamed/text reply + detected skill label                     │
+│   4. renders the text reply + detected skill label                              │
 └───────────────────────────────────────┬─────────────────────────────────────────┘
                                         │ HTTP (localhost:8001 or env URL)
 ┌───────────────────────────────────────▼─────────────────────────────────────────┐
@@ -53,9 +72,9 @@ auto-detect skill + manual override · Khmer + English (user picks language firs
 - Key: `LLM_API_KEY`
 
 ### 4.2 Custom tools (read-only HTTP clients)
-Each tool = Action (pydantic) + Observation (`to_llm_content`) + Executor
-(`httpx` GET) + `ToolDefinition`, registered via `register_tool` and wired with
-`Tool(name=...)`.
+Each tool = Action (Pydantic) + text Observation + executor using the shared
+`urllib` GET helper + `ToolDefinition`, registered via `register_tool` and wired
+with `Tool(name=...)`.
 
 | Tool | Action fields | Champey endpoint |
 |---|---|---|
@@ -96,7 +115,8 @@ A React `AssistantWidget` (client component) in `apps/frontend/src/components/`:
 - Floating chat button (bottom-right), matching the coral theme.
 - Language picker (`km`/`en`) shown before the input.
 - Optional skill chip row (auto / search / feed / jobs / resume).
-- Calls the Python service via `ASSISTANT_URL`, renders the reply.
+- Calls the Python service via `NEXT_PUBLIC_ASSISTANT_URL`, renders live replies,
+  and shows an explicit unavailable message when the service cannot respond.
 
 ## 7. Environment variables
 
@@ -110,16 +130,28 @@ A React `AssistantWidget` (client component) in `apps/frontend/src/components/`:
 
 ## 8. Deliverables
 
-- `output/champey_assistant.py` — single-file agent service (SDK + tools + FastAPI).
-- `output/README.md` — run instructions.
-- `plan/SDK_PLAN.md` — this plan.
-- `plan/agent-flow.html` — flow diagram.
+- [x] `output/champey_assistant.py` — single-file agent service (SDK + tools + FastAPI).
+- [x] `output/requirements.txt` — pinned runtime and test dependencies.
+- [x] `output/test_champey_assistant.py` — mocked service contract tests.
+- [x] `output/README.md` — reproducible setup and run instructions.
+- [x] `apps/frontend/src/components/AssistantWidget.tsx` — frontend widget integration.
+- [x] `apps/frontend/src/components/AssistantWidget.test.tsx` — widget response/error coverage.
+- [x] `plan/SDK_PLAN.md` — implementation status and contract documentation.
+- [x] `plan/agent-flow.html` — flow diagram matching the public API paths.
 
 ## 9. Acceptance criteria
 
-1. `POST /chat` with a product query returns a product recommendation (uses `search_products`).
-2. Feed query returns caption/filter suggestions (uses `browse_feed`).
-3. Job query returns job recommendations (uses `search_jobs`).
-4. Resume query returns resume advice (uses `get_resume_templates`).
-5. Replies match the requested language; auto-detected skill is reported.
-6. All tool calls and cost are logged to stdout.
+The following are covered by mocked tests and local validation; they do not
+constitute live LLM/backend acceptance:
+
+1. [x] Product tool registration and read-only search/category calls.
+2. [x] Feed tool registration and public suggestions/stories calls.
+3. [x] Job tool registration and read-only jobs calls.
+4. [x] Resume tool registration and read-only resume-template calls.
+5. [x] Language prompts, manual skill overrides, session continuity/reset, and
+   detected skill reporting.
+6. [x] Error and malformed-backend-response handling without fabricated results.
+7. [x] Tool/API boundary remains read-only and logs/cost response fields remain
+   part of the service contract.
+8. [ ] Live product, feed, job, and resume responses with configured LLM and
+   running backend — requires credentials and live services.
