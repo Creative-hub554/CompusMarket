@@ -161,7 +161,25 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       where: { threadId_userId: { threadId, userId } },
       select: { id: true },
     });
-    if (participant) return true;
+    if (participant) {
+      const peers = await this.prisma.threadParticipant.findMany({
+        where: { threadId, userId: { not: userId } },
+        select: { userId: true },
+      });
+      if (peers.length > 0) {
+        const blocked = await this.prisma.block.findFirst({
+          where: {
+            OR: [
+              { blockerId: userId, blockedId: { in: peers.map((peer) => peer.userId) } },
+              { blockerId: { in: peers.map((peer) => peer.userId) }, blockedId: userId },
+            ],
+          },
+          select: { id: true },
+        });
+        if (blocked) return false;
+      }
+      return true;
+    }
 
     const thread = await this.prisma.thread.findUnique({
       where: { id: threadId },
@@ -408,6 +426,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     try {
       const userId = client.userId;
       if (!userId) return;
+      if (!(await this.assertThreadAccess(data.threadId, userId))) return;
 
       const participant = await this.prisma.threadParticipant.findUnique({
         where: { threadId_userId: { threadId: data.threadId, userId } },

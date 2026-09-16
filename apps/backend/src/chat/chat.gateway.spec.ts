@@ -17,7 +17,7 @@ function makePrisma() {
     threadParticipant: {
       findUnique: vi.fn(),
       update: vi.fn(),
-      findMany: vi.fn(),
+      findMany: vi.fn().mockResolvedValue([]),
     },
     message: {
       create: vi.fn(),
@@ -41,6 +41,9 @@ function makePrisma() {
     },
     user: {
       findUnique: vi.fn(),
+    },
+    block: {
+      findFirst: vi.fn(),
     },
   };
 }
@@ -120,6 +123,17 @@ describe("ChatGateway participant gating", () => {
       await gateway.handleJoinThread(client as never, { threadId: "t1" });
 
       expect(client.join).toHaveBeenCalledWith("t1");
+    });
+
+    it("does not join a private thread when either participant has blocked the other", async () => {
+      prisma.threadParticipant.findUnique.mockResolvedValue({ id: "tp1" });
+      prisma.threadParticipant.findMany.mockResolvedValue([{ userId: "u2" }]);
+      prisma.block.findFirst.mockResolvedValue({ id: "b1" });
+      const client = makeClient("u1");
+
+      await gateway.handleJoinThread(client as never, { threadId: "t1" });
+
+      expect(client.join).not.toHaveBeenCalled();
     });
 
     it("allows page OWNER to join a customer thread as non-participant", async () => {

@@ -24,7 +24,7 @@ function makePrisma() {
     },
     threadParticipant: {
       findUnique: vi.fn(),
-      findMany: vi.fn(),
+      findMany: vi.fn().mockResolvedValue([]),
       update: vi.fn(),
     },
     message: {
@@ -36,6 +36,11 @@ function makePrisma() {
     },
     user: {
       findUnique: vi.fn(),
+      findMany: vi.fn(),
+    },
+    block: {
+      findFirst: vi.fn(),
+      findMany: vi.fn().mockResolvedValue([]),
     },
   };
 }
@@ -66,6 +71,14 @@ describe("ThreadsService", () => {
     it("rejects unknown users", async () => {
       prisma.user.findUnique.mockResolvedValue(null);
       await expect(service.findOrCreateThread("u1", "ghost")).rejects.toThrow(NotFoundException);
+    });
+
+    it("rejects starting a thread in either blocked direction", async () => {
+      prisma.user.findUnique.mockResolvedValue({ id: "u2" });
+      prisma.block.findFirst.mockResolvedValue({ id: "b1" });
+
+      await expect(service.findOrCreateThread("u1", "u2")).rejects.toThrow(NotFoundException);
+      expect(prisma.thread.findFirst).not.toHaveBeenCalled();
     });
 
     it("returns the existing thread id when one matches", async () => {
@@ -156,6 +169,14 @@ describe("ThreadsService", () => {
     it("forbids non-participants", async () => {
       prisma.threadParticipant.findUnique.mockResolvedValue(null);
       await expect(service.getMessages("t1", "intruder")).rejects.toThrow(ForbiddenException);
+    });
+
+    it("forbids a participant after either side blocks the other", async () => {
+      prisma.threadParticipant.findUnique.mockResolvedValue({ id: "tp1" });
+      prisma.threadParticipant.findMany.mockResolvedValue([{ userId: "u2" }]);
+      prisma.block.findFirst.mockResolvedValue({ id: "b1" });
+
+      await expect(service.getMessages("t1", "u1")).rejects.toThrow(ForbiddenException);
     });
 
     it("returns a cursor when more pages exist", async () => {
