@@ -108,6 +108,22 @@ describe("OrdersService", () => {
         where: { cartId: "cart-1" },
       });
       expect(result.id).toBe("o-1");
+      expect(mockPrisma.$queryRaw).toHaveBeenCalled();
+    });
+
+    it("treats a retry after the cart is cleared as empty", async () => {
+      let hasItems = true;
+      mockPrisma.cart.findUnique.mockImplementation(async () =>
+        hasItems ? cart : { id: "cart-1", items: [] },
+      );
+      mockPrisma.cartItem.deleteMany.mockImplementation(async () => {
+        hasItems = false;
+        return { count: 2 };
+      });
+
+      await service.checkout("u-1");
+      await expect(service.checkout("u-1")).rejects.toBeInstanceOf(BadRequestException);
+      expect(mockPrisma.order.create).toHaveBeenCalledTimes(1);
     });
 
     it("rejects without creating anything when stock is insufficient", async () => {

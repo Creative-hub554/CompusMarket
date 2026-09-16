@@ -28,6 +28,7 @@ export class CartService {
     });
     if (!product) throw new NotFoundException("Product not found");
     if (product.status !== "ACTIVE") throw new BadRequestException("Product is not available");
+    if (product.stock <= 0) throw new BadRequestException("Product is out of stock");
     if (!Number.isFinite(quantity) || quantity <= 0) {
       throw new BadRequestException("Quantity must be a positive number");
     }
@@ -37,7 +38,7 @@ export class CartService {
     // Bound the line quantity: never exceed a sane max or the available stock.
     const existingLine = cart.items.find((i) => i.productId === productId);
     const target = (existingLine?.quantity ?? 0) + quantity;
-    const cap = product.stock > 0 ? Math.min(product.stock, MAX_QTY) : MAX_QTY;
+    const cap = Math.min(product.stock, MAX_QTY);
     const next = Math.min(target, cap);
 
     // Atomic upsert on the (cartId, productId) unique constraint prevents
@@ -62,7 +63,13 @@ export class CartService {
       return this.removeItem(userId, itemId);
     }
 
-    const qty = Math.min(quantity, MAX_QTY);
+    if (!item.product || item.product.status !== "ACTIVE") {
+      throw new BadRequestException("Product is not available");
+    }
+    if (item.product.stock <= 0) {
+      throw new BadRequestException("Product is out of stock");
+    }
+    const qty = Math.min(quantity, item.product.stock, MAX_QTY);
     return this.prisma.cartItem.update({
       where: { id: itemId },
       data: { quantity: qty },
