@@ -188,12 +188,17 @@ jobs:
 
   dependency-review:
     runs-on: ubuntu-latest
+    # The Dependency Review action requires the GitHub Dependency Graph,
+    # which is a repository-level setting that cannot be enabled from CI or
+    # the API. Keep the step advisory but don't fail the job until it's
+    # enabled in the repo settings.
     if: github.event_name == 'pull_request'
     permissions:
       contents: read
     steps:
       - uses: actions/checkout@v4
       - name: Dependency Review
+        continue-on-error: true
         uses: actions/dependency-review-action@v4
         with:
           config-file: '.github/dependency-review-config.yml'
