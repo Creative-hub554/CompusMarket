@@ -20,6 +20,10 @@ type ProductWithRelations = Product & {
   ratingCount?: number;
 };
 
+const PUBLIC_SELLER_WHERE = {
+  seller: { is: { verificationStatus: "APPROVED" as const } },
+};
+
 @Injectable()
 export class ProductsService {
   constructor(private readonly searchService: SearchService, private prisma: PrismaService) {}
@@ -39,6 +43,7 @@ export class ProductsService {
     return this.prisma.product.findMany({
       where: {
         status: "ACTIVE",
+        ...PUBLIC_SELLER_WHERE,
         ...(inStock ? { stock: { gt: 0 } } : {}),
         ...(ids && ids.length > 0 ? { id: { in: ids.slice(0, 24) } } : {}),
       },
@@ -64,6 +69,7 @@ export class ProductsService {
     const q = typeof opts.q === "string" ? opts.q.trim() : undefined;
     const where = {
       status: "ACTIVE" as const,
+      ...PUBLIC_SELLER_WHERE,
       ...(opts.category ? { category: { slug: opts.category } } : {}),
       ...(q
         ? {
@@ -98,8 +104,8 @@ export class ProductsService {
 
   /** Same-category products, excluding the current one, for "you may also like". */
   async findRelated(productId: string, limit = 4) {
-    const product = await this.prisma.product.findUnique({
-      where: { id: productId },
+    const product = await this.prisma.product.findFirst({
+      where: { id: productId, status: "ACTIVE", ...PUBLIC_SELLER_WHERE },
       select: { categoryId: true },
     });
     if (!product) return [];
@@ -107,6 +113,7 @@ export class ProductsService {
       where: {
         categoryId: product.categoryId,
         status: "ACTIVE",
+        ...PUBLIC_SELLER_WHERE,
         id: { not: productId },
       },
       include: { category: true },
@@ -118,6 +125,7 @@ export class ProductsService {
   async findPromos() {    return this.prisma.product.findMany({
       where: {
         status: "ACTIVE",
+        ...PUBLIC_SELLER_WHERE,
         stock: { gt: 0 },
         videoActive: true,
         videoUrl: { not: null },
@@ -137,8 +145,8 @@ export class ProductsService {
 
   async findOne(id: string): Promise<ProductWithRelations> {
     const [product, summary] = await Promise.all([
-      this.prisma.product.findUnique({
-        where: { id, status: "ACTIVE" },
+      this.prisma.product.findFirst({
+        where: { id, status: "ACTIVE", ...PUBLIC_SELLER_WHERE },
         include: {
           category: true,
           reviews: {
@@ -175,7 +183,7 @@ export class ProductsService {
   }
 
   async update(id: string, dto: UpdateProductDto): Promise<Product> {
-    await this.findOne(id);
+    await this.findOneAdmin(id);
     const product = await this.prisma.product.update({
       where: { id },
       data: {
@@ -200,6 +208,7 @@ export class ProductsService {
       where: {
         category: { slug },
         status: "ACTIVE",
+        ...PUBLIC_SELLER_WHERE,
         ...(inStock ? { stock: { gt: 0 } } : {}),
       },
       include: { category: true },

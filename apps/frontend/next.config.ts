@@ -27,6 +27,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "img.clerk.com" },
       { protocol: "https", hostname: "images.clerk.com" },
       { protocol: "https", hostname: "images.clerk.dev" },
+      // Seed images used by the local marketplace fixtures.
+      { protocol: "https", hostname: "picsum.photos" },
       ...(process.env.IMAGE_HOSTS || "")
         .split(",")
         .map((host) => host.trim())
