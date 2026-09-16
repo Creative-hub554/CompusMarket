@@ -170,6 +170,7 @@ describe("ProductsService", () => {
             category: { slug: "phones" },
             condition: "B",
             price: { gte: 10, lte: 90 },
+            seller: { is: { verificationStatus: "APPROVED" } },
           },
         }),
       );
@@ -192,7 +193,7 @@ describe("ProductsService", () => {
 
       expect(mockPrisma.sellerProfile.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { products: { some: { status: "ACTIVE" } } },
+          where: { products: { some: { status: "ACTIVE" } }, verificationStatus: "APPROVED" },
         }),
       );
       expect(result).toEqual([
@@ -224,7 +225,7 @@ describe("ProductsService", () => {
       const result = await service.findSellerStorefront("sp1");
 
       expect(mockPrisma.sellerProfile.findUnique).toHaveBeenCalledWith({
-        where: { id: "sp1" },
+        where: { id: "sp1", verificationStatus: "APPROVED" },
         include: expect.anything(),
       });
       expect(mockPrisma.product.findMany).toHaveBeenCalledWith(
@@ -240,6 +241,18 @@ describe("ProductsService", () => {
       mockPrisma.sellerProfile.findUnique.mockResolvedValue(null);
 
       await expect(service.findSellerStorefront("missing")).rejects.toThrow("Shop not found");
+      expect(mockPrisma.product.findMany).not.toHaveBeenCalled();
+    });
+
+    it("throws a 404 for an unapproved seller so hidden shops stay hidden", async () => {
+      mockPrisma.sellerProfile.findUnique.mockResolvedValue(null);
+
+      await expect(service.findSellerStorefront("sp-pending")).rejects.toThrow("Shop not found");
+      expect(mockPrisma.sellerProfile.findUnique).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: "sp-pending", verificationStatus: "APPROVED" },
+        }),
+      );
       expect(mockPrisma.product.findMany).not.toHaveBeenCalled();
     });
   });

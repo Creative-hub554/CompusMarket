@@ -115,7 +115,7 @@ export class ProductsService {
    */
   async findShops() {
     const shops = await this.prisma.sellerProfile.findMany({
-      where: { products: { some: { status: "ACTIVE" } } },
+      where: { products: { some: { status: "ACTIVE" } }, verificationStatus: "APPROVED" },
       include: {
         user: { select: { id: true, name: true, image: true } },
         _count: { select: { products: { where: { status: "ACTIVE" } } } },
@@ -138,7 +138,7 @@ export class ProductsService {
    */
   async findSellerStorefront(sellerId: string) {
     const seller = await this.prisma.sellerProfile.findUnique({
-      where: { id: sellerId },
+      where: { id: sellerId, verificationStatus: "APPROVED" },
       include: {
         user: { select: { id: true, name: true, image: true, bio: true, username: true } },
         _count: { select: { products: { where: { status: "ACTIVE" } } } },
