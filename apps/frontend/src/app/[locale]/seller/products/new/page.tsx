@@ -3,13 +3,19 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
+import { useLocale } from "next-intl";
 import { useSession } from "@/lib/session-client";
 import { apiFetch } from "@/lib/apiFetch";
 import { RequireAuth } from "@/components/RequireAuth";
+import { routerReturnPath } from "@/lib/return-path";
 
 export default function SellerNewProductPage() {
   const { data: session } = useSession();
+  const locale = useLocale();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = routerReturnPath(searchParams.get("returnTo"), locale, "/seller/dashboard");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
@@ -96,7 +102,7 @@ export default function SellerNewProductPage() {
           images,
         },
       });
-      router.push("/seller/dashboard");
+      router.push(returnTo);
     } catch (e: any) {
       setError(e.message);
     }

@@ -1,5 +1,4 @@
-import { SectionShell } from "@/components/SectionShell";
 
 export default function CommunityLayout({ children }: { children: React.ReactNode }) {
-  return <SectionShell section="community">{children}</SectionShell>;
+  return children;
 }

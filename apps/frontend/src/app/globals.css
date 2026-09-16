@@ -40,12 +40,12 @@
     0 10px 32px -12px rgb(176 141 62 / 0.35);
 
   /* Legacy aliases — keep existing pages compiling during migration */
-  --color-khmer-blue: #b08d3e;
-  --color-khmer-blue-light: #c79a3f;
-  --color-khmer-red: #dc2626;
-  --color-khmer-red-light: #e53935;
-  --color-khmer-gold: #b08d3e;
-  --color-khmer-gold-light: #d8b25c;
+  --color-khmer-blue: #1877f2;
+  --color-khmer-blue-light: #42b72a;
+  --color-khmer-red: #e41e3f;
+  --color-khmer-red-light: #f5536d;
+  --color-khmer-gold: #1877f2;
+  --color-khmer-gold-light: #42b72a;
 }
 
 /* ---- Personal account themes (scoped gold-palette overrides) ----
@@ -671,25 +671,25 @@ img {
 
 .lx-root {
   /* Palette */
-  --lx-ink: #14122b; /* deep indigo ink */
-  --lx-ink-soft: #4c4869;
-  --lx-muted: #85809f;
-  --lx-paper: #f7f5ef; /* ivory paper */
-  --lx-paper-2: #fffdf8;
-  --lx-line: #e5e0d2;
-  --lx-gold: #b08d3e; /* temple gold */
-  --lx-gold-deep: #8a6a26;
-  --lx-gold-tint: #f3ecda;
-  --lx-clay: #a8532f; /* lacquer clay accent */
-  --lx-jade: #2f6d5a; /* jade accent */
-  --lx-night: #14122b;
-  --lx-night-2: #1d1a3f;
-  --lx-on-night: #f4f0e6;
-  --lx-on-night-muted: rgba(244, 240, 230, 0.64);
-  --lx-on-night-line: rgba(244, 240, 230, 0.14);
+  --lx-ink: #050505;
+  --lx-ink-soft: #65676b;
+  --lx-muted: #65676b;
+  --lx-paper: #f0f2f5;
+  --lx-paper-2: #ffffff;
+  --lx-line: #dddfe2;
+  --lx-gold: #1877f2;
+  --lx-gold-deep: #166fe5;
+  --lx-gold-tint: #eaf3ff;
+  --lx-clay: #e41e3f;
+  --lx-jade: #42b72a;
+  --lx-night: #1877f2;
+  --lx-night-2: #166fe5;
+  --lx-on-night: #ffffff;
+  --lx-on-night-muted: rgba(255, 255, 255, 0.82);
+  --lx-on-night-line: rgba(255, 255, 255, 0.28);
 
   /* Type */
-  --lx-serif: var(--font-serif-display), var(--font-khmer), Georgia, serif;
+  --lx-serif: var(--font-inter), var(--font-khmer), Arial, sans-serif;
   --lx-sans: var(--font-inter), var(--font-khmer), system-ui, sans-serif;
 
   /* Motion */
@@ -701,27 +701,27 @@ img {
 }
 
 .dark .lx-root {
-  /* Night palette — warm lamplight over indigo */
-  --lx-ink: #f0ede2;
-  --lx-ink-soft: #c9c4b4;
-  --lx-muted: #8f8aa6;
-  --lx-paper: #100e20;
-  --lx-paper-2: #17142e;
-  --lx-line: #2a2650;
-  --lx-gold: #d8b25c;
-  --lx-gold-deep: #c79a3f;
-  --lx-gold-tint: rgba(216, 178, 92, 0.12);
-  --lx-clay: #e07a4e;
-  --lx-jade: #5ba98d;
-  --lx-on-night: #f4f0e6;
-  --lx-on-night-muted: rgba(244, 240, 230, 0.62);
-  --lx-on-night-line: rgba(244, 240, 230, 0.14);
+  /* Facebook-style dark mode: charcoal surfaces with blue accents. */
+  --lx-ink: #e4e6eb;
+  --lx-ink-soft: #b0b3b8;
+  --lx-muted: #b0b3b8;
+  --lx-paper: #18191a;
+  --lx-paper-2: #242526;
+  --lx-line: #3e4042;
+  --lx-gold: #2d88ff;
+  --lx-gold-deep: #4599ff;
+  --lx-gold-tint: rgba(45, 136, 255, 0.16);
+  --lx-clay: #f5536d;
+  --lx-jade: #65c75a;
+  --lx-on-night: #ffffff;
+  --lx-on-night-muted: rgba(255, 255, 255, 0.78);
+  --lx-on-night-line: rgba(255, 255, 255, 0.2);
 }
 
 .dark .lx-root {
   background:
-    radial-gradient(900px 420px at 88% -6%, rgba(216, 178, 92, 0.1), transparent 62%),
-    radial-gradient(700px 380px at -8% 24%, rgba(224, 122, 78, 0.07), transparent 60%),
+    radial-gradient(900px 420px at 88% -6%, rgba(45, 136, 255, 0.12), transparent 62%),
+    radial-gradient(700px 380px at -8% 24%, rgba(66, 183, 42, 0.06), transparent 60%),
     var(--lx-paper);
 }
 
@@ -769,7 +769,13 @@ img {
   color: var(--lx-on-night);
 }
 .lx-hero-bg .lx-eyebrow {
-  color: var(--lx-gold);
+  color: var(--lx-on-night);
+}
+.lx-hero-bg .lx-display em,
+.lx-hero-bg .lx-serif,
+.dark .lx-root .lx-hero-bg .lx-display em,
+.dark .lx-root .lx-hero-bg .lx-serif {
+  color: #ffffff !important;
 }
 
 /* ---- Ornament: hairline + diamond ---- */
@@ -810,7 +816,7 @@ img {
   transform: scale(0.97);
 }
 .lx-btn-gold {
-  background: linear-gradient(120deg, var(--lx-gold) 0%, var(--lx-gold-deep) 100%);
+  background: linear-gradient(120deg, #1877f2 0%, #1258b5 100%);
   color: #fff;
   box-shadow: 0 14px 30px -14px rgba(138, 106, 38, 0.65);
 }
@@ -906,14 +912,17 @@ img {
 }
 
 /* ---- Hero backdrop: night-sky with gold lantern glows ---- */
-.lx-hero-bg {
+.lx-hero-bg,
+.dark .lx-root .lx-hero-bg {
+  --lx-gold: #ffffff;
+  --lx-gold-deep: #ffffff;
   position: relative;
   isolation: isolate;
   overflow: hidden;
   background:
-    radial-gradient(1100px 520px at 78% -10%, rgba(216, 178, 92, 0.22), transparent 60%),
-    radial-gradient(820px 460px at 8% 12%, rgba(224, 122, 78, 0.12), transparent 58%),
-    linear-gradient(160deg, #14122b 0%, #1d1a3f 52%, #26204a 100%);
+    radial-gradient(1100px 520px at 78% -10%, rgba(66, 183, 42, 0.18), transparent 60%),
+    radial-gradient(820px 460px at 8% 12%, rgba(255, 255, 255, 0.1), transparent 58%),
+    linear-gradient(160deg, #1877f2 0%, #166fe5 52%, #1258b5 100%);
 }
 .lx-hero-bg::before {
   content: "";

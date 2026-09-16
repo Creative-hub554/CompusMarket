@@ -131,13 +131,19 @@ describe("locale layout SSR chrome", () => {
     async (locale) => {
       const html = await renderLayoutToHtml(locale);
 
-      // The Nav wrapper carries viewTransitionName "site-header" — the
-      // single cheapest marker that <Nav /> is actually rendered.
-      expect(html).toMatch(/view-transition-name:\s*site-header/);
       expect(html).toContain(`lang="${locale}"`);
 
-      // Nav contents: wordmark, locale switcher buttons (literal text).
+      // AppShell contents: wordmark, desktop navigation, mobile navigation,
+      // and the top-bar create action are all present in the SSR output.
       expect(html).toContain(">champey<");
+      expect(html).toContain('aria-label="Primary navigation"');
+      expect(html).toMatch(/aria-label="(?:Mobile navigation|[^\"]*រុករក[^\"]*)"/);
+      expect(html).toContain(`href="/${locale}/feed"`);
+      expect(html).toContain(`href="/${locale}/community"`);
+      expect(html).toContain(`href="/${locale}/people"`);
+      expect(html).toContain(`href="/${locale}/market"`);
+      expect(html).toContain(`href="/${locale}/jobs"`);
+      expect(html).toContain('aria-haspopup="menu"');
       expect(html).toContain(">EN<");
       expect(html).toContain("ខ្មែរ");
 

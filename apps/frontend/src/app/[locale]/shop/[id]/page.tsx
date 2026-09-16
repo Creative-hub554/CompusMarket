@@ -6,14 +6,19 @@ import { api } from "@/services/api";
 import { notFound } from "next/navigation";
 import { AddToCartButton } from "@/components/AddToCartButton";
 import { ChatWithSellerButton } from "@/components/ChatWithSellerButton";
+import { ListingActions } from "@/components/market/ListingActions";
 import { ProductTabs } from "./ProductTabs";
 import { ProductCard } from "@/components/ProductCard";
 import { RecentlyViewed } from "@/components/shop/RecentlyViewed";
 import { languageAlternates, getSiteUrl } from "@/lib/site";
+import { safeReturnPath } from "@/lib/return-path";
 
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ id: string }> };
+type Props = {
+  params: Promise<{ id: string }>;
+  searchParams?: Promise<{ returnTo?: string }>;
+};
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
@@ -40,9 +45,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function ProductDetailPage({ params }: Props) {
+export default async function ProductDetailPage({ params, searchParams }: Props) {
   const t = await getTranslations("product");
   const { id } = await params;
+  const returnTo = safeReturnPath((await searchParams)?.returnTo, "/market");
+
   let product;
   try {
     product = await api.products.byId(id);
@@ -87,6 +94,12 @@ export default async function ProductDetailPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 animate-fade-in">
+      <Link
+        href={returnTo || "/market"}
+        className="mb-5 inline-flex text-sm font-medium text-[var(--color-accent)] hover:underline"
+      >
+        {t("backToSearch")}
+      </Link>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
@@ -179,6 +192,7 @@ export default async function ProductDetailPage({ params }: Props) {
               {t("soldByVerified")}
             </p>
           )}
+          <ListingActions productId={product.id} name={product.name} />
 
           <Link
             href={`/support/new?productId=${product.id}`}

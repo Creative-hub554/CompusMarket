@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { useTransitionNavigation } from "@/lib/use-transition-navigation";
+import { productSearchHref } from "@/lib/search";
 
 type ProductCardProps = {
   id: string;
@@ -13,6 +14,7 @@ type ProductCardProps = {
   images: string[];
   categoryName?: string;
   sellerBadge?: boolean;
+  returnTo?: string;
 };
 
 const conditionColors: Record<string, string> = {
@@ -29,6 +31,7 @@ export function ProductCard({
   images,
   categoryName,
   sellerBadge,
+  returnTo,
 }: ProductCardProps) {
   const t = useTranslations("product");
   const navigate = useTransitionNavigation();
@@ -40,10 +43,17 @@ export function ProductCard({
 
   return (
     <Link
-      href={`/shop/${id}`}
+      href={returnTo ? productSearchHref(id, returnTo) : `/shop/${id}`}
       onClick={(e) => {
         // Let the browser handle modified clicks (new tab, etc.) untouched.
-        if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
+        if (
+          e.defaultPrevented ||
+          e.button !== 0 ||
+          e.metaKey ||
+          e.ctrlKey ||
+          e.shiftKey ||
+          e.altKey
+        ) {
           return;
         }
         e.preventDefault();
@@ -106,8 +116,11 @@ export function ProductCard({
             {conditionLabels[condition] || condition}
           </span>
           {sellerBadge && (
-            <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>
-              {t("seller")}
+            <span
+              className="text-[11px]"
+              style={{ color: "var(--text-muted)" }}
+            >
+              {t("verifiedSeller")}
             </span>
           )}
         </div>

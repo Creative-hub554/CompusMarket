@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { SectionShell } from "@/components/SectionShell";
 
 export const metadata: Metadata = {
   title: "Feed",
@@ -13,5 +12,5 @@ export default function FeedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <SectionShell section="community">{children}</SectionShell>;
+  return children;
 }
