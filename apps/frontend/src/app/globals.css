@@ -5,35 +5,35 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-ink: #17171f;
-  --color-accent: #b08d3e;
-  --color-accent-dark: #8a6a26;
-  --color-accent2: #d8b25c;
-  --color-accent2-dark: #b08d3e;
+  --color-ink: #050505;
+  --color-accent: #1877f2;
+  --color-accent-dark: #166fe5;
+  --color-accent2: #42b72a;
+  --color-accent2-dark: #36a420;
 
-  /* Temple gold palette (Royal Luxe) — 500 anchors the chrome literals */
-  --color-gold: #b08d3e;
-  --color-gold-light: #d8b25c;
-  --color-gold-dark: #8a6a26;
-  --color-gold-50: #faf7ee;
-  --color-gold-100: #f3ecda;
-  --color-gold-200: #e6d5a8;
-  --color-gold-300: #d8b25c;
-  --color-gold-400: #c79a3f;
-  --color-gold-500: #b08d3e;
-  --color-gold-600: #9a7a33;
-  --color-gold-700: #8a6a26;
-  --color-gold-800: #6f5420;
-  --color-gold-900: #57411c;
-  --color-gold-950: #3a2a12;
+  /* Community blue palette — keeps the app's existing gold utility names compatible. */
+  --color-gold: #1877f2;
+  --color-gold-light: #42b72a;
+  --color-gold-dark: #166fe5;
+  --color-gold-50: #eaf3ff;
+  --color-gold-100: #dbeafe;
+  --color-gold-200: #bfdbfe;
+  --color-gold-300: #93c5fd;
+  --color-gold-400: #60a5fa;
+  --color-gold-500: #1877f2;
+  --color-gold-600: #166fe5;
+  --color-gold-700: #1258b5;
+  --color-gold-800: #0d47a1;
+  --color-gold-900: #0b367d;
+  --color-gold-950: #082451;
 
   --radius-xl: 0.75rem;
   --radius-2xl: 1rem;
   --radius-3xl: 1.5rem;
 
-  --shadow-soft: 0 2px 12px -2px rgb(176 141 62 / 0.12);
-  --shadow-lift: 0 16px 32px -12px rgb(176 141 62 / 0.32);
-  --shadow-glow: 0 8px 30px -6px rgb(176 141 62 / 0.45);
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.08), 0 1px 4px rgb(0 0 0 / 0.06);
+  --shadow-lift: 0 8px 24px -12px rgb(0 0 0 / 0.28);
+  --shadow-glow: 0 8px 24px -8px rgb(24 119 242 / 0.35);
   --shadow-gold:
     0 1px 2px rgb(23 23 31 / 0.06),
     0 0 0 1px rgb(176 141 62 / 0.14),
@@ -157,29 +157,28 @@
 /* ---- Semantic surface tokens (flip in dark mode) ---- */
 
 :root {
-  --bg-body: #f6f7fb;
-  --text-body: #17171f;
-  /* Editorial serif for page titles (Royal Luxe Phase 3) — Fraunces with a real Khmer webfont fallback */
-  --font-serif-title: var(--font-serif-display), var(--font-khmer), Georgia, serif;
+  --bg-body: #f0f2f5;
+  --text-body: #050505;
+  --font-serif-title: var(--font-display), var(--font-khmer), Arial, sans-serif;
   --surface: #ffffff;
-  --surface-2: #eef0f6;
-  --border-subtle: #e8e9f2;
-  --border-gold: rgba(216, 178, 92, 0.28);
-  --text-muted: #8a8b9c;
-  --glass-bg: rgba(255, 255, 255, 0.72);
-  --glass-border: rgba(216, 178, 92, 0.25);
+  --surface-2: #e4e6eb;
+  --border-subtle: #dddfe2;
+  --border-gold: rgba(24, 119, 242, 0.2);
+  --text-muted: #65676b;
+  --glass-bg: rgba(255, 255, 255, 0.94);
+  --glass-border: rgba(221, 223, 226, 0.9);
 }
 
 .dark {
-  --bg-body: #0f0f17;
-  --text-body: #efeff6;
-  --surface: #171721;
-  --surface-2: #1f1f2c;
-  --border-subtle: #252532;
-  --border-gold: rgba(216, 178, 92, 0.22);
-  --text-muted: #9b9bac;
-  --glass-bg: rgba(23, 23, 33, 0.72);
-  --glass-border: rgba(216, 178, 92, 0.18);
+  --bg-body: #18191a;
+  --text-body: #e4e6eb;
+  --surface: #242526;
+  --surface-2: #3a3b3c;
+  --border-subtle: #3e4042;
+  --border-gold: rgba(45, 136, 255, 0.28);
+  --text-muted: #b0b3b8;
+  --glass-bg: rgba(36, 37, 38, 0.94);
+  --glass-border: rgba(62, 64, 66, 0.9);
 }
 
 * {
@@ -198,8 +197,8 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: var(--font-display), var(--font-inter), var(--font-khmer), sans-serif;
-  letter-spacing: -0.02em;
+  font-family: var(--font-inter), var(--font-khmer), Arial, sans-serif;
+  letter-spacing: -0.01em;
 }
 
 /* ---- Keyframes ---- */
@@ -450,14 +449,14 @@ h4 {
 /* ---- UI primitives ---- */
 
 .btn-primary {
-  @apply rounded-lg px-4 py-2 text-sm font-medium transition disabled:opacity-40;
+  @apply rounded-md px-4 py-2 text-sm font-semibold transition disabled:opacity-40;
   color: #fff;
-  background: linear-gradient(135deg, #b08d3e, #d8b25c);
-  box-shadow: 0 4px 14px -4px rgb(176 141 62 / 0.55);
+  background: #1877f2;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.12);
 }
 .btn-primary:hover {
-  background: linear-gradient(135deg, #8a6a26, #c79a3f);
-  box-shadow: 0 6px 20px -4px rgb(176 141 62 / 0.7);
+  background: #166fe5;
+  box-shadow: 0 4px 10px rgb(0 0 0 / 0.16);
   transform: translateY(-1px);
 }
 
@@ -490,7 +489,7 @@ h4 {
 }
 
 .card {
-  border-radius: var(--radius-xl);
+  border-radius: 12px;
   border: 1px solid var(--border-subtle);
   background: var(--surface);
   transition:
