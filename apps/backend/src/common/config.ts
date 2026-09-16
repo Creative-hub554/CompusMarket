@@ -1,5 +1,6 @@
 const DEFAULT_CORS_ORIGINS = [
   "http://localhost:3000",
+  "http://localhost:3010",
   "http://localhost:3001",
   "http://localhost:3002",
   "http://localhost:3003",
@@ -15,10 +16,18 @@ export function getAuthSecret(): string {
 }
 
 export function getCorsOrigins(): string[] {
-  const origins = (process.env.CORS_ORIGIN || DEFAULT_CORS_ORIGINS.join(","))
-    .split(",")
+  const raw = process.env.CORS_ORIGIN || DEFAULT_CORS_ORIGINS.join(",");
+  // Accept both comma- and whitespace-separated origins (and mixed), so
+  // CORS_ORIGIN="a b" or "a, b" doesn't silently produce one broken origin
+  // like "http://localhost:3000 http://localhost:3001".
+  const configuredOrigins = raw
+    .split(/[\s,]+/)
     .map((origin) => origin.trim())
     .filter(Boolean);
+  const origins =
+    process.env.NODE_ENV === "production"
+      ? configuredOrigins
+      : [...new Set([...DEFAULT_CORS_ORIGINS, ...configuredOrigins])];
 
   if (!process.env.CORS_ORIGIN && process.env.NODE_ENV === "production") {
     console.warn(
