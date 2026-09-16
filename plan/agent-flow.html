@@ -40,7 +40,7 @@
 <body>
 <div class="wrap">
   <h1>Champey Assistant — data flow</h1>
-  <p class="sub">User message → OpenHands agent (auto-detected skill) → read-only Champey API → reply.</p>
+  <p class="sub">User message → OpenHands agent (auto-detected skill) → public read-only Champey API → reply.</p>
 
   <div class="canvas" id="canvas">
     <svg width="100%" height="680" id="svg"></svg>
@@ -78,7 +78,7 @@ const NODES = [
     s:'GET /api/search · /products · /categories' },
   { id:'t2', x:258, y:478, w:195, h:64, cls:'tool',
     t:'📰 browse_feed',
-    s:'GET /api/feed · /suggestions · /stories' },
+    s:'GET /api/suggestions · /api/stories (public)' },
   { id:'t3', x:486, y:478, w:195, h:64, cls:'tool',
     t:'💼 search_jobs',
     s:'GET /api/jobs' },

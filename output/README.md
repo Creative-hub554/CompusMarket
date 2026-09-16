@@ -16,8 +16,10 @@ by calling the live Champey backend API:
 ## Run
 
 ```bash
-# 1. Install (openhands-sdk + openhands-tools must be installed together)
-pip install -U openhands-sdk openhands-tools fastapi uvicorn
+# 1. Install the fully resolved pinned runtime and test environment
+python -m pip install -r output/requirements.lock
+# Regenerate the lock after intentional top-level changes:
+# uv pip compile output/requirements.txt -o output/requirements.lock
 
 # 2. Configure
 export LLM_API_KEY="your-api-key"                       # required
@@ -25,7 +27,7 @@ export LLM_MODEL="openhands/claude-sonnet-4-5-20250929" # default
 export CHAMPEY_API_BASE_URL="http://localhost:4000/api"  # Champey backend
 
 # 3. Start (serve on :8001)
-python champey_assistant.py
+python output/champey_assistant.py
 ```
 
 **Windows PowerShell** (no `export` — use `$env:`):
@@ -36,7 +38,13 @@ $env:CHAMPEY_API_BASE_URL = "http://localhost:4000/api"
 python output\champey_assistant.py
 ```
 
-Verified against **`openhands-sdk` / `openhands-tools` 1.44.1**.
+Run the mocked service contract tests without credentials or live services:
+
+```bash
+python -m pytest output/test_champey_assistant.py -v
+```
+
+The top-level manifest and resolved lock are verified against **`openhands-sdk` / `openhands-tools` 1.44.1**. Use `requirements.txt` for direct pins and `requirements.lock` for reproducible installs.
 
 The backend must be running (NestJS on `:4000`) for the tools to return live data.
 

@@ -1,0 +1,7 @@
+fastapi==0.115.6
+fastmcp==3.0.0
+openhands-sdk==1.44.1
+openhands-tools==1.44.1
+pydantic==2.12.5
+pytest==8.3.4
+uvicorn==0.35.0
