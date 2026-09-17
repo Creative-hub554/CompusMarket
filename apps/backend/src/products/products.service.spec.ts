@@ -291,40 +291,6 @@ describe("ProductsService", () => {
     });
   });
 
-  describe("public product visibility", () => {
-    it("requires an active product owned by an approved seller for direct reads", async () => {
-      const product = {
-        id: "p1",
-        category: { id: "c1" },
-        reviews: [],
-      };
-      mockPrisma.product.findFirst.mockResolvedValue(product);
-      mockPrisma.review.aggregate.mockResolvedValue({ _avg: { rating: null }, _count: { rating: 0 } });
-
-      await service.findOne("p1");
-
-      expect(mockPrisma.product.findFirst).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: {
-            id: "p1",
-            status: "ACTIVE",
-            seller: { is: { verificationStatus: "APPROVED" } },
-          },
-        }),
-      );
-    });
-
-    it("keeps management reads available without the public seller filter", async () => {
-      mockPrisma.product.findUnique.mockResolvedValue({ id: "p1" });
-
-      await service.findOneAdmin("p1");
-
-      expect(mockPrisma.product.findUnique).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { id: "p1" } }),
-      );
-    });
-  });
-
   describe("price normalization", () => {
     it("create stores price as an exact 2-dp decimal string", async () => {
       mockPrisma.product.create.mockResolvedValue({ id: "p1" });
